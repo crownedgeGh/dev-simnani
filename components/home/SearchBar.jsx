@@ -7,35 +7,26 @@ const MODES = ["Buy", "Sell", "Rent"];
 
 const PROPERTY_TYPES = ["Any Type", "Apartment", "Villa", "Plot", "Commercial"];
 
-const BUDGETS = [
-  "Any Budget",
-  "Under ₹50 Lakh",
-  "₹50 Lakh - ₹1 Cr",
-  "₹1 Cr - ₹2 Cr",
-  "₹2 Cr+",
-];
-
 export default function SearchBar() {
   const router = useRouter();
   const [mode, setMode] = useState("Buy");
   const [location, setLocation] = useState("");
   const [propertyType, setPropertyType] = useState(PROPERTY_TYPES[0]);
-  const [budget, setBudget] = useState(BUDGETS[0]);
 
   function handleSubmit(event) {
     event.preventDefault();
     const params = new URLSearchParams();
     if (location.trim()) params.set("location", location.trim());
     if (propertyType !== PROPERTY_TYPES[0]) params.set("type", propertyType);
-    if (budget !== BUDGETS[0]) params.set("budget", budget);
 
     const query = params.toString();
     router.push(`/${mode.toLowerCase()}${query ? `?${query}` : ""}`);
   }
 
   return (
-    <div className="relative z-10 mx-auto -mt-24 w-full max-w-5xl px-4 sm:-mt-28 sm:px-6 lg:px-8">
-      <div className="rounded-sm border border-navy-700/60 bg-navy-900 p-4 shadow-2xl sm:p-6">
+    <div className="mx-auto w-full max-w-5xl">
+      <div className="border-t-2 border-gold-400 bg-navy-900/95 p-4 shadow-2xl backdrop-blur-sm sm:p-6">
+        <p className="tracked-label mb-3 text-[11px] text-gold-400">Start Your Search</p>
         <div className="flex flex-wrap gap-2">
           {MODES.map((item) => (
             <button
@@ -71,18 +62,6 @@ export default function SearchBar() {
             className="border border-navy-600 bg-navy-950 px-4 py-3 text-sm text-cream focus:border-gold-500 focus:outline-none sm:w-48"
           >
             {PROPERTY_TYPES.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={budget}
-            onChange={(event) => setBudget(event.target.value)}
-            className="border border-navy-600 bg-navy-950 px-4 py-3 text-sm text-cream focus:border-gold-500 focus:outline-none sm:w-48"
-          >
-            {BUDGETS.map((option) => (
               <option key={option} value={option}>
                 {option}
               </option>

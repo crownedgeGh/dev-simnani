@@ -1,5 +1,4 @@
 import Hero from "@/components/home/Hero";
-import SearchBar from "@/components/home/SearchBar";
 import ExploreServices from "@/components/home/ExploreServices";
 import FeaturedProperties from "@/components/home/FeaturedProperties";
 import ProjectsSection from "@/components/home/ProjectsSection";
@@ -12,7 +11,6 @@ export default function Home() {
   return (
     <>
       <Hero />
-      <SearchBar />
       <ExploreServices />
       <FeaturedProperties />
       <ProjectsSection />
