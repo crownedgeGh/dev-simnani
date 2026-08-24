@@ -35,12 +35,24 @@ export default function Navbar() {
           ))}
         </nav>
 
-        <div className="hidden md:block">
+        <div className="hidden items-center gap-6 md:flex">
           <Link
-            href="#"
-            className="tracked-label text-xs text-gold-400 transition hover:text-gold-300"
+            href="/auth"
+            className="tracked-label text-xs text-cream/80 transition hover:text-gold-400"
           >
             Login
+          </Link>
+          <Link
+            href="/auth/register"
+            className="tracked-label border border-gold-500/70 px-4 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10"
+          >
+            Sign Up
+          </Link>
+          <Link
+            href="/post-property"
+            className="tracked-label bg-gold-400 px-4 py-2 text-xs text-navy-950 transition hover:bg-gold-300"
+          >
+            Post Property
           </Link>
         </div>
 
@@ -82,11 +94,25 @@ export default function Navbar() {
               </Link>
             ))}
             <Link
-              href="#"
+              href="/auth"
               onClick={() => setOpen(false)}
-              className="tracked-label text-sm text-gold-400"
+              className="tracked-label text-sm text-cream/80 transition hover:text-gold-400"
             >
               Login
+            </Link>
+            <Link
+              href="/auth/register"
+              onClick={() => setOpen(false)}
+              className="tracked-label inline-block w-fit border border-gold-500/70 px-4 py-2 text-sm text-gold-400 transition hover:bg-gold-500/10"
+            >
+              Sign Up
+            </Link>
+            <Link
+              href="/post-property"
+              onClick={() => setOpen(false)}
+              className="tracked-label inline-block w-fit bg-gold-400 px-4 py-2 text-sm text-navy-950 transition hover:bg-gold-300"
+            >
+              Post Property
             </Link>
           </div>
         </nav>

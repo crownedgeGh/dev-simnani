@@ -14,12 +14,12 @@ export default function CtaBanner() {
       <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
         <Link
           href="/buy"
-          className="tracked-label w-full bg-gold-500 px-8 py-3.5 text-sm font-semibold text-navy-950 transition hover:bg-gold-400 sm:w-auto"
+          className="tracked-label w-full bg-gold-400 px-8 py-3.5 text-sm font-semibold text-navy-950 transition hover:bg-gold-300 sm:w-auto"
         >
           Explore Properties
         </Link>
         <Link
-          href="/sell"
+          href="/post-property"
           className="tracked-label w-full border border-gold-500/70 px-8 py-3.5 text-sm text-gold-400 transition hover:bg-gold-500/10 sm:w-auto"
         >
           Post Your Property

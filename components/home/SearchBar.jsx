@@ -34,7 +34,7 @@ export default function SearchBar() {
   }
 
   return (
-    <div className="relative z-10 mx-auto -mt-16 w-full max-w-5xl px-4 sm:-mt-20 sm:px-6 lg:px-8">
+    <div className="relative z-10 mx-auto -mt-24 w-full max-w-5xl px-4 sm:-mt-28 sm:px-6 lg:px-8">
       <div className="rounded-sm border border-navy-700/60 bg-navy-900 p-4 shadow-2xl sm:p-6">
         <div className="flex flex-wrap gap-2">
           {MODES.map((item) => (
@@ -44,7 +44,7 @@ export default function SearchBar() {
               onClick={() => setMode(item)}
               className={`tracked-label rounded-sm px-4 py-2 text-xs transition ${
                 mode === item
-                  ? "bg-gold-500 text-navy-950"
+                  ? "bg-gold-400 text-navy-950"
                   : "text-muted hover:text-cream"
               }`}
             >
@@ -91,7 +91,7 @@ export default function SearchBar() {
 
           <button
             type="submit"
-            className="tracked-label bg-gold-500 px-6 py-3 text-xs font-semibold text-navy-950 transition hover:bg-gold-400 sm:w-auto"
+            className="tracked-label bg-gold-400 px-6 py-3 text-xs font-semibold text-navy-950 transition hover:bg-gold-300 sm:w-auto"
           >
             Search Properties
           </button>

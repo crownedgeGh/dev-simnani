@@ -18,11 +18,11 @@
   --color-cream: #f5f1e8;
   --color-muted: #9aa3b8;
 
-  --color-gold-300: #f0cd7e;
-  --color-gold-400: #e3ba5c;
-  --color-gold-500: #d4a94a;
-  --color-gold-600: #b58f38;
-  --color-gold-700: #93732b;
+  --color-gold-300: #ffde85;
+  --color-gold-400: #ffc633;
+  --color-gold-500: #f5b400;
+  --color-gold-600: #d19700;
+  --color-gold-700: #a87900;
 
   --font-display: var(--font-playfair);
   --font-sans: var(--font-inter);

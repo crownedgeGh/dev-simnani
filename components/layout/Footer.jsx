@@ -32,10 +32,10 @@ const COLUMNS = [
   {
     title: "Support",
     links: [
-      { label: "Help Center", href: "#" },
-      { label: "Privacy Policy", href: "#" },
-      { label: "Terms & Conditions", href: "#" },
-      { label: "Contact Support", href: "#" },
+      { label: "Help Center", href: "/help" },
+      { label: "Privacy Policy", href: "/legal/privacy-policy" },
+      { label: "Terms & Conditions", href: "/legal/terms-conditions" },
+      { label: "Contact Support", href: "/help" },
     ],
   },
 ];

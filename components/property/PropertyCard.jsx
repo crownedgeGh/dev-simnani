@@ -1,7 +1,8 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export default function PropertyCard({ property }) {
-  const { title, price, location, image, badge, beds, baths, area, roi, type } =
+  const { id, title, price, location, image, badge, beds, baths, area, roi, type } =
     property;
   const isInvest = type === "invest";
 
@@ -58,12 +59,12 @@ export default function PropertyCard({ property }) {
           )}
         </div>
 
-        <button
-          type="button"
-          className="tracked-label mt-5 w-full border border-gold-500/70 py-2.5 text-xs text-gold-400 transition hover:bg-gold-500 hover:text-navy-950"
+        <Link
+          href={`/property/${id}`}
+          className="tracked-label mt-5 block w-full border border-gold-500/70 py-2.5 text-center text-xs text-gold-400 transition hover:bg-gold-500 hover:text-navy-950"
         >
           {isInvest ? "View Opportunity" : "View Details"}
-        </button>
+        </Link>
       </div>
     </div>
   );
