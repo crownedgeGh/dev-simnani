@@ -12,12 +12,9 @@ import CtaBanner from "@/components/home/CtaBanner";
 export default function Home() {
   return (
     <>
-      <Hero />
-      <div className="relative z-20 -mt-24 px-4 sm:-mt-28 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-6xl">
-          <SearchBar />
-        </div>
-      </div>
+      <Hero>
+        <SearchBar />
+      </Hero>
       <StatsBar />
       <ExploreServices />
       <FeaturedProperties />

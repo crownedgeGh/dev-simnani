@@ -15,6 +15,9 @@ const BUDGETS = [
   "₹2 Cr+",
 ];
 
+const SELECT_CLASS =
+  "w-full appearance-none rounded-md border border-navy-700/70 bg-navy-900/80 px-4 py-3.5 text-sm text-cream transition focus:border-gold-500 focus:outline-none";
+
 export default function SearchBar() {
   const router = useRouter();
   const [mode, setMode] = useState("Buy");
@@ -34,8 +37,10 @@ export default function SearchBar() {
   }
 
   return (
-    <div className="border-t-2 border-gold-400 bg-navy-950 p-4 shadow-2xl sm:p-6">
-      <p className="tracked-label mb-4 text-[11px] text-gold-400">Start Your Search</p>
+    <div className="rounded-3xl border border-cream/12 bg-navy-950/92 p-5 shadow-[0_32px_80px_-24px_rgba(0,0,0,0.95)] backdrop-blur-md sm:p-8 lg:px-10 lg:py-9">
+      <p className="tracked-label mb-5 text-[11px] font-medium text-gold-400">
+        Start Your Search
+      </p>
 
       <div className="flex flex-wrap gap-2">
         {MODES.map((item) => (
@@ -43,8 +48,10 @@ export default function SearchBar() {
             key={item}
             type="button"
             onClick={() => setMode(item)}
-            className={`tracked-label px-4 py-2 text-xs transition ${
-              mode === item ? "bg-gold-400 text-navy-950" : "text-muted hover:text-cream"
+            className={`tracked-label rounded-md px-5 py-2.5 text-xs font-medium transition ${
+              mode === item
+                ? "bg-gold-400 text-navy-950"
+                : "text-muted hover:text-cream"
             }`}
           >
             {item}
@@ -52,9 +59,9 @@ export default function SearchBar() {
         ))}
       </div>
 
-      <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-3 lg:flex-row">
-        <div className="flex flex-1 items-center gap-2 border border-navy-700/60 bg-navy-900 px-4 transition focus-within:border-gold-500">
-          <span className="text-muted">
+      <form onSubmit={handleSubmit} className="mt-5 flex flex-col gap-3 lg:flex-row">
+        <div className="flex flex-1 items-center gap-2.5 rounded-md border border-navy-700/70 bg-navy-900/80 px-4 transition focus-within:border-gold-500">
+          <span className="shrink-0 text-cream/70">
             <PinIcon />
           </span>
           <input
@@ -62,43 +69,65 @@ export default function SearchBar() {
             value={location}
             onChange={(event) => setLocation(event.target.value)}
             placeholder="Search city, locality or project"
-            className="w-full bg-transparent py-3 text-sm text-cream placeholder:text-muted focus:outline-none"
+            className="w-full bg-transparent py-3.5 text-sm text-cream placeholder:text-muted focus:outline-none"
           />
         </div>
 
-        <select
-          value={propertyType}
-          onChange={(event) => setPropertyType(event.target.value)}
-          className="border border-navy-700/60 bg-navy-900 px-4 py-3 text-sm text-cream focus:border-gold-500 focus:outline-none lg:w-48"
-        >
-          {PROPERTY_TYPES.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
+        <div className="relative lg:w-52">
+          <select
+            value={propertyType}
+            onChange={(event) => setPropertyType(event.target.value)}
+            className={SELECT_CLASS}
+          >
+            {PROPERTY_TYPES.map((option) => (
+              <option key={option} value={option} className="bg-navy-900">
+                {option}
+              </option>
+            ))}
+          </select>
+          <ChevronIcon />
+        </div>
 
-        <select
-          value={budget}
-          onChange={(event) => setBudget(event.target.value)}
-          className="border border-navy-700/60 bg-navy-900 px-4 py-3 text-sm text-cream focus:border-gold-500 focus:outline-none lg:w-48"
-        >
-          {BUDGETS.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
+        <div className="relative lg:w-52">
+          <select
+            value={budget}
+            onChange={(event) => setBudget(event.target.value)}
+            className={SELECT_CLASS}
+          >
+            {BUDGETS.map((option) => (
+              <option key={option} value={option} className="bg-navy-900">
+                {option}
+              </option>
+            ))}
+          </select>
+          <ChevronIcon />
+        </div>
 
         <button
           type="submit"
-          className="tracked-label flex items-center justify-center gap-2 bg-gold-400 px-6 py-3 text-xs font-semibold text-navy-950 transition hover:bg-gold-300 lg:w-auto"
+          className="tracked-label flex items-center justify-center gap-2.5 rounded-md bg-gold-400 px-8 py-3.5 text-xs font-semibold text-navy-950 transition hover:bg-gold-300 lg:w-auto"
         >
           Search Properties
           <SearchIcon />
         </button>
       </form>
     </div>
+  );
+}
+
+function ChevronIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      aria-hidden="true"
+      className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-cream/70"
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="m6 9.5 6 6 6-6" />
+    </svg>
   );
 }
 

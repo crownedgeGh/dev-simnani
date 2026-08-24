@@ -7,16 +7,16 @@ const STATS = [
 
 export default function StatsBar() {
   return (
-    <section className="bg-cream py-14 sm:py-16">
+    <section className="bg-cream py-8 sm:py-2">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <p className="tracked-label text-center text-xs text-gold-600">
           Why Choose Simnani Estate?
         </p>
 
-        <div className="mt-8 grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-4 sm:divide-x sm:divide-navy-950/10">
+        <div className="mt-5 grid grid-cols-2 gap-x-6 gap-y-7 sm:grid-cols-4 sm:divide-x sm:divide-navy-950/10">
           {STATS.map((stat) => (
-            <div key={stat.label} className="flex flex-col items-center gap-3 text-center sm:px-4">
-              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-navy-950 text-gold-400">
+            <div key={stat.label} className="flex flex-col items-center gap-2.5 text-center sm:px-4">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-navy-950 text-gold-400">
                 {stat.icon}
               </span>
               <div>

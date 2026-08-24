@@ -16,7 +16,7 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-navy-700/60 bg-navy-950/95 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-[1500px] items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
         <Link href="/" className="flex shrink-0 items-center gap-3">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center text-gold-400 sm:h-10 sm:w-10">
             <BuildingIcon />
@@ -53,13 +53,13 @@ export default function Navbar() {
           </Link>
           <Link
             href="/auth/register"
-            className="tracked-label border border-gold-500/70 px-4 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10"
+            className="tracked-label rounded-md border border-gold-500/70 px-4 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10"
           >
             Sign Up
           </Link>
           <Link
             href="/post-property"
-            className="tracked-label flex items-center gap-2 bg-gold-400 px-4 py-2 text-xs text-navy-950 transition hover:bg-gold-300"
+            className="tracked-label flex items-center gap-2 rounded-md bg-gold-400 px-4 py-2 text-xs text-navy-950 transition hover:bg-gold-300"
           >
             Post Property
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-navy-950/15 text-navy-950">
@@ -116,14 +116,14 @@ export default function Navbar() {
             <Link
               href="/auth/register"
               onClick={() => setOpen(false)}
-              className="tracked-label inline-block w-fit border border-gold-500/70 px-4 py-2 text-sm text-gold-400 transition hover:bg-gold-500/10"
+              className="tracked-label inline-block w-fit rounded-md border border-gold-500/70 px-4 py-2 text-sm text-gold-400 transition hover:bg-gold-500/10"
             >
               Sign Up
             </Link>
             <Link
               href="/post-property"
               onClick={() => setOpen(false)}
-              className="tracked-label inline-flex w-fit items-center gap-2 bg-gold-400 px-4 py-2 text-sm text-navy-950 transition hover:bg-gold-300"
+              className="tracked-label inline-flex w-fit items-center gap-2 rounded-md bg-gold-400 px-4 py-2 text-sm text-navy-950 transition hover:bg-gold-300"
             >
               Post Property
               <span className="flex h-5 w-5 items-center justify-center rounded-full bg-navy-950/15 text-navy-950">
