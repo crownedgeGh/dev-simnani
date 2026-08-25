@@ -1,11 +1,18 @@
 import Image from "next/image";
 
+const FEATURES = [
+  { title: "Verified Properties", icon: <ShieldCheckIcon /> },
+  { title: "Best Investment Opportunities", icon: <TrendUpIcon /> },
+  { title: "Personalized Support", icon: <SupportIcon /> },
+  { title: "Safe & Secure Deals", icon: <LockIcon /> },
+];
+
 export default function Hero({ children }) {
   return (
-    <section className="relative flex w-full flex-col min-h-[520px] overflow-hidden sm:min-h-[600px] lg:aspect-[1796/876] lg:max-h-[860px] lg:min-h-[700px]">
-      <div className="absolute inset-0">
+    <section className="relative flex w-full flex-col min-h-[520px] overflow-hidden sm:min-h-[600px] lg:min-h-[860px]">
+      <div className="absolute inset-x-0 top-0 bottom-24 overflow-hidden rounded-bl-[2.5rem] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)] sm:bottom-28 lg:left-1/4 lg:bottom-36 lg:rounded-bl-[3.5rem]">
         <Image
-          src="/bgImage.webp"
+          src="/useThis.png"
           alt="Luxury villa at dusk"
           fill
           priority
@@ -17,6 +24,9 @@ export default function Hero({ children }) {
 
       <div className="absolute inset-0 bg-gradient-to-r from-navy-950/85 via-navy-950/40 via-45% to-transparent" />
       <div className="absolute inset-0 bg-gradient-to-b from-navy-950/45 via-transparent to-transparent" />
+
+      <div className="pointer-events-none absolute -left-32 top-1/4 h-[420px] w-[420px] rounded-full bg-gold-500/10 blur-[120px]" />
+      <div className="pointer-events-none absolute -bottom-24 left-1/3 h-[320px] w-[320px] rounded-full bg-gold-600/10 blur-[110px]" />
 
       <div className="relative z-10 mx-auto w-full max-w-[1400px] px-4 pt-16 sm:px-6 lg:px-8 lg:pt-24">
         <div className="max-w-2xl">
@@ -32,6 +42,24 @@ export default function Hero({ children }) {
             <br />
             Call <span className="text-gold-400">Home</span>
           </h1>
+
+          <p className="mt-5 max-w-sm text-sm leading-relaxed text-cream/75 sm:text-base">
+            Discover premium properties, investment opportunities and trusted
+            real estate services with Simnani Estate.
+          </p>
+
+          <div className="mt-8 grid max-w-sm grid-cols-2 gap-x-6 gap-y-5">
+            {FEATURES.map((feature) => (
+              <div key={feature.title} className="flex items-center gap-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gold-500/40 bg-navy-950/60 text-gold-400 backdrop-blur-sm">
+                  {feature.icon}
+                </span>
+                <span className="text-xs font-medium leading-tight text-cream/90 sm:text-sm">
+                  {feature.title}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -46,6 +74,38 @@ function StarIcon() {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-3.5 w-3.5">
       <path strokeLinecap="round" strokeLinejoin="round" d="m12 3 2.6 5.86 6.4.62-4.83 4.32 1.4 6.3L12 17.1l-5.57 3 1.4-6.3-4.83-4.32 6.4-.62L12 3Z" />
+    </svg>
+  );
+}
+
+function ShieldCheckIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-5 w-5">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M12 3l7.5 3.75v4.5c0 4.64-3.2 8.98-7.5 10.5-4.3-1.52-7.5-5.86-7.5-10.5v-4.5L12 3Z" />
+    </svg>
+  );
+}
+
+function TrendUpIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-5 w-5">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 15.75 8.25 10.5l3.75 3.75L21 5.25M21 5.25h-5.25M21 5.25v5.25" />
+    </svg>
+  );
+}
+
+function SupportIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-5 w-5">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 15.75c-1.5-1.32-2.25-2.7-2.25-4.5a6 6 0 1 1 12 0c0 1.8-.75 3.18-2.25 4.5M9.75 18.75h4.5M10.5 21.75h3" />
+    </svg>
+  );
+}
+
+function LockIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-5 w-5">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 10.5V7.5a5.25 5.25 0 0 1 10.5 0v3M5.25 10.5h13.5A1.5 1.5 0 0 1 20.25 12v7.5a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5V12a1.5 1.5 0 0 1 1.5-1.5Z" />
     </svg>
   );
 }
