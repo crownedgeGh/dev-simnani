@@ -7,14 +7,6 @@ const MODES = ["Buy", "Rent", "Invest"];
 
 const PROPERTY_TYPES = ["Property Type", "Apartment", "Villa", "Plot", "Commercial"];
 
-const BUDGETS = [
-  "Budget",
-  "Under ₹50 Lakh",
-  "₹50 Lakh - ₹1 Cr",
-  "₹1 Cr - ₹2 Cr",
-  "₹2 Cr+",
-];
-
 const SELECT_CLASS =
   "w-full appearance-none rounded-md border border-navy-700/70 bg-navy-900/80 px-4 py-3.5 text-sm text-cream transition focus:border-gold-500 focus:outline-none";
 
@@ -23,14 +15,12 @@ export default function SearchBar() {
   const [mode, setMode] = useState("Buy");
   const [location, setLocation] = useState("");
   const [propertyType, setPropertyType] = useState(PROPERTY_TYPES[0]);
-  const [budget, setBudget] = useState(BUDGETS[0]);
 
   function handleSubmit(event) {
     event.preventDefault();
     const params = new URLSearchParams();
     if (location.trim()) params.set("location", location.trim());
     if (propertyType !== PROPERTY_TYPES[0]) params.set("type", propertyType);
-    if (budget !== BUDGETS[0]) params.set("budget", budget);
 
     const query = params.toString();
     router.push(`/${mode.toLowerCase()}${query ? `?${query}` : ""}`);
@@ -80,21 +70,6 @@ export default function SearchBar() {
             className={SELECT_CLASS}
           >
             {PROPERTY_TYPES.map((option) => (
-              <option key={option} value={option} className="bg-navy-900">
-                {option}
-              </option>
-            ))}
-          </select>
-          <ChevronIcon />
-        </div>
-
-        <div className="relative lg:w-52">
-          <select
-            value={budget}
-            onChange={(event) => setBudget(event.target.value)}
-            className={SELECT_CLASS}
-          >
-            {BUDGETS.map((option) => (
               <option key={option} value={option} className="bg-navy-900">
                 {option}
               </option>
