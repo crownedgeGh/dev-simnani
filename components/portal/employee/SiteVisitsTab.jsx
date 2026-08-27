@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Badge from "@/components/portal/Badge";
-import { inputClass, selectClass, textareaClass } from "@/components/auth/inputStyles";
+import { FiChevronDown } from "react-icons/fi";
+import EmployeeBadge from "./EmployeeBadge";
+import { inputClass, selectClass, textareaClass } from "./inputStyles";
 
 function formatTimeLabel(time24) {
   if (!time24) return "";
@@ -20,8 +21,8 @@ function toSortMinutes(time24) {
 }
 
 const VISIT_TONE = {
-  Scheduled: "gold",
-  Done: "success",
+  Scheduled: "accent",
+  Done: "solid",
 };
 
 export default function SiteVisitsTab({ siteVisits, leads, onSchedule, onUpdateOutcome }) {
@@ -83,11 +84,11 @@ export default function SiteVisitsTab({ siteVisits, leads, onSchedule, onUpdateO
     <div className="flex flex-col gap-8">
       <div>
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-display text-xl text-cream">Today&rsquo;s Site Visits</h2>
+          <h2 className="font-display text-xl text-gray-900">Today&rsquo;s Site Visits</h2>
           <button
             type="button"
             onClick={() => setShowForm((v) => !v)}
-            className="tracked-label bg-gold-400 px-4 py-2 text-xs text-navy-950 transition hover:bg-gold-300"
+            className="tracked-label bg-cyan-600 px-4 py-2 text-xs text-white transition hover:bg-cyan-500"
           >
             {showForm ? "Close" : "Schedule Visit"}
           </button>
@@ -96,28 +97,31 @@ export default function SiteVisitsTab({ siteVisits, leads, onSchedule, onUpdateO
         {showForm && (
           <form
             onSubmit={handleSchedule}
-            className="mb-6 grid grid-cols-1 gap-4 border border-navy-700/60 bg-navy-950 p-4 sm:grid-cols-2 lg:grid-cols-4"
+            className="mb-6 grid grid-cols-1 gap-4 rounded-sm border border-gray-200 bg-gray-50 p-4 sm:grid-cols-2 lg:grid-cols-4"
           >
-            <select
-              required
-              value={leadId}
-              onChange={(e) => setLeadId(e.target.value)}
-              className={selectClass}
-              aria-label="Select customer"
-            >
-              <option value="">Select customer</option>
-              {leads.map((lead) => (
-                <option key={lead.id} value={lead.id}>
-                  {lead.name} — {lead.property}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                required
+                value={leadId}
+                onChange={(e) => setLeadId(e.target.value)}
+                className={`${selectClass} rounded-sm pr-9`}
+                aria-label="Select customer"
+              >
+                <option value="">Select customer</option>
+                {leads.map((lead) => (
+                  <option key={lead.id} value={lead.id}>
+                    {lead.name} — {lead.property}
+                  </option>
+                ))}
+              </select>
+              <FiChevronDown className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
+            </div>
             <input
               required
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className={inputClass}
+              className={`${inputClass} rounded-sm`}
               aria-label="Visit date"
             />
             <input
@@ -125,12 +129,12 @@ export default function SiteVisitsTab({ siteVisits, leads, onSchedule, onUpdateO
               type="time"
               value={time}
               onChange={(e) => setTime(e.target.value)}
-              className={inputClass}
+              className={`${inputClass} rounded-sm`}
               aria-label="Visit time"
             />
             <button
               type="submit"
-              className="tracked-label bg-gold-400 px-4 py-2 text-xs text-navy-950 transition hover:bg-gold-300"
+              className="tracked-label bg-cyan-600 px-4 py-2 text-xs text-white transition hover:bg-cyan-500"
             >
               Confirm Schedule
             </button>
@@ -138,28 +142,33 @@ export default function SiteVisitsTab({ siteVisits, leads, onSchedule, onUpdateO
         )}
 
         {todaysVisits.length === 0 ? (
-          <div className="border border-navy-700/60 bg-navy-900 px-6 py-10 text-center">
-            <p className="text-muted">No site visits scheduled for today.</p>
+          <div className="rounded-sm border border-gray-200 bg-white px-6 py-10 text-center">
+            <p className="text-gray-500">No site visits scheduled for today.</p>
           </div>
         ) : (
           <div className="flex flex-col gap-3">
             {todaysVisits.map((visit) => (
-              <div key={visit.id} className="border border-navy-700/60 bg-navy-900 p-4">
+              <div
+                key={visit.id}
+                className="rounded-sm border border-gray-200 bg-white p-4 transition hover:border-cyan-400"
+              >
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-4">
-                    <span className="font-display text-lg text-gold-400">{visit.time}</span>
+                    <span className="flex h-11 min-w-16 shrink-0 items-center justify-center rounded-sm bg-cyan-100 px-2 font-display text-sm text-cyan-700">
+                      {visit.time}
+                    </span>
                     <div>
-                      <p className="text-sm text-cream">{visit.customer}</p>
-                      <p className="text-xs text-muted">{visit.property}</p>
+                      <p className="text-sm text-gray-900">{visit.customer}</p>
+                      <p className="text-xs text-gray-500">{visit.property}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Badge tone={VISIT_TONE[visit.status] || "muted"}>{visit.status}</Badge>
+                    <EmployeeBadge tone={VISIT_TONE[visit.status] || "neutral"}>{visit.status}</EmployeeBadge>
                     {visit.status === "Scheduled" && (
                       <button
                         type="button"
                         onClick={() => openOutcome(visit)}
-                        className="tracked-label border border-gold-500/70 px-3 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10"
+                        className="tracked-label border border-cyan-500 px-3 py-2 text-xs text-cyan-600 transition hover:bg-cyan-50"
                       >
                         Mark Done
                       </button>
@@ -168,26 +177,26 @@ export default function SiteVisitsTab({ siteVisits, leads, onSchedule, onUpdateO
                 </div>
 
                 {outcomeOpenId === visit.id && (
-                  <div className="mt-4 flex flex-col gap-3 border-t border-navy-700/60 pt-4">
+                  <div className="mt-4 flex flex-col gap-3 border-t border-gray-200 pt-4">
                     <div className="flex items-center gap-4">
-                      <span className="tracked-label text-xs text-muted">Customer attended?</span>
-                      <label className="flex items-center gap-2 text-xs text-cream">
+                      <span className="tracked-label text-xs text-gray-500">Customer attended?</span>
+                      <label className="flex items-center gap-2 text-xs text-gray-900">
                         <input
                           type="radio"
                           name={`attended-${visit.id}`}
                           checked={outcomeDraft.attended === "yes"}
                           onChange={() => setOutcomeDraft((d) => ({ ...d, attended: "yes" }))}
-                          className="h-4 w-4 accent-gold-400"
+                          className="h-4 w-4 accent-cyan-600"
                         />
                         Yes
                       </label>
-                      <label className="flex items-center gap-2 text-xs text-cream">
+                      <label className="flex items-center gap-2 text-xs text-gray-900">
                         <input
                           type="radio"
                           name={`attended-${visit.id}`}
                           checked={outcomeDraft.attended === "no"}
                           onChange={() => setOutcomeDraft((d) => ({ ...d, attended: "no" }))}
-                          className="h-4 w-4 accent-gold-400"
+                          className="h-4 w-4 accent-cyan-600"
                         />
                         No-show
                       </label>
@@ -210,14 +219,14 @@ export default function SiteVisitsTab({ siteVisits, leads, onSchedule, onUpdateO
                       <button
                         type="button"
                         onClick={() => setOutcomeOpenId(null)}
-                        className="tracked-label border border-navy-700/60 px-4 py-2 text-xs text-cream transition hover:border-gold-400"
+                        className="tracked-label border border-gray-300 px-4 py-2 text-xs text-gray-700 transition hover:border-cyan-500"
                       >
                         Cancel
                       </button>
                       <button
                         type="button"
                         onClick={() => saveOutcome(visit.id)}
-                        className="tracked-label bg-gold-400 px-4 py-2 text-xs text-navy-950 transition hover:bg-gold-300"
+                        className="tracked-label bg-cyan-600 px-4 py-2 text-xs text-white transition hover:bg-cyan-500"
                       >
                         Save Outcome
                       </button>
@@ -226,11 +235,11 @@ export default function SiteVisitsTab({ siteVisits, leads, onSchedule, onUpdateO
                 )}
 
                 {visit.status === "Done" && visit.feedback && (
-                  <div className="mt-3 border-t border-navy-700/60 pt-3 text-xs text-muted">
+                  <div className="mt-3 border-t border-gray-200 pt-3 text-xs text-gray-500">
                     <p>
                       {visit.attended ? "Attended" : "No-show"} · {visit.feedback}
                     </p>
-                    {visit.nextAction && <p className="mt-1 text-gold-400">Next: {visit.nextAction}</p>}
+                    {visit.nextAction && <p className="mt-1 text-cyan-700">Next: {visit.nextAction}</p>}
                   </div>
                 )}
               </div>
@@ -241,18 +250,18 @@ export default function SiteVisitsTab({ siteVisits, leads, onSchedule, onUpdateO
 
       {upcomingVisits.length > 0 && (
         <div>
-          <h2 className="font-display text-xl text-cream">Upcoming Visits</h2>
+          <h2 className="font-display text-xl text-gray-900">Upcoming Visits</h2>
           <div className="mt-4 flex flex-col gap-3">
             {upcomingVisits.map((visit) => (
               <div
                 key={visit.id}
-                className="flex flex-col gap-2 border border-navy-700/60 bg-navy-900 p-4 sm:flex-row sm:items-center sm:justify-between"
+                className="flex flex-col gap-2 rounded-sm border border-gray-200 bg-white p-4 transition hover:border-cyan-400 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div>
-                  <p className="text-sm text-cream">{visit.customer}</p>
-                  <p className="mt-1 text-xs text-muted">{visit.property}</p>
+                  <p className="text-sm text-gray-900">{visit.customer}</p>
+                  <p className="mt-1 text-xs text-gray-500">{visit.property}</p>
                 </div>
-                <Badge tone="gold">{visit.time}</Badge>
+                <EmployeeBadge tone="accent">{visit.time}</EmployeeBadge>
               </div>
             ))}
           </div>

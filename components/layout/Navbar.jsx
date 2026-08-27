@@ -27,6 +27,7 @@ const ACCOUNT_TYPE_LABEL = {
   broker: "Broker",
   freelancer: "Freelancer",
   "common-person": "Common Person",
+  employee: "Employee",
 };
 
 function getInitials(name) {
@@ -94,7 +95,10 @@ function UserDropdown({ user, onClose, onLogout }) {
 
   const MENU_ITEMS = [
     perms.canManageListings && {
-      icon: FiList, label: "My Listings", desc: "View & manage your properties", href: perms.portalHref,
+      icon: FiList,
+      label: perms.portalLabel || "My Listings",
+      desc: perms.portalDesc || "View & manage your properties",
+      href: perms.portalHref,
     },
     { icon: FiUser, label: "My Profile", desc: "Edit your account details", href: "/account" },
     { icon: FiBookmark, label: "Saved Properties", desc: "View your bookmarked properties", href: "/account/saved-properties" },
@@ -575,7 +579,11 @@ export default function Navbar() {
                 <div className="mt-3 flex flex-col gap-1">
                   {[
                     { icon: FiBookmark, label: "Saved Properties", href: "/account/saved-properties" },
-                    perms.canManageListings && { icon: FiList, label: "My Listings", href: perms.portalHref },
+                    perms.canManageListings && {
+                      icon: FiList,
+                      label: perms.portalLabel || "My Listings",
+                      href: perms.portalHref,
+                    },
                     { icon: FiUser, label: "My Profile", href: "/account" },
                   ]
                     .filter(Boolean)

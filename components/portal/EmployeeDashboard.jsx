@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Tabs from "./Tabs";
+import EmployeeTabs from "./employee/EmployeeTabs";
 import OverviewTab from "./employee/OverviewTab";
 import LeadsTab from "./employee/LeadsTab";
 import SiteVisitsTab from "./employee/SiteVisitsTab";
@@ -110,7 +110,7 @@ export default function EmployeeDashboard({
 
   return (
     <div>
-      <Tabs tabs={TABS} active={tab} onChange={setTab} />
+      <EmployeeTabs tabs={TABS} active={tab} onChange={setTab} />
 
       <div className="mt-8">
         {tab === "overview" && (

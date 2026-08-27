@@ -31,8 +31,8 @@ export default function TerritoryPropertiesTab({ properties }) {
 
   if (properties.length === 0) {
     return (
-      <div className="border border-navy-700/60 bg-navy-900 px-6 py-16 text-center">
-        <p className="text-muted">No inventory available in your district right now.</p>
+      <div className="rounded-sm border border-gray-200 bg-white px-6 py-16 text-center">
+        <p className="text-gray-500">No inventory available in your district right now.</p>
       </div>
     );
   }
@@ -45,7 +45,7 @@ export default function TerritoryPropertiesTab({ properties }) {
           <button
             type="button"
             onClick={() => handleShare(property)}
-            className="tracked-label flex h-11 items-center justify-center gap-2 border border-navy-700/60 text-xs text-cream transition hover:border-gold-400"
+            className="tracked-label flex h-11 items-center justify-center gap-2 rounded-sm border border-gray-300 text-xs text-gray-700 transition hover:border-cyan-500 hover:text-cyan-600"
           >
             <FiShare2 className="h-4 w-4" />
             {copiedId === property.id ? "Link Copied" : "Share with Customer"}

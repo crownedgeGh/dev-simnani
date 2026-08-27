@@ -1,4 +1,14 @@
-import StatCard from "@/components/portal/StatCard";
+import {
+  FiUsers,
+  FiPhoneCall,
+  FiCalendar,
+  FiCheckCircle,
+  FiMessageSquare,
+  FiCheckSquare,
+  FiTrendingUp,
+  FiPercent,
+} from "react-icons/fi";
+import EmployeeStatCard from "./EmployeeStatCard";
 
 export default function PerformanceTab({ performance, leads }) {
   const bookings = leads.filter((lead) => lead.status === "Booked").length;
@@ -8,19 +18,19 @@ export default function PerformanceTab({ performance, leads }) {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <p className="tracked-label text-xs text-gold-400">{performance.month} Performance</p>
-        <h2 className="mt-1 font-display text-2xl text-cream">How You&rsquo;re Tracking</h2>
+        <p className="tracked-label text-xs text-cyan-600">{performance.month} Performance</p>
+        <h2 className="mt-1 font-display text-2xl text-gray-900">How You&rsquo;re Tracking</h2>
       </div>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-        <StatCard label="Leads" value={performance.leads} />
-        <StatCard label="Contacted" value={performance.contacted} />
-        <StatCard label="Site Visits" value={performance.siteVisits} />
-        <StatCard label="Completed Visits" value={performance.completedVisits} />
-        <StatCard label="Negotiations" value={performance.negotiations} />
-        <StatCard label="Bookings" value={performance.bookings} />
-        <StatCard label="Sales Value" value={performance.salesValue} />
-        <StatCard label="Conversion Rate" value={conversionRate} />
+        <EmployeeStatCard label="Leads" value={performance.leads} Icon={FiUsers} />
+        <EmployeeStatCard label="Contacted" value={performance.contacted} Icon={FiPhoneCall} />
+        <EmployeeStatCard label="Site Visits" value={performance.siteVisits} Icon={FiCalendar} />
+        <EmployeeStatCard label="Completed Visits" value={performance.completedVisits} Icon={FiCheckCircle} />
+        <EmployeeStatCard label="Negotiations" value={performance.negotiations} Icon={FiMessageSquare} />
+        <EmployeeStatCard label="Bookings" value={performance.bookings} Icon={FiCheckSquare} />
+        <EmployeeStatCard label="Sales Value" value={performance.salesValue} Icon={FiTrendingUp} />
+        <EmployeeStatCard label="Conversion Rate" value={conversionRate} Icon={FiPercent} />
       </div>
     </div>
   );
