@@ -4,14 +4,9 @@ import StatCard from "@/components/portal/StatCard";
 import PropertyGrid from "@/components/property/PropertyGrid";
 import { getFeaturedProperties } from "@/lib/properties";
 import { DEMO_USER, SAVED_PROPERTY_IDS, SITE_VISITS } from "@/lib/demoAccount";
+import { PORTAL_NAV_CONFIG } from "@/lib/portalNavItems";
 
-const NAV_ITEMS = [
-  { label: "Dashboard", href: "/portal/buyer" },
-  { label: "Saved Properties", href: "/account/saved-properties" },
-  { label: "Site Visits", href: "/account/site-visits" },
-  { label: "Support", href: "/account/support" },
-  { label: "Profile", href: "/account" },
-];
+const { roleLabel, tier, navItems: NAV_ITEMS } = PORTAL_NAV_CONFIG.buyer;
 
 export const metadata = {
   title: "Buyer Dashboard | Simnani Estate",
@@ -23,8 +18,8 @@ export default function BuyerPortalPage() {
 
   return (
     <PortalShell
-      roleLabel="Buyer Portal"
-      tier="Premium Tier"
+      roleLabel={roleLabel}
+      tier={tier}
       navItems={NAV_ITEMS}
       ctaLabel="Explore Properties"
       ctaHref="/buy"

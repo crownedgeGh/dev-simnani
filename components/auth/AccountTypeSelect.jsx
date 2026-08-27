@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { MdHome, MdTrendingUp, MdDomain, MdWork } from "react-icons/md";
+import { MdHome, MdTrendingUp, MdDomain, MdWork, MdPerson } from "react-icons/md";
 
 const ACCOUNT_TYPES = [
   {
@@ -29,13 +29,19 @@ const ACCOUNT_TYPES = [
     description: "Promote projects, generate leads and earn commission.",
     Icon: MdWork,
   },
+  {
+    value: "common-person",
+    label: "Common Person",
+    description: "List and manage your own property directly.",
+    Icon: MdPerson,
+  },
 ];
 
 export default function AccountTypeSelect() {
   const [selected, setSelected] = useState("");
 
   return (
-    <div className="w-full max-w-3xl border border-navy-700/60 bg-navy-900 p-8 shadow-2xl sm:p-10">
+    <div className="w-full max-w-4xl border border-navy-700/60 bg-navy-900 p-8 shadow-2xl sm:p-10">
       <div className="flex flex-col items-center gap-2 text-center">
         <span className="tracked-label text-xs text-gold-400">Simnani Estate</span>
         <h1 className="font-display text-3xl text-cream sm:text-4xl">
@@ -46,7 +52,7 @@ export default function AccountTypeSelect() {
         </p>
       </div>
 
-      <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {ACCOUNT_TYPES.map(({ value, label, description, Icon }) => (
           <button
             key={value}
