@@ -38,3 +38,17 @@ body {
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
+
+.gold-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.gold-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.gold-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--color-gold-400);
+  border-radius: 9999px;
+}

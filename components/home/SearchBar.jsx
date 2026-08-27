@@ -5,7 +5,14 @@ import { useRouter } from "next/navigation";
 import { MdLocationOn, MdSearch } from "react-icons/md";
 import { FiChevronDown } from "react-icons/fi";
 
-const MODES = ["Buy", "Rent", "Invest"];
+const MODES = [
+  { label: "Buy", slug: "buy" },
+  { label: "Rent", slug: "rent" },
+  { label: "Invest", slug: "invest" },
+  { label: "Lease", slug: "lease" },
+  { label: "Seized Property", slug: "seized-property" },
+  { label: "Industrial", slug: "industrial" },
+];
 
 const PROPERTY_TYPES = ["Property Type", "Apartment", "Villa", "Plot", "Commercial"];
 
@@ -14,7 +21,7 @@ const SELECT_CLASS =
 
 export default function SearchBar() {
   const router = useRouter();
-  const [mode, setMode] = useState("Buy");
+  const [mode, setMode] = useState(MODES[0].slug);
   const [location, setLocation] = useState("");
   const [propertyType, setPropertyType] = useState(PROPERTY_TYPES[0]);
 
@@ -25,7 +32,7 @@ export default function SearchBar() {
     if (propertyType !== PROPERTY_TYPES[0]) params.set("type", propertyType);
 
     const query = params.toString();
-    router.push(`/${mode.toLowerCase()}${query ? `?${query}` : ""}`);
+    router.push(`/${mode}${query ? `?${query}` : ""}`);
   }
 
   return (
@@ -34,19 +41,19 @@ export default function SearchBar() {
         Start Your Search
       </p>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="gold-scrollbar -mx-1 flex gap-2 overflow-x-scroll px-1 lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0 lg:pb-0">
         {MODES.map((item) => (
           <button
-            key={item}
+            key={item.slug}
             type="button"
-            onClick={() => setMode(item)}
-            className={`tracked-label rounded-md px-5 py-2.5 text-xs font-medium transition ${
-              mode === item
-                ? "bg-gold-400 text-navy-950"
-                : "text-muted hover:text-cream"
+            onClick={() => setMode(item.slug)}
+            className={`tracked-label shrink-0 whitespace-nowrap border-b-2 px-3 py-2.5 text-xs font-medium transition ${
+              mode === item.slug
+                ? "border-gold-400 text-gold-400"
+                : "border-transparent text-muted hover:text-cream"
             }`}
           >
-            {item}
+            {item.label}
           </button>
         ))}
       </div>
