@@ -9,6 +9,7 @@ import FileUpload from "./FileUpload";
 import RegistrationSuccess from "./RegistrationSuccess";
 import { inputClass, selectClass } from "./inputStyles";
 import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
+import { useAuth } from "@/context/AuthContext";
 
 const TOTAL_STEPS = 5;
 
@@ -55,6 +56,7 @@ const INITIAL_FORM = {
 };
 
 export default function BrokerRegistrationWizard() {
+  const { login } = useAuth();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState(INITIAL_FORM);
   const [error, setError] = useState("");
@@ -107,8 +109,31 @@ export default function BrokerRegistrationWizard() {
     setError("");
     setSubmitting(true);
     setTimeout(() => {
+      const id = generateAccountId("BRK");
+      const profile = {
+        fullName: form.fullName,
+        mobile: form.mobile,
+        email: form.email,
+        city: form.city,
+        accountType: "broker",
+        accountId: id,
+        agencyName: form.agencyName,
+        experience: form.experience,
+        officeAddress: form.officeAddress,
+        operatingAreas: form.operatingAreas,
+        specialties: form.specialties,
+        reraNumber: form.reraNumber,
+        panNumber: form.panNumber,
+        accountHolderName: form.accountHolderName,
+        ifsc: form.ifsc,
+        upiId: form.upiId,
+        pendingVerification: true,
+        registeredAt: new Date().toISOString(),
+      };
+      const token = `se_mock_${form.mobile.replace(/\D/g, "")}_${Date.now()}`;
+      login(token, profile);
       setSubmitting(false);
-      setAccountId(generateAccountId("BRK"));
+      setAccountId(id);
     }, 1000);
   }
 

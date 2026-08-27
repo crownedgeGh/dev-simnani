@@ -8,6 +8,7 @@ import ChipGroup from "./ChipGroup";
 import RegistrationSuccess from "./RegistrationSuccess";
 import { inputClass, selectClass } from "./inputStyles";
 import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
+import { useAuth } from "@/context/AuthContext";
 
 const TOTAL_STEPS = 3;
 
@@ -49,6 +50,7 @@ const INITIAL_FORM = {
 };
 
 export default function InvestorRegistrationWizard() {
+  const { login } = useAuth();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState(INITIAL_FORM);
   const [error, setError] = useState("");
@@ -89,8 +91,24 @@ export default function InvestorRegistrationWizard() {
     setError("");
     setSubmitting(true);
     setTimeout(() => {
+      const id = generateAccountId("INV");
+      const profile = {
+        fullName: form.fullName,
+        mobile: form.mobile,
+        email: form.email,
+        city: form.city,
+        accountType: "investor",
+        accountId: id,
+        propertyTypes: form.propertyTypes,
+        budget: form.budget,
+        region: form.region,
+        horizon: form.horizon,
+        registeredAt: new Date().toISOString(),
+      };
+      const token = `se_mock_${form.mobile.replace(/\D/g, "")}_${Date.now()}`;
+      login(token, profile);
       setSubmitting(false);
-      setAccountId(generateAccountId("INV"));
+      setAccountId(id);
     }, 1000);
   }
 

@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 const OTP_LENGTH = 6;
 
@@ -13,6 +15,9 @@ function formatMobile(value) {
 }
 
 export default function AuthCard() {
+  const router = useRouter();
+  const { login } = useAuth();
+
   const [step, setStep] = useState("mobile"); // "mobile" | "otp" | "success"
   const [mobile, setMobile] = useState("");
   const [otp, setOtp] = useState(Array(OTP_LENGTH).fill(""));
@@ -99,6 +104,26 @@ export default function AuthCard() {
     setTimeout(() => {
       clearInterval(timerRef.current);
       setLoading(false);
+
+      // Mock login — check if a registered profile exists for this mobile
+      const rawProfile = localStorage.getItem("se_user_profile");
+      let profile = rawProfile ? JSON.parse(rawProfile) : null;
+
+      // If no existing profile (returning user who registered elsewhere), create a minimal one
+      if (!profile || profile.mobile?.replace(/\D/g, "") !== mobile.replace(/\D/g, "")) {
+        profile = {
+          fullName: "",
+          mobile: mobile,
+          email: "",
+          accountType: "buyer",
+          accountId: `SG-BYR-${Math.floor(100000 + Math.random() * 900000)}`,
+          city: "",
+          registeredAt: new Date().toISOString(),
+        };
+      }
+
+      const token = `se_mock_${mobile.replace(/\D/g, "")}_${Date.now()}`;
+      login(token, profile);
       setStep("success");
     }, 1000);
   }
@@ -107,6 +132,10 @@ export default function AuthCard() {
     clearInterval(timerRef.current);
     setError("");
     setStep("mobile");
+  }
+
+  function handleContinue() {
+    router.push("/");
   }
 
   return (
@@ -232,12 +261,13 @@ export default function AuthCard() {
           <span className="flex h-14 w-14 items-center justify-center rounded-full border border-gold-400 text-2xl text-gold-400">
             ✓
           </span>
-          <Link
-            href="/"
+          <button
+            type="button"
+            onClick={handleContinue}
             className="tracked-label w-full bg-gold-400 px-6 py-4 text-center text-xs text-navy-950 transition hover:bg-gold-300"
           >
             Continue to Simnani Estate
-          </Link>
+          </button>
         </div>
       )}
 

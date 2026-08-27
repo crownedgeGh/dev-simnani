@@ -8,6 +8,7 @@ import ChipGroup from "./ChipGroup";
 import RegistrationSuccess from "./RegistrationSuccess";
 import { inputClass } from "./inputStyles";
 import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
+import { useAuth } from "@/context/AuthContext";
 
 const TOTAL_STEPS = 3;
 
@@ -39,6 +40,7 @@ const INITIAL_FORM = {
 };
 
 export default function FreelancerRegistrationWizard() {
+  const { login } = useAuth();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState(INITIAL_FORM);
   const [error, setError] = useState("");
@@ -79,8 +81,23 @@ export default function FreelancerRegistrationWizard() {
     setError("");
     setSubmitting(true);
     setTimeout(() => {
+      const id = generateAccountId("FRL");
+      const profile = {
+        fullName: form.fullName,
+        mobile: form.mobile,
+        email: form.email,
+        city: form.city,
+        accountType: "freelancer",
+        accountId: id,
+        role: form.role,
+        experience: form.experience,
+        referral: form.referral,
+        registeredAt: new Date().toISOString(),
+      };
+      const token = `se_mock_${form.mobile.replace(/\D/g, "")}_${Date.now()}`;
+      login(token, profile);
       setSubmitting(false);
-      setAccountId(generateAccountId("FRL"));
+      setAccountId(id);
     }, 1000);
   }
 

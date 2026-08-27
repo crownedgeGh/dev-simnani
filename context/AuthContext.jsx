@@ -1,32 +1,63 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useCallback } from "react";
 
 const AuthContext = createContext(null);
+
+const STORAGE_TOKEN_KEY = "se_auth_token";
+const STORAGE_PROFILE_KEY = "se_user_profile";
 
 export function AuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState(null); // { fullName, mobile, email, accountType, accountId, city, ... }
 
   useEffect(() => {
-    // Check for auth token in localStorage (replace with real session logic as needed)
-    const token = localStorage.getItem("se_auth_token");
-    setIsAuthenticated(!!token);
+    const token = localStorage.getItem(STORAGE_TOKEN_KEY);
+    if (token) {
+      const profileRaw = localStorage.getItem(STORAGE_PROFILE_KEY);
+      const profile = profileRaw ? JSON.parse(profileRaw) : null;
+      setUser(profile);
+      setIsAuthenticated(true);
+    }
     setIsLoading(false);
   }, []);
 
-  const login = (token) => {
-    localStorage.setItem("se_auth_token", token);
+  /**
+   * login — called after OTP verify or after registration wizard submit.
+   * @param {string} token   — a mock token string (e.g. mobile number or account ID)
+   * @param {object} profile — user profile data to persist { fullName, mobile, email, accountType, accountId, ... }
+   */
+  const login = useCallback((token, profile = null) => {
+    localStorage.setItem(STORAGE_TOKEN_KEY, token);
+    if (profile) {
+      localStorage.setItem(STORAGE_PROFILE_KEY, JSON.stringify(profile));
+    }
+    setUser(profile);
     setIsAuthenticated(true);
-  };
+  }, []);
 
-  const logout = () => {
-    localStorage.removeItem("se_auth_token");
+  const logout = useCallback(() => {
+    localStorage.removeItem(STORAGE_TOKEN_KEY);
+    localStorage.removeItem(STORAGE_PROFILE_KEY);
+    setUser(null);
     setIsAuthenticated(false);
-  };
+  }, []);
+
+  /**
+   * updateProfile — update stored profile without re-logging in.
+   * Merges the patch into the existing profile.
+   */
+  const updateProfile = useCallback((patch) => {
+    setUser((prev) => {
+      const next = { ...prev, ...patch };
+      localStorage.setItem(STORAGE_PROFILE_KEY, JSON.stringify(next));
+      return next;
+    });
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, isLoading, user, login, logout, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );
