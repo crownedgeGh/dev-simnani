@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { MdHome, MdTrendingUp, MdDomain, MdWork, MdPerson } from "react-icons/md";
+import { MdHome, MdTrendingUp, MdDomain, MdWork, MdPerson, MdBadge } from "react-icons/md";
 
 const ACCOUNT_TYPES = [
   {
@@ -34,6 +34,12 @@ const ACCOUNT_TYPES = [
     label: "Common Person",
     description: "List and manage your own property directly.",
     Icon: MdPerson,
+  },
+  {
+    value: "employee",
+    label: "Employee",
+    description: "Manage assigned leads and close sales for your district.",
+    Icon: MdBadge,
   },
 ];
 
