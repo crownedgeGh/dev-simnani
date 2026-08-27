@@ -7,6 +7,7 @@ import {
   BiBuildings,
 } from "react-icons/bi";
 import { MdGavel } from "react-icons/md";
+import { FiArrowUpRight } from "react-icons/fi";
 import { getPropertiesByType } from "@/lib/properties";
 
 export const metadata = {
@@ -82,23 +83,30 @@ export default function PropertiesPage() {
             <Link
               key={href}
               href={href}
-              className="group relative flex min-h-[180px] flex-col justify-between overflow-hidden border border-navy-700/60 bg-navy-900 p-6 transition hover:border-gold-500/70 sm:min-h-[200px] sm:p-8"
+              className="group relative flex min-h-[190px] flex-col justify-between overflow-hidden rounded-sm border border-navy-700/60 bg-navy-900 p-6 shadow-lg shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-gold-500/70 hover:shadow-xl hover:shadow-gold-400/5 sm:min-h-[210px] sm:p-8"
             >
               <div
-                className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-gold-400/5 transition group-hover:bg-gold-400/10"
+                className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-gold-400/5 transition duration-300 group-hover:bg-gold-400/10"
+                aria-hidden="true"
+              />
+              <div
+                className="pointer-events-none absolute inset-x-0 top-0 h-px scale-x-0 bg-linear-to-r from-transparent via-gold-400/70 to-transparent transition duration-300 group-hover:scale-x-100"
                 aria-hidden="true"
               />
 
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gold-400/10 text-gold-400 transition group-hover:bg-gold-400/15 sm:h-14 sm:w-14">
-                <Icon className="h-6 w-6 sm:h-7 sm:w-7" />
+              <div className="relative flex items-start justify-between">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gold-400/10 text-gold-400 ring-1 ring-gold-400/20 transition duration-300 group-hover:bg-gold-400/15 group-hover:ring-gold-400/40 sm:h-14 sm:w-14">
+                  <Icon className="h-6 w-6 sm:h-7 sm:w-7" />
+                </div>
+                <FiArrowUpRight className="h-5 w-5 -translate-x-1 translate-y-1 text-muted opacity-0 transition duration-300 group-hover:translate-x-0 group-hover:translate-y-0 group-hover:text-gold-400 group-hover:opacity-100" />
               </div>
 
-              <div>
-                <h2 className="font-display text-xl text-cream sm:text-2xl">
+              <div className="relative">
+                <h2 className="font-display text-xl text-cream transition group-hover:text-gold-300 sm:text-2xl">
                   {label}
                 </h2>
                 <p className="mt-2 text-sm text-muted">{description}</p>
-                <span className="tracked-label mt-4 inline-block bg-navy-800 px-3 py-1.5 text-[11px] text-gold-400">
+                <span className="tracked-label mt-4 inline-block border border-navy-700/60 bg-navy-800 px-3 py-1.5 text-[11px] text-gold-400 transition group-hover:border-gold-500/40">
                   {count} listings
                 </span>
               </div>

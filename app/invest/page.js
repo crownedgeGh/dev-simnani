@@ -1,4 +1,4 @@
-import PropertyGrid from "@/components/property/PropertyGrid";
+import PropertyFilterBar from "@/components/property/PropertyFilterBar";
 import { getPropertiesByType } from "@/lib/properties";
 
 export const metadata = {
@@ -25,8 +25,9 @@ export default async function InvestPage({ searchParams }) {
       </div>
 
       <div className="mt-10">
-        <PropertyGrid
+        <PropertyFilterBar
           properties={properties}
+          pricingMode="sale"
           emptyMessage="No investment opportunities available right now. Check back soon."
         />
       </div>
