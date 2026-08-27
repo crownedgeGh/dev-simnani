@@ -14,7 +14,7 @@ import {
 import { BiBuildings, BiBuildingHouse } from "react-icons/bi";
 
 const NAV_LINKS = [
-  { label: "Properties", href: "/buy", icon: BiBuildingHouse },
+  { label: "Properties", href: "/properties", icon: BiBuildingHouse },
   { label: "Invest", href: "/invest", icon: MdTrendingUp },
   { label: "Services", href: "/", icon: FiSettings },
   { label: "Concierge", href: "/", icon: MdSupportAgent },

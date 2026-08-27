@@ -45,10 +45,7 @@ export default function Hero({ children }) {
             Call <span className="text-gold-400">Home</span>
           </h1>
 
-          <p className="mt-4 max-w-sm text-sm leading-relaxed text-cream/75 sm:mt-5 sm:text-base">
-            Discover premium properties, investment opportunities and trusted
-            real estate services with Simnani Estate.
-          </p>
+        
 
           <div className="mt-8 hidden max-w-sm grid-cols-2 gap-x-6 gap-y-5 lg:grid">
             {FEATURES.map((feature) => (
