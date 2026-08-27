@@ -29,7 +29,7 @@ export default function Hero({ children }) {
       <div className="pointer-events-none absolute -left-32 top-1/4 hidden h-[420px] w-[420px] rounded-full bg-gold-500/10 blur-[120px] lg:block" />
       <div className="pointer-events-none absolute -bottom-24 left-1/3 hidden h-[320px] w-[320px] rounded-full bg-gold-600/10 blur-[110px] lg:block" />
 
-      <div className="relative z-10 mx-auto w-full max-w-[1400px] px-4 pt-14 sm:px-6 sm:pt-16 lg:px-8 lg:pt-24">
+      <div className="relative z-10 mx-auto w-full max-w-[1400px] px-4 pt-2 sm:px-6 sm:pt-16 lg:px-8 lg:pt-24">
         <div className="max-w-2xl">
           <span className="tracked-label inline-flex items-center gap-2 rounded-full border border-gold-500/40 bg-navy-950/60 px-4 py-1.5 text-[11px] font-medium text-gold-400 backdrop-blur-sm">
             <StarIcon />
