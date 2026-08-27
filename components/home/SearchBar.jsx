@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { MdLocationOn, MdSearch } from "react-icons/md";
+import { FiChevronDown } from "react-icons/fi";
 
 const MODES = ["Buy", "Rent", "Invest"];
 
@@ -52,7 +54,7 @@ export default function SearchBar() {
       <form onSubmit={handleSubmit} className="mt-5 flex flex-col gap-3 lg:flex-row">
         <div className="flex flex-1 items-center gap-2.5 rounded-md border border-navy-700/70 bg-navy-900/80 px-4 transition focus-within:border-gold-500">
           <span className="shrink-0 text-cream/70">
-            <PinIcon />
+            <MdLocationOn className="h-4 w-4" />
           </span>
           <input
             type="text"
@@ -75,7 +77,10 @@ export default function SearchBar() {
               </option>
             ))}
           </select>
-          <ChevronIcon />
+          <FiChevronDown
+            aria-hidden="true"
+            className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-cream/70"
+          />
         </div>
 
         <button
@@ -83,43 +88,9 @@ export default function SearchBar() {
           className="tracked-label flex items-center justify-center gap-2.5 rounded-md bg-gold-400 px-8 py-3.5 text-xs font-semibold text-navy-950 transition hover:bg-gold-300 lg:w-auto"
         >
           Search Properties
-          <SearchIcon />
+          <MdSearch className="h-4 w-4" />
         </button>
       </form>
     </div>
-  );
-}
-
-function ChevronIcon() {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.75"
-      aria-hidden="true"
-      className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-cream/70"
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" d="m6 9.5 6 6 6-6" />
-    </svg>
-  );
-}
-
-function PinIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-4 w-4">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 21s-6.75-5.86-6.75-11A6.75 6.75 0 0 1 12 3.25 6.75 6.75 0 0 1 18.75 10c0 5.14-6.75 11-6.75 11Z" />
-      <circle cx="12" cy="10" r="2.25" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function SearchIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
-      <circle cx="11" cy="11" r="7" strokeLinecap="round" strokeLinejoin="round" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="m20 20-3.5-3.5" />
-    </svg>
   );
 }

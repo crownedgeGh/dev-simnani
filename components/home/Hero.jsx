@@ -1,10 +1,11 @@
 import Image from "next/image";
+import { MdVerified, MdTrendingUp, MdSupportAgent, MdLock, MdStar } from "react-icons/md";
 
 const FEATURES = [
-  { title: "Verified Properties", icon: <ShieldCheckIcon /> },
-  { title: "Best Investment Opportunities", icon: <TrendUpIcon /> },
-  { title: "Personalized Support", icon: <SupportIcon /> },
-  { title: "Safe & Secure Deals", icon: <LockIcon /> },
+  { title: "Verified Properties", icon: <MdVerified className="h-5 w-5" /> },
+  { title: "Best Investment Opportunities", icon: <MdTrendingUp className="h-5 w-5" /> },
+  { title: "Personalized Support", icon: <MdSupportAgent className="h-5 w-5" /> },
+  { title: "Safe & Secure Deals", icon: <MdLock className="h-5 w-5" /> },
 ];
 
 export default function Hero({ children }) {
@@ -32,7 +33,7 @@ export default function Hero({ children }) {
       <div className="relative z-10 mx-auto w-full max-w-[1400px] px-4 pt-2 sm:px-6 sm:pt-16 lg:px-8 lg:pt-24">
         <div className="max-w-2xl">
           <span className="tracked-label inline-flex items-center gap-2 rounded-full border border-gold-500/40 bg-navy-950/60 px-4 py-1.5 text-[11px] font-medium text-gold-400 backdrop-blur-sm">
-            <StarIcon />
+            <MdStar className="h-3.5 w-3.5" />
             Luxury Real Estate
           </span>
 
@@ -70,44 +71,3 @@ export default function Hero({ children }) {
     </section>
   );
 }
-
-function StarIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-3.5 w-3.5">
-      <path strokeLinecap="round" strokeLinejoin="round" d="m12 3 2.6 5.86 6.4.62-4.83 4.32 1.4 6.3L12 17.1l-5.57 3 1.4-6.3-4.83-4.32 6.4-.62L12 3Z" />
-    </svg>
-  );
-}
-
-function ShieldCheckIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-5 w-5">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M12 3l7.5 3.75v4.5c0 4.64-3.2 8.98-7.5 10.5-4.3-1.52-7.5-5.86-7.5-10.5v-4.5L12 3Z" />
-    </svg>
-  );
-}
-
-function TrendUpIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-5 w-5">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3 15.75 8.25 10.5l3.75 3.75L21 5.25M21 5.25h-5.25M21 5.25v5.25" />
-    </svg>
-  );
-}
-
-function SupportIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-5 w-5">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 15.75c-1.5-1.32-2.25-2.7-2.25-4.5a6 6 0 1 1 12 0c0 1.8-.75 3.18-2.25 4.5M9.75 18.75h4.5M10.5 21.75h3" />
-    </svg>
-  );
-}
-
-function LockIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-5 w-5">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 10.5V7.5a5.25 5.25 0 0 1 10.5 0v3M5.25 10.5h13.5A1.5 1.5 0 0 1 20.25 12v7.5a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5V12a1.5 1.5 0 0 1 1.5-1.5Z" />
-    </svg>
-  );
-}
-

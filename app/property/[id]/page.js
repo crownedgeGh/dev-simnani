@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getPropertyById } from "@/lib/properties";
 import { AMENITIES, NEARBY_PLACES, getPropertyDescription } from "@/lib/propertyContent";
 import PropertyActionCard from "@/components/property/PropertyActionCard";
+import { MdBed, MdBathtub, MdSquareFoot, MdCategory, MdTrendingUp } from "react-icons/md";
 
 export async function generateMetadata({ params }) {
   const { id } = await params;
@@ -54,13 +55,13 @@ export default async function PropertyDetailPage({ params }) {
 
           <div className="mt-6 grid grid-cols-2 gap-4 border-y border-navy-700/60 py-6 sm:grid-cols-4">
             {isInvest ? (
-              <Stat label="Est. Return" value={property.roi} />
+              <Stat icon={<MdTrendingUp />} label="Est. Return" value={property.roi} />
             ) : (
               <>
-                {property.beds && <Stat label="Bedrooms" value={property.beds} />}
-                {property.baths && <Stat label="Bathrooms" value={property.baths} />}
-                <Stat label="Area" value={property.area} />
-                <Stat label="Type" value={property.type} />
+                {property.beds && <Stat icon={<MdBed />} label="Bedrooms" value={property.beds} />}
+                {property.baths && <Stat icon={<MdBathtub />} label="Bathrooms" value={property.baths} />}
+                <Stat icon={<MdSquareFoot />} label="Area" value={property.area} />
+                <Stat icon={<MdCategory />} label="Type" value={property.type} />
               </>
             )}
           </div>
@@ -113,9 +114,12 @@ export default async function PropertyDetailPage({ params }) {
   );
 }
 
-function Stat({ label, value }) {
+function Stat({ icon, label, value }) {
   return (
     <div>
+      <span className="mb-1.5 flex items-center gap-1.5 text-gold-400">
+        <span className="text-lg">{icon}</span>
+      </span>
       <p className="font-display text-lg text-cream">{value}</p>
       <p className="tracked-label mt-1 text-[10px] text-muted">{label}</p>
     </div>

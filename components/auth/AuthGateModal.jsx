@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import Link from "next/link";
+import { MdLock, MdClose, MdPersonAdd, MdLogin } from "react-icons/md";
 
 /**
  * AuthGateModal — shown when an unauthenticated user attempts a
@@ -105,9 +106,7 @@ export default function AuthGateModal({ isOpen, onClose }) {
             zIndex: 10,
           }}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ width: 13, height: 13 }}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-          </svg>
+          <MdClose style={{ width: 15, height: 15 }} />
         </button>
 
         {/* Body */}
@@ -123,9 +122,7 @@ export default function AuthGateModal({ isOpen, onClose }) {
               display: "flex", alignItems: "center", justifyContent: "center",
               color: "#ffc633",
             }}>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" style={{ width: 22, height: 22 }}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
-              </svg>
+              <MdLock style={{ width: 24, height: 24 }} />
             </div>
 
             <div>
@@ -153,9 +150,6 @@ export default function AuthGateModal({ isOpen, onClose }) {
             Join thousands of sellers connecting with verified buyers &amp; investors on Simnani Estate.
           </p>
 
-          {/* Feature pills — single horizontal row */}
-          
-
           {/* Divider */}
           <div style={{ height: 1, background: "linear-gradient(90deg, transparent, rgba(255,198,51,0.15) 50%, transparent)", marginBottom: 18 }} />
 
@@ -180,9 +174,7 @@ export default function AuthGateModal({ isOpen, onClose }) {
                 transition: "background 0.18s, box-shadow 0.18s",
               }}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 15, height: 15 }}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
-              </svg>
+              <MdPersonAdd style={{ width: 17, height: 17 }} />
               Create Free Account
             </Link>
 
@@ -205,9 +197,7 @@ export default function AuthGateModal({ isOpen, onClose }) {
                 transition: "background 0.18s, border-color 0.18s, color 0.18s",
               }}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 15, height: 15 }}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
-              </svg>
+              <MdLogin style={{ width: 17, height: 17 }} />
               Sign In
             </Link>
           </div>

@@ -2,53 +2,32 @@
 
 import { useState } from "react";
 import Link from "next/link";
-
-const ICON_PATHS = {
-  home: "M3 11.5 12 4l9 7.5M5.5 10v9.5h13V10M9.5 19.5v-6h5v6",
-  "trending-up": "M4 16l5.5-5.5 3.5 3.5L20 6.5M20 6.5h-5M20 6.5v5",
-  domain: "M4 20.5V6l6-2.5 6 2.5v14.5M10 20.5V16h3M7 9h.01M7 12.5h.01M13 9h.01M13 12.5h.01M4 20.5h16",
-  briefcase: "M4 8.5h16v11H4v-11ZM9 8.5V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2.5M4 13h16",
-};
-
-function AccountIcon({ name, className }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      className={className}
-      aria-hidden="true"
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" d={ICON_PATHS[name]} />
-    </svg>
-  );
-}
+import { MdHome, MdTrendingUp, MdDomain, MdWork } from "react-icons/md";
 
 const ACCOUNT_TYPES = [
   {
     value: "buyer",
     label: "Buyer",
     description: "Find and purchase properties.",
-    icon: "home",
+    Icon: MdHome,
   },
   {
     value: "investor",
     label: "Investor",
     description: "Discover real estate investment opportunities.",
-    icon: "trending-up",
+    Icon: MdTrendingUp,
   },
   {
     value: "broker",
     label: "Broker",
     description: "Sell properties and manage clients.",
-    icon: "domain",
+    Icon: MdDomain,
   },
   {
     value: "freelancer",
     label: "Freelancer",
     description: "Promote projects, generate leads and earn commission.",
-    icon: "briefcase",
+    Icon: MdWork,
   },
 ];
 
@@ -68,24 +47,23 @@ export default function AccountTypeSelect() {
       </div>
 
       <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {ACCOUNT_TYPES.map((type) => (
+        {ACCOUNT_TYPES.map(({ value, label, description, Icon }) => (
           <button
-            key={type.value}
+            key={value}
             type="button"
-            onClick={() => setSelected(type.value)}
-            aria-pressed={selected === type.value}
+            onClick={() => setSelected(value)}
+            aria-pressed={selected === value}
             className={`flex flex-col items-center gap-3 border p-6 text-center transition ${
-              selected === type.value
+              selected === value
                 ? "border-gold-400 bg-gold-400/5"
                 : "border-navy-700/60 hover:border-navy-600"
             }`}
           >
-            <AccountIcon
-              name={type.icon}
-              className={`h-9 w-9 ${selected === type.value ? "text-gold-400" : "text-cream"}`}
+            <Icon
+              className={`h-9 w-9 ${selected === value ? "text-gold-400" : "text-cream"}`}
             />
-            <span className="tracked-label text-xs text-cream">{type.label}</span>
-            <p className="text-xs text-muted">{type.description}</p>
+            <span className="tracked-label text-xs text-cream">{label}</span>
+            <p className="text-xs text-muted">{description}</p>
           </button>
         ))}
       </div>

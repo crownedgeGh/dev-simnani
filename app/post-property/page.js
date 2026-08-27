@@ -1,4 +1,5 @@
 import PostPropertyForm from "@/components/property/PostPropertyForm";
+import { MdAddHome } from "react-icons/md";
 
 export const metadata = {
   title: "Post Your Property | Simnani Estate",
@@ -13,16 +14,7 @@ export default function PostPropertyPage() {
       <div className="mx-auto max-w-3xl">
         <div className="flex items-center gap-4">
           <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gold-400/10 text-gold-400">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.75"
-              className="h-7 w-7"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 5.25v13.5M5.25 12h13.5" />
-            </svg>
+            <MdAddHome className="h-7 w-7" />
           </span>
           <div>
             <h1 className="font-display text-2xl text-cream sm:text-3xl">Post Your Property</h1>

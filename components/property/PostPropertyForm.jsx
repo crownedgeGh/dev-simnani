@@ -6,6 +6,7 @@ import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
 import { inputClass, selectClass } from "@/components/auth/inputStyles";
 import FormField from "@/components/auth/FormField";
 import { CoverImageUpload, GalleryImageUpload } from "@/components/property/PropertyImageUpload";
+import { MdContentPaste, MdLocationOn, MdApartment, MdCameraAlt, MdPerson } from "react-icons/md";
 
 const PURPOSE_OPTIONS = [
   { value: "sale", label: "Sale" },
@@ -141,7 +142,7 @@ export default function PostPropertyForm() {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-      <Section icon={<ClipboardIcon />} title="Property Identity" subtitle="Basic info about your listing">
+      <Section icon={<MdContentPaste className="h-5 w-5" />} title="Property Identity" subtitle="Basic info about your listing">
         <FormField label="Property ID" htmlFor="propertyId">
           <div className="flex h-14 items-center justify-between border border-navy-700/60 bg-navy-950 px-4">
             <span className="font-display text-sm tracking-widest text-gold-400">
@@ -185,7 +186,7 @@ export default function PostPropertyForm() {
         </FormField>
       </Section>
 
-      <Section icon={<LocationIcon />} title="Location" subtitle="City and area — no full address required">
+      <Section icon={<MdLocationOn className="h-5 w-5" />} title="Location" subtitle="City and area — no full address required">
         <FormField label="City" htmlFor="city" required>
           <input
             id="city"
@@ -221,7 +222,7 @@ export default function PostPropertyForm() {
       </Section>
 
       <Section
-        icon={<BuildingIcon />}
+        icon={<MdApartment className="h-5 w-5" />}
         title="Property Details & Pricing"
         subtitle="Specifications, features, and price"
       >
@@ -357,7 +358,7 @@ export default function PostPropertyForm() {
         </FormField>
       </Section>
 
-      <Section icon={<CameraIcon />} title="Photos" subtitle="Optional — add images to attract more buyers">
+      <Section icon={<MdCameraAlt className="h-5 w-5" />} title="Photos" subtitle="Optional — add images to attract more buyers">
         <div className="sm:col-span-2">
           <CoverImageUpload
             id="coverImage"
@@ -381,7 +382,7 @@ export default function PostPropertyForm() {
         </div>
       </Section>
 
-      <Section icon={<UserIcon />} title="Contact Details" subtitle="So our team can reach you">
+      <Section icon={<MdPerson className="h-5 w-5" />} title="Contact Details" subtitle="So our team can reach you">
         <FormField label="Full Name" htmlFor="fullName" required>
           <input
             id="fullName"
@@ -464,49 +465,5 @@ function ToggleTwo({ options, value, onChange }) {
         </button>
       ))}
     </div>
-  );
-}
-
-function ClipboardIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-5 w-5">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 3.75h6a1 1 0 0 1 1 1V6h1.5A1.5 1.5 0 0 1 19 7.5v11.25A1.5 1.5 0 0 1 17.5 20.25h-11A1.5 1.5 0 0 1 5 18.75V7.5A1.5 1.5 0 0 1 6.5 6H8v-1.25a1 1 0 0 1 1-1Z" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75h6M9 16h4.5" />
-    </svg>
-  );
-}
-
-function LocationIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-5 w-5">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 21s-6.75-5.86-6.75-11A6.75 6.75 0 0 1 12 3.25 6.75 6.75 0 0 1 18.75 10c0 5.14-6.75 11-6.75 11Z" />
-      <circle cx="12" cy="10" r="2.25" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function BuildingIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-5 w-5">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 21V5.25A1.5 1.5 0 0 1 6 3.75h7.5a1.5 1.5 0 0 1 1.5 1.5V21M4.5 21h13.5M19.5 21v-9a1.5 1.5 0 0 0-1.5-1.5h-3M8 7.5h1.5M8 11h1.5M8 14.5h1.5M12 7.5h1.5M12 11h1.5M12 14.5h1.5" />
-    </svg>
-  );
-}
-
-function UserIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-5 w-5">
-      <circle cx="12" cy="8.25" r="3.25" strokeLinecap="round" strokeLinejoin="round" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M5 20.25a7 7 0 0 1 14 0" />
-    </svg>
-  );
-}
-
-function CameraIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-5 w-5">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4 8.25A1.75 1.75 0 0 1 5.75 6.5h1.94l.87-1.45A1.5 1.5 0 0 1 9.85 4.3h4.3a1.5 1.5 0 0 1 1.29.75l.87 1.45h1.94A1.75 1.75 0 0 1 20 8.25v9A1.75 1.75 0 0 1 18.25 19H5.75A1.75 1.75 0 0 1 4 17.25v-9Z" />
-      <circle cx="12" cy="12.5" r="3.25" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
   );
 }

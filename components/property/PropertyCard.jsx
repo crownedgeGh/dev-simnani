@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { MdFavorite, MdBed, MdBathtub, MdSquareFoot } from "react-icons/md";
 
 export default function PropertyCard({ property }) {
   const { id, title, price, location, image, badge, beds, baths, area, roi, type } =
@@ -26,19 +27,7 @@ export default function PropertyCard({ property }) {
           aria-label="Save property"
           className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-navy-950/70 text-cream transition hover:text-gold-400"
         >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.75"
-            className="h-4 w-4"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 20.25s-7.5-4.55-9.62-8.65C.86 8.36 2.2 5 5.5 5c1.86 0 3.41 1.1 4.13 2.68a1 1 0 0 0 1.74 0C12.09 6.1 13.64 5 15.5 5c3.3 0 4.64 3.36 3.12 6.6C19.5 15.7 12 20.25 12 20.25Z"
-            />
-          </svg>
+          <MdFavorite className="h-4 w-4" />
         </button>
       </div>
 
@@ -52,9 +41,22 @@ export default function PropertyCard({ property }) {
             <span>{roi}</span>
           ) : (
             <>
-              {beds && <span>{beds} Beds</span>}
-              {baths && <span>{baths} Baths</span>}
-              <span>{area}</span>
+              {beds && (
+                <span className="flex items-center gap-1">
+                  <MdBed className="h-3.5 w-3.5 shrink-0" />
+                  {beds} Beds
+                </span>
+              )}
+              {baths && (
+                <span className="flex items-center gap-1">
+                  <MdBathtub className="h-3.5 w-3.5 shrink-0" />
+                  {baths} Baths
+                </span>
+              )}
+              <span className="flex items-center gap-1">
+                <MdSquareFoot className="h-3.5 w-3.5 shrink-0" />
+                {area}
+              </span>
             </>
           )}
         </div>

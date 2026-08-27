@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import AuthGateModal from "@/components/auth/AuthGateModal";
+import { MdApartment } from "react-icons/md";
+import { FiUser, FiPlus, FiMenu, FiX, FiChevronRight } from "react-icons/fi";
 
 const NAV_LINKS = [
   { label: "Properties", href: "/buy" },
@@ -41,7 +43,7 @@ export default function Navbar() {
         <div className="mx-auto flex max-w-[1500px] items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
           <Link href="/" className="flex shrink-0 items-center gap-3">
             <span className="flex h-9 w-9 shrink-0 items-center justify-center text-gold-400 sm:h-10 sm:w-10">
-              <BuildingIcon />
+              <MdApartment className="h-full w-full" />
             </span>
             <span className="leading-tight">
               <span className="tracked-label block font-display text-base font-semibold text-gold-400 sm:text-lg">
@@ -70,7 +72,7 @@ export default function Navbar() {
               href="/auth"
               className="tracked-label flex items-center gap-1.5 text-xs text-cream/80 transition hover:text-gold-400"
             >
-              <UserIcon />
+              <FiUser className="h-4 w-4" />
               Login
             </Link>
             <Link
@@ -87,7 +89,7 @@ export default function Navbar() {
             >
               Post Property
               <span className="flex h-5 w-5 items-center justify-center rounded-full bg-navy-950/15 text-navy-950">
-                <PlusIcon />
+                <FiPlus className="h-3 w-3" />
               </span>
             </button>
           </div>
@@ -99,20 +101,11 @@ export default function Navbar() {
             aria-expanded={open}
             className="flex h-9 w-9 items-center justify-center text-cream lg:hidden"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.75"
-              className="h-6 w-6"
-            >
-              {open ? (
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
-              )}
-            </svg>
+            {open ? (
+              <FiX className="h-6 w-6" />
+            ) : (
+              <FiMenu className="h-6 w-6" />
+            )}
           </button>
         </div>
 
@@ -180,7 +173,7 @@ export default function Navbar() {
                     background: "rgba(5,7,12,0.18)",
                   }}
                 >
-                  <PlusIcon />
+                  <FiPlus style={{ width: 14, height: 14 }} />
                 </span>
                 Post Your Property
               </button>
@@ -233,16 +226,7 @@ export default function Navbar() {
                   }}
                 >
                   <span>{link.label}</span>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.75"
-                    style={{ width: 14, height: 14, color: "#9aa3b8", transition: "color 0.18s" }}
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                  </svg>
+                  <FiChevronRight style={{ width: 14, height: 14, color: "#9aa3b8", transition: "color 0.18s" }} />
                 </Link>
               ))}
             </div>
@@ -292,7 +276,7 @@ export default function Navbar() {
                     transition: "border-color 0.18s, color 0.18s",
                   }}
                 >
-                  <UserIcon />
+                  <FiUser style={{ width: 14, height: 14 }} />
                   Log In
                 </Link>
                 <Link
@@ -324,31 +308,5 @@ export default function Navbar() {
         )}
       </header>
     </>
-  );
-}
-
-function BuildingIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-full w-full">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4 21V9.75L8 6v15M8 21V5.25L12.5 2v19M12.5 21V11l4-2.25V21M16.5 21V13l4-1.5V21" />
-      <path strokeLinecap="round" d="M2.5 21h19" />
-    </svg>
-  );
-}
-
-function UserIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-4 w-4">
-      <circle cx="12" cy="8" r="3.25" strokeLinecap="round" strokeLinejoin="round" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M5 20a7 7 0 0 1 14 0" />
-    </svg>
-  );
-}
-
-function PlusIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-3 w-3">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14M5 12h14" />
-    </svg>
   );
 }
