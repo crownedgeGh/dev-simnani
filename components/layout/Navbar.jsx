@@ -97,7 +97,7 @@ function UserDropdown({ user, onClose, onLogout }) {
       icon: FiList, label: "My Listings", desc: "View & manage your properties", href: perms.portalHref,
     },
     { icon: FiUser, label: "My Profile", desc: "Edit your account details", href: "/account" },
-    { icon: FiBookmark, label: "Saved Properties", desc: "View your bookmarked properties", href: "/account" },
+    { icon: FiBookmark, label: "Saved Properties", desc: "View your bookmarked properties", href: "/account/saved-properties" },
     perms.canPostProperty && {
       icon: BiBuildings, label: "Post a Property", desc: "List a new property", href: "/post-property", accent: true,
     },
@@ -574,7 +574,7 @@ export default function Navbar() {
                 <p className="tracked-label text-xs text-muted">My Account</p>
                 <div className="mt-3 flex flex-col gap-1">
                   {[
-                    { icon: FiBookmark, label: "Saved Properties", href: "/account" },
+                    { icon: FiBookmark, label: "Saved Properties", href: "/account/saved-properties" },
                     perms.canManageListings && { icon: FiList, label: "My Listings", href: perms.portalHref },
                     { icon: FiUser, label: "My Profile", href: "/account" },
                   ]

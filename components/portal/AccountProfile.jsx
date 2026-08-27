@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { FiEdit3 } from "react-icons/fi";
 import Badge from "./Badge";
 import SectionCard from "./SectionCard";
 import { inputClass } from "@/components/auth/inputStyles";
@@ -21,33 +22,30 @@ export default function AccountProfile({ user }) {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <SectionCard
-        title="Personal Information"
-        action={
-          !editing && (
-            <button
-              type="button"
-              onClick={() => setEditing(true)}
-              className="tracked-label text-xs text-gold-400 hover:text-gold-300"
-            >
-              Edit Profile
-            </button>
-          )
-        }
-      >
-        <div className="flex items-center gap-4 border-b border-navy-700/60 pb-6">
+    <div className="flex flex-col gap-5">
+      <SectionCard>
+        <div className="flex items-center gap-4 border-b border-navy-700/60 pb-5">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-navy-700/60 font-display text-2xl text-gold-400">
             {form.name.charAt(0)}
           </div>
-          <div>
+          <div className="flex-1">
             <p className="font-display text-lg text-cream">{form.name}</p>
             <Badge tone="gold">{user.role}</Badge>
           </div>
+          {!editing && (
+            <button
+              type="button"
+              onClick={() => setEditing(true)}
+              aria-label="Edit Profile"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-navy-700/60 text-gold-400 transition hover:border-gold-400 hover:bg-gold-400/10"
+            >
+              <FiEdit3 className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
 
         {editing ? (
-          <div className="mt-6 flex flex-col gap-4">
+          <div className="mt-5 flex flex-col gap-4">
             <Field label="Full Name">
               <input
                 type="text"
@@ -96,18 +94,18 @@ export default function AccountProfile({ user }) {
             </div>
           </div>
         ) : (
-          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="mt-5 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
             <Field label="Full Name">
-              <p className="text-sm text-cream">{form.name}</p>
+              <p className="text-[15px] font-medium text-cream">{form.name}</p>
             </Field>
             <Field label="Email Address">
-              <p className="text-sm text-cream">{form.email}</p>
+              <p className="text-[15px] font-medium text-cream">{form.email}</p>
             </Field>
             <Field label="Mobile Number">
-              <p className="text-sm text-cream">+91 {user.mobile}</p>
+              <p className="text-[15px] font-medium text-cream">+91 {user.mobile}</p>
             </Field>
             <Field label="City">
-              <p className="text-sm text-cream">{form.city}</p>
+              <p className="text-[15px] font-medium text-cream">{form.city}</p>
             </Field>
           </div>
         )}
@@ -129,8 +127,8 @@ export default function AccountProfile({ user }) {
 
 function Field({ label, children }) {
   return (
-    <div className="flex flex-col gap-2">
-      <label className="tracked-label text-xs text-cream/80">{label}</label>
+    <div className="flex flex-col gap-1.5">
+      <label className="tracked-label text-[11px] text-gold-400">{label}</label>
       {children}
     </div>
   );

@@ -67,10 +67,10 @@ export default function ScheduleVisitForm({ title: propertyTitle, backHref }) {
             Back to Property
           </Link>
           <Link
-            href="/account/site-visits"
+            href="/account"
             className="tracked-label border border-navy-700/60 px-6 py-4 text-center text-xs text-cream transition hover:border-gold-400"
           >
-            View My Visits
+            View My Account
           </Link>
         </div>
       </div>

@@ -1,5 +1,4 @@
 import PortalHeader from "@/components/portal/PortalHeader";
-import AccountNav from "@/components/portal/AccountNav";
 import SupportPanel from "@/components/portal/SupportPanel";
 import { SUPPORT_TICKETS } from "@/lib/demoAccount";
 
@@ -16,9 +15,6 @@ export default function SupportPage() {
         title="Support Requests"
         subtitle="Track and manage your inquiries with Simnani Estate."
       />
-      <div className="mt-8">
-        <AccountNav />
-      </div>
       <div className="mt-8">
         <SupportPanel tickets={SUPPORT_TICKETS} />
       </div>

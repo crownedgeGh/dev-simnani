@@ -1,5 +1,4 @@
 import PortalHeader from "@/components/portal/PortalHeader";
-import AccountNav from "@/components/portal/AccountNav";
 import PrivacyPanel from "@/components/portal/PrivacyPanel";
 
 export const metadata = {
@@ -15,9 +14,6 @@ export default function PrivacyPage() {
         title="Privacy & Security"
         subtitle="Manage how your data is used and control your account access."
       />
-      <div className="mt-8">
-        <AccountNav />
-      </div>
       <div className="mt-8">
         <PrivacyPanel />
       </div>

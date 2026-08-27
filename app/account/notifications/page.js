@@ -1,5 +1,4 @@
 import PortalHeader from "@/components/portal/PortalHeader";
-import AccountNav from "@/components/portal/AccountNav";
 import NotificationsPanel from "@/components/portal/NotificationsPanel";
 import { NOTIFICATIONS, NOTIFICATION_CATEGORIES } from "@/lib/demoAccount";
 
@@ -16,9 +15,6 @@ export default function NotificationsPage() {
         title="Notifications"
         subtitle="Stay updated on your portfolio and account activity."
       />
-      <div className="mt-8">
-        <AccountNav />
-      </div>
       <div className="mt-8">
         <NotificationsPanel notifications={NOTIFICATIONS} categories={NOTIFICATION_CATEGORIES} />
       </div>

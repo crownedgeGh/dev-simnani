@@ -1,5 +1,4 @@
 import PortalHeader from "@/components/portal/PortalHeader";
-import AccountNav from "@/components/portal/AccountNav";
 import PropertyGrid from "@/components/property/PropertyGrid";
 import { getPropertyById } from "@/lib/properties";
 import { SAVED_PROPERTY_IDS } from "@/lib/demoAccount";
@@ -19,9 +18,6 @@ export default function SavedPropertiesPage() {
         title="Saved Properties"
         subtitle="Your curated collection of luxury real estate and exclusive projects."
       />
-      <div className="mt-8">
-        <AccountNav />
-      </div>
       <div className="mt-8">
         <PropertyGrid
           properties={properties}

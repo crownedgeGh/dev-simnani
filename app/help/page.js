@@ -8,7 +8,6 @@ const TOPICS = [
   { title: "Investing", desc: "Explore high-yield investment opportunities.", href: "/invest" },
   { title: "Broker Account", desc: "Register as a broker and manage listings.", href: "/auth/register/broker" },
   { title: "Freelancer Account", desc: "Promote projects and earn commission.", href: "/auth/register/freelancer" },
-  { title: "Site Visits", desc: "Schedule and track your property visits.", href: "/account/site-visits" },
   { title: "Account & Login", desc: "Manage your profile and sign-in details.", href: "/account" },
 ];
 

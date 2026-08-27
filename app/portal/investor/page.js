@@ -4,9 +4,6 @@ import StatCard from "@/components/portal/StatCard";
 import PropertyGrid from "@/components/property/PropertyGrid";
 import { getPropertiesByType } from "@/lib/properties";
 import { DEMO_USER, SAVED_PROPERTY_IDS, SUPPORT_TICKETS } from "@/lib/demoAccount";
-import { PORTAL_NAV_CONFIG } from "@/lib/portalNavItems";
-
-const { roleLabel, tier, navItems: NAV_ITEMS } = PORTAL_NAV_CONFIG.investor;
 
 export const metadata = {
   title: "Investor Dashboard | Simnani Estate",
@@ -17,13 +14,7 @@ export default function InvestorPortalPage() {
   const opportunities = getPropertiesByType("invest");
 
   return (
-    <PortalShell
-      roleLabel={roleLabel}
-      tier={tier}
-      navItems={NAV_ITEMS}
-      ctaLabel="Invest Now"
-      ctaHref="/invest"
-    >
+    <PortalShell>
       <div>
         <p className="tracked-label text-xs text-gold-400">Welcome</p>
         <h1 className="mt-2 font-display text-3xl text-cream">{DEMO_USER.name}</h1>
