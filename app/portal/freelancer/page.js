@@ -2,7 +2,12 @@ import PortalHeader from "@/components/portal/PortalHeader";
 import FreelancerDashboard from "@/components/portal/FreelancerDashboard";
 import { PROJECTS } from "@/lib/projects";
 import { DEMO_USER } from "@/lib/demoAccount";
-import { FREELANCER_STATS, FREELANCER_LEADS, TRAINING_MODULES } from "@/lib/demoPortal";
+import {
+  FREELANCER_STATS,
+  FREELANCER_LEADS,
+  FREELANCER_PROPERTIES,
+  TRAINING_MODULES,
+} from "@/lib/demoPortal";
 
 export const metadata = {
   title: "Freelancer Dashboard | Simnani Estate",
@@ -22,6 +27,7 @@ export default function FreelancerPortalPage() {
           stats={FREELANCER_STATS}
           projects={PROJECTS}
           leads={FREELANCER_LEADS}
+          properties={FREELANCER_PROPERTIES}
           trainingModules={TRAINING_MODULES}
         />
       </div>

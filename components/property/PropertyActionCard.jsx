@@ -1,6 +1,16 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 
 export default function PropertyActionCard({ propertyId }) {
+  const [showToast, setShowToast] = useState(false);
+
+  function handleContactClick() {
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 2500);
+  }
+
   return (
     <div className="border border-navy-700/60 bg-navy-900 p-6">
       <h3 className="font-display text-lg text-cream">Interested?</h3>
@@ -29,15 +39,28 @@ export default function PropertyActionCard({ propertyId }) {
         </Link>
       </div>
 
-      <div className="mt-6 flex items-center gap-3 border-t border-navy-700/60 pt-6">
+      <button
+        type="button"
+        onClick={handleContactClick}
+        className="mt-6 flex w-full items-center gap-3 border-t border-navy-700/60 pt-6 text-left transition hover:opacity-80"
+      >
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-navy-700/60 font-display text-lg text-gold-400">
           A
         </div>
         <div>
+          <p className="tracked-label text-xs text-gold-400">Contact Person</p>
           <p className="text-sm text-cream">Alexander Vance</p>
           <p className="tracked-label text-xs text-muted">Senior Advisor</p>
         </div>
-      </div>
+      </button>
+
+      {showToast && (
+        <div className="fixed inset-x-0 bottom-6 z-50 flex justify-center px-4 sm:bottom-8">
+          <div className="tracked-label rounded-sm border border-gold-500/70 bg-navy-900 px-5 py-3 text-xs text-cream shadow-lg">
+            The person will contact you soon.
+          </div>
+        </div>
+      )}
     </div>
   );
 }

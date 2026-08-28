@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { MdFavorite, MdBed, MdBathtub, MdSquareFoot } from "react-icons/md";
@@ -6,9 +9,20 @@ export default function PropertyCard({ property }) {
   const { id, title, price, location, image, badge, beds, baths, area, roi, type } =
     property;
   const isInvest = type === "invest";
+  const [showToast, setShowToast] = useState(false);
+
+  function handleContactClick(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 2500);
+  }
 
   return (
-    <div className="group overflow-hidden rounded-sm border border-navy-700/60 bg-navy-900 transition hover:border-gold-500/50">
+    <Link
+      href={`/property/${id}`}
+      className="group block overflow-hidden rounded-sm border border-navy-700/60 bg-navy-900 transition hover:border-gold-500/50 hover:shadow-[0_0_0_1px_var(--color-gold-500)]"
+    >
       <div className="relative aspect-[4/3] w-full overflow-hidden">
         <Image
           src={image}
@@ -25,6 +39,7 @@ export default function PropertyCard({ property }) {
         <button
           type="button"
           aria-label="Save property"
+          onClick={(e) => e.preventDefault()}
           className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-navy-950/70 text-cream transition hover:text-gold-400"
         >
           <MdFavorite className="h-4 w-4" />
@@ -61,13 +76,22 @@ export default function PropertyCard({ property }) {
           )}
         </div>
 
-        <Link
-          href={`/property/${id}`}
+        <button
+          type="button"
+          onClick={handleContactClick}
           className="tracked-label mt-5 block w-full border border-gold-500/70 py-2.5 text-center text-xs text-gold-400 transition hover:bg-gold-500 hover:text-navy-950"
         >
-          {isInvest ? "View Opportunity" : "View Details"}
-        </Link>
+          Contact Person
+        </button>
       </div>
-    </div>
+
+      {showToast && (
+        <div className="fixed inset-x-0 bottom-6 z-50 flex justify-center px-4 sm:bottom-8">
+          <div className="tracked-label rounded-sm border border-gold-500/70 bg-navy-900 px-5 py-3 text-xs text-cream shadow-lg">
+            The person will contact you soon.
+          </div>
+        </div>
+      )}
+    </Link>
   );
 }
