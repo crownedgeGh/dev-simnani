@@ -1,34 +1,40 @@
-import PropertyFilterBar from "@/components/property/PropertyFilterBar";
-import { getPropertiesByType } from "@/lib/properties";
+import CommercialCategories from "@/components/property/CommercialCategories";
+import { getPropertiesByType, INVEST_CATEGORIES } from "@/lib/properties";
 
 export const metadata = {
   title: "Invest in Real Estate | Simnani Estate",
   description:
-    "Explore property investment opportunities designed for long-term growth.",
+    "Explore property investment opportunities by category — shops, land, farmhouses, offices and apartments.",
 };
 
-export default async function InvestPage({ searchParams }) {
-  const params = await searchParams;
-  const properties = getPropertiesByType("invest");
+export default async function InvestPage() {
+  const investProperties = getPropertiesByType("invest");
+
+  const propertiesByCategory = INVEST_CATEGORIES.reduce((acc, category) => {
+    acc[category.key] = investProperties.filter(
+      (property) => property.category === category.key
+    );
+    return acc;
+  }, {});
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
       <div className="max-w-2xl">
-        <h1 className="font-display text-3xl text-cream sm:text-4xl">
-          Invest in Real Estate
+        <span className="tracked-label text-xs text-gold-400">Invest</span>
+        <h1 className="mt-2 font-display text-3xl text-cream sm:text-4xl">
+          Explore by Investment Category
         </h1>
         <p className="mt-3 text-sm text-muted sm:text-base">
-          Explore property investment opportunities designed for long-term
-          growth.
-          {params?.location ? ` Showing results near "${params.location}".` : ""}
+          Browse long-term investment opportunities by property type — shops,
+          land, farmhouses, offices and apartments.
         </p>
       </div>
 
       <div className="mt-10">
-        <PropertyFilterBar
-          properties={properties}
-          pricingMode="sale"
-          emptyMessage="No investment opportunities available right now. Check back soon."
+        <CommercialCategories
+          categories={INVEST_CATEGORIES}
+          propertiesByCategory={propertiesByCategory}
+          basePath="/invest"
         />
       </div>
     </div>

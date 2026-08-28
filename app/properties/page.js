@@ -2,11 +2,10 @@ import Link from "next/link";
 import {
   BiBuildingHouse,
   BiKey,
-  BiTrendingUp,
   BiFile,
   BiBuildings,
 } from "react-icons/bi";
-import { MdGavel } from "react-icons/md";
+import { MdGavel, MdSell } from "react-icons/md";
 import { FiArrowUpRight } from "react-icons/fi";
 import { getPropertiesByType } from "@/lib/properties";
 
@@ -32,11 +31,11 @@ const CATEGORIES = [
     description: "Monthly rental listings",
   },
   {
-    label: "Invest",
-    href: "/invest",
-    type: "invest",
-    icon: BiTrendingUp,
-    description: "Long-term investment opportunities",
+    label: "Sell",
+    href: "/sell",
+    type: "sell",
+    icon: MdSell,
+    description: "List your property and connect with buyers",
   },
   {
     label: "Lease",

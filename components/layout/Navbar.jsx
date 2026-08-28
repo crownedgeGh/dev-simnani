@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { getAccountPermissions } from "@/lib/accountPermissions";
 import AuthGateModal from "@/components/auth/AuthGateModal";
-import { MdApartment, MdTrendingUp, MdSupportAgent, MdPersonAdd } from "react-icons/md";
+import { MdApartment, MdTrendingUp, MdSupportAgent, MdPersonAdd, MdAgriculture } from "react-icons/md";
 import {
   FiUser, FiPlus, FiMenu, FiX,
   FiList, FiBookmark, FiSettings, FiLogOut, FiHelpCircle, FiInfo,
@@ -16,6 +16,8 @@ import { BiBuildings, BiBuildingHouse } from "react-icons/bi";
 const NAV_LINKS = [
   { label: "Properties", href: "/properties", icon: BiBuildingHouse },
   { label: "Invest", href: "/invest", icon: MdTrendingUp },
+  { label: "Commercial", href: "/commercial", icon: BiBuildings },
+  { label: "Agriculture/Farm Land", href: "/agriculture", icon: MdAgriculture },
   { label: "Services", href: "/", icon: FiSettings },
   { label: "Concierge", href: "/", icon: MdSupportAgent },
   { label: "About Us", href: "/", icon: FiInfo },
