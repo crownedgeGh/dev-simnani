@@ -1,11 +1,6 @@
 import Link from "next/link";
-import {
-  BiBuildingHouse,
-  BiKey,
-  BiFile,
-  BiBuildings,
-} from "react-icons/bi";
-import { MdGavel, MdSell } from "react-icons/md";
+import { BiBuildingHouse, BiKey, BiFile } from "react-icons/bi";
+import { MdGavel } from "react-icons/md";
 import { FiArrowUpRight } from "react-icons/fi";
 import { getPropertiesByType } from "@/lib/properties";
 
@@ -31,13 +26,6 @@ const CATEGORIES = [
     description: "Monthly rental listings",
   },
   {
-    label: "Sell",
-    href: "/sell",
-    type: "sell",
-    icon: MdSell,
-    description: "List your property and connect with buyers",
-  },
-  {
     label: "Lease",
     href: "/lease",
     type: "lease",
@@ -50,13 +38,6 @@ const CATEGORIES = [
     type: "seized",
     icon: MdGavel,
     description: "Bank-auctioned & SARFAESI listings",
-  },
-  {
-    label: "Industrial",
-    href: "/industrial",
-    type: "industrial",
-    icon: BiBuildings,
-    description: "Warehouses, sheds & industrial spaces",
   },
 ];
 

@@ -1,7 +1,6 @@
 import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
-import SimnaniBigLandNav from "@/components/property/SimnaniBigLandNav";
 import Footer from "@/components/layout/Footer";
 import { AuthProvider } from "@/context/AuthContext";
 
@@ -31,7 +30,6 @@ export default function RootLayout({ children }) {
       <body className="min-h-full flex flex-col bg-navy-950 text-cream">
         <AuthProvider>
           <Navbar />
-          <SimnaniBigLandNav />
           <main className="flex-1">{children}</main>
           <Footer />
         </AuthProvider>

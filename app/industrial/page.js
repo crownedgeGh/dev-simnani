@@ -1,5 +1,5 @@
-import PropertyFilterBar from "@/components/property/PropertyFilterBar";
-import { getPropertiesByType } from "@/lib/properties";
+import CommercialCategories from "@/components/property/CommercialCategories";
+import { getPropertiesByType, INDUSTRIAL_CATEGORIES } from "@/lib/properties";
 
 export const metadata = {
   title: "Industrial Property | Simnani Estate",
@@ -7,27 +7,34 @@ export const metadata = {
     "Explore warehouses, sheds and industrial spaces for sale and lease.",
 };
 
-export default async function IndustrialPage({ searchParams }) {
-  const params = await searchParams;
-  const properties = getPropertiesByType("industrial");
+export default async function IndustrialPage() {
+  const industrialProperties = getPropertiesByType("industrial");
+
+  const propertiesByCategory = INDUSTRIAL_CATEGORIES.reduce((acc, category) => {
+    acc[category.key] = industrialProperties.filter(
+      (property) => property.category === category.key
+    );
+    return acc;
+  }, {});
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
       <div className="max-w-2xl">
-        <h1 className="font-display text-3xl text-cream sm:text-4xl">
-          Industrial Property
+        <span className="tracked-label text-xs text-gold-400">Industrial</span>
+        <h1 className="mt-2 font-display text-3xl text-cream sm:text-4xl">
+          Explore by Industrial Category
         </h1>
         <p className="mt-3 text-sm text-muted sm:text-base">
-          Explore warehouses, sheds and industrial spaces for sale and lease.
-          {params?.location ? ` Showing results near "${params.location}".` : ""}
+          Browse warehouses, sheds and industrial spaces by category — for
+          sale and lease.
         </p>
       </div>
 
       <div className="mt-10">
-        <PropertyFilterBar
-          properties={properties}
-          pricingMode="sale"
-          emptyMessage="No industrial properties available right now. Check back soon."
+        <CommercialCategories
+          categories={INDUSTRIAL_CATEGORIES}
+          propertiesByCategory={propertiesByCategory}
+          basePath="/industrial"
         />
       </div>
     </div>

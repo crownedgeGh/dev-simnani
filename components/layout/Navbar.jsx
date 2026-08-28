@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { getAccountPermissions } from "@/lib/accountPermissions";
 import AuthGateModal from "@/components/auth/AuthGateModal";
-import { MdApartment, MdTrendingUp, MdSupportAgent, MdPersonAdd, MdAgriculture } from "react-icons/md";
+import { MdApartment, MdTrendingUp, MdPersonAdd, MdAgriculture, MdFactory } from "react-icons/md";
 import {
   FiUser, FiPlus, FiMenu, FiX,
   FiList, FiBookmark, FiSettings, FiLogOut, FiHelpCircle, FiInfo,
@@ -17,9 +17,9 @@ const NAV_LINKS = [
   { label: "Properties", href: "/properties", icon: BiBuildingHouse },
   { label: "Invest", href: "/invest", icon: MdTrendingUp },
   { label: "Commercial", href: "/commercial", icon: BiBuildings },
-  { label: "Agriculture/Farm Land", href: "/agriculture", icon: MdAgriculture },
+  { label: "Farming Land Projects", href: "/farming", icon: MdAgriculture },
+  { label: "Industrial", href: "/industrial", icon: MdFactory },
   { label: "Services", href: "/", icon: FiSettings },
-  { label: "Concierge", href: "/", icon: MdSupportAgent },
   { label: "About Us", href: "/", icon: FiInfo },
 ];
 
@@ -335,12 +335,12 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop nav links */}
-          <nav className="hidden items-center gap-7 lg:flex">
+          <nav className="hidden min-w-0 shrink items-center gap-5 2xl:flex 2xl:gap-7">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.label}
                 href={link.href}
-                className="tracked-label text-xs text-cream/80 transition hover:text-gold-400"
+                className="tracked-label whitespace-nowrap text-xs text-cream/80 transition hover:text-gold-400"
               >
                 {link.label}
               </Link>
@@ -348,14 +348,14 @@ export default function Navbar() {
           </nav>
 
           {/* Desktop right section */}
-          <div className="hidden items-center gap-3 lg:flex">
+          <div className="hidden shrink-0 items-center gap-3 2xl:flex">
             {/* Post Property button */}
             {canPostProperty && (
               <button
                 type="button"
                 onClick={handlePostProperty}
                 id="navbar-post-property-btn"
-                className="tracked-label flex items-center gap-2 rounded-md bg-gold-400 px-4 py-2 text-xs text-navy-950 transition hover:bg-gold-300"
+                className="tracked-label flex shrink-0 items-center gap-2 whitespace-nowrap rounded-md bg-gold-400 px-4 py-2 text-xs text-navy-950 transition hover:bg-gold-300"
               >
                 Post Property
                 <span className="flex h-5 w-5 items-center justify-center rounded-full bg-navy-950/15 text-navy-950">
@@ -424,14 +424,14 @@ export default function Navbar() {
               <>
                 <Link
                   href="/auth"
-                  className="tracked-label flex items-center gap-1.5 text-xs text-cream/80 transition hover:text-gold-400"
+                  className="tracked-label flex shrink-0 items-center gap-1.5 whitespace-nowrap text-xs text-cream/80 transition hover:text-gold-400"
                 >
                   <FiUser className="h-4 w-4" />
                   Login
                 </Link>
                 <Link
                   href="/auth/register"
-                  className="tracked-label rounded-md border border-gold-500/70 px-4 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10"
+                  className="tracked-label shrink-0 whitespace-nowrap rounded-md border border-gold-500/70 px-4 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10"
                 >
                   Sign Up
                 </Link>
@@ -445,7 +445,7 @@ export default function Navbar() {
             onClick={() => setMobileOpen((v) => !v)}
             aria-label="Toggle navigation menu"
             aria-expanded={mobileOpen}
-            className="flex h-9 w-9 items-center justify-center text-cream lg:hidden"
+            className="flex h-9 w-9 items-center justify-center text-cream 2xl:hidden"
           >
             {mobileOpen ? <FiX className="h-6 w-6" /> : <FiMenu className="h-6 w-6" />}
           </button>
@@ -459,7 +459,7 @@ export default function Navbar() {
           which would confine this overlay to the header's own height instead of
           the full viewport. */}
       {mobileOpen && (
-        <div className="lg:hidden" style={{ position: "fixed", inset: 0, zIndex: 9999 }}>
+        <div className="2xl:hidden" style={{ position: "fixed", inset: 0, zIndex: 9999 }}>
           <style>{`
             @keyframes sidebarBackdropFadeIn { from { opacity: 0; } to { opacity: 1; } }
             @keyframes sidebarSlideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }

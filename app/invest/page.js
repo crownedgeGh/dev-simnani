@@ -1,5 +1,6 @@
 import CommercialCategories from "@/components/property/CommercialCategories";
 import { getPropertiesByType, INVEST_CATEGORIES } from "@/lib/properties";
+import { PROJECTS } from "@/lib/projects";
 
 export const metadata = {
   title: "Invest in Real Estate | Simnani Estate",
@@ -17,6 +18,17 @@ export default async function InvestPage() {
     return acc;
   }, {});
 
+  const categories = [
+    ...INVEST_CATEGORIES,
+    {
+      key: "company-project",
+      label: "Company Projects",
+      icon: "MdBusiness",
+      href: "/projects",
+      count: PROJECTS.length,
+    },
+  ];
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
       <div className="max-w-2xl">
@@ -32,7 +44,7 @@ export default async function InvestPage() {
 
       <div className="mt-10">
         <CommercialCategories
-          categories={INVEST_CATEGORIES}
+          categories={categories}
           propertiesByCategory={propertiesByCategory}
           basePath="/invest"
         />

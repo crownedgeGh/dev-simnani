@@ -2,12 +2,12 @@ import CommercialCategories from "@/components/property/CommercialCategories";
 import { getPropertiesByType, AGRICULTURE_CATEGORIES } from "@/lib/properties";
 
 export const metadata = {
-  title: "Agriculture / Farm Land | Simnani Estate",
+  title: "Farming Land Projects | Simnani Estate",
   description:
-    "Explore farm land by category — farm houses, agricultural land, orchards and plantations.",
+    "Explore farming land by category — farm houses, agricultural land, orchards and plantations.",
 };
 
-export default async function AgriculturePage() {
+export default async function FarmingPage() {
   const agricultureProperties = getPropertiesByType("agriculture");
 
   const propertiesByCategory = AGRICULTURE_CATEGORIES.reduce((acc, category) => {
@@ -21,7 +21,7 @@ export default async function AgriculturePage() {
     <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
       <div className="max-w-2xl">
         <span className="tracked-label text-xs text-gold-400">
-          Agriculture / Farm Land
+          Farming Land Projects
         </span>
         <h1 className="mt-2 font-display text-3xl text-cream sm:text-4xl">
           Explore by Category
@@ -36,7 +36,7 @@ export default async function AgriculturePage() {
         <CommercialCategories
           categories={AGRICULTURE_CATEGORIES}
           propertiesByCategory={propertiesByCategory}
-          basePath="/agriculture"
+          basePath="/farming"
         />
       </div>
     </div>
