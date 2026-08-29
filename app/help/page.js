@@ -1,15 +1,7 @@
-import Link from "next/link";
 import Accordion from "@/components/portal/Accordion";
-import ContactSupportForm from "@/components/portal/ContactSupportForm";
 import SectionCard from "@/components/portal/SectionCard";
-
-const TOPICS = [
-  { title: "Buying Property", desc: "Search, shortlist and enquire about listings.", href: "/buy" },
-  { title: "Investing", desc: "Explore high-yield investment opportunities.", href: "/invest" },
-  { title: "Broker Account", desc: "Register as a broker and manage listings.", href: "/auth/register/broker" },
-  { title: "Freelancer Account", desc: "Promote projects and earn commission.", href: "/auth/register/freelancer" },
-  { title: "Account & Login", desc: "Manage your profile and sign-in details.", href: "/account" },
-];
+import { FiMapPin, FiMail, FiExternalLink } from "react-icons/fi";
+import { FaInstagram } from "react-icons/fa6";
 
 const FAQS = [
   {
@@ -53,26 +45,9 @@ export default function HelpPage() {
     <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
       <div className="max-w-2xl">
         <h1 className="font-display text-3xl text-cream sm:text-4xl">Help & Support</h1>
-        <p className="mt-3 text-sm text-muted sm:text-base">
-          Find answers to common questions or reach out to our dedicated concierge team for
-          personalized assistance.
-        </p>
       </div>
 
-      <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {TOPICS.map((topic) => (
-          <Link
-            key={topic.title}
-            href={topic.href}
-            className="border border-navy-700/60 bg-navy-900 p-5 transition hover:border-gold-400"
-          >
-            <h3 className="font-display text-base text-cream">{topic.title}</h3>
-            <p className="mt-1 text-xs text-muted">{topic.desc}</p>
-          </Link>
-        ))}
-      </div>
-
-      <div className="mt-16 grid grid-cols-1 gap-10 lg:grid-cols-2">
+      <div className="mt-10 grid grid-cols-1 gap-10 lg:grid-cols-2">
         <div>
           <h2 className="font-display text-xl text-cream">Frequently Asked Questions</h2>
           <div className="mt-4">
@@ -82,15 +57,43 @@ export default function HelpPage() {
 
         <div className="flex flex-col gap-6">
           <SectionCard title="Contact Concierge">
-            <div className="flex flex-col gap-2 text-sm">
-              <p className="text-cream">+1 (800) 555-0199</p>
-              <p className="text-cream">concierge@simnaniestate.com</p>
-              <p className="text-muted">Available 24/7 for premier clients.</p>
-            </div>
-          </SectionCard>
+            <div className="flex flex-col gap-5 text-sm">
+              <div className="flex gap-3">
+                <FiMapPin className="mt-0.5 h-5 w-5 shrink-0 text-gold-400" />
+                <p className="text-cream">
+                  Shop No 1080, First Floor, Beside House of Sansa, Currency Tower, VIP Road
+                  Corner, Raipur, Chhattisgarh, India
+                </p>
+              </div>
 
-          <SectionCard title="Report an Issue">
-            <ContactSupportForm />
+              <a
+                href="mailto:simnanigroupsraipur@gmail.com"
+                className="flex items-center gap-3 text-cream transition hover:text-gold-400"
+              >
+                <FiMail className="h-5 w-5 shrink-0 text-gold-400" />
+                simnanigroupsraipur@gmail.com
+              </a>
+
+              <a
+                href="https://www.instagram.com/simnani.groups"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 text-cream transition hover:text-gold-400"
+              >
+                <FaInstagram className="h-5 w-5 shrink-0 text-gold-400" />
+                @simnani.groups
+              </a>
+
+              <a
+                href="https://www.google.com/maps?ll=21.2263,81.6749&z=16&t=m&hl=en&gl=IN&mapclient=embed"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="tracked-label flex items-center gap-2 border-t border-navy-700/60 pt-4 text-xs text-gold-400 transition hover:text-gold-300"
+              >
+                <FiExternalLink className="h-4 w-4" />
+                View on Google Maps
+              </a>
+            </div>
           </SectionCard>
         </div>
       </div>
