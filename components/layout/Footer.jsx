@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { FaFacebookF, FaInstagram, FaXTwitter, FaLinkedinIn } from "react-icons/fa6";
 
@@ -54,9 +55,9 @@ export default function Footer() {
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-5">
           <div className="lg:col-span-1">
-            <p className="tracked-label font-display text-lg font-semibold text-gold-400">
-              Simnani Estate
-            </p>
+            <span className="relative block h-12 w-[206px]">
+              <Image src="/logo-se.png" alt="Simnani Estates" fill className="object-contain object-left" />
+            </span>
             <p className="mt-4 text-sm text-muted">
               Elevating real estate excellence across India&apos;s most
               sought-after cities.

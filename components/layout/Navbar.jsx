@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { getAccountPermissions } from "@/lib/accountPermissions";
 import AuthGateModal from "@/components/auth/AuthGateModal";
-import { MdApartment, MdTrendingUp, MdPersonAdd, MdAgriculture, MdFactory } from "react-icons/md";
+import { MdTrendingUp, MdPersonAdd, MdAgriculture, MdFactory } from "react-icons/md";
 import {
   FiUser, FiPlus, FiMenu, FiX,
   FiList, FiBookmark, FiSettings, FiLogOut, FiHelpCircle, FiInfo,
@@ -320,22 +321,14 @@ export default function Navbar() {
         <div className="mx-auto flex max-w-[1500px] items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
 
           {/* Logo */}
-          <Link href="/" className="flex shrink-0 items-center gap-3">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center text-gold-400 sm:h-10 sm:w-10">
-              <MdApartment className="h-full w-full" />
-            </span>
-            <span className="leading-tight">
-              <span className="tracked-label block font-display text-base font-semibold text-gold-400 sm:text-lg">
-                Simnani Estate
-              </span>
-              <span className="tracked-label hidden text-[9px] text-muted sm:block">
-                Your Trusted Real Estate Partner
-              </span>
+          <Link href="/" className="flex shrink-0 items-center">
+            <span className="relative h-10 w-[172px] shrink-0 sm:h-14 sm:w-[241px]">
+              <Image src="/logo-se.png" alt="Simnani Estates" fill className="object-contain object-left" priority />
             </span>
           </Link>
 
           {/* Desktop nav links */}
-          <nav className="hidden min-w-0 shrink items-center gap-5 2xl:flex 2xl:gap-7">
+          <nav className="hidden min-w-0 shrink items-center gap-4 2xl:flex 2xl:gap-5">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.label}
@@ -348,14 +341,14 @@ export default function Navbar() {
           </nav>
 
           {/* Desktop right section */}
-          <div className="hidden shrink-0 items-center gap-3 2xl:flex">
+          <div className="hidden shrink-0 items-center gap-2 2xl:flex">
             {/* Post Property button */}
             {canPostProperty && (
               <button
                 type="button"
                 onClick={handlePostProperty}
                 id="navbar-post-property-btn"
-                className="tracked-label flex shrink-0 items-center gap-2 whitespace-nowrap rounded-md bg-gold-400 px-4 py-2 text-xs text-navy-950 transition hover:bg-gold-300"
+                className="tracked-label flex shrink-0 items-center gap-2 whitespace-nowrap rounded-md bg-gold-400 px-3.5 py-2 text-xs text-navy-950 transition hover:bg-gold-300"
               >
                 Post Property
                 <span className="flex h-5 w-5 items-center justify-center rounded-full bg-navy-950/15 text-navy-950">
@@ -431,7 +424,7 @@ export default function Navbar() {
                 </Link>
                 <Link
                   href="/auth/register"
-                  className="tracked-label shrink-0 whitespace-nowrap rounded-md border border-gold-500/70 px-4 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10"
+                  className="tracked-label shrink-0 whitespace-nowrap rounded-md border border-gold-500/70 px-3.5 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10"
                 >
                   Sign Up
                 </Link>
@@ -526,12 +519,9 @@ export default function Navbar() {
                   </div>
                 </div>
               ) : (
-                <Link href="/" onClick={() => setMobileOpen(false)} className="flex items-center gap-3">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center text-gold-400">
-                    <MdApartment className="h-full w-full" />
-                  </span>
-                  <span className="tracked-label font-display text-base font-semibold text-gold-400">
-                    Simnani Estate
+                <Link href="/" onClick={() => setMobileOpen(false)} className="flex items-center">
+                  <span className="relative h-9 w-[155px] shrink-0">
+                    <Image src="/logo-se.png" alt="Simnani Estates" fill className="object-contain object-left" />
                   </span>
                 </Link>
               )}
