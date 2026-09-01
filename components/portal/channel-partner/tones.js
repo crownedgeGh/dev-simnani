@@ -20,3 +20,17 @@ export const VISIT_STATUS_TONE = {
   "Visit Done": "success",
   "No Show": "error",
 };
+
+export const CP_TYPE_LABEL = {
+  field: "Field CP",
+  digital: "Digital CP",
+  company: "Company CP",
+  freelancer: "Freelancer",
+};
+
+export const VIDEO_STATUS_TONE = {
+  "Pending Review": "muted",
+  Approved: "success",
+  "Suggested Edit": "gold",
+  Rejected: "error",
+};

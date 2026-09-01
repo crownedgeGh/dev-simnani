@@ -8,6 +8,9 @@ import {
   CP_COMMISSIONS,
   CP_SITE_VISITS,
   CP_PROMOTION_ASSETS,
+  CP_FIELD_ACTIVITY_TODAY,
+  CP_DIGITAL_CAMPAIGN_JOINS,
+  CP_CAMPAIGN_VIDEOS,
 } from "@/lib/demoPortal";
 
 export const metadata = {
@@ -28,6 +31,9 @@ export default function FreelancerPortalPage() {
         siteVisits={CP_SITE_VISITS}
         projects={PROJECTS}
         promotionAssets={CP_PROMOTION_ASSETS}
+        fieldActivity={CP_FIELD_ACTIVITY_TODAY}
+        digitalCampaigns={CP_DIGITAL_CAMPAIGN_JOINS}
+        campaignVideos={CP_CAMPAIGN_VIDEOS}
       />
     </Suspense>
   );

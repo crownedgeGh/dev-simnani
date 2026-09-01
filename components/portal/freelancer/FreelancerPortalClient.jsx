@@ -38,6 +38,9 @@ export default function FreelancerPortalClient({
   siteVisits,
   projects,
   promotionAssets,
+  fieldActivity,
+  digitalCampaigns,
+  campaignVideos,
 }) {
   const { user } = useAuth();
   const searchParams = useSearchParams();
@@ -61,7 +64,16 @@ export default function FreelancerPortalClient({
       />
       <div className="mt-8">
         {cpType === "company" && (
-          <CompanyCPDashboard stats={companyStats} leads={leads} network={network} commissions={commissions} />
+          <CompanyCPDashboard
+            stats={companyStats}
+            leads={leads}
+            network={network}
+            commissions={commissions}
+            projects={projects}
+            fieldActivity={fieldActivity}
+            digitalCampaigns={digitalCampaigns}
+            campaignVideos={campaignVideos}
+          />
         )}
         {cpType === "digital" && (
           <DigitalCPDashboard stats={digitalStats} projects={projects} assets={promotionAssets} />
