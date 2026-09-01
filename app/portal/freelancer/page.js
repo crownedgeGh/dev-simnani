@@ -1,36 +1,31 @@
-import PortalHeader from "@/components/portal/PortalHeader";
-import FreelancerDashboard from "@/components/portal/FreelancerDashboard";
+import FreelancerPortalClient from "@/components/portal/freelancer/FreelancerPortalClient";
 import { PROJECTS } from "@/lib/projects";
-import { DEMO_USER } from "@/lib/demoAccount";
 import {
-  FREELANCER_STATS,
-  FREELANCER_LEADS,
-  FREELANCER_PROPERTIES,
-  TRAINING_MODULES,
+  CP_STATS,
+  CP_LEADS,
+  CP_NETWORK,
+  CP_COMMISSIONS,
+  CP_SITE_VISITS,
+  CP_PROMOTION_ASSETS,
 } from "@/lib/demoPortal";
 
 export const metadata = {
-  title: "Freelancer Dashboard | Simnani Estate",
-  description: "Promote projects, track leads and earn commission.",
+  title: "Channel Partner Dashboard | Simnani Estate",
+  description: "Manage leads, site visits, assignments and commission as a Simnani Channel Partner.",
 };
 
 export default function FreelancerPortalPage() {
   return (
-    <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
-      <PortalHeader
-        eyebrow="Freelancer Portal"
-        title={`Welcome, ${DEMO_USER.name}`}
-        subtitle="Promote approved projects, generate leads and earn commission."
-      />
-      <div className="mt-8">
-        <FreelancerDashboard
-          stats={FREELANCER_STATS}
-          projects={PROJECTS}
-          leads={FREELANCER_LEADS}
-          properties={FREELANCER_PROPERTIES}
-          trainingModules={TRAINING_MODULES}
-        />
-      </div>
-    </div>
+    <FreelancerPortalClient
+      companyStats={CP_STATS.company}
+      digitalStats={CP_STATS.digital}
+      fieldStats={CP_STATS.field}
+      leads={CP_LEADS}
+      network={CP_NETWORK}
+      commissions={CP_COMMISSIONS}
+      siteVisits={CP_SITE_VISITS}
+      projects={PROJECTS}
+      promotionAssets={CP_PROMOTION_ASSETS}
+    />
   );
 }

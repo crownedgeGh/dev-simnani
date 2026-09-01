@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { MdBusinessCenter, MdCampaign, MdLocationOn } from "react-icons/md";
 import AuthShell from "./AuthShell";
 import Stepper from "./Stepper";
 import FormField from "./FormField";
@@ -10,15 +11,45 @@ import { inputClass } from "./inputStyles";
 import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
 
-const TOTAL_STEPS = 3;
+const TOTAL_STEPS = 4;
 
-const ROLES = [
-  { value: "sales", label: "Sales" },
-  { value: "digital-marketing", label: "Digital Marketing" },
-  { value: "social-media", label: "Social Media" },
-  { value: "content-creation", label: "Content Creation" },
-  { value: "video-editing", label: "Video Editing" },
-  { value: "real-estate", label: "Real Estate" },
+const STEP_LABELS = ["Select Type", "Basic Details", "Professional Details", "Join Network"];
+
+const CP_TYPES = [
+  {
+    value: "company",
+    label: "Company Channel Partner",
+    description: "Core office team — verify leads, assign partners and manage the network.",
+    Icon: MdBusinessCenter,
+  },
+  {
+    value: "digital",
+    label: "Digital Channel Partner",
+    description: "Promote projects online and generate leads from social media.",
+    Icon: MdCampaign,
+  },
+  {
+    value: "field",
+    label: "Field Channel Partner",
+    description: "Meet clients on ground, arrange site visits and close deals.",
+    Icon: MdLocationOn,
+  },
+];
+
+const COMPANY_ROLES = [
+  { value: "lead-verification", label: "Lead Verification" },
+  { value: "partner-coordination", label: "Partner Coordination" },
+  { value: "sales-operations", label: "Sales Operations" },
+  { value: "customer-support", label: "Customer Support" },
+  { value: "commission-accounts", label: "Commission & Accounts" },
+  { value: "other", label: "Other" },
+];
+
+const PROMOTION_PLATFORMS = [
+  { value: "instagram", label: "Instagram" },
+  { value: "facebook", label: "Facebook" },
+  { value: "youtube", label: "YouTube" },
+  { value: "whatsapp", label: "WhatsApp" },
   { value: "other", label: "Other" },
 ];
 
@@ -28,14 +59,25 @@ const EXPERIENCE_LEVELS = [
   { value: "expert", label: "Expert", hint: "3+ Years" },
 ];
 
+const ACCOUNT_ID_PREFIX = { company: "CCP", digital: "DCP", field: "FCP" };
+const ID_LABEL = {
+  company: "Your Company CP ID",
+  digital: "Your Digital CP ID",
+  field: "Your Field CP ID",
+};
+
 const INITIAL_FORM = {
+  cpType: "",
   fullName: "",
   mobile: "",
   email: "",
   city: "",
   role: "",
+  platforms: [],
+  coverageAreas: "",
   experience: "",
   referral: "",
+  inviteCode: "",
   agree: false,
 };
 
@@ -53,14 +95,32 @@ export default function FreelancerRegistrationWizard() {
 
   function goNext() {
     if (step === 1) {
+      if (!form.cpType) {
+        setError("Please select how you'd like to join the network.");
+        return;
+      }
+    }
+    if (step === 2) {
       if (!form.fullName.trim() || !isMobileValid(form.mobile) || !form.city.trim()) {
         setError("Please fill in all required fields.");
         return;
       }
     }
-    if (step === 2) {
-      if (!form.role || !form.experience) {
-        setError("Please select what you do and your experience level.");
+    if (step === 3) {
+      if (!form.experience) {
+        setError("Please select your experience level.");
+        return;
+      }
+      if (form.cpType === "company" && !form.role) {
+        setError("Please select your primary role.");
+        return;
+      }
+      if (form.cpType === "digital" && form.platforms.length === 0) {
+        setError("Please select at least one platform you promote on.");
+        return;
+      }
+      if (form.cpType === "field" && !form.coverageAreas.trim()) {
+        setError("Please enter the localities you cover.");
         return;
       }
     }
@@ -74,6 +134,10 @@ export default function FreelancerRegistrationWizard() {
   }
 
   function handleSubmit() {
+    if (form.cpType === "company" && !form.inviteCode.trim()) {
+      setError("Please enter your staff / invite code to continue.");
+      return;
+    }
     if (!form.agree) {
       setError("Please accept the Terms & Conditions to continue.");
       return;
@@ -81,17 +145,21 @@ export default function FreelancerRegistrationWizard() {
     setError("");
     setSubmitting(true);
     setTimeout(() => {
-      const id = generateAccountId("FRL");
+      const id = generateAccountId(ACCOUNT_ID_PREFIX[form.cpType]);
       const profile = {
         fullName: form.fullName,
         mobile: form.mobile,
         email: form.email,
         city: form.city,
         accountType: "freelancer",
+        cpType: form.cpType,
         accountId: id,
         role: form.role,
+        platforms: form.platforms,
+        coverageAreas: form.coverageAreas,
         experience: form.experience,
         referral: form.referral,
+        status: form.cpType === "company" ? "pending" : "active",
         registeredAt: new Date().toISOString(),
       };
       const token = `se_mock_${form.mobile.replace(/\D/g, "")}_${Date.now()}`;
@@ -107,9 +175,14 @@ export default function FreelancerRegistrationWizard() {
         <RegistrationSuccess
           title="Welcome to Simnani Estate"
           subtitle="Your registration has been successfully submitted. We are thrilled to welcome you to our exclusive network of professionals."
-          idLabel="Your Freelancer ID"
+          idLabel={ID_LABEL[form.cpType]}
           accountId={accountId}
-          pending
+          pending={form.cpType === "company"}
+          pendingNote={
+            form.cpType === "company"
+              ? "Company Channel Partner accounts are reviewed by our team before network access is granted."
+              : undefined
+          }
           primaryHref="/portal/freelancer"
           primaryLabel="Start Training"
           secondaryHref="/portal/freelancer"
@@ -121,26 +194,48 @@ export default function FreelancerRegistrationWizard() {
 
   return (
     <AuthShell size="lg">
-      <Stepper
-        step={step}
-        total={TOTAL_STEPS}
-        label={["Basic Details", "Professional Details", "Join Network"][step - 1]}
-      />
+      <Stepper step={step} total={TOTAL_STEPS} label={STEP_LABELS[step - 1]} />
 
       <div className="mb-6 text-center">
         <h1 className="font-display text-2xl text-cream sm:text-3xl">
-          {step === 1 && "Begin Your Journey"}
-          {step === 2 && "Professional Details"}
-          {step === 3 && "Join Simnani Network"}
+          {step === 1 && "Choose Your Channel Partner Path"}
+          {step === 2 && "Begin Your Journey"}
+          {step === 3 && "Professional Details"}
+          {step === 4 && "Join Simnani Network"}
         </h1>
         <p className="mt-2 text-sm text-muted">
-          {step === 1 && "Please provide your primary contact information to initiate the registration process."}
-          {step === 2 && "Tell us about your expertise and experience level to help us match you with the right opportunities."}
-          {step === 3 && "Promote approved Simnani projects, bring genuine leads and earn commission on eligible successful deals."}
+          {step === 1 && "Select how you'd like to work with Simnani Estate."}
+          {step === 2 && "Please provide your primary contact information to initiate the registration process."}
+          {step === 3 && "Tell us about your expertise and experience level to help us match you with the right opportunities."}
+          {step === 4 && "Promote approved Simnani projects, bring genuine leads and earn commission on eligible successful deals."}
         </p>
       </div>
 
       {step === 1 && (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {CP_TYPES.map(({ value, label, description, Icon }) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => update("cpType", value)}
+              aria-pressed={form.cpType === value}
+              className={`flex flex-col items-center gap-3 border p-6 text-center transition ${
+                form.cpType === value
+                  ? "border-gold-400 bg-gold-400/5"
+                  : "border-navy-700/60 hover:border-navy-600"
+              }`}
+            >
+              <Icon
+                className={`h-9 w-9 ${form.cpType === value ? "text-gold-400" : "text-cream"}`}
+              />
+              <span className="tracked-label text-xs text-cream">{label}</span>
+              <p className="text-xs text-muted">{description}</p>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {step === 2 && (
         <div className="flex flex-col gap-4">
           <FormField label="Full Name" htmlFor="fullName" required>
             <input
@@ -192,11 +287,42 @@ export default function FreelancerRegistrationWizard() {
         </div>
       )}
 
-      {step === 2 && (
+      {step === 3 && (
         <div className="flex flex-col gap-6">
-          <FormField label="What do you do?" required>
-            <ChipGroup options={ROLES} value={form.role} onChange={(value) => update("role", value)} />
-          </FormField>
+          {form.cpType === "company" && (
+            <FormField label="Primary Role" required>
+              <ChipGroup options={COMPANY_ROLES} value={form.role} onChange={(value) => update("role", value)} />
+            </FormField>
+          )}
+
+          {form.cpType === "digital" && (
+            <FormField label="Where do you promote?" required>
+              <ChipGroup
+                options={PROMOTION_PLATFORMS}
+                value={form.platforms}
+                onChange={(value) => update("platforms", value)}
+                multi
+              />
+            </FormField>
+          )}
+
+          {form.cpType === "field" && (
+            <FormField
+              label="Coverage Localities"
+              htmlFor="coverageAreas"
+              required
+              hint="Neighborhoods or areas where you can arrange site visits."
+            >
+              <input
+                id="coverageAreas"
+                type="text"
+                placeholder="e.g. Whitefield, Sarjapur Road, HSR Layout"
+                value={form.coverageAreas}
+                onChange={(e) => update("coverageAreas", e.target.value)}
+                className={inputClass}
+              />
+            </FormField>
+          )}
 
           <FormField label="Experience" required>
             <ChipGroup
@@ -209,8 +335,26 @@ export default function FreelancerRegistrationWizard() {
         </div>
       )}
 
-      {step === 3 && (
+      {step === 4 && (
         <div className="flex flex-col gap-6">
+          {form.cpType === "company" && (
+            <FormField
+              label="Staff / Invite Code"
+              htmlFor="inviteCode"
+              required
+              hint="Company Channel Partner accounts require an internal invite code."
+            >
+              <input
+                id="inviteCode"
+                type="text"
+                placeholder="Enter your staff or invite code"
+                value={form.inviteCode}
+                onChange={(e) => update("inviteCode", e.target.value)}
+                className={inputClass}
+              />
+            </FormField>
+          )}
+
           <FormField label="Referral Code" htmlFor="referral" optional>
             <input
               id="referral"
@@ -229,7 +373,7 @@ export default function FreelancerRegistrationWizard() {
               onChange={(e) => update("agree", e.target.checked)}
               className="mt-0.5 h-4 w-4 accent-gold-400"
             />
-            I agree to the Terms &amp; Conditions and Freelancer Policy.
+            I agree to the Terms &amp; Conditions and Channel Partner Policy.
           </label>
         </div>
       )}

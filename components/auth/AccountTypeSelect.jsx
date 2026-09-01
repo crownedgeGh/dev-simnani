@@ -25,8 +25,8 @@ const ACCOUNT_TYPES = [
   },
   {
     value: "freelancer",
-    label: "Freelancer",
-    description: "Promote projects, generate leads and earn commission.",
+    label: "Channel Partner",
+    description: "Promote, refer or manage leads as a Digital, Field or Company Channel Partner.",
     Icon: MdWork,
   },
   {
