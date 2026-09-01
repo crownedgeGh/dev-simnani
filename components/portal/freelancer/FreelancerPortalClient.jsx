@@ -64,7 +64,7 @@ export default function FreelancerPortalClient({
           <CompanyCPDashboard stats={companyStats} leads={leads} network={network} commissions={commissions} />
         )}
         {cpType === "digital" && (
-          <DigitalCPDashboard stats={digitalStats} projects={projects} assets={promotionAssets} leads={leads} />
+          <DigitalCPDashboard stats={digitalStats} projects={projects} assets={promotionAssets} />
         )}
         {cpType === "field" && (
           <FieldCPDashboard stats={fieldStats} leads={leads} siteVisits={siteVisits} projects={projects} />
