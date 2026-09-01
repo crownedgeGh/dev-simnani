@@ -1,12 +1,17 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import PortalHeader from "@/components/portal/PortalHeader";
 import CompanyCPDashboard from "@/components/portal/CompanyCPDashboard";
 import DigitalCPDashboard from "@/components/portal/DigitalCPDashboard";
 import FieldCPDashboard from "@/components/portal/FieldCPDashboard";
 import { useAuth } from "@/context/AuthContext";
 
-const DEMO_CP = { fullName: "Aarav Shah", cpType: "digital" };
+const DEMO_CP_NAMES = {
+  digital: "Aarav Shah",
+  field: "Rohan Mehta",
+  company: "Simnani Partners Pvt. Ltd.",
+};
 
 const PORTAL_COPY = {
   company: {
@@ -35,8 +40,16 @@ export default function FreelancerPortalClient({
   promotionAssets,
 }) {
   const { user } = useAuth();
-  const partner = user?.accountType === "freelancer" ? user : DEMO_CP;
-  const cpType = partner.cpType || "digital";
+  const searchParams = useSearchParams();
+
+  // Test Mode support — reads ?cpType=field|digital|company so demo dashboards
+  // can be opened directly from the signup / navbar shortcuts, no form needed.
+  const requestedCpType = searchParams.get("cpType");
+  const demoCpType = PORTAL_COPY[requestedCpType] ? requestedCpType : "digital";
+
+  const isRealFreelancer = user?.accountType === "freelancer";
+  const cpType = isRealFreelancer ? user.cpType || "digital" : demoCpType;
+  const partner = isRealFreelancer ? user : { fullName: DEMO_CP_NAMES[cpType], cpType };
   const copy = PORTAL_COPY[cpType];
 
   return (

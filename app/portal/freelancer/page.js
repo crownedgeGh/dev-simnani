@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import FreelancerPortalClient from "@/components/portal/freelancer/FreelancerPortalClient";
 import { PROJECTS } from "@/lib/projects";
 import {
@@ -16,16 +17,18 @@ export const metadata = {
 
 export default function FreelancerPortalPage() {
   return (
-    <FreelancerPortalClient
-      companyStats={CP_STATS.company}
-      digitalStats={CP_STATS.digital}
-      fieldStats={CP_STATS.field}
-      leads={CP_LEADS}
-      network={CP_NETWORK}
-      commissions={CP_COMMISSIONS}
-      siteVisits={CP_SITE_VISITS}
-      projects={PROJECTS}
-      promotionAssets={CP_PROMOTION_ASSETS}
-    />
+    <Suspense fallback={null}>
+      <FreelancerPortalClient
+        companyStats={CP_STATS.company}
+        digitalStats={CP_STATS.digital}
+        fieldStats={CP_STATS.field}
+        leads={CP_LEADS}
+        network={CP_NETWORK}
+        commissions={CP_COMMISSIONS}
+        siteVisits={CP_SITE_VISITS}
+        projects={PROJECTS}
+        promotionAssets={CP_PROMOTION_ASSETS}
+      />
+    </Suspense>
   );
 }

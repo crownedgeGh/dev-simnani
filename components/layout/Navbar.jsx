@@ -7,12 +7,19 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { getAccountPermissions } from "@/lib/accountPermissions";
 import AuthGateModal from "@/components/auth/AuthGateModal";
-import { MdTrendingUp, MdPersonAdd, MdAgriculture, MdFactory } from "react-icons/md";
+import { MdTrendingUp, MdPersonAdd, MdAgriculture, MdFactory, MdScience } from "react-icons/md";
 import {
   FiUser, FiPlus, FiMenu, FiX,
   FiList, FiBookmark, FiSettings, FiLogOut, FiHelpCircle, FiInfo,
+  FiChevronDown, FiMapPin, FiSmartphone, FiBriefcase,
 } from "react-icons/fi";
 import { BiBuildings, BiBuildingHouse } from "react-icons/bi";
+
+const TEST_MODE_CP_OPTIONS = [
+  { cpType: "field", label: "Field CP", icon: FiMapPin },
+  { cpType: "digital", label: "Digital CP", icon: FiSmartphone },
+  { cpType: "company", label: "Company CP", icon: FiBriefcase },
+];
 
 const NAV_LINKS = [
   { label: "Properties", href: "/properties", icon: BiBuildingHouse },
@@ -93,6 +100,7 @@ function MobileNavRow({ icon: Icon, label, href, onClick, tone = "default" }) {
 
 /** User dropdown panel (desktop) */
 function UserDropdown({ user, onClose, onLogout }) {
+  const [testModeOpen, setTestModeOpen] = useState(false);
   const typeLabel = ACCOUNT_TYPE_LABEL[user?.accountType] ?? user?.accountType ?? "Member";
   const perms = getAccountPermissions(user?.accountType);
 
@@ -221,6 +229,90 @@ function UserDropdown({ user, onClose, onLogout }) {
             </div>
           </Link>
         ))}
+
+        {/* Test Mode — preview a Channel Partner dashboard with demo data, no form required */}
+        <button
+          type="button"
+          onClick={() => setTestModeOpen((open) => !open)}
+          className="dd-item"
+          style={{
+            width: "100%",
+            display: "flex", alignItems: "center", gap: 13,
+            padding: "11px 10px",
+            borderRadius: 11,
+            border: "none",
+            transition: "background 0.15s",
+            marginBottom: 2,
+            background: "transparent",
+            cursor: "pointer",
+            textAlign: "left",
+          }}
+        >
+          <span
+            className="dd-icon"
+            style={{
+              flexShrink: 0,
+              width: 34, height: 34,
+              borderRadius: 9,
+              background: "rgba(255,255,255,0.05)",
+              border: "1px solid rgba(255,255,255,0.07)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              color: "#9aa3b8",
+              transition: "color 0.15s",
+            }}
+          >
+            <MdScience style={{ width: 15, height: 15 }} />
+          </span>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <p style={{ fontSize: 13, fontWeight: 600, color: "#e8e3d9", marginBottom: 1 }}>Test Mode</p>
+            <p style={{ fontSize: 11, color: "#6b7280", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              Preview a Channel Partner dashboard
+            </p>
+          </div>
+          <FiChevronDown
+            style={{
+              width: 14, height: 14, color: "#6b7280", flexShrink: 0,
+              transform: testModeOpen ? "rotate(180deg)" : "rotate(0deg)",
+              transition: "transform 0.15s",
+            }}
+          />
+        </button>
+
+        {testModeOpen && (
+          <div style={{ padding: "2px 0 4px 10px", display: "flex", flexDirection: "column", gap: 2 }}>
+            {TEST_MODE_CP_OPTIONS.map(({ cpType, label, icon: Icon }) => (
+              <Link
+                key={cpType}
+                href={`/portal/freelancer?cpType=${cpType}`}
+                onClick={onClose}
+                className="dd-item"
+                style={{
+                  display: "flex", alignItems: "center", gap: 11,
+                  padding: "9px 10px",
+                  borderRadius: 9,
+                  textDecoration: "none",
+                  transition: "background 0.15s",
+                }}
+              >
+                <span
+                  className="dd-icon"
+                  style={{
+                    flexShrink: 0,
+                    width: 28, height: 28,
+                    borderRadius: 8,
+                    background: "rgba(255,198,51,0.08)",
+                    border: "1px solid rgba(255,198,51,0.2)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    color: "#ffc633",
+                  }}
+                >
+                  <Icon style={{ width: 13, height: 13 }} />
+                </span>
+                <p style={{ fontSize: 12.5, fontWeight: 600, color: "#e8e3d9" }}>{label}</p>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Divider */}
