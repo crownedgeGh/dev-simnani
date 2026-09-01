@@ -16,6 +16,7 @@ export const APPROVAL_STATUS_TONE = {
 
 export const VISIT_STATUS_TONE = {
   Scheduled: "gold",
-  Completed: "success",
+  Moving: "gold",
+  "Visit Done": "success",
   "No Show": "error",
 };
