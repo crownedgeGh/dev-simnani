@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { FiSun, FiMoon } from "react-icons/fi";
+import { useSearchParams, useRouter } from "next/navigation";
+import { FiSun, FiMoon, FiPlusSquare } from "react-icons/fi";
 import PortalHeader from "@/components/portal/PortalHeader";
 import CompanyCPDashboard from "@/components/portal/CompanyCPDashboard";
 import DigitalCPDashboard from "@/components/portal/DigitalCPDashboard";
@@ -46,6 +46,7 @@ export default function FreelancerPortalClient({
 }) {
   const { user } = useAuth();
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   // Portal defaults to the sunlight-friendly light theme; this lets a
   // partner switch back to the site's standard dark theme if they prefer.
@@ -73,15 +74,26 @@ export default function FreelancerPortalClient({
           title={`Welcome, ${partner.fullName}`}
           subtitle={copy.subtitle}
           action={
-            <button
-              type="button"
-              onClick={() => setIsLight((v) => !v)}
-              aria-label={isLight ? "Switch to dark mode" : "Switch to light mode"}
-              className="tracked-label flex h-11 shrink-0 items-center gap-2 border border-navy-700/60 px-4 text-xs text-cream transition hover:border-gold-400 hover:text-gold-400"
-            >
-              {isLight ? <FiMoon className="h-4 w-4" /> : <FiSun className="h-4 w-4" />}
-              {isLight ? "Dark Mode" : "Light Mode"}
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                id="cp-post-property-btn"
+                type="button"
+                onClick={() => router.push("/post-property")}
+                className="tracked-label flex h-11 items-center gap-2 bg-gold-400 px-4 text-xs text-navy-950 transition hover:bg-gold-300"
+              >
+                <FiPlusSquare className="h-4 w-4" />
+                Post Property
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsLight((v) => !v)}
+                aria-label={isLight ? "Switch to dark mode" : "Switch to light mode"}
+                className="tracked-label flex h-11 items-center gap-2 border border-navy-700/60 px-4 text-xs text-cream transition hover:border-gold-400 hover:text-gold-400"
+              >
+                {isLight ? <FiMoon className="h-4 w-4" /> : <FiSun className="h-4 w-4" />}
+                {isLight ? "Dark Mode" : "Light Mode"}
+              </button>
+            </div>
           }
         />
         <div className="mt-8">

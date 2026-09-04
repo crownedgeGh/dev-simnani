@@ -11,6 +11,7 @@ import {
   FiPhoneCall,
   FiLink,
   FiUserCheck,
+  FiShield,
 } from "react-icons/fi";
 import Tabs from "./Tabs";
 import StatCard from "./StatCard";
@@ -74,6 +75,15 @@ export default function CompanyCPDashboard({
 
   return (
     <div>
+      {/* Role Highlight Badge */}
+      <div className="mb-6 flex items-center gap-3">
+        <span className="inline-flex items-center gap-2 border border-gold-500/70 bg-gold-500/10 px-4 py-2 text-sm font-medium text-gold-400">
+          <FiShield className="h-4 w-4" />
+          Company Channel Partner
+        </span>
+        <span className="tracked-label text-[10px] text-muted">Your Portal Role</span>
+      </div>
+
       <Tabs tabs={TABS} active={tab} onChange={setTab} />
 
       <div className="mt-8">
