@@ -109,9 +109,25 @@ export default function FreelancerPortalClient({
               campaignVideos={campaignVideos}
             />
           )}
-          {cpType === "digital" && (
-            <DigitalCPDashboard stats={digitalStats} projects={projects} assets={promotionAssets} />
-          )}
+          {cpType === "digital" && (() => {
+            // Find this partner's pre-joined campaigns by name and convert to IDs
+            const partnerEntry = (digitalCampaigns || []).find(
+              (d) => d.partnerName === partner.fullName
+            );
+            const initialJoinedCampaigns = partnerEntry
+              ? projects
+                  .filter((p) => partnerEntry.campaigns.includes(p.name))
+                  .map((p) => p.id)
+              : [];
+            return (
+              <DigitalCPDashboard
+                stats={digitalStats}
+                projects={projects}
+                assets={promotionAssets}
+                initialJoinedCampaigns={initialJoinedCampaigns}
+              />
+            );
+          })()}
           {cpType === "field" && (
             <FieldCPDashboard stats={fieldStats} leads={leads} siteVisits={siteVisits} projects={projects} />
           )}

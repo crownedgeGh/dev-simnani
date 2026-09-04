@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { FiDownload, FiPlus, FiUpload, FiLink, FiCheck, FiSend, FiShield } from "react-icons/fi";
+import Link from "next/link";
+import { FiPlus, FiLink, FiCheck, FiSend, FiShield, FiArrowRight } from "react-icons/fi";
+import { MdCampaign } from "react-icons/md";
 import Tabs from "./Tabs";
 import StatCard from "./StatCard";
 import EmptyState from "./EmptyState";
@@ -15,7 +17,6 @@ const TABS = [
   { key: "overview", label: "Overview" },
   { key: "myLeads", label: "My Leads" },
   { key: "campaign", label: "Campaign" },
-  { key: "addProject", label: "Add Project" },
   { key: "earnings", label: "My Earnings" },
   { key: "links", label: "My Links" },
 ];
@@ -33,39 +34,54 @@ const PLATFORMS = [
   { value: "other", label: "Other" },
 ];
 
-const INITIAL_MEDIA_FORM = { project: "", mediaType: "image", name: "", file: null };
 const INITIAL_LINK_FORM = { platform: "", link: "" };
 const INITIAL_LEAD_FORM = { name: "", contact: "", notes: "" };
+const INITIAL_ADD_CAMPAIGN_FORM = { projectId: "" };
 
 function slugify(name) {
   return name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 }
 
-export default function DigitalCPDashboard({ stats, projects, assets }) {
+export default function DigitalCPDashboard({ stats, projects, assets, initialJoinedCampaigns = [] }) {
   const [tab, setTab] = useState("overview");
-  const [selectedProjectId, setSelectedProjectId] = useState(projects[0]?.id || "");
-
-  const [mediaForm, setMediaForm] = useState(INITIAL_MEDIA_FORM);
-  const [mediaError, setMediaError] = useState("");
-  const [mediaSubmissions, setMediaSubmissions] = useState([]);
 
   const [linkForm, setLinkForm] = useState(INITIAL_LINK_FORM);
   const [linkError, setLinkError] = useState("");
   const [socialLinks, setSocialLinks] = useState([]);
 
-  const [joinedCampaigns, setJoinedCampaigns] = useState([]);
+  const [joinedCampaigns, setJoinedCampaigns] = useState(initialJoinedCampaigns);
 
   const [leadForm, setLeadForm] = useState(INITIAL_LEAD_FORM);
   const [leadError, setLeadError] = useState("");
   const [myLeads, setMyLeads] = useState([]);
 
-  const selectedProject = projects.find((p) => p.id === selectedProjectId);
-  const selectedAssets = assets.find((a) => a.projectId === selectedProjectId);
+  const [addCampaignForm, setAddCampaignForm] = useState(INITIAL_ADD_CAMPAIGN_FORM);
+  const [addCampaignError, setAddCampaignError] = useState("");
+  const [addCampaignSuccess, setAddCampaignSuccess] = useState("");
 
   function toggleJoinCampaign(projectId) {
     setJoinedCampaigns((prev) =>
       prev.includes(projectId) ? prev.filter((id) => id !== projectId) : [...prev, projectId]
     );
+  }
+
+  function handleAddCampaign(e) {
+    e.preventDefault();
+    if (!addCampaignForm.projectId) {
+      setAddCampaignError("Please select a campaign to join.");
+      setAddCampaignSuccess("");
+      return;
+    }
+    if (joinedCampaigns.includes(addCampaignForm.projectId)) {
+      setAddCampaignError("You have already joined this campaign.");
+      setAddCampaignSuccess("");
+      return;
+    }
+    setJoinedCampaigns((prev) => [...prev, addCampaignForm.projectId]);
+    const name = projects.find((p) => p.id === addCampaignForm.projectId)?.name || "";
+    setAddCampaignSuccess(`You have joined the "${name}" campaign.`);
+    setAddCampaignError("");
+    setAddCampaignForm(INITIAL_ADD_CAMPAIGN_FORM);
   }
 
   function updateLeadForm(field, value) {
@@ -95,33 +111,6 @@ export default function DigitalCPDashboard({ stats, projects, assets }) {
 
   function handleForwardLead(id) {
     setMyLeads((prev) => prev.map((lead) => (lead.id === id ? { ...lead, forwarded: true } : lead)));
-  }
-
-  function updateMediaForm(field, value) {
-    setMediaForm((prev) => ({ ...prev, [field]: value }));
-  }
-
-  function handleSubmitMedia(e) {
-    e.preventDefault();
-    if (!mediaForm.project || !mediaForm.name.trim()) {
-      setMediaError("Please select a project and give the media a name.");
-      return;
-    }
-    setMediaError("");
-    const project = projects.find((p) => p.id === mediaForm.project);
-    setMediaSubmissions((prev) => [
-      {
-        id: generateAccountId("MED"),
-        project: project ? project.name : mediaForm.project,
-        mediaType: mediaForm.mediaType,
-        name: mediaForm.name.trim(),
-        fileName: mediaForm.file?.name || "",
-        status: "Pending Review",
-        date: new Date().toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" }),
-      },
-      ...prev,
-    ]);
-    setMediaForm(INITIAL_MEDIA_FORM);
   }
 
   function updateLinkForm(field, value) {
@@ -175,7 +164,7 @@ export default function DigitalCPDashboard({ stats, projects, assets }) {
                 <div className="mt-4">
                   <EmptyState
                     title="No campaigns joined yet"
-                    message="Head to the Campaign tab and join a project campaign to see it here."
+                    message="Head to the Campaign tab or use My Links → Add Campaign to join a project campaign."
                   />
                 </div>
               ) : (
@@ -183,23 +172,32 @@ export default function DigitalCPDashboard({ stats, projects, assets }) {
                   {projects
                     .filter((p) => joinedCampaigns.includes(p.id))
                     .map((p) => (
-                      <div key={p.id} className="border border-navy-700/60 bg-navy-900 p-4">
+                      <Link
+                        key={p.id}
+                        href={`/portal/freelancer/campaign/${p.id}`}
+                        className="group block border border-navy-700/60 bg-navy-900 p-4 transition hover:border-gold-500/60"
+                      >
                         <div className="relative h-32 w-full overflow-hidden rounded-sm">
                           <Image
                             src={p.image}
                             alt={p.name}
                             fill
                             sizes="(max-width: 640px) 100vw, 33vw"
-                            className="object-cover"
+                            className="object-cover transition group-hover:scale-105"
                           />
                         </div>
-                        <h3 className="mt-3 font-display text-base text-cream">{p.name}</h3>
+                        <h3 className="mt-3 font-display text-base text-cream group-hover:text-gold-400 transition">{p.name}</h3>
                         <p className="mt-1 text-xs text-muted">{p.location}</p>
-                        <span className="tracked-label mt-3 flex w-fit items-center gap-1 border border-gold-500/70 px-3 py-1 text-xs text-gold-400">
-                          <FiCheck className="h-3.5 w-3.5" />
-                          Joined
-                        </span>
-                      </div>
+                        <div className="mt-3 flex items-center justify-between">
+                          <span className="tracked-label flex w-fit items-center gap-1 border border-gold-500/70 px-3 py-1 text-xs text-gold-400">
+                            <FiCheck className="h-3.5 w-3.5" />
+                            Joined
+                          </span>
+                          <span className="flex items-center gap-1 text-xs text-muted opacity-0 transition group-hover:opacity-100">
+                            View Campaign <FiArrowRight className="h-3.5 w-3.5" />
+                          </span>
+                        </div>
+                      </Link>
                     ))}
                 </div>
               )}
@@ -298,198 +296,47 @@ export default function DigitalCPDashboard({ stats, projects, assets }) {
 
         {tab === "campaign" && (
           <div className="flex flex-col gap-6">
-            <div className="flex flex-wrap gap-2">
+            <p className="text-sm text-muted">
+              Select a campaign below to view full guidelines, video dos &amp; don&apos;ts, and downloadable assets.
+            </p>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {projects.map((p) => (
-                <button
+                <Link
                   key={p.id}
-                  type="button"
-                  onClick={() => setSelectedProjectId(p.id)}
-                  aria-pressed={selectedProjectId === p.id}
-                  className={`tracked-label border px-4 py-2 text-xs transition ${
-                    selectedProjectId === p.id
-                      ? "border-gold-400 bg-gold-400 text-navy-950"
-                      : "border-navy-700/60 text-muted hover:text-cream"
-                  }`}
+                  href={`/portal/freelancer/campaign/${p.id}`}
+                  className="group flex flex-col gap-0 overflow-hidden border border-navy-700/60 bg-navy-900 transition hover:border-gold-500/60"
                 >
-                  {p.name}
-                </button>
+                  <div className="relative h-36 w-full overflow-hidden">
+                    <Image
+                      src={p.image}
+                      alt={p.name}
+                      fill
+                      sizes="(max-width: 640px) 100vw, 33vw"
+                      className="object-cover transition group-hover:scale-105"
+                    />
+                    {joinedCampaigns.includes(p.id) && (
+                      <div className="absolute left-2 top-2 flex items-center gap-1 border border-gold-500/70 bg-navy-950/80 px-2 py-1 backdrop-blur-sm">
+                        <FiCheck className="h-3 w-3 text-gold-400" />
+                        <span className="tracked-label text-[9px] text-gold-400">Joined</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-1 p-4">
+                    <h3 className="font-display text-sm text-cream transition group-hover:text-gold-400">{p.name}</h3>
+                    <p className="text-xs text-muted">{p.location}</p>
+                    <p className="text-xs text-muted">{p.startingPrice} · {p.status}</p>
+                    <div className="mt-2 flex items-center gap-1 text-xs text-gold-400 opacity-0 transition group-hover:opacity-100">
+                      <MdCampaign className="h-3.5 w-3.5" />
+                      View Campaign <FiArrowRight className="h-3 w-3" />
+                    </div>
+                  </div>
+                </Link>
               ))}
             </div>
-
-            {selectedProject && selectedAssets && (
-              <div className="border border-navy-700/60 bg-navy-900 p-5">
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-[220px_1fr]">
-                  <div className="relative h-48 w-full overflow-hidden rounded-sm sm:h-full">
-                    <Image
-                      src={selectedProject.image}
-                      alt={selectedProject.name}
-                      fill
-                      sizes="(max-width: 640px) 100vw, 220px"
-                      className="object-cover"
-                    />
-                  </div>
-                  <div className="flex flex-col">
-                    <h3 className="font-display text-lg text-cream">{selectedProject.name}</h3>
-                    <p className="mt-1 text-xs text-muted">{selectedProject.location}</p>
-                    <p className="mt-1 text-xs text-muted">
-                      {selectedProject.startingPrice} · {selectedProject.status}
-                    </p>
-
-                    <button
-                      type="button"
-                      onClick={() => toggleJoinCampaign(selectedProject.id)}
-                      className={`tracked-label mt-4 flex w-fit items-center justify-center gap-2 px-5 py-3 text-xs transition ${
-                        joinedCampaigns.includes(selectedProject.id)
-                          ? "border border-gold-500/70 text-gold-400 hover:bg-gold-500/10"
-                          : "bg-gold-400 text-navy-950 hover:bg-gold-300"
-                      }`}
-                    >
-                      {joinedCampaigns.includes(selectedProject.id) ? (
-                        <>
-                          <FiCheck className="h-4 w-4" />
-                          Joined Campaign
-                        </>
-                      ) : (
-                        "Join Campaign"
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                <p className="tracked-label mt-5 text-xs text-gold-400">Campaign Videos</p>
-                <div className="mt-3 flex flex-col gap-3">
-                  {selectedAssets.videos.map((name) => {
-                    const videoLink = `https://cdn.simnaniestates.com/campaign-videos/${slugify(name)}`;
-                    return (
-                      <div
-                        key={name}
-                        className="flex flex-col gap-3 border border-navy-700/60 p-4 sm:flex-row sm:items-center sm:justify-between"
-                      >
-                        <div className="min-w-0">
-                          <p className="text-sm text-cream">{name}</p>
-                          <a
-                            href={videoLink}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="mt-1 block truncate text-xs text-gold-400 hover:text-gold-300"
-                          >
-                            {videoLink}
-                          </a>
-                        </div>
-                        <a
-                          href={videoLink}
-                          download
-                          className="tracked-label flex shrink-0 items-center justify-center gap-2 border border-gold-500/70 px-4 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10"
-                        >
-                          <FiDownload className="h-3.5 w-3.5" />
-                          Download Video
-                        </a>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
           </div>
         )}
 
-        {tab === "addProject" && (
-          <div className="flex flex-col gap-6">
-            <form
-              onSubmit={handleSubmitMedia}
-              className="flex flex-col gap-4 border border-navy-700/60 bg-navy-900 p-4 sm:p-6"
-            >
-              <h2 className="font-display text-xl text-cream">Submit Media</h2>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <FormField label="Project" htmlFor="dcp-media-project" required>
-                  <select
-                    id="dcp-media-project"
-                    value={mediaForm.project}
-                    onChange={(e) => updateMediaForm("project", e.target.value)}
-                    className={selectClass}
-                  >
-                    <option value="">Select project</option>
-                    {projects.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name}
-                      </option>
-                    ))}
-                  </select>
-                </FormField>
-                <FormField label="Media Name" htmlFor="dcp-media-name" required>
-                  <input
-                    id="dcp-media-name"
-                    type="text"
-                    placeholder="e.g. Clubhouse Walkthrough Reel"
-                    value={mediaForm.name}
-                    onChange={(e) => updateMediaForm("name", e.target.value)}
-                    className={inputClass}
-                  />
-                </FormField>
-              </div>
 
-              <FormField label="Media Type" required>
-                <ChipGroup
-                  options={MEDIA_TYPES}
-                  value={mediaForm.mediaType}
-                  onChange={(value) => updateMediaForm("mediaType", value)}
-                />
-              </FormField>
-
-              <FormField label="Upload File" htmlFor="dcp-media-file" optional>
-                <label
-                  htmlFor="dcp-media-file"
-                  className="flex h-14 cursor-pointer items-center gap-2 border border-navy-700/60 bg-navy-950 px-4 text-sm text-muted transition hover:border-gold-400"
-                >
-                  <FiUpload className="h-4 w-4 text-gold-400" />
-                  {mediaForm.file ? mediaForm.file.name : "Add Video / Image"}
-                </label>
-                <input
-                  id="dcp-media-file"
-                  type="file"
-                  accept="image/*,video/*"
-                  onChange={(e) => updateMediaForm("file", e.target.files?.[0] || null)}
-                  className="hidden"
-                />
-              </FormField>
-
-              {mediaError && <p className="text-xs text-red-400">{mediaError}</p>}
-
-              <div className="mt-2 flex justify-end">
-                <button
-                  type="submit"
-                  className="tracked-label bg-gold-400 px-6 py-3 text-xs text-navy-950 transition hover:bg-gold-300"
-                >
-                  Submit Media
-                </button>
-              </div>
-            </form>
-
-            {mediaSubmissions.length === 0 ? (
-              <EmptyState title="No media submitted yet" message="Submit a project video or image to have it reviewed and added to your campaigns." />
-            ) : (
-              <div className="flex flex-col gap-3">
-                {mediaSubmissions.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex flex-col gap-2 border border-navy-700/60 bg-navy-900 p-4 sm:flex-row sm:items-center sm:justify-between"
-                  >
-                    <div>
-                      <p className="text-sm text-cream">{item.name}</p>
-                      <p className="mt-1 text-xs text-muted">
-                        {item.project} · {item.mediaType === "video" ? "Video" : "Image"}
-                        {item.fileName ? ` · ${item.fileName}` : ""} · {item.date}
-                      </p>
-                    </div>
-                    <span className="tracked-label w-fit border border-gold-500/70 px-3 py-1 text-xs text-gold-400">
-                      {item.status}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
 
         {tab === "earnings" && (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -501,6 +348,69 @@ export default function DigitalCPDashboard({ stats, projects, assets }) {
 
         {tab === "links" && (
           <div className="flex flex-col gap-6">
+            {/* ── Add Campaign ──────────────────────────────── */}
+            <form
+              onSubmit={handleAddCampaign}
+              className="flex flex-col gap-4 border border-navy-700/60 bg-navy-900 p-4 sm:p-6"
+            >
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gold-400/15">
+                  <MdCampaign className="h-4 w-4 text-gold-400" />
+                </div>
+                <h2 className="font-display text-xl text-cream">Add Campaign</h2>
+              </div>
+              <p className="text-xs text-muted">
+                Select a project campaign to join. Once joined, it will appear on your Overview and you&apos;ll unlock campaign assets.
+              </p>
+
+              <FormField label="Campaign" htmlFor="dcp-add-campaign-select" required>
+                <select
+                  id="dcp-add-campaign-select"
+                  value={addCampaignForm.projectId}
+                  onChange={(e) => setAddCampaignForm({ projectId: e.target.value })}
+                  className={selectClass}
+                >
+                  <option value="">Select campaign</option>
+                  {projects.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              </FormField>
+
+              {addCampaignError && <p className="text-xs text-red-400">{addCampaignError}</p>}
+              {addCampaignSuccess && (
+                <p className="flex items-center gap-1.5 text-xs text-emerald-400">
+                  <FiCheck className="h-3.5 w-3.5" /> {addCampaignSuccess}
+                </p>
+              )}
+
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex flex-wrap gap-2">
+                  {joinedCampaigns.length > 0 && projects
+                    .filter((p) => joinedCampaigns.includes(p.id))
+                    .map((p) => (
+                      <span
+                        key={p.id}
+                        className="tracked-label flex items-center gap-1 border border-gold-500/70 bg-gold-500/10 px-2 py-1 text-[10px] text-gold-400"
+                      >
+                        <FiCheck className="h-3 w-3" />
+                        {p.name}
+                      </span>
+                    ))}
+                </div>
+                <button
+                  type="submit"
+                  className="tracked-label flex shrink-0 items-center justify-center gap-2 bg-gold-400 px-6 py-3 text-xs text-navy-950 transition hover:bg-gold-300"
+                >
+                  <MdCampaign className="h-4 w-4" />
+                  Add Campaign
+                </button>
+              </div>
+            </form>
+
+            {/* ── Add Social Media Link ─────────────────────── */}
             <form
               onSubmit={handleSubmitLink}
               className="flex flex-col gap-4 border border-navy-700/60 bg-navy-900 p-4 sm:p-6"
