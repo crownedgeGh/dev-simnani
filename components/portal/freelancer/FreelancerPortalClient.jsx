@@ -54,11 +54,15 @@ export default function FreelancerPortalClient({
   // Test Mode support — reads ?cpType=field|digital|company so demo dashboards
   // can be opened directly from the signup / navbar shortcuts, no form needed.
   const requestedCpType = searchParams.get("cpType");
-  const demoCpType = PORTAL_COPY[requestedCpType] ? requestedCpType : "digital";
+  const isValidRequestedCp = requestedCpType && Boolean(PORTAL_COPY[requestedCpType]);
 
   const isRealFreelancer = user?.accountType === "freelancer";
-  const cpType = isRealFreelancer ? user.cpType || "digital" : demoCpType;
-  const partner = isRealFreelancer ? user : { fullName: DEMO_CP_NAMES[cpType], cpType };
+  const cpType = isValidRequestedCp
+    ? requestedCpType
+    : (isRealFreelancer ? user?.cpType || "digital" : "digital");
+  const partner = isValidRequestedCp
+    ? { fullName: (isRealFreelancer && user?.cpType === cpType && user?.fullName) ? user.fullName : DEMO_CP_NAMES[cpType], cpType }
+    : (isRealFreelancer && user ? user : { fullName: DEMO_CP_NAMES[cpType], cpType });
   const copy = PORTAL_COPY[cpType];
 
   return (
