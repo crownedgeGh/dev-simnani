@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { FiPlus, FiLink, FiCheck, FiSend, FiShield, FiArrowRight } from "react-icons/fi";
@@ -12,6 +12,7 @@ import ChipGroup from "@/components/auth/ChipGroup";
 import FormField from "@/components/auth/FormField";
 import { inputClass, selectClass, textareaClass } from "@/components/auth/inputStyles";
 import { generateAccountId } from "@/lib/auth";
+import RefreshButton from "./RefreshButton";
 
 const TABS = [
   { key: "overview", label: "Overview" },
@@ -58,6 +59,38 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
   const [addCampaignForm, setAddCampaignForm] = useState(INITIAL_ADD_CAMPAIGN_FORM);
   const [addCampaignError, setAddCampaignError] = useState("");
   const [addCampaignSuccess, setAddCampaignSuccess] = useState("");
+
+  // Per-section refresh keys
+  const [refreshKeys, setRefreshKeys] = useState({
+    overview: 0,
+    myLeads: 0,
+    campaign: 0,
+    earnings: 0,
+    links: 0,
+  });
+
+  const refreshSection = useCallback(
+    (section) => {
+      setRefreshKeys((prev) => ({ ...prev, [section]: prev[section] + 1 }));
+      if (section === "myLeads") {
+        setMyLeads([]);
+        setLeadForm(INITIAL_LEAD_FORM);
+        setLeadError("");
+      }
+      if (section === "links") {
+        setSocialLinks([]);
+        setLinkForm(INITIAL_LINK_FORM);
+        setLinkError("");
+        setAddCampaignForm(INITIAL_ADD_CAMPAIGN_FORM);
+        setAddCampaignError("");
+        setAddCampaignSuccess("");
+      }
+      if (section === "campaign") {
+        setJoinedCampaigns(initialJoinedCampaigns);
+      }
+    },
+    [initialJoinedCampaigns]
+  );
 
   function toggleJoinCampaign(projectId) {
     setJoinedCampaigns((prev) =>
@@ -152,6 +185,11 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
       <div className="mt-8">
         {tab === "overview" && (
           <div className="flex flex-col gap-8">
+            <div className="flex items-center justify-between">
+              <p className="tracked-label text-xs text-gold-400">Performance Overview</p>
+              <RefreshButton onRefresh={() => refreshSection("overview")} label="Refresh overview" />
+            </div>
+            <div key={refreshKeys.overview} className="flex flex-col gap-8">
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
               <StatCard label="Leads Submitted" value={stats.leadsSubmitted} />
               <StatCard label="Deals Converted" value={stats.dealsConverted} />
@@ -202,11 +240,16 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
                 </div>
               )}
             </div>
+            </div>
           </div>
         )}
 
         {tab === "myLeads" && (
           <div className="flex flex-col gap-6">
+            <div className="flex items-center justify-between">
+              <p className="tracked-label text-xs text-gold-400">My Leads</p>
+              <RefreshButton onRefresh={() => refreshSection("myLeads")} label="Refresh leads" />
+            </div>
             <form
               onSubmit={handleSubmitLead}
               className="flex flex-col gap-4 border border-navy-700/60 bg-navy-900 p-4 sm:p-6"
@@ -296,6 +339,10 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
 
         {tab === "campaign" && (
           <div className="flex flex-col gap-6">
+            <div className="flex items-center justify-between">
+              <p className="tracked-label text-xs text-gold-400">All Campaigns</p>
+              <RefreshButton onRefresh={() => refreshSection("campaign")} label="Refresh campaigns" />
+            </div>
             <p className="text-sm text-muted">
               Select a campaign below to view full guidelines, video dos &amp; don&apos;ts, and downloadable assets.
             </p>
@@ -339,15 +386,25 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
 
 
         {tab === "earnings" && (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <StatCard label="Commission Earned" value={stats.commissionEarned} />
-            <StatCard label="Deals Converted" value={stats.dealsConverted} />
-            <StatCard label="Leads Submitted" value={stats.leadsSubmitted} />
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <p className="tracked-label text-xs text-gold-400">My Earnings</p>
+              <RefreshButton onRefresh={() => refreshSection("earnings")} label="Refresh earnings" />
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3" key={refreshKeys.earnings}>
+              <StatCard label="Commission Earned" value={stats.commissionEarned} />
+              <StatCard label="Deals Converted" value={stats.dealsConverted} />
+              <StatCard label="Leads Submitted" value={stats.leadsSubmitted} />
+            </div>
           </div>
         )}
 
         {tab === "links" && (
           <div className="flex flex-col gap-6">
+            <div className="flex items-center justify-between">
+              <p className="tracked-label text-xs text-gold-400">My Links</p>
+              <RefreshButton onRefresh={() => refreshSection("links")} label="Refresh links" />
+            </div>
             {/* ── Add Campaign ──────────────────────────────── */}
             <form
               onSubmit={handleAddCampaign}

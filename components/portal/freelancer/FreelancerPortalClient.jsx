@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { FiSun, FiMoon, FiPlusSquare } from "react-icons/fi";
 import PortalHeader from "@/components/portal/PortalHeader";
@@ -48,9 +48,18 @@ export default function FreelancerPortalClient({
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // Portal defaults to the sunlight-friendly light theme; this lets a
-  // partner switch back to the site's standard dark theme if they prefer.
-  const [isLight, setIsLight] = useState(true);
+  // Portal defaults to the sunlight-friendly light theme; preference is
+  // persisted to localStorage so it survives page refreshes.
+  const [isLight, setIsLight] = useState(() => {
+    if (typeof window === "undefined") return true;
+    const saved = localStorage.getItem("cp_theme");
+    return saved !== null ? saved === "light" : true;
+  });
+
+  // Sync theme preference to localStorage whenever it changes.
+  useEffect(() => {
+    localStorage.setItem("cp_theme", isLight ? "light" : "dark");
+  }, [isLight]);
 
   // Test Mode support — reads ?cpType=field|digital|company so demo dashboards
   // can be opened directly from the signup / navbar shortcuts, no form needed.

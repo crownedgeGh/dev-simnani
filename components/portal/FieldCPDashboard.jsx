@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Image from "next/image";
 import { FiPlus, FiCheck, FiSend, FiNavigation, FiCamera, FiUser, FiPhone, FiShield } from "react-icons/fi";
 import Tabs from "./Tabs";
@@ -11,6 +11,7 @@ import { VISIT_STATUS_TONE } from "./channel-partner/tones";
 import FormField from "@/components/auth/FormField";
 import { inputClass, selectClass, textareaClass } from "@/components/auth/inputStyles";
 import { generateAccountId } from "@/lib/auth";
+import RefreshButton from "./RefreshButton";
 
 const TABS = [
   { key: "overview", label: "Overview" },
@@ -32,6 +33,32 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
   const [directForm, setDirectForm] = useState(INITIAL_DIRECT_FORM);
   const [directError, setDirectError] = useState("");
   const [directLeads, setDirectLeads] = useState([]);
+
+  // Per-section refresh keys
+  const [refreshKeys, setRefreshKeys] = useState({
+    overview: 0,
+    assigned: 0,
+    visits: 0,
+    direct: 0,
+    earnings: 0,
+  });
+
+  const refreshSection = useCallback(
+    (section) => {
+      setRefreshKeys((prev) => ({ ...prev, [section]: prev[section] + 1 }));
+      if (section === "visits") {
+        setSiteVisits(initialSiteVisits);
+        setFollowUpDrafts({});
+        setCustomerNotes({});
+      }
+      if (section === "direct") {
+        setDirectLeads([]);
+        setDirectForm(INITIAL_DIRECT_FORM);
+        setDirectError("");
+      }
+    },
+    [initialSiteVisits]
+  );
 
   const assignedLeads = leads.filter((l) => l.assignedTo);
 
@@ -116,16 +143,27 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
 
       <div className="mt-8">
         {tab === "overview" && (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            <StatCard label="Assigned Leads" value={stats.assignedLeads} />
-            <StatCard label="Site Visits Scheduled" value={stats.siteVisitsScheduled} />
-            <StatCard label="Deals Closed" value={stats.dealsClosed} />
-            <StatCard label="Commission Earned" value={stats.commissionEarned} />
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <p className="tracked-label text-xs text-gold-400">Performance Overview</p>
+              <RefreshButton onRefresh={() => refreshSection("overview")} label="Refresh overview" />
+            </div>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4" key={refreshKeys.overview}>
+              <StatCard label="Assigned Leads" value={stats.assignedLeads} />
+              <StatCard label="Site Visits Scheduled" value={stats.siteVisitsScheduled} />
+              <StatCard label="Deals Closed" value={stats.dealsClosed} />
+              <StatCard label="Commission Earned" value={stats.commissionEarned} />
+            </div>
           </div>
         )}
 
         {tab === "assigned" && (
           <div className="flex flex-col gap-6">
+            <div className="flex items-center justify-between">
+              <p className="tracked-label text-xs text-gold-400">Assigned Projects</p>
+              <RefreshButton onRefresh={() => refreshSection("assigned")} label="Refresh assigned projects" />
+            </div>
+            <div key={refreshKeys.assigned} className="flex flex-col gap-6">
             {assignedProjects.length === 0 ? (
               <EmptyState title="No projects assigned yet" message="Projects with leads assigned to you by a Company Channel Partner will appear here." />
             ) : (
@@ -176,11 +214,17 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
                 </div>
               ))
             )}
+            </div>
           </div>
         )}
 
         {tab === "visits" && (
           <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <p className="tracked-label text-xs text-gold-400">Site Visits</p>
+              <RefreshButton onRefresh={() => refreshSection("visits")} label="Refresh site visits" />
+            </div>
+            <div key={refreshKeys.visits} className="flex flex-col gap-3">
             {siteVisits.length === 0 ? (
               <EmptyState title="No site visits yet" message="Schedule and track site visits for your assigned leads here." />
             ) : (
@@ -307,11 +351,16 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
                 );
               })
             )}
+            </div>
           </div>
         )}
 
         {tab === "direct" && (
           <div className="flex flex-col gap-6">
+            <div className="flex items-center justify-between">
+              <p className="tracked-label text-xs text-gold-400">Direct Leads</p>
+              <RefreshButton onRefresh={() => refreshSection("direct")} label="Refresh direct leads" />
+            </div>
             <form
               onSubmit={handleDirectSubmit}
               className="flex flex-col gap-4 border border-navy-700/60 bg-navy-900 p-4 sm:p-6"
@@ -417,10 +466,16 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
         )}
 
         {tab === "earnings" && (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <StatCard label="Commission Earned" value={stats.commissionEarned} />
-            <StatCard label="Deals Closed" value={stats.dealsClosed} />
-            <StatCard label="Site Visits Scheduled" value={stats.siteVisitsScheduled} />
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <p className="tracked-label text-xs text-gold-400">My Earnings</p>
+              <RefreshButton onRefresh={() => refreshSection("earnings")} label="Refresh earnings" />
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3" key={refreshKeys.earnings}>
+              <StatCard label="Commission Earned" value={stats.commissionEarned} />
+              <StatCard label="Deals Closed" value={stats.dealsClosed} />
+              <StatCard label="Site Visits Scheduled" value={stats.siteVisitsScheduled} />
+            </div>
           </div>
         )}
       </div>

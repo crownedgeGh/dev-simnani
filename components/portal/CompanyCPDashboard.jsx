@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Image from "next/image";
 import {
   FiCheck,
@@ -19,6 +19,7 @@ import Badge from "./Badge";
 import EmptyState from "./EmptyState";
 import { CP_TYPE_LABEL, VIDEO_STATUS_TONE } from "./channel-partner/tones";
 import { selectClass } from "@/components/auth/inputStyles";
+import RefreshButton from "./RefreshButton";
 
 const TABS = [
   { key: "overview", label: "Overview" },
@@ -48,6 +49,29 @@ export default function CompanyCPDashboard({
   const [videos, setVideos] = useState(initialCampaignVideos);
   const [editingNoteId, setEditingNoteId] = useState(null);
   const [noteDraft, setNoteDraft] = useState("");
+
+  // Per-section refresh keys — incrementing these resets the section's local state
+  const [refreshKeys, setRefreshKeys] = useState({
+    overview: 0,
+    projects: 0,
+    trackField: 0,
+    trackDigital: 0,
+    freelancerLeads: 0,
+  });
+
+  const refreshSection = useCallback(
+    (section) => {
+      setRefreshKeys((prev) => ({ ...prev, [section]: prev[section] + 1 }));
+      // Reset section-specific local state
+      if (section === "projects") setAssignments({});
+      if (section === "trackDigital") {
+        setVideos(initialCampaignVideos);
+        setEditingNoteId(null);
+        setNoteDraft("");
+      }
+    },
+    [initialCampaignVideos]
+  );
 
   const fieldPartners = network.filter((p) => p.cpType === "field");
   const digitalPartners = network.filter((p) => p.cpType === "digital");
@@ -88,16 +112,27 @@ export default function CompanyCPDashboard({
 
       <div className="mt-8">
         {tab === "overview" && (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            <StatCard label="Total Leads" value={stats.totalLeads} />
-            <StatCard label="Pending Verification" value={stats.pendingVerification} />
-            <StatCard label="Active Assignments" value={stats.activeAssignments} />
-            <StatCard label="Commission Pending Approval" value={stats.commissionPendingApproval} />
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <p className="tracked-label text-xs text-gold-400">Performance Overview</p>
+              <RefreshButton onRefresh={() => refreshSection("overview")} label="Refresh overview" />
+            </div>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4" key={refreshKeys.overview}>
+              <StatCard label="Total Leads" value={stats.totalLeads} />
+              <StatCard label="Pending Verification" value={stats.pendingVerification} />
+              <StatCard label="Active Assignments" value={stats.activeAssignments} />
+              <StatCard label="Commission Pending Approval" value={stats.commissionPendingApproval} />
+            </div>
           </div>
         )}
 
         {tab === "projects" && (
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="flex flex-col gap-5">
+            <div className="flex items-center justify-between">
+              <p className="tracked-label text-xs text-gold-400">All Projects</p>
+              <RefreshButton onRefresh={() => refreshSection("projects")} label="Refresh projects" />
+            </div>
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3" key={refreshKeys.projects}>
             {projects.map((project) => {
               const assignedTo = assignments[project.id];
               return (
@@ -143,11 +178,17 @@ export default function CompanyCPDashboard({
                 </div>
               );
             })}
+            </div>
           </div>
         )}
 
         {tab === "trackField" && (
           <div className="flex flex-col gap-5">
+            <div className="flex items-center justify-between">
+              <p className="tracked-label text-xs text-gold-400">Field Channel Partners</p>
+              <RefreshButton onRefresh={() => refreshSection("trackField")} label="Refresh field CP tracking" />
+            </div>
+            <div key={refreshKeys.trackField} className="flex flex-col gap-5">
             {fieldPartners.length === 0 ? (
               <EmptyState title="No Field CPs yet" message="Field Channel Partners in your network will appear here." />
             ) : (
@@ -193,11 +234,17 @@ export default function CompanyCPDashboard({
                 );
               })
             )}
+            </div>
           </div>
         )}
 
         {tab === "trackDigital" && (
           <div className="flex flex-col gap-8">
+            <div className="flex items-center justify-between">
+              <p className="tracked-label text-xs text-gold-400">Digital Channel Partners</p>
+              <RefreshButton onRefresh={() => refreshSection("trackDigital")} label="Refresh digital CP tracking" />
+            </div>
+            <div key={refreshKeys.trackDigital} className="flex flex-col gap-8">
             <div className="flex flex-col gap-4">
               <h3 className="font-display text-lg text-cream">Campaign Participation</h3>
               {digitalPartners.length === 0 ? (
@@ -333,11 +380,17 @@ export default function CompanyCPDashboard({
                 ))
               )}
             </div>
+            </div>
           </div>
         )}
 
         {tab === "freelancerLeads" && (
-          <div className="overflow-x-auto border border-navy-700/60 bg-navy-900">
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <p className="tracked-label text-xs text-gold-400">Freelancer Leads</p>
+              <RefreshButton onRefresh={() => refreshSection("freelancerLeads")} label="Refresh freelancer leads" />
+            </div>
+            <div className="overflow-x-auto border border-navy-700/60 bg-navy-900" key={refreshKeys.freelancerLeads}>
             <table className="w-full min-w-[640px] text-left text-sm">
               <thead>
                 <tr className="tracked-label border-b border-navy-700/60 text-[10px] text-muted">
@@ -375,6 +428,7 @@ export default function CompanyCPDashboard({
                 )}
               </tbody>
             </table>
+            </div>
           </div>
         )}
       </div>
