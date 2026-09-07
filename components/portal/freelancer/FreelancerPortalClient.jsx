@@ -107,35 +107,35 @@ export default function FreelancerPortalClient({
 
   return (
     <div className={`min-h-screen bg-navy-950 ${isLight ? "cp-light-theme" : ""}`}>
-      <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
         <PortalHeader
           eyebrow={copy.eyebrow}
           title={`Welcome, ${partner.fullName}`}
           subtitle={copy.subtitle}
           action={
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="grid w-full grid-cols-2 gap-2.5 sm:flex sm:w-auto sm:flex-wrap sm:items-center sm:gap-2">
               <button
                 id="cp-post-property-btn"
                 type="button"
                 onClick={() => router.push("/post-property")}
-                className="tracked-label flex h-11 items-center gap-2 bg-gold-400 px-4 text-xs text-navy-950 transition hover:bg-gold-300"
+                className="tracked-label flex h-11 w-full items-center justify-center gap-2 bg-gold-400 px-3 text-xs text-navy-950 transition hover:bg-gold-300 sm:w-auto sm:px-4"
               >
-                <FiPlusSquare className="h-4 w-4" />
-                Post Property
+                <FiPlusSquare className="h-4 w-4 shrink-0" />
+                <span>Post Property</span>
               </button>
               <button
                 type="button"
                 onClick={handleToggleTheme}
                 aria-label={isLight ? "Switch to dark mode" : "Switch to light mode"}
-                className="tracked-label flex h-11 items-center gap-2 border border-navy-700/60 px-4 text-xs text-cream transition hover:border-gold-400 hover:text-gold-400"
+                className="tracked-label flex h-11 w-full items-center justify-center gap-2 border border-navy-700/60 px-3 text-xs text-cream transition hover:border-gold-400 hover:text-gold-400 sm:w-auto sm:px-4"
               >
-                {isLight ? <FiMoon className="h-4 w-4" /> : <FiSun className="h-4 w-4" />}
-                {isLight ? "Dark Mode" : "Light Mode"}
+                {isLight ? <FiMoon className="h-4 w-4 shrink-0" /> : <FiSun className="h-4 w-4 shrink-0" />}
+                <span>{isLight ? "Dark Mode" : "Light Mode"}</span>
               </button>
             </div>
           }
         />
-        <div className="mt-8">
+        <div className="mt-6 sm:mt-8">
           {cpType === "company" && (
             <CompanyCPDashboard
               stats={companyStats}
