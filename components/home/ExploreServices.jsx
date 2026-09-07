@@ -33,7 +33,7 @@ const SERVICES = [
     description:
       "Professional support for real estate development and property projects.",
     cta: "Explore Projects",
-    href: "/",
+    href: "/projects",
   },
 ];
 

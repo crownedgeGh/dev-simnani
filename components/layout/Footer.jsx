@@ -56,7 +56,13 @@ export default function Footer() {
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-5">
           <div className="lg:col-span-1">
             <span className="relative block h-12 w-[206px]">
-              <Image src="/logo-se.png" alt="Simnani Estates" fill className="object-contain object-left" />
+              <Image
+                src="/logo-se.png"
+                alt="Simnani Estates"
+                fill
+                sizes="206px"
+                className="object-contain object-left"
+              />
             </span>
             <p className="mt-4 text-sm text-muted">
               Elevating real estate excellence across India&apos;s most

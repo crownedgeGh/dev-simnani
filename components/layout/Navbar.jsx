@@ -415,7 +415,14 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex shrink-0 items-center">
             <span className="relative h-10 w-[172px] shrink-0 sm:h-14 sm:w-[241px]">
-              <Image src="/logo-se.png" alt="Simnani Estates" fill className="object-contain object-left" priority />
+              <Image
+                src="/logo-se.png"
+                alt="Simnani Estates"
+                fill
+                sizes="(min-width: 640px) 241px, 172px"
+                className="object-contain object-left"
+                priority
+              />
             </span>
           </Link>
 
@@ -613,7 +620,13 @@ export default function Navbar() {
               ) : (
                 <Link href="/" onClick={() => setMobileOpen(false)} className="flex items-center">
                   <span className="relative h-9 w-[155px] shrink-0">
-                    <Image src="/logo-se.png" alt="Simnani Estates" fill className="object-contain object-left" />
+                    <Image
+                      src="/logo-se.png"
+                      alt="Simnani Estates"
+                      fill
+                      sizes="155px"
+                      className="object-contain object-left"
+                    />
                   </span>
                 </Link>
               )}

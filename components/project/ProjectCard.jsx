@@ -5,7 +5,10 @@ export default function ProjectCard({ project }) {
   const { id, name, location, startingPrice, developer, status, image } = project;
 
   return (
-    <div className="group overflow-hidden border border-navy-700/60 bg-navy-900 transition hover:border-gold-500/50">
+    <Link
+      href={`/projects/${id}`}
+      className="group block overflow-hidden border border-navy-700/60 bg-navy-900 transition hover:border-gold-500/50"
+    >
       <div className="relative aspect-[4/3] w-full overflow-hidden">
         <Image
           src={image}
@@ -20,18 +23,17 @@ export default function ProjectCard({ project }) {
       </div>
 
       <div className="p-5">
-        <h3 className="font-display text-lg text-cream">{name}</h3>
+        <h3 className="font-display text-lg text-cream transition duration-200 group-hover:text-gold-300">{name}</h3>
         <p className="mt-1 text-sm text-muted">{location}</p>
         <p className="mt-1 text-xs text-muted">by {developer}</p>
         <p className="mt-3 font-display text-xl text-gold-400">{startingPrice}</p>
 
-        <Link
-          href={`/projects/${id}`}
-          className="tracked-label mt-5 block w-full border border-gold-500/70 py-2.5 text-center text-xs text-gold-400 transition hover:bg-gold-500 hover:text-navy-950"
+        <span
+          className="tracked-label mt-5 block w-full border border-gold-500/70 py-2.5 text-center text-xs text-gold-400 transition group-hover:bg-gold-500 group-hover:text-navy-950"
         >
           View Project
-        </Link>
+        </span>
       </div>
-    </div>
+    </Link>
   );
 }

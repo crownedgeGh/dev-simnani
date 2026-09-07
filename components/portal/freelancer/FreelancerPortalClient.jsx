@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useSyncExternalStore } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { FiSun, FiMoon, FiPlusSquare } from "react-icons/fi";
 import PortalHeader from "@/components/portal/PortalHeader";
@@ -8,6 +8,33 @@ import CompanyCPDashboard from "@/components/portal/CompanyCPDashboard";
 import DigitalCPDashboard from "@/components/portal/DigitalCPDashboard";
 import FieldCPDashboard from "@/components/portal/FieldCPDashboard";
 import { useAuth } from "@/context/AuthContext";
+
+let themeListeners = [];
+function emitThemeChange() {
+  themeListeners.forEach((listener) => listener());
+}
+
+function subscribeTheme(listener) {
+  themeListeners.push(listener);
+  window.addEventListener("storage", listener);
+  return () => {
+    themeListeners = themeListeners.filter((l) => l !== listener);
+    window.removeEventListener("storage", listener);
+  };
+}
+
+function getThemeSnapshot() {
+  try {
+    const saved = localStorage.getItem("cp_theme");
+    return saved !== null ? saved : "light";
+  } catch {
+    return "light";
+  }
+}
+
+function getThemeServerSnapshot() {
+  return "light";
+}
 
 const DEMO_CP_NAMES = {
   digital: "Aarav Shah",
@@ -48,18 +75,21 @@ export default function FreelancerPortalClient({
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // Portal defaults to the sunlight-friendly light theme; preference is
-  // persisted to localStorage so it survives page refreshes.
-  const [isLight, setIsLight] = useState(() => {
-    if (typeof window === "undefined") return true;
-    const saved = localStorage.getItem("cp_theme");
-    return saved !== null ? saved === "light" : true;
-  });
+  // Portal defaults to the sunlight-friendly light theme.
+  // We use useSyncExternalStore to synchronize client-side localStorage
+  // safely across renders without hydration mismatches or cascading effects.
+  const theme = useSyncExternalStore(subscribeTheme, getThemeSnapshot, getThemeServerSnapshot);
+  const isLight = theme === "light";
 
-  // Sync theme preference to localStorage whenever it changes.
-  useEffect(() => {
-    localStorage.setItem("cp_theme", isLight ? "light" : "dark");
-  }, [isLight]);
+  const handleToggleTheme = () => {
+    const nextTheme = isLight ? "dark" : "light";
+    try {
+      localStorage.setItem("cp_theme", nextTheme);
+    } catch {
+      // ignore storage access errors
+    }
+    emitThemeChange();
+  };
 
   // Test Mode support — reads ?cpType=field|digital|company so demo dashboards
   // can be opened directly from the signup / navbar shortcuts, no form needed.
@@ -95,7 +125,7 @@ export default function FreelancerPortalClient({
               </button>
               <button
                 type="button"
-                onClick={() => setIsLight((v) => !v)}
+                onClick={handleToggleTheme}
                 aria-label={isLight ? "Switch to dark mode" : "Switch to light mode"}
                 className="tracked-label flex h-11 items-center gap-2 border border-navy-700/60 px-4 text-xs text-cream transition hover:border-gold-400 hover:text-gold-400"
               >
