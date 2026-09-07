@@ -98,6 +98,143 @@ function MobileNavRow({ icon: Icon, label, href, onClick, tone = "default" }) {
   );
 }
 
+/** Mobile collapsible Test Mode accordion with Channel Partner dashboard links */
+function MobileTestModeAccordion({ isOpen, onToggle, onSelect, tone = "accent" }) {
+  const palette = {
+    default: { bg: "rgba(255,255,255,0.05)", border: "rgba(255,255,255,0.08)", icon: "#9aa3b8", text: "#e8e3d9" },
+    accent: { bg: "rgba(255,198,51,0.1)", border: "rgba(255,198,51,0.22)", icon: "#ffc633", text: "#e8e3d9" },
+  }[tone];
+
+  return (
+    <div style={{ width: "100%" }}>
+      <button
+        type="button"
+        onClick={onToggle}
+        style={{
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          gap: 13,
+          padding: "10px 4px",
+          borderRadius: 11,
+          background: "transparent",
+          border: "none",
+          cursor: "pointer",
+          textAlign: "left",
+        }}
+      >
+        <span
+          style={{
+            flexShrink: 0,
+            width: 34,
+            height: 34,
+            borderRadius: 9,
+            background: isOpen ? "rgba(255,198,51,0.15)" : palette.bg,
+            border: `1px solid ${isOpen ? "rgba(255,198,51,0.35)" : palette.border}`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: isOpen ? "#ffc633" : palette.icon,
+            transition: "all 0.15s",
+          }}
+        >
+          <MdScience style={{ width: 16, height: 16 }} />
+        </span>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <span
+            className="tracked-label"
+            style={{
+              fontSize: 12.5,
+              fontWeight: 600,
+              color: isOpen ? "#ffc633" : palette.text,
+              display: "block",
+            }}
+          >
+            Test Mode
+          </span>
+          <p
+            style={{
+              fontSize: 10.5,
+              color: "#6b7280",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              marginTop: 1,
+            }}
+          >
+            Preview CP Dashboards
+          </p>
+        </div>
+        <FiChevronDown
+          style={{
+            width: 15,
+            height: 15,
+            color: isOpen ? "#ffc633" : "#6b7280",
+            flexShrink: 0,
+            transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+            transition: "transform 0.2s",
+            marginRight: 6,
+          }}
+        />
+      </button>
+
+      {isOpen && (
+        <div style={{ padding: "4px 0 6px 10px", display: "flex", flexDirection: "column", gap: 3 }}>
+          {TEST_MODE_CP_OPTIONS.map(({ cpType, label, icon: Icon }) => (
+            <Link
+              key={cpType}
+              href={`/portal/freelancer?cpType=${cpType}`}
+              onClick={onSelect}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 11,
+                padding: "8px 10px",
+                borderRadius: 9,
+                textDecoration: "none",
+                background: "rgba(255,198,51,0.05)",
+                border: "1px solid rgba(255,198,51,0.15)",
+                transition: "background 0.15s",
+              }}
+            >
+              <span
+                style={{
+                  flexShrink: 0,
+                  width: 28,
+                  height: 28,
+                  borderRadius: 8,
+                  background: "rgba(255,198,51,0.1)",
+                  border: "1px solid rgba(255,198,51,0.25)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#ffc633",
+                }}
+              >
+                <Icon style={{ width: 13, height: 13 }} />
+              </span>
+              <div style={{ minWidth: 0 }}>
+                <span
+                  className="tracked-label"
+                  style={{
+                    fontSize: 11.5,
+                    fontWeight: 600,
+                    color: "#e8e3d9",
+                    display: "block",
+                  }}
+                >
+                  {label}
+                </span>
+                <span style={{ fontSize: 10, color: "#6b7280" }}>Demo Dashboard</span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /** User dropdown panel (desktop) */
 function UserDropdown({ user, onClose, onLogout }) {
   const [testModeOpen, setTestModeOpen] = useState(false);
@@ -352,6 +489,7 @@ function UserDropdown({ user, onClose, onLogout }) {
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [mobileTestModeOpen, setMobileTestModeOpen] = useState(false);
   const [showAuthGate, setShowAuthGate] = useState(false);
   const { isAuthenticated, user, logout } = useAuth();
   const router = useRouter();
@@ -694,6 +832,16 @@ export default function Navbar() {
                         onClick={() => setMobileOpen(false)}
                       />
                     ))}
+
+                  <MobileTestModeAccordion
+                    isOpen={mobileTestModeOpen}
+                    onToggle={() => setMobileTestModeOpen((open) => !open)}
+                    onSelect={() => {
+                      setMobileTestModeOpen(false);
+                      setMobileOpen(false);
+                    }}
+                    tone="accent"
+                  />
                 </div>
               </div>
             )}
@@ -718,6 +866,15 @@ export default function Navbar() {
                   <>
                     <MobileNavRow icon={FiUser} label="Login" href="/auth" onClick={() => setMobileOpen(false)} />
                     <MobileNavRow icon={MdPersonAdd} label="Sign Up" href="/auth/register" tone="accent" onClick={() => setMobileOpen(false)} />
+                    <MobileTestModeAccordion
+                      isOpen={mobileTestModeOpen}
+                      onToggle={() => setMobileTestModeOpen((open) => !open)}
+                      onSelect={() => {
+                        setMobileTestModeOpen(false);
+                        setMobileOpen(false);
+                      }}
+                      tone="accent"
+                    />
                   </>
                 )}
               </div>
