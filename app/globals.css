@@ -72,20 +72,32 @@ body {
  * changes needed — while every other page keeps the dark theme untouched.
  */
 .cp-light-theme {
-  --color-navy-950: #f6f3ec; /* page / sunken surface bg (warm ivory) */
-  --color-navy-900: #ffffff; /* card / panel surface bg */
-  --color-navy-800: #ece6d6; /* subtle divider */
-  --color-navy-700: #ddd6c2; /* default border */
-  --color-navy-600: #c7b98c; /* hover border */
+  --color-navy-950: #f6f3ec;
+  /* page / sunken surface bg (warm ivory) */
+  --color-navy-900: #ffffff;
+  /* card / panel surface bg */
+  --color-navy-800: #ece6d6;
+  /* subtle divider */
+  --color-navy-700: #ddd6c2;
+  /* default border */
+  --color-navy-600: #c7b98c;
+  /* hover border */
 
-  --color-cream: #23283a; /* primary text (deep charcoal-navy) */
-  --color-muted: #5c6270; /* secondary text */
+  --color-cream: #23283a;
+  /* primary text (deep charcoal-navy) */
+  --color-muted: #5c6270;
+  /* secondary text */
 
-  --color-gold-300: #c99a2e; /* lightest accent / hover tint */
-  --color-gold-400: #a9750d; /* base accent — CTAs, links, prices */
-  --color-gold-500: #8a6109; /* pressed / active accent */
-  --color-gold-600: #714f08; /* dark accent */
-  --color-gold-700: #5c3f06; /* deepest accent */
+  --color-gold-300: #c99a2e;
+  /* lightest accent / hover tint */
+  --color-gold-400: #a9750d;
+  /* base accent — CTAs, links, prices */
+  --color-gold-500: #8a6109;
+  /* pressed / active accent */
+  --color-gold-600: #714f08;
+  /* dark accent */
+  --color-gold-700: #5c3f06;
+  /* deepest accent */
 
   --color-red-400: #b91c1c;
   --color-red-500: #991b1b;
@@ -97,4 +109,407 @@ body {
    even though --color-navy-950 itself is repurposed as the light page bg. */
 .cp-light-theme .text-navy-950 {
   color: #1f1608;
+}
+
+/*
+ * ==========================================================================
+ * Admin Panel: Celestial Theme (tweakcn / shadcn)
+ * Scoped strictly to .admin-theme-celestial and .admin-shell — PUBLIC PORTAL IS 100% UNTOUCHED
+ * Source: https://tweakcn.com/r/themes/cmm71zs0s000004k2e67feff5
+ * ==========================================================================
+ */
+
+.admin-theme-celestial,
+.admin-shell {
+  /* Font & Radius Tokens */
+  --font-admin: var(--font-open-sans), "Open Sans", var(--font-inter), sans-serif;
+  --radius: 0.5rem;
+  --tracking-normal: 0.025em;
+
+  /* Celestial - Light Mode Tokens (from tweakcn cmm71zs0s000004k2e67feff5) */
+  --background: oklch(1.0000 0 0);
+  --foreground: oklch(0 0 0);
+  --card: oklch(0.9784 0.0011 197.1387);
+  --card-foreground: oklch(0.2435 0 0);
+  --popover: oklch(1.0000 0 0);
+  --popover-foreground: oklch(0.3171 0 0);
+  --primary: oklch(0.8012 0.1089 201.1736);
+  --primary-foreground: oklch(0 0 0);
+  --secondary: oklch(0.2435 0 0);
+  --secondary-foreground: oklch(1.0000 0 0);
+  --muted: oklch(0.9683 0.0069 247.8956);
+  --muted-foreground: oklch(0.3171 0 0);
+  --accent: oklch(0.9392 0.0166 250.8453);
+  --accent-foreground: oklch(0.3171 0 0);
+  --destructive: oklch(0.6188 0.2376 25.7658);
+  --destructive-foreground: oklch(1.0000 0 0);
+  --border: oklch(0.9317 0.0118 231.6594);
+  --input: oklch(0.9809 0.0025 228.7836);
+  --ring: oklch(0.8012 0.1089 201.1736);
+  --chart-1: oklch(0.8012 0.1089 201.1736);
+  --chart-2: oklch(0.6907 0.1554 160.3454);
+  --chart-3: oklch(0.8214 0.1600 82.5337);
+  --chart-4: oklch(0.7064 0.1822 151.7125);
+  --chart-5: oklch(0.5919 0.2186 10.5826);
+  --sidebar: oklch(0.9784 0.0011 197.1387);
+  --sidebar-foreground: oklch(0 0 0);
+  --sidebar-primary: oklch(0.8012 0.1089 201.1736);
+  --sidebar-primary-foreground: oklch(0 0 0);
+  --sidebar-accent: oklch(0.9057 0.0680 201.7766);
+  --sidebar-accent-foreground: oklch(0.3171 0 0);
+  --sidebar-border: oklch(0.9271 0.0101 238.5177);
+  --sidebar-ring: oklch(0.8012 0.1089 201.1736);
+  --shadow-color: rgba(29, 161, 242, 0.15);
+  --shadow: 0px 2px 8px 0px rgba(29, 161, 242, 0.08), 0px 1px 3px 0px rgba(0, 0, 0, 0.04);
+
+  /* Celestial scoped token aliases */
+  --celestial-bg: var(--background);
+  --celestial-fg: var(--foreground);
+  --celestial-card: var(--card);
+  --celestial-card-fg: var(--card-foreground);
+  --celestial-primary: var(--primary);
+  --celestial-primary-fg: var(--primary-foreground);
+  --celestial-secondary: var(--secondary);
+  --celestial-secondary-fg: var(--secondary-foreground);
+  --celestial-muted: var(--muted);
+  --celestial-muted-fg: var(--muted-foreground);
+  --celestial-accent: var(--accent);
+  --celestial-accent-fg: var(--accent-foreground);
+  --celestial-destructive: var(--destructive);
+  --celestial-destructive-fg: var(--destructive-foreground);
+  --celestial-border: var(--border);
+  --celestial-input: var(--input);
+  --celestial-ring: var(--ring);
+  --celestial-sidebar: var(--sidebar);
+  --celestial-sidebar-fg: var(--sidebar-foreground);
+  --celestial-sidebar-border: var(--sidebar-border);
+  --celestial-sidebar-accent: var(--sidebar-accent);
+  --celestial-shadow: var(--shadow);
+
+  background-color: var(--celestial-bg) !important;
+  color: var(--celestial-fg) !important;
+  font-family: var(--font-admin);
+  letter-spacing: var(--tracking-normal);
+}
+
+/* Celestial - Dark Mode Tokens */
+.admin-theme-celestial.admin-dark,
+.admin-dark .admin-theme-celestial,
+.admin-theme-celestial.dark,
+.admin-dark.admin-theme-celestial,
+.admin-shell.admin-dark,
+.admin-dark .admin-shell,
+.admin-shell.dark,
+.admin-dark.admin-shell {
+  --background: oklch(0.1822 0 0);
+  --foreground: oklch(0.9328 0.0025 228.7857);
+  --card: oklch(0.2097 0.0080 274.5332);
+  --card-foreground: oklch(0.9328 0.0025 228.7857);
+  --popover: oklch(0.1822 0 0);
+  --popover-foreground: oklch(0.9328 0.0025 228.7857);
+  --primary: oklch(0.8012 0.1089 201.1736);
+  --primary-foreground: oklch(0 0 0);
+  --secondary: oklch(0.9328 0.0025 228.7857);
+  --secondary-foreground: oklch(0.2435 0 0);
+  --muted: oklch(0.2280 0.0049 219.6859);
+  --muted-foreground: oklch(0.6736 0.0244 248.1893);
+  --accent: oklch(0.3152 0.0427 202.4332);
+  --accent-foreground: oklch(0.9328 0.0025 228.7857);
+  --destructive: oklch(0.6188 0.2376 25.7658);
+  --destructive-foreground: oklch(1.0000 0 0);
+  --border: oklch(0.3184 0.0077 240.0771);
+  --input: oklch(0.2086 0.0085 264.3730);
+  --ring: oklch(0.8012 0.1089 201.1736);
+  --chart-1: oklch(0.8012 0.1089 201.1736);
+  --chart-2: oklch(0.6907 0.1554 160.3454);
+  --chart-3: oklch(0.8214 0.1600 82.5337);
+  --chart-4: oklch(0.7064 0.1822 151.7125);
+  --chart-5: oklch(0.5919 0.2186 10.5826);
+  --sidebar: oklch(0.2097 0.0080 274.5332);
+  --sidebar-foreground: oklch(0.9328 0.0025 228.7857);
+  --sidebar-primary: oklch(0.8012 0.1089 201.1736);
+  --sidebar-primary-foreground: oklch(0 0 0);
+  --sidebar-accent: oklch(0.3152 0.0427 202.4332);
+  --sidebar-accent-foreground: oklch(0.9328 0.0025 228.7857);
+  --sidebar-border: oklch(0.3184 0.0077 240.0771);
+  --sidebar-ring: oklch(0.8012 0.1089 201.1736);
+  --shadow-color: rgba(0, 0, 0, 0.5);
+  --shadow: 0px 4px 16px 0px rgba(0, 0, 0, 0.4);
+
+  --celestial-bg: var(--background);
+  --celestial-fg: var(--foreground);
+  --celestial-card: var(--card);
+  --celestial-card-fg: var(--card-foreground);
+  --celestial-primary: var(--primary);
+  --celestial-primary-fg: var(--primary-foreground);
+  --celestial-secondary: var(--secondary);
+  --celestial-secondary-fg: var(--secondary-foreground);
+  --celestial-muted: var(--muted);
+  --celestial-muted-fg: var(--muted-foreground);
+  --celestial-accent: var(--accent);
+  --celestial-accent-fg: var(--accent-foreground);
+  --celestial-destructive: var(--destructive);
+  --celestial-destructive-fg: var(--destructive-foreground);
+  --celestial-border: var(--border);
+  --celestial-input: var(--input);
+  --celestial-ring: var(--ring);
+  --celestial-sidebar: var(--sidebar);
+  --celestial-sidebar-fg: var(--sidebar-foreground);
+  --celestial-sidebar-border: var(--sidebar-border);
+  --celestial-sidebar-accent: var(--sidebar-accent);
+  --celestial-shadow: var(--shadow);
+
+  background-color: var(--celestial-bg) !important;
+  color: var(--celestial-fg) !important;
+}
+
+/* Surfaces & Layout Containers */
+.admin-shell aside,
+.admin-theme-celestial aside {
+  background-color: var(--celestial-sidebar) !important;
+  border-color: var(--celestial-sidebar-border) !important;
+  color: var(--celestial-sidebar-fg) !important;
+}
+
+.admin-shell header,
+.admin-theme-celestial header {
+  background-color: var(--celestial-card) !important;
+  border-color: var(--celestial-border) !important;
+  color: var(--celestial-fg) !important;
+}
+
+.admin-shell [class*="bg-white"],
+.admin-theme-celestial [class*="bg-white"] {
+  background-color: var(--celestial-card) !important;
+  border-color: var(--celestial-border);
+  color: var(--celestial-fg);
+}
+
+.admin-shell [class*="bg-[#faf8f5]"],
+.admin-theme-celestial [class*="bg-[#faf8f5]"] {
+  background-color: var(--celestial-bg) !important;
+}
+
+.admin-shell [class*="bg-[#f0ebe3]"],
+.admin-theme-celestial [class*="bg-[#f0ebe3]"] {
+  background-color: var(--celestial-muted) !important;
+}
+
+.admin-shell [class*="border-[#e8e0d5]"],
+.admin-theme-celestial [class*="border-[#e8e0d5]"],
+.admin-shell [class*="border-[#f0ebe3]"],
+.admin-theme-celestial [class*="border-[#f0ebe3]"],
+.admin-shell [class*="divide-[#f0ebe3]"] > *,
+.admin-theme-celestial [class*="divide-[#f0ebe3]"] > * {
+  border-color: var(--celestial-border) !important;
+}
+
+/* Typography */
+.admin-shell [class*="text-[#1a1a2e]"],
+.admin-theme-celestial [class*="text-[#1a1a2e]"] {
+  color: var(--celestial-fg) !important;
+}
+
+.admin-shell [class*="text-[#374151]"],
+.admin-theme-celestial [class*="text-[#374151]"] {
+  color: var(--celestial-fg) !important;
+}
+
+.admin-shell [class*="text-[#4b5563]"],
+.admin-shell [class*="text-[#6b7280]"],
+.admin-theme-celestial [class*="text-[#4b5563]"],
+.admin-theme-celestial [class*="text-[#6b7280]"] {
+  color: var(--celestial-muted-fg) !important;
+}
+
+.admin-shell [class*="text-[#9ca3af]"],
+.admin-theme-celestial [class*="text-[#9ca3af]"] {
+  color: var(--celestial-muted-fg) !important;
+  opacity: 0.85;
+}
+
+/* Hover States */
+.admin-shell [class*="hover:bg-[#faf8f5]"]:hover,
+.admin-theme-celestial [class*="hover:bg-[#faf8f5]"]:hover,
+.admin-shell [class*="hover:bg-[#fdf9f3]"]:hover,
+.admin-theme-celestial [class*="hover:bg-[#fdf9f3]"]:hover {
+  background-color: color-mix(in oklch, var(--celestial-primary) 10%, var(--celestial-card)) !important;
+}
+
+/* Celestial Cyan Primary & Interactive Accents */
+.admin-shell [class*="bg-[#f0b429]"],
+.admin-theme-celestial [class*="bg-[#f0b429]"] {
+  background-color: var(--celestial-primary) !important;
+  color: var(--celestial-primary-fg) !important;
+  font-weight: 600;
+}
+
+.admin-shell [class*="hover:bg-[#d97706]"]:hover,
+.admin-shell [class*="bg-[#d97706]"],
+.admin-theme-celestial [class*="hover:bg-[#d97706]"]:hover,
+.admin-theme-celestial [class*="bg-[#d97706]"] {
+  background-color: var(--celestial-primary) !important;
+  filter: brightness(0.92);
+  color: var(--celestial-primary-fg) !important;
+}
+
+.admin-shell [class*="text-[#f0b429]"],
+.admin-shell [class*="text-[#d97706]"],
+.admin-theme-celestial [class*="text-[#f0b429]"],
+.admin-theme-celestial [class*="text-[#d97706]"] {
+  color: var(--celestial-primary) !important;
+}
+
+.admin-shell [class*="bg-[#fff8e1]"],
+.admin-theme-celestial [class*="bg-[#fff8e1]"] {
+  background-color: var(--celestial-sidebar-accent) !important;
+  color: var(--celestial-fg) !important;
+}
+
+.admin-shell [class*="border-[#f0b429]"],
+.admin-theme-celestial [class*="border-[#f0b429]"] {
+  border-color: var(--celestial-primary) !important;
+}
+
+.admin-shell [class*="focus:border-[#f0b429]"]:focus,
+.admin-theme-celestial [class*="focus:border-[#f0b429]"]:focus {
+  border-color: var(--celestial-primary) !important;
+}
+
+.admin-shell [class*="hover:border-[#f0b429]"]:hover,
+.admin-theme-celestial [class*="hover:border-[#f0b429]"]:hover {
+  border-color: var(--celestial-primary) !important;
+}
+
+.admin-shell [class*="hover:text-[#f0b429]"]:hover,
+.admin-theme-celestial [class*="hover:text-[#f0b429]"]:hover {
+  color: var(--celestial-primary) !important;
+}
+
+/* Active navigation item in sidebar */
+.admin-shell nav a[class*="bg-[#fff8e1]"],
+.admin-theme-celestial nav a[class*="bg-[#fff8e1]"] {
+  background-color: var(--celestial-sidebar-accent) !important;
+  color: var(--celestial-fg) !important;
+  font-weight: 600;
+  border-radius: var(--radius);
+}
+
+.admin-shell nav a[class*="bg-[#fff8e1]"] svg,
+.admin-theme-celestial nav a[class*="bg-[#fff8e1]"] svg {
+  color: var(--celestial-primary) !important;
+}
+
+.admin-shell nav a[class*="bg-[#fff8e1]"] div,
+.admin-theme-celestial nav a[class*="bg-[#fff8e1]"] div {
+  background-color: var(--celestial-primary) !important;
+}
+
+/* Form Controls */
+.admin-shell input,
+.admin-shell select,
+.admin-shell textarea,
+.admin-theme-celestial input,
+.admin-theme-celestial select,
+.admin-theme-celestial textarea {
+  background-color: var(--celestial-card) !important;
+  border: 1px solid var(--celestial-border) !important;
+  color: var(--celestial-fg) !important;
+  border-radius: var(--radius);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.admin-shell input::placeholder,
+.admin-shell textarea::placeholder,
+.admin-theme-celestial input::placeholder,
+.admin-theme-celestial textarea::placeholder {
+  color: var(--celestial-muted-fg) !important;
+  opacity: 0.7;
+}
+
+.admin-shell input:focus,
+.admin-shell select:focus,
+.admin-shell textarea:focus,
+.admin-theme-celestial input:focus,
+.admin-theme-celestial select:focus,
+.admin-theme-celestial textarea:focus {
+  border-color: var(--celestial-primary) !important;
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--celestial-ring) 35%, transparent) !important;
+  outline: none !important;
+}
+
+/* Tables */
+.admin-shell table th,
+.admin-theme-celestial table th {
+  background-color: var(--celestial-muted) !important;
+  color: var(--celestial-muted-fg) !important;
+  border-color: var(--celestial-border) !important;
+}
+
+.admin-shell table td,
+.admin-theme-celestial table td {
+  border-color: var(--celestial-border) !important;
+}
+
+.admin-shell table tbody tr,
+.admin-theme-celestial table tbody tr {
+  background-color: transparent !important;
+  transition: background-color 0.15s ease;
+}
+
+.admin-shell table tbody tr:hover,
+.admin-theme-celestial table tbody tr:hover,
+.admin-shell table tbody tr:hover td,
+.admin-theme-celestial table tbody tr:hover td,
+.admin-shell table tr:hover td,
+.admin-theme-celestial table tr:hover td {
+  background-color: color-mix(in oklch, var(--celestial-primary) 10%, var(--celestial-card)) !important;
+}
+
+.admin-shell.admin-dark table tbody tr:hover,
+.admin-dark .admin-shell table tbody tr:hover,
+.admin-shell.dark table tbody tr:hover,
+.admin-dark.admin-shell table tbody tr:hover,
+.admin-shell.admin-dark table tbody tr:hover td,
+.admin-dark .admin-shell table tbody tr:hover td,
+.admin-shell.dark table tbody tr:hover td,
+.admin-dark.admin-shell table tbody tr:hover td,
+.admin-theme-celestial.admin-dark table tbody tr:hover,
+.admin-dark .admin-theme-celestial table tbody tr:hover,
+.admin-theme-celestial.dark table tbody tr:hover,
+.admin-dark.admin-theme-celestial table tbody tr:hover,
+.admin-theme-celestial.admin-dark table tbody tr:hover td,
+.admin-dark .admin-theme-celestial table tbody tr:hover td,
+.admin-theme-celestial.dark table tbody tr:hover td,
+.admin-dark.admin-theme-celestial table tbody tr:hover td {
+  background-color: color-mix(in oklch, var(--celestial-primary) 14%, var(--celestial-card)) !important;
+  color: var(--celestial-fg) !important;
+}
+
+/* Dialogs and Modals */
+.admin-shell [role="dialog"],
+.admin-shell [role="dialog"] [class*="bg-white"],
+.admin-theme-celestial [role="dialog"],
+.admin-theme-celestial [role="dialog"] [class*="bg-white"] {
+  background-color: var(--celestial-card) !important;
+  border-color: var(--celestial-border) !important;
+  color: var(--celestial-fg) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: var(--celestial-shadow) !important;
+}
+
+/* Radius geometry for Celestial theme (0.5rem = 8px) */
+.admin-shell .rounded-2xl,
+.admin-theme-celestial .rounded-2xl {
+  border-radius: calc(var(--radius) * 1.25);
+}
+
+.admin-shell .rounded-xl,
+.admin-theme-celestial .rounded-xl {
+  border-radius: var(--radius);
+}
+
+.admin-shell button,
+.admin-theme-celestial button {
+  transition: all 0.15s ease-in-out;
 }

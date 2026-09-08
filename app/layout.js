@@ -1,8 +1,7 @@
-import { Playfair_Display, Inter } from "next/font/google";
+import { Playfair_Display, Inter, Open_Sans } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
 import { AuthProvider } from "@/context/AuthContext";
+import PublicShell from "@/components/layout/PublicShell";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -15,6 +14,12 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
+const openSans = Open_Sans({
+  variable: "--font-open-sans",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
 export const metadata = {
   title: "Simnani Estate | Find a Place You'll Love to Call Home",
   description:
@@ -25,13 +30,11 @@ export default function RootLayout({ children }) {
   return (
     <html
       lang="en"
-      className={`${playfair.variable} ${inter.variable} h-full antialiased`}
+      className={`${playfair.variable} ${inter.variable} ${openSans.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-navy-950 text-cream">
         <AuthProvider>
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <Footer />
+          <PublicShell>{children}</PublicShell>
         </AuthProvider>
       </body>
     </html>
