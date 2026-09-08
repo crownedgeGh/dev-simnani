@@ -79,7 +79,7 @@ export default function PropertyDetailPage() {
           {/* Actions */}
           <div className="mt-3 flex gap-2">
             <button
-              onClick={() => setEditOpen(true)}
+              onClick={() => router.push(`/admin/properties/${id}/edit`)}
               className="flex flex-1 items-center justify-center gap-1.5 h-10 rounded-xl border border-[#e8e0d5] bg-white text-sm text-[#374151] transition hover:bg-[#faf8f5]"
             >
               <MdEdit size={16} /> Edit

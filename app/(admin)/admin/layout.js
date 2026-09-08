@@ -31,9 +31,11 @@ function AdminShell({ children }) {
     "/admin/settings": "Settings",
   };
   const pageTitle =
-    PAGE_TITLES[pathname] ||
-    Object.entries(PAGE_TITLES).find(([k]) => pathname.startsWith(k))?.[1] ||
-    "Admin Panel";
+    pathname.includes("/edit")
+      ? "Edit Property"
+      : PAGE_TITLES[pathname] ||
+        Object.entries(PAGE_TITLES).find(([k]) => pathname.startsWith(k))?.[1] ||
+        "Admin Panel";
 
   return (
     <div className={`admin-shell admin-theme-celestial flex h-screen overflow-hidden ${isDark ? "admin-dark dark" : "light"}`}>

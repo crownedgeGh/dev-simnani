@@ -170,7 +170,7 @@ export default function AdminPropertiesPage() {
         {
           label: "Edit",
           icon: MdEdit,
-          onClick: () => { setEditingProperty(row); setFormOpen(true); },
+          onClick: () => router.push(`/admin/properties/${row.id}/edit`),
         },
         {
           label: "Delete",
