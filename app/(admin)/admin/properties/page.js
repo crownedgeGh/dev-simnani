@@ -193,7 +193,7 @@ export default function AdminPropertiesPage() {
         actions={
           <button
             id="admin-add-property-btn"
-            onClick={() => { setEditingProperty(null); setFormOpen(true); }}
+            onClick={() => router.push("/admin/properties/add")}
             className="flex h-9 items-center gap-1.5 rounded-xl bg-[#f0b429] px-4 text-sm font-semibold text-white transition hover:bg-[#d97706]"
           >
             <MdAdd size={18} />

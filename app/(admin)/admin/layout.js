@@ -20,6 +20,8 @@ function AdminShell({ children }) {
   // Derive page title from pathname
   const PAGE_TITLES = {
     "/admin/dashboard": "Dashboard",
+    "/admin/properties/add": "Add Property",
+    "/admin/properties/add-property": "Add Property",
     "/admin/properties": "Properties",
     "/admin/users": "Users",
     "/admin/projects": "Projects",

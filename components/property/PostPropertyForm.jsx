@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
 import { inputClass, selectClass } from "@/components/auth/inputStyles";
@@ -62,11 +62,18 @@ const INITIAL_FORM = {
 };
 
 export default function PostPropertyForm() {
-  const [propertyId, setPropertyId] = useState(() => generateAccountId("PROP"));
+  const [propertyId, setPropertyId] = useState("");
   const [form, setForm] = useState(INITIAL_FORM);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submittedId, setSubmittedId] = useState("");
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPropertyId(generateAccountId("PROP"));
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   function update(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -146,7 +153,7 @@ export default function PostPropertyForm() {
         <FormField label="Property ID" htmlFor="propertyId">
           <div className="flex h-14 items-center justify-between border border-navy-700/60 bg-navy-950 px-4">
             <span className="font-display text-sm tracking-widest text-gold-400">
-              #{propertyId}
+              {propertyId ? `#${propertyId}` : "#SG-PROP-......"}
             </span>
             <span className="text-xs text-muted">Auto-generated</span>
           </div>
