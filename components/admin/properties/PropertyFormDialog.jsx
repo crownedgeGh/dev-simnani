@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import AdminDialog from "@/components/admin/ui/AdminDialog";
 import AdminFormField, { adminInputClass, adminSelectClass, adminTextareaClass } from "@/components/admin/ui/AdminFormField";
+import { getLocationCity } from "@/lib/properties";
 
 const PROPERTY_TYPES = ["buy", "sell", "rent", "invest", "commercial", "farming", "industrial", "lease", "seized-property"];
 const STATUSES = ["Active", "Pending Review", "Rejected"];
@@ -51,7 +52,12 @@ export default function PropertyFormDialog({ isOpen, onClose, property, onSave }
     if (Object.keys(errs).length) { setErrors(errs); return; }
     setSaving(true);
     try {
-      await onSave({ ...form, beds: Number(form.beds) || 0, baths: Number(form.baths) || 0 });
+      await onSave({
+        ...form,
+        city: form.city || (form.location ? getLocationCity(form.location) : "") || "Other",
+        beds: Number(form.beds) || 0,
+        baths: Number(form.baths) || 0,
+      });
       toast.success(isEdit ? "Property updated successfully" : "Property created successfully");
       onClose();
     } catch {

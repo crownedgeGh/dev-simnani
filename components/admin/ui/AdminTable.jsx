@@ -3,7 +3,6 @@
 import { useState, useMemo, useCallback } from "react";
 import {
   MdSearch,
-  MdFilterList,
   MdArrowUpward,
   MdArrowDownward,
   MdUnfoldMore,
@@ -161,7 +160,6 @@ export default function AdminTable({
   const [sortDir, setSortDir] = useState("asc");
   const [filters, setFilters] = useState({});
   const [page, setPage] = useState(1);
-  const [filterOpen, setFilterOpen] = useState(false);
 
   // Derive searchable columns
   const effectiveSearchKeys = searchKeys || columns.filter((c) => c.searchable !== false && c.key !== "actions").map((c) => c.key);
@@ -237,86 +235,81 @@ export default function AdminTable({
 
   return (
     <div className={`flex flex-col gap-3 ${className}`}>
-      {/* Search + Filter bar */}
+      {/* Search + Filter bar in one single row */}
       <div className="flex flex-wrap items-center gap-2">
         {/* Search */}
-        <div className="relative flex-1 min-w-[200px]">
+        <div className="relative min-w-[180px] flex-1 sm:max-w-xs">
           <MdSearch size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9ca3af]" />
           <input
             type="text"
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             placeholder="Search…"
-            className="h-9 w-full rounded-xl border border-[#e8e0d5] bg-white pl-8 pr-3 text-sm text-[#1a1a2e] placeholder-[#9ca3af] outline-none transition focus:border-[#f0b429] focus:ring-2 focus:ring-[#f0b429]/20"
+            className="h-9 w-full rounded-xl border border-[#e8e0d5] bg-white pl-8 pr-7 text-xs text-[#1a1a2e] placeholder-[#9ca3af] outline-none transition focus:border-[#f0b429] focus:ring-2 focus:ring-[#f0b429]/20"
           />
           {search && (
             <button
               onClick={() => { setSearch(""); setPage(1); }}
               className="absolute right-2 top-1/2 -translate-y-1/2 text-[#9ca3af] hover:text-[#6b7280]"
             >
-              <MdClose size={14} />
+              <MdClose size={13} />
             </button>
           )}
         </div>
 
-        {/* Filter toggle */}
-        {filterColumns.length > 0 && (
-          <button
-            onClick={() => setFilterOpen((v) => !v)}
-            className={`flex h-9 items-center gap-1.5 rounded-xl border px-3 text-xs font-medium transition ${
-              filterOpen || Object.values(filters).some(Boolean)
-                ? "border-[#f0b429]/50 bg-[#fff8e1] text-[#d97706]"
-                : "border-[#e8e0d5] bg-white text-[#6b7280] hover:bg-[#faf8f5]"
-            }`}
-          >
-            <MdFilterList size={16} />
-            Filters
-            {Object.values(filters).filter(Boolean).length > 0 && (
-              <span className="ml-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#f0b429] text-[10px] text-white font-bold">
-                {Object.values(filters).filter(Boolean).length}
+        {/* Filter Dropdowns in the same row */}
+        {filterColumns.map((col) => {
+          const active = !!filters[col.key];
+          return (
+            <div
+              key={col.key}
+              className={`flex h-9 items-center gap-1.5 rounded-xl border px-3 text-xs transition ${
+                active
+                  ? "border-[#f0b429] bg-[#fff8e1]"
+                  : "border-[#e8e0d5] bg-white hover:border-[#d5cbbd] hover:bg-[#faf8f5]"
+              }`}
+            >
+              <span className="text-[11px] font-semibold uppercase tracking-wide text-[#9ca3af] shrink-0">
+                {col.label}:
               </span>
-            )}
-          </button>
-        )}
+              <select
+                value={filters[col.key] || ""}
+                onChange={(e) => handleFilter(col.key, e.target.value)}
+                className={`bg-transparent text-xs font-medium outline-none cursor-pointer pr-1 ${
+                  active ? "text-[#d97706] font-semibold" : "text-[#374151]"
+                }`}
+              >
+                <option value="">All</option>
+                {col.filterOptions.map((opt) => {
+                  const optVal = typeof opt === "object" && opt !== null ? opt.value : opt;
+                  const optLabel = typeof opt === "object" && opt !== null ? opt.label : opt;
+                  return (
+                    <option key={optVal} value={optVal}>
+                      {optLabel}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+          );
+        })}
 
         {/* Clear all */}
         {hasActiveFilters && (
           <button
             onClick={clearFilters}
-            className="flex h-9 items-center gap-1 rounded-xl border border-[#e8e0d5] bg-white px-3 text-xs text-[#9ca3af] transition hover:bg-[#faf8f5] hover:text-red-500"
+            className="flex h-9 items-center gap-1 rounded-xl border border-red-200 bg-red-50/70 px-2.5 text-xs font-medium text-red-600 transition hover:bg-red-100"
+            title="Reset filters"
           >
             <MdClose size={14} /> Clear
           </button>
         )}
 
         {/* Results count */}
-        <p className="ml-auto text-xs text-[#9ca3af] whitespace-nowrap">
+        <p className="ml-auto text-xs text-[#9ca3af] whitespace-nowrap pl-2">
           {loading ? "Loading…" : `${filtered.length} result${filtered.length !== 1 ? "s" : ""}`}
         </p>
       </div>
-
-      {/* Filter panel */}
-      {filterOpen && filterColumns.length > 0 && (
-        <div className="flex flex-wrap gap-2 rounded-xl border border-[#e8e0d5] bg-white p-3">
-          {filterColumns.map((col) => (
-            <div key={col.key} className="flex flex-col gap-1 min-w-[140px]">
-              <label className="text-[10px] font-semibold uppercase tracking-wide text-[#9ca3af]">
-                {col.label}
-              </label>
-              <select
-                value={filters[col.key] || ""}
-                onChange={(e) => handleFilter(col.key, e.target.value)}
-                className="h-8 rounded-lg border border-[#e8e0d5] bg-[#faf8f5] px-2 text-xs text-[#374151] outline-none focus:border-[#f0b429]"
-              >
-                <option value="">All</option>
-                {col.filterOptions.map((opt) => (
-                  <option key={opt} value={opt}>{opt}</option>
-                ))}
-              </select>
-            </div>
-          ))}
-        </div>
-      )}
 
       {/* Desktop Table */}
       <div className="hidden lg:block overflow-hidden rounded-2xl border border-[#e8e0d5] bg-white">
