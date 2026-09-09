@@ -1,8 +1,8 @@
 import PropertyGrid from "@/components/property/PropertyGrid";
-import { getFeaturedProperties } from "@/lib/properties";
+import { getFeaturedProperties } from "@/lib/propertiesServer";
 
-export default function FeaturedProperties() {
-  const properties = getFeaturedProperties();
+export default async function FeaturedProperties() {
+  const properties = await getFeaturedProperties();
 
   return (
     <section className="bg-navy-900/40 py-20">

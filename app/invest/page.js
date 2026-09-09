@@ -1,15 +1,19 @@
+import Link from "next/link";
 import CommercialCategories from "@/components/property/CommercialCategories";
-import { getPropertiesByType, INVEST_CATEGORIES } from "@/lib/properties";
+import { INVEST_CATEGORIES } from "@/lib/properties";
+import { getPropertiesByType } from "@/lib/propertiesServer";
 import { PROJECTS } from "@/lib/projects";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
-  title: "Invest in Real Estate | Simnani Estate",
+  title: "Investment Properties | Simnani Estate",
   description:
-    "Explore property investment opportunities by category — shops, land, farmhouses, offices and apartments.",
+    "High-yield and capital-growth real estate investment opportunities.",
 };
 
 export default async function InvestPage() {
-  const investProperties = getPropertiesByType("invest");
+  const investProperties = await getPropertiesByType("invest");
 
   const propertiesByCategory = INVEST_CATEGORIES.reduce((acc, category) => {
     acc[category.key] = investProperties.filter(

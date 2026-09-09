@@ -1,5 +1,8 @@
 import CommercialCategories from "@/components/property/CommercialCategories";
-import { getPropertiesByType, COMMERCIAL_CATEGORIES } from "@/lib/properties";
+import { COMMERCIAL_CATEGORIES } from "@/lib/properties";
+import { getPropertiesByType } from "@/lib/propertiesServer";
+
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Commercial Properties | Simnani Estate",
@@ -8,7 +11,7 @@ export const metadata = {
 };
 
 export default async function CommercialPage() {
-  const commercialProperties = getPropertiesByType("commercial");
+  const commercialProperties = await getPropertiesByType("commercial");
 
   const propertiesByCategory = COMMERCIAL_CATEGORIES.reduce((acc, category) => {
     acc[category.key] = commercialProperties.filter(

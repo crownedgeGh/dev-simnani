@@ -60,8 +60,8 @@ export default function PropertyFormDialog({ isOpen, onClose, property, onSave }
       });
       toast.success(isEdit ? "Property updated successfully" : "Property created successfully");
       onClose();
-    } catch {
-      toast.error("Operation failed. Please try again.");
+    } catch (err) {
+      toast.error(err.message || "Operation failed. Please try again.");
     } finally {
       setSaving(false);
     }

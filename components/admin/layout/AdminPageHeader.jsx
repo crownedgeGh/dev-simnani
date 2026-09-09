@@ -33,11 +33,11 @@ export default function AdminPageHeader({
             id="admin-refresh-btn"
             onClick={onRefresh}
             disabled={isRefreshing}
-            className="flex h-9 items-center gap-1.5 rounded-xl border border-[#e8e0d5] bg-white px-3 text-xs font-medium text-[#6b7280] transition hover:border-[#f0b429]/50 hover:bg-[#fff8e1] hover:text-[#d97706] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex h-9 items-center gap-1.5 rounded-xl border border-[#1a1a2e] bg-[#1a1a2e] px-3.5 text-xs font-semibold text-white shadow-sm transition hover:bg-[#2d334d] hover:border-[#2d334d] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <MdRefresh
               size={16}
-              className={isRefreshing ? "animate-spin" : ""}
+              className={`text-[#f0b429] ${isRefreshing ? "animate-spin" : ""}`}
             />
             <span>{isRefreshing ? "Refreshing…" : "Refresh"}</span>
           </button>

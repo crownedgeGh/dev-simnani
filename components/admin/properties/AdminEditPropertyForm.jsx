@@ -267,7 +267,23 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
   useEffect(() => {
     if (!propertyId) return;
 
-    const timer = setTimeout(() => {
+    let active = true;
+
+    async function fetchProperty() {
+      try {
+        const res = await fetch(`/api/properties/${propertyId}`);
+        const json = await res.json();
+        if (json.success && json.data && active) {
+          setOriginalProperty(json.data);
+          populateFormData(json.data);
+          setLoading(false);
+          return;
+        }
+      } catch {
+        // Fallback to local storage
+      }
+
+      if (!active) return;
       const props = readCollection(ADMIN_KEYS.properties) || [];
       const found = props.find((p) => String(p.id) === String(propertyId));
 
@@ -280,9 +296,13 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
       setOriginalProperty(found);
       populateFormData(found);
       setLoading(false);
-    }, 0);
+    }
 
-    return () => clearTimeout(timer);
+    fetchProperty();
+
+    return () => {
+      active = false;
+    };
   }, [propertyId]);
 
   const update = (field, val) => {
@@ -463,13 +483,30 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
         }),
       };
 
-      await adminAxios.put(`/admin/properties/${propertyId}`, updatedPayload);
+      // 1. Update in MongoDB via Next.js API
+      const res = await fetch(`/api/properties/${propertyId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedPayload),
+      });
 
-      toast.success("Property updated successfully!");
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || "Failed to update property in database");
+      }
+
+      // 2. Also record in adminAxios for activity log and local cache
+      try {
+        await adminAxios.put(`/admin/properties/${propertyId}`, updatedPayload);
+      } catch {
+        // non-fatal
+      }
+
+      toast.success("Property updated successfully in database!");
       router.push("/admin/properties");
     } catch (err) {
-      console.error(err);
-      toast.error("Failed to update property. Please try again.");
+      console.error("Edit property error:", err);
+      toast.error(err.message || "Failed to update property. Please try again.");
     } finally {
       setSaving(false);
     }

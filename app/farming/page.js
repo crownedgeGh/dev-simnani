@@ -1,5 +1,8 @@
 import CommercialCategories from "@/components/property/CommercialCategories";
-import { getPropertiesByType, AGRICULTURE_CATEGORIES } from "@/lib/properties";
+import { AGRICULTURE_CATEGORIES } from "@/lib/properties";
+import { getPropertiesByType } from "@/lib/propertiesServer";
+
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Farming Land Projects | Simnani Estate",
@@ -8,7 +11,7 @@ export const metadata = {
 };
 
 export default async function FarmingPage() {
-  const agricultureProperties = getPropertiesByType("agriculture");
+  const agricultureProperties = await getPropertiesByType("agriculture");
 
   const propertiesByCategory = AGRICULTURE_CATEGORIES.reduce((acc, category) => {
     acc[category.key] = agricultureProperties.filter(

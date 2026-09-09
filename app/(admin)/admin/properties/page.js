@@ -9,7 +9,7 @@ import AdminTable from "@/components/admin/ui/AdminTable";
 import AdminConfirmModal from "@/components/admin/ui/AdminConfirmModal";
 import PropertyFormDialog from "@/components/admin/properties/PropertyFormDialog";
 import adminAxios from "@/lib/adminAxios";
-import { ADMIN_KEYS, readCollection } from "@/lib/adminStorage";
+import { ADMIN_KEYS, readCollection, writeCollection } from "@/lib/adminStorage";
 import { getLocationCity } from "@/lib/properties";
 
 const PROPERTY_TYPES = [
@@ -43,16 +43,32 @@ export default function AdminPropertiesPage() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
-  const loadProperties = useCallback(() => {
+  const loadProperties = useCallback(async () => {
+    try {
+      const res = await fetch("/api/properties", { cache: "no-store" });
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        const normalized = json.data.map(normalizeProperty);
+        setProperties(normalized);
+        try {
+          writeCollection(ADMIN_KEYS.properties, normalized);
+        } catch {
+          // ignore
+        }
+        return;
+      }
+    } catch (err) {
+      console.error("Failed to fetch properties from API:", err);
+    }
     const data = readCollection(ADMIN_KEYS.properties) || [];
     setProperties(data.map(normalizeProperty));
   }, []);
 
   useEffect(() => {
     let active = true;
-    Promise.resolve().then(() => {
+    Promise.resolve().then(async () => {
       if (active) {
-        loadProperties();
+        await loadProperties();
         setLoading(false);
       }
     });
@@ -63,8 +79,7 @@ export default function AdminPropertiesPage() {
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await new Promise((r) => setTimeout(r, 500));
-    loadProperties();
+    await loadProperties();
     setRefreshing(false);
   };
 
@@ -79,20 +94,68 @@ export default function AdminPropertiesPage() {
         year: "numeric",
       }),
     };
+    try {
+      const res = await fetch("/api/properties", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newProp),
+      });
+      const json = await res.json();
+      if (json.success && json.data) {
+        setProperties((prev) => [normalizeProperty(json.data), ...prev]);
+        toast.success("Property created successfully");
+        return;
+      }
+    } catch {
+      // Fallback to local mock if API fails
+    }
     const res = await adminAxios.post("/admin/properties", newProp);
     setProperties((res.data.data || []).map(normalizeProperty));
+    toast.success("Property created successfully");
   };
 
   // Edit
   const handleEdit = async (formData) => {
+    try {
+      const res = await fetch(`/api/properties/${formData.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      const json = await res.json();
+      if (json.success && json.data) {
+        const updated = normalizeProperty(json.data);
+        setProperties((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+        toast.success("Property updated successfully");
+        return;
+      }
+    } catch {
+      // Fallback
+    }
     const res = await adminAxios.put(`/admin/properties/${formData.id}`, formData);
     setProperties((res.data.data || []).map(normalizeProperty));
+    toast.success("Property updated successfully");
   };
 
   // Delete
   const handleDelete = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
+    try {
+      const res = await fetch(`/api/properties/${deleteTarget.id}`, {
+        method: "DELETE",
+      });
+      const json = await res.json();
+      if (json.success) {
+        setProperties((prev) => prev.filter((p) => p.id !== deleteTarget.id));
+        toast.success("Property deleted successfully");
+        setDeleting(false);
+        setDeleteTarget(null);
+        return;
+      }
+    } catch {
+      // Fallback
+    }
     try {
       const res = await adminAxios.delete(`/admin/properties/${deleteTarget.id}`);
       setProperties((res.data.data || []).map(normalizeProperty));
@@ -107,6 +170,22 @@ export default function AdminPropertiesPage() {
 
   // Featured toggle
   const handleFeaturedToggle = async (row, val) => {
+    try {
+      const res = await fetch(`/api/properties/${row.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ featured: val }),
+      });
+      const json = await res.json();
+      if (json.success && json.data) {
+        const updated = normalizeProperty(json.data);
+        setProperties((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+        toast.success(val ? "Featured enabled" : "Featured disabled");
+        return;
+      }
+    } catch {
+      // Fallback
+    }
     try {
       const res = await adminAxios.patch(`/admin/properties/${row.id}`, { featured: val });
       setProperties((res.data.data || []).map(normalizeProperty));

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import PropertyFilterBar from "@/components/property/PropertyFilterBar";
-import { getPropertiesByType } from "@/lib/properties";
+import { getPropertiesByType } from "@/lib/propertiesServer";
+
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Sell Property | Simnani Estate",
@@ -9,7 +11,7 @@ export const metadata = {
 
 export default async function SellPage({ searchParams }) {
   const params = await searchParams;
-  const properties = getPropertiesByType("sell");
+  const properties = await getPropertiesByType("sell");
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">

@@ -299,12 +299,30 @@ export default function AdminAddPropertyForm() {
         }),
       };
 
-      await adminAxios.post("/admin/properties", propertyPayload);
+      // 1. Post directly to MongoDB via Next.js API
+      const res = await fetch("/api/properties", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(propertyPayload),
+      });
 
-      toast.success("Property added successfully!");
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || "Failed to save property to database");
+      }
+
+      // 2. Also record in adminAxios for activity log and local cache
+      try {
+        await adminAxios.post("/admin/properties", propertyPayload);
+      } catch {
+        // non-fatal
+      }
+
+      toast.success("Property added successfully to database!");
       router.push("/admin/properties");
     } catch (err) {
-      toast.error("Failed to save property. Please try again.");
+      console.error("Add property error:", err);
+      toast.error(err.message || "Failed to save property. Please try again.");
     } finally {
       setSaving(false);
     }

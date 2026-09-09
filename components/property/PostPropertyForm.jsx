@@ -44,6 +44,7 @@ const INITIAL_FORM = {
   city: "",
   locality: "",
   landmark: "",
+  address: "",
   price: "",
   negotiable: "",
   areaSize: "",
@@ -79,7 +80,7 @@ export default function PostPropertyForm() {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
     if (
       !form.title.trim() ||
@@ -96,10 +97,78 @@ export default function PostPropertyForm() {
     }
     setError("");
     setSubmitting(true);
-    setTimeout(() => {
+
+    try {
+      const numericPrice = Number(form.price) || 0;
+      let formattedPrice = `₹${numericPrice.toLocaleString("en-IN")}`;
+      if (numericPrice >= 10000000) {
+        formattedPrice = `₹${(numericPrice / 10000000).toFixed(2)} Cr`;
+      } else if (numericPrice >= 100000) {
+        formattedPrice = `₹${(numericPrice / 100000).toFixed(2)} Lakh`;
+      }
+      if (form.purpose === "rent") {
+        formattedPrice += " /mo";
+      }
+
+      const localityStr = (form.locality || "").trim();
+      const cityStr = (form.city || "").trim();
+      const locationStr = localityStr && cityStr ? `${localityStr}, ${cityStr}` : localityStr || cityStr;
+
+      const payload = {
+        id: propertyId || `PROP-${Date.now()}`,
+        title: (form.title || "").trim(),
+        purpose: form.purpose,
+        type: form.purpose === "rent" ? "rent" : "sell",
+        propertyType: form.propertyType,
+        price: formattedPrice,
+        rawPrice: numericPrice,
+        location: locationStr,
+        city: cityStr,
+        locality: localityStr,
+        landmark: (form.landmark || "").trim(),
+        address: (form.address || "").trim(),
+        area: `${form.areaSize || 0} ${form.areaUnit || "sq ft"}`,
+        areaSize: Number(form.areaSize) || 0,
+        areaUnit: form.areaUnit || "sq ft",
+        beds: Number(form.beds) || 0,
+        baths: Number(form.baths) || 0,
+        floorNo: form.floorNo || "",
+        totalFloors: form.totalFloors ? Number(form.totalFloors) : null,
+        furnishing: form.furnishing || "",
+        parking: form.parking || "",
+        facing: form.facing || "",
+        availableFrom: form.availableFrom || "",
+        preferredFor: form.preferredFor || "",
+        contact: {
+          fullName: (form.fullName || "").trim(),
+          mobile: `+91 ${(form.mobile || "").trim()}`,
+        },
+        status: "Pending Review",
+        featured: false,
+        image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1200&q=80&auto=format&fit=crop",
+        addedDate: new Date().toLocaleDateString("en-IN", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        }),
+      };
+
+      const res = await fetch("/api/properties", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Submission failed");
+      }
       setSubmitting(false);
       setSubmittedId(propertyId);
-    }, 900);
+    } catch (err) {
+      console.error("PostPropertyForm submit error:", err);
+      setSubmitting(false);
+      setError(err.message || "Failed to submit property. Please try again.");
+    }
   }
 
   function handleReset() {

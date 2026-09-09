@@ -1,13 +1,15 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { getPropertyById } from "@/lib/properties";
+import { getPropertyById } from "@/lib/propertiesServer";
 import { AMENITIES, NEARBY_PLACES, getPropertyDescription } from "@/lib/propertyContent";
 import PropertyActionCard from "@/components/property/PropertyActionCard";
 import { MdBed, MdBathtub, MdSquareFoot, MdCategory, MdTrendingUp } from "react-icons/md";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({ params }) {
   const { id } = await params;
-  const property = getPropertyById(id);
+  const property = await getPropertyById(id);
   if (!property) return {};
 
   return {
@@ -18,7 +20,7 @@ export async function generateMetadata({ params }) {
 
 export default async function PropertyDetailPage({ params }) {
   const { id } = await params;
-  const property = getPropertyById(id);
+  const property = await getPropertyById(id);
 
   if (!property) {
     notFound();

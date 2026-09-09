@@ -19,12 +19,49 @@ export default function PropertyDetailPage() {
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
-    const props = readCollection(ADMIN_KEYS.properties) || [];
-    const found = props.find((p) => p.id === id);
-    setProperty(found || null);
+    let active = true;
+
+    async function loadProperty() {
+      try {
+        const res = await fetch(`/api/properties/${id}`);
+        const json = await res.json();
+        if (json.success && json.data && active) {
+          setProperty(json.data);
+          return;
+        }
+      } catch {
+        // Fallback
+      }
+
+      if (!active) return;
+      const props = readCollection(ADMIN_KEYS.properties) || [];
+      const found = props.find((p) => p.id === id);
+      setProperty(found || null);
+    }
+
+    loadProperty();
+
+    return () => {
+      active = false;
+    };
   }, [id]);
 
   const handleEdit = async (formData) => {
+    try {
+      const res = await fetch(`/api/properties/${formData.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      const json = await res.json();
+      if (json.success && json.data) {
+        setProperty(json.data);
+        toast.success("Property updated successfully");
+        return;
+      }
+    } catch {
+      // Fallback
+    }
     const res = await adminAxios.put(`/admin/properties/${formData.id}`, formData);
     const updated = res.data.data.find((p) => p.id === formData.id);
     setProperty(updated);
@@ -33,6 +70,19 @@ export default function PropertyDetailPage() {
 
   const handleDelete = async () => {
     setDeleting(true);
+    try {
+      const res = await fetch(`/api/properties/${id}`, {
+        method: "DELETE",
+      });
+      const json = await res.json();
+      if (json.success) {
+        toast.success("Property deleted successfully from database");
+        router.push("/admin/properties");
+        return;
+      }
+    } catch {
+      // Fallback
+    }
     try {
       await adminAxios.delete(`/admin/properties/${id}`);
       toast.success("Property deleted successfully");
