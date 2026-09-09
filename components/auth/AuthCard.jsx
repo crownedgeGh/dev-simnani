@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { MdScience } from "react-icons/md";
 import { useAuth } from "@/context/AuthContext";
 
 const OTP_LENGTH = 6;
@@ -23,6 +24,7 @@ export default function AuthCard() {
   const [otp, setOtp] = useState(Array(OTP_LENGTH).fill(""));
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isTesterLogin, setIsTesterLogin] = useState(false);
   const [resendIn, setResendIn] = useState(59);
   const otpRefs = useRef([]);
   const timerRef = useRef(null);
@@ -128,6 +130,34 @@ export default function AuthCard() {
     }, 1000);
   }
 
+  function handleTesterLogin() {
+    if (loading) return;
+    setLoading(true);
+    setIsTesterLogin(true);
+    setError("");
+    setTimeout(() => {
+      clearInterval(timerRef.current);
+      setLoading(false);
+
+      const testerProfile = {
+        fullName: "Tester Account",
+        mobile: "98765 43210",
+        email: "tester@simnaniestate.com",
+        accountType: "common-person",
+        accountId: "SG-IND-TESTER",
+        city: "Mumbai",
+        propertyType: "flat",
+        purpose: "sale",
+        locality: "Bandra West",
+        registeredAt: new Date().toISOString(),
+      };
+
+      const token = `se_mock_tester_${Date.now()}`;
+      login(token, testerProfile);
+      setStep("success");
+    }, 400);
+  }
+
   function handleChangeNumber() {
     clearInterval(timerRef.current);
     setError("");
@@ -159,39 +189,75 @@ export default function AuthCard() {
             </>
           )}
           {step === "success" &&
-            "You're signed in. Explore properties, investments and more."}
+            (isTesterLogin
+              ? "You're signed in as Tester (Common Person). Explore properties, post listings, and manage your account."
+              : "You're signed in. Explore properties, investments and more.")}
         </p>
       </div>
 
       {step === "mobile" && (
-        <form onSubmit={handleMobileSubmit} className="mt-8 flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <label htmlFor="mobile" className="tracked-label text-xs text-cream/80">
-              Mobile Number
-            </label>
-            <div className="flex items-center border border-navy-700/60 bg-navy-950 px-4 transition focus-within:border-gold-400">
-              <span className="text-sm text-muted">+91</span>
-              <input
-                id="mobile"
-                type="tel"
-                inputMode="numeric"
-                autoComplete="tel-national"
-                placeholder="0000 000 000"
-                value={mobile}
-                onChange={(event) => setMobile(formatMobile(event.target.value))}
-                className="h-14 w-full bg-transparent px-3 text-cream placeholder:text-muted focus:outline-none"
-              />
+        <>
+          <form onSubmit={handleMobileSubmit} className="mt-8 flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
+              <label htmlFor="mobile" className="tracked-label text-xs text-cream/80">
+                Mobile Number
+              </label>
+              <div className="flex items-center border border-navy-700/60 bg-navy-950 px-4 transition focus-within:border-gold-400">
+                <span className="text-sm text-muted">+91</span>
+                <input
+                  id="mobile"
+                  type="tel"
+                  inputMode="numeric"
+                  autoComplete="tel-national"
+                  placeholder="0000 000 000"
+                  value={mobile}
+                  onChange={(event) => setMobile(formatMobile(event.target.value))}
+                  className="h-14 w-full bg-transparent px-3 text-cream placeholder:text-muted focus:outline-none"
+                />
+              </div>
             </div>
+
+            <button
+              type="submit"
+              disabled={!mobileValid || loading}
+              className="tracked-label mt-2 flex items-center justify-center gap-2 bg-gold-400 px-6 py-4 text-xs text-navy-950 transition hover:bg-gold-300 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {loading && !isTesterLogin ? "Sending OTP..." : "Continue with OTP"}
+            </button>
+          </form>
+
+          {/* Tester Login Divider & Button */}
+          <div className="relative my-6 flex items-center justify-center">
+            <div className="w-full border-t border-navy-700/60" />
+            <span className="absolute bg-navy-900 px-3 text-[10px] font-semibold uppercase tracking-widest text-muted">
+              Or Fast Track
+            </span>
           </div>
 
           <button
-            type="submit"
-            disabled={!mobileValid || loading}
-            className="tracked-label mt-2 flex items-center justify-center gap-2 bg-gold-400 px-6 py-4 text-xs text-navy-950 transition hover:bg-gold-300 disabled:cursor-not-allowed disabled:opacity-50"
+            type="button"
+            onClick={handleTesterLogin}
+            disabled={loading}
+            className="group flex w-full items-center justify-between border border-gold-400/30 bg-gold-400/5 p-4 text-left transition hover:border-gold-400 hover:bg-gold-400/10 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {loading ? "Sending OTP..." : "Continue with OTP"}
+            <div className="flex items-center gap-3.5">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gold-400/30 bg-gold-400/10 text-gold-400 transition group-hover:border-gold-400 group-hover:bg-gold-400/20">
+                <MdScience className="h-5 w-5" />
+              </span>
+              <div>
+                <span className="tracked-label block text-xs font-semibold text-cream group-hover:text-gold-300">
+                  {loading && isTesterLogin ? "Logging in..." : "Login as Tester"}
+                </span>
+                <p className="mt-0.5 text-[11px] text-muted">
+                  Instant login as Common Person
+                </p>
+              </div>
+            </div>
+            <span className="rounded border border-gold-400/30 bg-gold-400/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-gold-400">
+              Common Person
+            </span>
           </button>
-        </form>
+        </>
       )}
 
       {step === "otp" && (
@@ -236,7 +302,7 @@ export default function AuthCard() {
             disabled={loading}
             className="tracked-label flex items-center justify-center gap-2 bg-gold-400 px-6 py-4 text-xs text-navy-950 transition hover:bg-gold-300 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {loading ? "Verifying..." : "Verify"}
+            {loading && !isTesterLogin ? "Verifying..." : "Verify"}
           </button>
 
           <div className="text-center text-xs text-muted">
@@ -253,6 +319,18 @@ export default function AuthCard() {
               </button>
             )}
           </div>
+
+          <div className="border-t border-navy-700/60 pt-4 text-center">
+            <button
+              type="button"
+              onClick={handleTesterLogin}
+              disabled={loading}
+              className="inline-flex items-center gap-1.5 text-xs text-muted transition hover:text-gold-400 disabled:opacity-50"
+            >
+              <MdScience className="h-3.5 w-3.5 text-gold-400" />
+              <span>Or skip OTP &amp; <strong className="font-semibold text-gold-400">Login as Tester</strong></span>
+            </button>
+          </div>
         </div>
       )}
 
@@ -261,13 +339,21 @@ export default function AuthCard() {
           <span className="flex h-14 w-14 items-center justify-center rounded-full border border-gold-400 text-2xl text-gold-400">
             ✓
           </span>
-          <button
-            type="button"
-            onClick={handleContinue}
-            className="tracked-label w-full bg-gold-400 px-6 py-4 text-center text-xs text-navy-950 transition hover:bg-gold-300"
-          >
-            Continue to Simnani Estate
-          </button>
+          <div className="flex w-full flex-col gap-3">
+            <button
+              type="button"
+              onClick={handleContinue}
+              className="tracked-label w-full bg-gold-400 px-6 py-4 text-center text-xs text-navy-950 transition hover:bg-gold-300"
+            >
+              Continue to Simnani Estate
+            </button>
+            <Link
+              href="/portal/common-person"
+              className="tracked-label flex items-center justify-center gap-2 border border-navy-700/60 px-6 py-3.5 text-center text-xs text-cream transition hover:border-gold-400 hover:text-gold-400"
+            >
+              Go to My Listings
+            </Link>
+          </div>
         </div>
       )}
 

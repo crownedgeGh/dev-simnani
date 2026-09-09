@@ -2,7 +2,7 @@ import Link from "next/link";
 import PortalShell from "@/components/portal/PortalShell";
 import PropertyGrid from "@/components/property/PropertyGrid";
 import { getPropertiesByType } from "@/lib/properties";
-import { DEMO_USER } from "@/lib/demoAccount";
+import CommonPersonHeader from "@/components/portal/common-person/CommonPersonHeader";
 
 export const metadata = {
   title: "My Listings | Simnani Estate",
@@ -14,13 +14,7 @@ export default function CommonPersonPortalPage() {
 
   return (
     <PortalShell>
-      <div>
-        <p className="tracked-label text-xs text-gold-400">Welcome</p>
-        <h1 className="mt-2 font-display text-3xl text-cream">{DEMO_USER.name}</h1>
-        <p className="mt-2 text-sm text-muted">
-          Manage the properties you&apos;ve listed and track enquiries from buyers.
-        </p>
-      </div>
+      <CommonPersonHeader />
 
       <div className="mt-10">
         <div className="flex items-center justify-between">

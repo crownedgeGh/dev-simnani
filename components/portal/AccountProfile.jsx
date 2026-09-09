@@ -1,15 +1,40 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FiEdit3 } from "react-icons/fi";
 import Badge from "./Badge";
 import SectionCard from "./SectionCard";
 import { inputClass } from "@/components/auth/inputStyles";
+import { useAuth } from "@/context/AuthContext";
 
 export default function AccountProfile({ user }) {
+  const { user: authUser, updateProfile } = useAuth();
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState({ name: user.name, email: user.email, city: user.city });
+  const [form, setForm] = useState({
+    name: authUser?.fullName || user.name,
+    email: authUser?.email || user.email,
+    city: authUser?.city || user.city,
+  });
   const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    if (authUser) {
+      setForm({
+        name: authUser.fullName || user.name,
+        email: authUser.email || user.email,
+        city: authUser.city || user.city,
+      });
+    }
+  }, [authUser, user]);
+
+  const displayRole = authUser?.accountType === "common-person"
+    ? "Common Person"
+    : (authUser?.accountType || user.role);
+
+  const displayMobile = authUser?.mobile || user.mobile;
+  const memberSince = authUser?.registeredAt
+    ? new Date(authUser.registeredAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })
+    : (user.memberSince || "Recently");
 
   function update(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -19,6 +44,13 @@ export default function AccountProfile({ user }) {
   function handleSave() {
     setEditing(false);
     setSaved(true);
+    if (updateProfile) {
+      updateProfile({
+        fullName: form.name,
+        email: form.email,
+        city: form.city,
+      });
+    }
   }
 
   return (
@@ -26,11 +58,11 @@ export default function AccountProfile({ user }) {
       <SectionCard>
         <div className="flex items-center gap-4 border-b border-navy-700/60 pb-5">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-navy-700/60 font-display text-2xl text-gold-400">
-            {form.name.charAt(0)}
+            {form.name ? form.name.charAt(0).toUpperCase() : "U"}
           </div>
           <div className="flex-1">
             <p className="font-display text-lg text-cream">{form.name}</p>
-            <Badge tone="gold">{user.role}</Badge>
+            <Badge tone="gold">{displayRole}</Badge>
           </div>
           {!editing && (
             <button
@@ -72,7 +104,7 @@ export default function AccountProfile({ user }) {
             </Field>
             <Field label="Mobile Number">
               <div className="flex items-center justify-between border border-navy-700/60 bg-navy-950 px-4 py-4 text-sm text-muted">
-                <span>+91 {user.mobile}</span>
+                <span>+91 {displayMobile}</span>
                 <Badge tone="success">Verified</Badge>
               </div>
             </Field>
@@ -102,7 +134,7 @@ export default function AccountProfile({ user }) {
               <p className="text-[15px] font-medium text-cream">{form.email}</p>
             </Field>
             <Field label="Mobile Number">
-              <p className="text-[15px] font-medium text-cream">+91 {user.mobile}</p>
+              <p className="text-[15px] font-medium text-cream">+91 {displayMobile}</p>
             </Field>
             <Field label="City">
               <p className="text-[15px] font-medium text-cream">{form.city}</p>
@@ -115,7 +147,7 @@ export default function AccountProfile({ user }) {
 
       <SectionCard title="Account Status">
         <p className="text-sm text-cream">
-          Verified {user.role} <span className="text-muted">· Member since {user.memberSince}</span>
+          Verified {displayRole} <span className="text-muted">· Member since {memberSince}</span>
         </p>
         <p className="mt-1 text-sm text-muted">
           Full access to premium property listings and investment portfolios.

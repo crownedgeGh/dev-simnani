@@ -548,16 +548,16 @@ export default function Navbar() {
       <AuthGateModal isOpen={showAuthGate} onClose={() => setShowAuthGate(false)} />
 
       <header className="sticky top-0 z-50 border-b border-navy-700/60 bg-navy-950/95 backdrop-blur">
-        <div className="mx-auto flex max-w-[1500px] items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
+        <div className="flex w-full items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-14">
 
           {/* Logo */}
           <Link href="/" className="flex shrink-0 items-center">
-            <span className="relative h-10 w-[172px] shrink-0 sm:h-14 sm:w-[241px]">
+            <span className="relative h-10 w-[172px] shrink-0 sm:h-12 sm:w-[206px] xl:h-14 xl:w-[241px]">
               <Image
                 src="/logo-se.png"
                 alt="Simnani Estates"
                 fill
-                sizes="(min-width: 640px) 241px, 172px"
+                sizes="(min-width: 1280px) 241px, (min-width: 640px) 206px, 172px"
                 className="object-contain object-left"
                 priority
               />
@@ -565,7 +565,7 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop nav links */}
-          <nav className="hidden min-w-0 shrink items-center gap-4 2xl:flex 2xl:gap-5">
+          <nav className="hidden min-w-0 flex-1 items-center justify-center gap-3.5 xl:flex xl:gap-5 2xl:gap-7">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.label}
@@ -578,7 +578,7 @@ export default function Navbar() {
           </nav>
 
           {/* Desktop right section */}
-          <div className="hidden shrink-0 items-center gap-2 2xl:flex">
+          <div className="hidden shrink-0 items-center gap-3 xl:flex">
             {/* Post Property button */}
             {canPostProperty && (
               <button
@@ -675,7 +675,7 @@ export default function Navbar() {
             onClick={() => setMobileOpen((v) => !v)}
             aria-label="Toggle navigation menu"
             aria-expanded={mobileOpen}
-            className="flex h-9 w-9 items-center justify-center text-cream 2xl:hidden"
+            className="flex h-9 w-9 items-center justify-center text-cream xl:hidden"
           >
             {mobileOpen ? <FiX className="h-6 w-6" /> : <FiMenu className="h-6 w-6" />}
           </button>
@@ -689,7 +689,7 @@ export default function Navbar() {
           which would confine this overlay to the header's own height instead of
           the full viewport. */}
       {mobileOpen && (
-        <div className="2xl:hidden" style={{ position: "fixed", inset: 0, zIndex: 9999 }}>
+        <div className="xl:hidden" style={{ position: "fixed", inset: 0, zIndex: 9999 }}>
           <style>{`
             @keyframes sidebarBackdropFadeIn { from { opacity: 0; } to { opacity: 1; } }
             @keyframes sidebarSlideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
