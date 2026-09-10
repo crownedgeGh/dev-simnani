@@ -17,8 +17,14 @@ const PROPERTY_TYPES = [
   { value: "villa", label: "Villa" },
   { value: "plot", label: "Plot" },
   { value: "land", label: "Land" },
-  { value: "commercial", label: "Commercial" },
   { value: "farm-house", label: "Farm House" },
+  { value: "commercial", label: "Commercial" },
+  { value: "farming", label: "Farming Land" },
+  { value: "industrial", label: "Industrial" },
+  { value: "invest", label: "Investment Property" },
+  { value: "rent", label: "Rental" },
+  { value: "lease", label: "Lease" },
+  { value: "seized-property", label: "Seized Property" },
 ];
 
 const BUDGET_RANGES = [
@@ -60,8 +66,8 @@ export default function BuyerRegistrationWizard() {
       }
     }
     if (step === 2) {
-      if (form.propertyTypes.length === 0 || !form.budget) {
-        setError("Please select at least one property type and a budget range.");
+      if (form.propertyTypes.length === 0) {
+        setError("Please select at least one property type.");
         return;
       }
     }
@@ -203,7 +209,7 @@ export default function BuyerRegistrationWizard() {
             />
           </FormField>
 
-          <FormField label="Budget Range" required>
+          <FormField label="Budget Range" optional>
             <ChipGroup
               options={BUDGET_RANGES}
               value={form.budget}
