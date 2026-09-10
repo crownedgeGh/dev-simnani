@@ -27,6 +27,7 @@ import adminAxios from "@/lib/adminAxios";
 const PURPOSE_OPTIONS = [
   { value: "sale", label: "For Sale" },
   { value: "rent", label: "For Rent" },
+  { value: "lease", label: "For Lease" },
 ];
 
 const YES_NO_OPTIONS = [
@@ -74,7 +75,21 @@ const FACING_OPTIONS = [
   "South-West",
 ];
 
-const PREFERRED_FOR_OPTIONS = ["Family", "Bachelors", "Company", "Anyone"];
+const PREFERRED_FOR_OPTIONS = [
+  "Family",
+  "Bachelors",
+  "Working Professionals",
+  "Students",
+  "Live-in Relationship / Couples",
+  "Government Employee",
+  "Corporate / Company",
+  "Newly Married Couple",
+  "Single Woman",
+  "Single Man",
+  "Senior Citizens",
+  "NRI",
+  "Anyone",
+];
 
 const STATUS_OPTIONS = ["Active", "Pending Review", "Rejected"];
 
@@ -138,6 +153,7 @@ export default function AdminAddPropertyForm() {
       if (field === "purpose") {
         if (val === "sale") next.type = "sell";
         if (val === "rent") next.type = "rent";
+        if (val === "lease") next.type = "lease";
       }
       return next;
     });
@@ -253,7 +269,7 @@ export default function AdminAddPropertyForm() {
       } else if (numericPrice >= 100000) {
         formattedPrice = `₹${(numericPrice / 100000).toFixed(2)} Lakh`;
       }
-      if (form.purpose === "rent") {
+      if (form.purpose === "rent" || form.purpose === "lease") {
         formattedPrice += " /mo";
       }
 
@@ -444,7 +460,7 @@ export default function AdminAddPropertyForm() {
             {/* Purpose: Sale vs Rent */}
             <div>
               <AdminFormField label="Listing Purpose" required>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   {PURPOSE_OPTIONS.map((opt) => (
                     <button
                       key={opt.value}
@@ -608,7 +624,7 @@ export default function AdminAddPropertyForm() {
             {/* Price */}
             <div className="sm:col-span-2">
               <AdminFormField
-                label={`Price (₹) ${form.purpose === "rent" ? "- Monthly Rent" : "- Total"}`}
+                label={`Price (₹) ${form.purpose === "rent" || form.purpose === "lease" ? "- Monthly Rent" : "- Total"}`}
                 id="prop-price"
                 required
                 error={errors.price}

@@ -11,6 +11,7 @@ import { MdContentPaste, MdLocationOn, MdApartment, MdCameraAlt, MdPerson } from
 const PURPOSE_OPTIONS = [
   { value: "sale", label: "Sale" },
   { value: "rent", label: "Rent" },
+  { value: "lease", label: "Lease" },
 ];
 
 const YES_NO_OPTIONS = [
@@ -35,7 +36,21 @@ const FACING_OPTIONS = [
   "South-West",
 ];
 
-const PREFERRED_FOR_OPTIONS = ["Family", "Bachelors", "Company", "Anyone"];
+const PREFERRED_FOR_OPTIONS = [
+  "Family",
+  "Bachelors",
+  "Working Professionals",
+  "Students",
+  "Live-in Relationship / Couples",
+  "Government Employee",
+  "Corporate / Company",
+  "Newly Married Couple",
+  "Single Woman",
+  "Single Man",
+  "Senior Citizens",
+  "NRI",
+  "Anyone",
+];
 
 const INITIAL_FORM = {
   purpose: "sale",
@@ -106,7 +121,7 @@ export default function PostPropertyForm() {
       } else if (numericPrice >= 100000) {
         formattedPrice = `₹${(numericPrice / 100000).toFixed(2)} Lakh`;
       }
-      if (form.purpose === "rent") {
+      if (form.purpose === "rent" || form.purpose === "lease") {
         formattedPrice += " /mo";
       }
 
@@ -118,7 +133,12 @@ export default function PostPropertyForm() {
         id: propertyId || `PROP-${Date.now()}`,
         title: (form.title || "").trim(),
         purpose: form.purpose,
-        type: form.purpose === "rent" ? "rent" : "sell",
+        type:
+          form.purpose === "rent"
+            ? "rent"
+            : form.purpose === "lease"
+              ? "lease"
+              : "sell",
         propertyType: form.propertyType,
         price: formattedPrice,
         rawPrice: numericPrice,
@@ -523,8 +543,9 @@ function Section({ icon, title, subtitle, children }) {
 }
 
 function ToggleTwo({ options, value, onChange }) {
+  const colClass = options.length === 3 ? "grid-cols-3" : "grid-cols-2";
   return (
-    <div className="grid grid-cols-2 gap-2">
+    <div className={`grid ${colClass} gap-2`}>
       {options.map((opt) => (
         <button
           key={opt.value}

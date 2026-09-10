@@ -29,6 +29,7 @@ import { ADMIN_KEYS, readCollection } from "@/lib/adminStorage";
 const PURPOSE_OPTIONS = [
   { value: "sale", label: "For Sale" },
   { value: "rent", label: "For Rent" },
+  { value: "lease", label: "For Lease" },
 ];
 
 const YES_NO_OPTIONS = [
@@ -76,7 +77,21 @@ const FACING_OPTIONS = [
   "South-West",
 ];
 
-const PREFERRED_FOR_OPTIONS = ["Family", "Bachelors", "Company", "Anyone"];
+const PREFERRED_FOR_OPTIONS = [
+  "Family",
+  "Bachelors",
+  "Working Professionals",
+  "Students",
+  "Live-in Relationship / Couples",
+  "Government Employee",
+  "Corporate / Company",
+  "Newly Married Couple",
+  "Single Woman",
+  "Single Man",
+  "Senior Citizens",
+  "NRI",
+  "Anyone",
+];
 
 const STATUS_OPTIONS = ["Active", "Pending Review", "Rejected"];
 
@@ -214,9 +229,11 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
 
     const determinedPurpose =
       prop.purpose ||
-      (prop.type === "rent" || (typeof prop.price === "string" && prop.price.includes("/mo"))
-        ? "rent"
-        : "sale");
+      (prop.type === "lease"
+        ? "lease"
+        : prop.type === "rent" || (typeof prop.price === "string" && prop.price.includes("/mo"))
+          ? "rent"
+          : "sale");
 
     setForm({
       purpose: determinedPurpose,
@@ -309,8 +326,10 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
     setForm((prev) => {
       const next = { ...prev, [field]: val };
       if (field === "purpose") {
-        if (val === "sale" && next.type === "rent") next.type = "sell";
+        if (val === "sale" && (next.type === "rent" || next.type === "lease"))
+          next.type = "sell";
         if (val === "rent" && next.type === "buy") next.type = "rent";
+        if (val === "lease") next.type = "lease";
       }
       return next;
     });
@@ -436,7 +455,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
       } else if (numericPrice >= 100000) {
         formattedPrice = `₹${(numericPrice / 100000).toFixed(2)} Lakh`;
       }
-      if (form.purpose === "rent") {
+      if (form.purpose === "rent" || form.purpose === "lease") {
         formattedPrice += " /mo";
       }
 
@@ -631,7 +650,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
             {/* Purpose: Sale vs Rent */}
             <div>
               <AdminFormField label="Listing Purpose" required>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   {PURPOSE_OPTIONS.map((opt) => (
                     <button
                       key={opt.value}
@@ -776,7 +795,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
             {/* Price Input */}
             <div>
               <AdminFormField
-                label={`Price (₹) ${form.purpose === "rent" ? "/ month" : ""}`}
+                label={`Price (₹) ${form.purpose === "rent" || form.purpose === "lease" ? "/ month" : ""}`}
                 required
                 error={errors.price}
                 hint={
@@ -799,7 +818,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
                     step="1000"
                     value={form.price}
                     onChange={(e) => update("price", e.target.value)}
-                    placeholder={form.purpose === "rent" ? "35000" : "12500000"}
+                    placeholder={form.purpose === "rent" || form.purpose === "lease" ? "35000" : "12500000"}
                     className={`${adminInputClass} pl-8`}
                   />
                 </div>
