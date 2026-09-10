@@ -11,9 +11,9 @@ import { inputClass } from "./inputStyles";
 import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 2;
 
-const STEP_LABELS = ["Select Type", "Basic Details", "Professional Details", "Join Network"];
+const STEP_LABELS = ["Select Type", "Your Details"];
 
 const CP_TYPES = [
   {
@@ -36,21 +36,9 @@ const CP_TYPES = [
   },
 ];
 
-const COMPANY_ROLES = [
-  { value: "lead-verification", label: "Lead Verification" },
-  { value: "partner-coordination", label: "Partner Coordination" },
-  { value: "sales-operations", label: "Sales Operations" },
-  { value: "customer-support", label: "Customer Support" },
-  { value: "commission-accounts", label: "Commission & Accounts" },
-  { value: "other", label: "Other" },
-];
-
-const PROMOTION_PLATFORMS = [
-  { value: "instagram", label: "Instagram" },
-  { value: "facebook", label: "Facebook" },
-  { value: "youtube", label: "YouTube" },
-  { value: "whatsapp", label: "WhatsApp" },
-  { value: "other", label: "Other" },
+const CURRENTLY_WORKING_OPTIONS = [
+  { value: "yes", label: "Yes" },
+  { value: "no", label: "No" },
 ];
 
 const EXPERIENCE_LEVELS = [
@@ -72,12 +60,11 @@ const INITIAL_FORM = {
   mobile: "",
   email: "",
   city: "",
-  role: "",
-  platforms: [],
+  currentlyWorking: "",
   coverageAreas: "",
   experience: "",
-  referral: "",
   inviteCode: "",
+  invitationCode: "",
   agree: false,
 };
 
@@ -99,28 +86,30 @@ export default function FreelancerRegistrationWizard() {
         setError("Please select how you'd like to join the network.");
         return;
       }
+      if (form.cpType === "company" && !form.inviteCode.trim()) {
+        setError("Please enter your staff / invitation code to continue.");
+        return;
+      }
     }
     if (step === 2) {
       if (!form.fullName.trim() || !isMobileValid(form.mobile) || !form.city.trim()) {
         setError("Please fill in all required fields.");
         return;
       }
-    }
-    if (step === 3) {
       if (!form.experience) {
         setError("Please select your experience level.");
         return;
       }
-      if (form.cpType === "company" && !form.role) {
-        setError("Please select your primary role.");
-        return;
-      }
-      if (form.cpType === "digital" && form.platforms.length === 0) {
-        setError("Please select at least one platform you promote on.");
+      if (form.cpType === "digital" && !form.currentlyWorking) {
+        setError("Please let us know if you are currently working anywhere.");
         return;
       }
       if (form.cpType === "field" && !form.coverageAreas.trim()) {
         setError("Please enter the localities you cover.");
+        return;
+      }
+      if (form.cpType !== "company" && !form.invitationCode.trim()) {
+        setError("Please enter your invitation code to continue.");
         return;
       }
     }
@@ -133,40 +122,47 @@ export default function FreelancerRegistrationWizard() {
     setStep((s) => Math.max(s - 1, 1));
   }
 
-  function handleSubmit() {
-    if (form.cpType === "company" && !form.inviteCode.trim()) {
-      setError("Please enter your staff / invite code to continue.");
-      return;
-    }
+  async function handleSubmit() {
     if (!form.agree) {
       setError("Please accept the Terms & Conditions to continue.");
       return;
     }
     setError("");
     setSubmitting(true);
-    setTimeout(() => {
-      const id = generateAccountId(ACCOUNT_ID_PREFIX[form.cpType]);
-      const profile = {
-        fullName: form.fullName,
-        mobile: form.mobile,
-        email: form.email,
-        city: form.city,
-        accountType: "freelancer",
-        cpType: form.cpType,
-        accountId: id,
-        role: form.role,
-        platforms: form.platforms,
-        coverageAreas: form.coverageAreas,
-        experience: form.experience,
-        referral: form.referral,
-        status: form.cpType === "company" ? "pending" : "active",
-        registeredAt: new Date().toISOString(),
-      };
+    const id = generateAccountId(ACCOUNT_ID_PREFIX[form.cpType]);
+    const profile = {
+      fullName: form.fullName,
+      mobile: form.mobile,
+      email: form.email,
+      city: form.city,
+      accountType: "freelancer",
+      cpType: form.cpType,
+      accountId: id,
+      currentlyWorking: form.currentlyWorking,
+      coverageAreas: form.coverageAreas,
+      experience: form.experience,
+      inviteCode: form.inviteCode,
+      invitationCode: form.invitationCode,
+      verificationStatus: form.cpType === "company" ? "pending" : "active",
+      pendingVerification: form.cpType === "company",
+      registeredAt: new Date().toISOString(),
+    };
+    try {
+      const res = await fetch("/api/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(profile),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || "Registration failed");
       const token = `se_mock_${form.mobile.replace(/\D/g, "")}_${Date.now()}`;
-      login(token, profile);
-      setSubmitting(false);
+      login(token, json.data);
       setAccountId(id);
-    }, 1000);
+    } catch (err) {
+      setError(err.message || "Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   if (accountId) {
@@ -199,15 +195,11 @@ export default function FreelancerRegistrationWizard() {
       <div className="mb-6 text-center">
         <h1 className="font-display text-2xl text-cream sm:text-3xl">
           {step === 1 && "Choose Your Channel Partner Path"}
-          {step === 2 && "Begin Your Journey"}
-          {step === 3 && "Professional Details"}
-          {step === 4 && "Join Simnani Network"}
+          {step === 2 && "Tell Us About You"}
         </h1>
         <p className="mt-2 text-sm text-muted">
           {step === 1 && "Select how you'd like to work with Simnani Estate."}
-          {step === 2 && "Please provide your primary contact information to initiate the registration process."}
-          {step === 3 && "Tell us about your expertise and experience level to help us match you with the right opportunities."}
-          {step === 4 && "Promote approved Simnani projects, bring genuine leads and earn commission on eligible successful deals."}
+          {step === 2 && "Please share your details and experience to help us match you with the right opportunities."}
         </p>
       </div>
 
@@ -232,6 +224,26 @@ export default function FreelancerRegistrationWizard() {
               <p className="text-xs text-muted">{description}</p>
             </button>
           ))}
+
+          {form.cpType === "company" && (
+            <div className="sm:col-span-3">
+              <FormField
+                label="Staff / Invitation Code"
+                htmlFor="inviteCode"
+                required
+                hint="Company Channel Partner accounts require an internal invitation code."
+              >
+                <input
+                  id="inviteCode"
+                  type="text"
+                  placeholder="Enter your staff or invitation code"
+                  value={form.inviteCode}
+                  onChange={(e) => update("inviteCode", e.target.value)}
+                  className={inputClass}
+                />
+              </FormField>
+            </div>
+          )}
         </div>
       )}
 
@@ -284,24 +296,13 @@ export default function FreelancerRegistrationWizard() {
               className={inputClass}
             />
           </FormField>
-        </div>
-      )}
-
-      {step === 3 && (
-        <div className="flex flex-col gap-6">
-          {form.cpType === "company" && (
-            <FormField label="Primary Role" required>
-              <ChipGroup options={COMPANY_ROLES} value={form.role} onChange={(value) => update("role", value)} />
-            </FormField>
-          )}
 
           {form.cpType === "digital" && (
-            <FormField label="Where do you promote?" required>
+            <FormField label="Currently working anywhere?" required>
               <ChipGroup
-                options={PROMOTION_PLATFORMS}
-                value={form.platforms}
-                onChange={(value) => update("platforms", value)}
-                multi
+                options={CURRENTLY_WORKING_OPTIONS}
+                value={form.currentlyWorking}
+                onChange={(value) => update("currentlyWorking", value)}
               />
             </FormField>
           )}
@@ -332,39 +333,19 @@ export default function FreelancerRegistrationWizard() {
               layout="card"
             />
           </FormField>
-        </div>
-      )}
 
-      {step === 4 && (
-        <div className="flex flex-col gap-6">
-          {form.cpType === "company" && (
-            <FormField
-              label="Staff / Invite Code"
-              htmlFor="inviteCode"
-              required
-              hint="Company Channel Partner accounts require an internal invite code."
-            >
+          {form.cpType !== "company" && (
+            <FormField label="Invitation Code" htmlFor="invitationCode" required>
               <input
-                id="inviteCode"
+                id="invitationCode"
                 type="text"
-                placeholder="Enter your staff or invite code"
-                value={form.inviteCode}
-                onChange={(e) => update("inviteCode", e.target.value)}
+                placeholder="Enter invitation code"
+                value={form.invitationCode}
+                onChange={(e) => update("invitationCode", e.target.value)}
                 className={inputClass}
               />
             </FormField>
           )}
-
-          <FormField label="Referral Code" htmlFor="referral" optional>
-            <input
-              id="referral"
-              type="text"
-              placeholder="Enter referral code"
-              value={form.referral}
-              onChange={(e) => update("referral", e.target.value)}
-              className={inputClass}
-            />
-          </FormField>
 
           <label className="flex items-start gap-3 text-xs text-muted">
             <input

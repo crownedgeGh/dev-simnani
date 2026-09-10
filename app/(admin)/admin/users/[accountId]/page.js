@@ -16,11 +16,45 @@ export default function UserDetailPage() {
   const [editOpen, setEditOpen] = useState(false);
 
   useEffect(() => {
-    const users = readCollection(ADMIN_KEYS.users) || [];
-    setUser(users.find((u) => u.accountId === accountId) || null);
+    if (!accountId) return;
+    let active = true;
+    (async () => {
+      try {
+        const res = await fetch(`/api/users/${accountId}`, { cache: "no-store" });
+        const json = await res.json();
+        if (active && json.success && json.data) {
+          setUser(json.data);
+          return;
+        }
+      } catch (err) {
+        console.error("Failed to fetch user from API:", err);
+      }
+      if (active) {
+        const users = readCollection(ADMIN_KEYS.users) || [];
+        setUser(users.find((u) => u.accountId === accountId) || null);
+      }
+    })();
+    return () => {
+      active = false;
+    };
   }, [accountId]);
 
   const handleEdit = async (updated) => {
+    try {
+      const res = await fetch(`/api/users/${updated.accountId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updated),
+      });
+      const json = await res.json();
+      if (json.success && json.data) {
+        setUser(json.data);
+        toast.success("User updated successfully");
+        return;
+      }
+    } catch {
+      // Fallback
+    }
     const res = await adminAxios.put(`/admin/users/${updated.accountId}`, { ...updated, id: updated.accountId });
     const found = res.data.data.find((u) => u.accountId === accountId);
     setUser(found);

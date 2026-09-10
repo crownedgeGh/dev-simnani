@@ -9,23 +9,11 @@ import RegistrationSuccess from "./RegistrationSuccess";
 import { inputClass } from "./inputStyles";
 import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
+import { PROPERTY_CATEGORIES } from "@/lib/propertyCategories";
 
 const TOTAL_STEPS = 3;
 
-const PROPERTY_TYPES = [
-  { value: "flat", label: "Flat" },
-  { value: "villa", label: "Villa" },
-  { value: "plot", label: "Plot" },
-  { value: "land", label: "Land" },
-  { value: "farm-house", label: "Farm House" },
-  { value: "commercial", label: "Commercial" },
-  { value: "farming", label: "Farming Land" },
-  { value: "industrial", label: "Industrial" },
-  { value: "invest", label: "Investment Property" },
-  { value: "rent", label: "Rental" },
-  { value: "lease", label: "Lease" },
-  { value: "seized-property", label: "Seized Property" },
-];
+const PROPERTY_TYPES = PROPERTY_CATEGORIES;
 
 const BUDGET_RANGES = [
   { value: "under-25l", label: "Under ₹25 Lakh" },
@@ -80,32 +68,42 @@ export default function BuyerRegistrationWizard() {
     setStep((s) => Math.max(s - 1, 1));
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!form.agree) {
       setError("Please accept the Terms & Conditions to continue.");
       return;
     }
     setError("");
     setSubmitting(true);
-    setTimeout(() => {
-      const id = generateAccountId("BYR");
-      const profile = {
-        fullName: form.fullName,
-        mobile: form.mobile,
-        email: form.email,
-        city: form.city,
-        accountType: "buyer",
-        accountId: id,
-        propertyTypes: form.propertyTypes,
-        budget: form.budget,
-        location: form.location,
-        registeredAt: new Date().toISOString(),
-      };
+    const id = generateAccountId("BYR");
+    const profile = {
+      fullName: form.fullName,
+      mobile: form.mobile,
+      email: form.email,
+      city: form.city,
+      accountType: "buyer",
+      accountId: id,
+      propertyTypes: form.propertyTypes,
+      budget: form.budget,
+      location: form.location,
+      registeredAt: new Date().toISOString(),
+    };
+    try {
+      const res = await fetch("/api/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(profile),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || "Registration failed");
       const token = `se_mock_${form.mobile.replace(/\D/g, "")}_${Date.now()}`;
-      login(token, profile);
-      setSubmitting(false);
+      login(token, json.data);
       setAccountId(id);
-    }, 1000);
+    } catch (err) {
+      setError(err.message || "Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   if (accountId) {

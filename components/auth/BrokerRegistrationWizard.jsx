@@ -5,53 +5,48 @@ import AuthShell from "./AuthShell";
 import Stepper from "./Stepper";
 import FormField from "./FormField";
 import ChipGroup from "./ChipGroup";
+import { PROPERTY_CATEGORIES } from "@/lib/propertyCategories";
 import FileUpload from "./FileUpload";
 import RegistrationSuccess from "./RegistrationSuccess";
 import { inputClass, selectClass } from "./inputStyles";
 import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 4;
 
 const STEP_LABELS = [
   "Personal Details",
   "Business Details",
   "Professional Verification",
-  "Payment Details",
   "Review & Submit",
 ];
 
 const EXPERIENCE_OPTIONS = ["0 - 2 Years", "3 - 5 Years", "6 - 10 Years", "10+ Years"];
 
-const SPECIALTIES = [
-  { value: "residential", label: "Residential" },
-  { value: "commercial", label: "Commercial" },
-  { value: "plot", label: "Plot" },
-  { value: "land", label: "Land" },
-  { value: "farm-house", label: "Farm House" },
-  { value: "industrial", label: "Industrial" },
-  { value: "rental", label: "Rental" },
+const APPLICANT_TYPES = [
+  { value: "individual", label: "Individual" },
+  { value: "company", label: "Agency / Company" },
 ];
+
+const SPECIALTIES = [{ value: "all", label: "All" }, ...PROPERTY_CATEGORIES];
 
 const INITIAL_FORM = {
   fullName: "",
   mobile: "",
   email: "",
   city: "",
+  applicantType: "",
   agencyName: "",
   experience: "",
   officeAddress: "",
   operatingAreas: "",
   specialties: [],
+  reraRegistered: "",
   reraNumber: "",
   reraCertificate: null,
   panNumber: "",
   identityDoc: null,
   businessProof: null,
-  accountHolderName: "",
-  bankAccountNumber: "",
-  ifsc: "",
-  upiId: "",
   agree: false,
 };
 
@@ -75,19 +70,22 @@ export default function BrokerRegistrationWizard() {
       }
     }
     if (step === 2) {
-      if (
-        !form.agencyName.trim() ||
-        !form.experience ||
-        !form.officeAddress.trim() ||
-        !form.operatingAreas.trim() ||
-        form.specialties.length === 0
-      ) {
-        setError("Please fill in all required fields.");
+      if (!form.applicantType) {
+        setError("Please select whether you are an individual or an agency/company.");
         return;
       }
-    }
-    if (step === 4) {
-      if (!form.accountHolderName.trim() || !form.bankAccountNumber.trim() || !form.ifsc.trim()) {
+      if (form.applicantType === "company") {
+        if (
+          !form.agencyName.trim() ||
+          !form.experience ||
+          !form.officeAddress.trim() ||
+          !form.operatingAreas.trim() ||
+          form.specialties.length === 0
+        ) {
+          setError("Please fill in all required fields.");
+          return;
+        }
+      } else if (!form.experience) {
         setError("Please fill in all required fields.");
         return;
       }
@@ -101,40 +99,49 @@ export default function BrokerRegistrationWizard() {
     setStep((s) => Math.max(s - 1, 1));
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!form.agree) {
       setError("Please accept the Terms & Conditions to continue.");
       return;
     }
     setError("");
     setSubmitting(true);
-    setTimeout(() => {
-      const id = generateAccountId("BRK");
-      const profile = {
-        fullName: form.fullName,
-        mobile: form.mobile,
-        email: form.email,
-        city: form.city,
-        accountType: "broker",
-        accountId: id,
-        agencyName: form.agencyName,
-        experience: form.experience,
-        officeAddress: form.officeAddress,
-        operatingAreas: form.operatingAreas,
-        specialties: form.specialties,
-        reraNumber: form.reraNumber,
-        panNumber: form.panNumber,
-        accountHolderName: form.accountHolderName,
-        ifsc: form.ifsc,
-        upiId: form.upiId,
-        pendingVerification: true,
-        registeredAt: new Date().toISOString(),
-      };
+    const id = generateAccountId("BRK");
+    const profile = {
+      fullName: form.fullName,
+      mobile: form.mobile,
+      email: form.email,
+      city: form.city,
+      accountType: "broker",
+      accountId: id,
+      applicantType: form.applicantType,
+      agencyName: form.agencyName,
+      experience: form.experience,
+      officeAddress: form.officeAddress,
+      operatingAreas: form.operatingAreas,
+      specialties: form.specialties,
+      reraRegistered: form.reraRegistered === "yes",
+      reraNumber: form.reraNumber,
+      panNumber: form.panNumber,
+      pendingVerification: true,
+      registeredAt: new Date().toISOString(),
+    };
+    try {
+      const res = await fetch("/api/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(profile),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || "Registration failed");
       const token = `se_mock_${form.mobile.replace(/\D/g, "")}_${Date.now()}`;
-      login(token, profile);
-      setSubmitting(false);
+      login(token, json.data);
       setAccountId(id);
-    }, 1000);
+    } catch (err) {
+      setError(err.message || "Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   if (accountId) {
@@ -166,8 +173,7 @@ export default function BrokerRegistrationWizard() {
           {step === 1 && "Tell us who you are so clients can find you."}
           {step === 2 && "Provide information about your agency or professional practice."}
           {step === 3 && "Your documents will be reviewed before your broker account is verified."}
-          {step === 4 && "These details are used for eligible commission payments."}
-          {step === 5 && "Confirm your details before we submit your application for review."}
+          {step === 4 && "Confirm your details before we submit your application for review."}
         </p>
       </div>
 
@@ -225,179 +231,186 @@ export default function BrokerRegistrationWizard() {
 
       {step === 2 && (
         <div className="flex flex-col gap-4">
-          <FormField label="Agency / Company Name" htmlFor="agencyName" required>
-            <input
-              id="agencyName"
-              type="text"
-              placeholder="e.g. Apex Luxury Real Estate"
-              value={form.agencyName}
-              onChange={(e) => update("agencyName", e.target.value)}
-              className={inputClass}
-            />
-          </FormField>
-
-          <FormField label="Years of Experience" htmlFor="experience" required>
-            <select
-              id="experience"
-              value={form.experience}
-              onChange={(e) => update("experience", e.target.value)}
-              className={selectClass}
-            >
-              <option value="">Select experience range</option>
-              {EXPERIENCE_OPTIONS.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt}
-                </option>
-              ))}
-            </select>
-          </FormField>
-
-          <FormField label="Primary Office Address" htmlFor="officeAddress" required>
-            <input
-              id="officeAddress"
-              type="text"
-              placeholder="Street Address, City, State, PIN Code"
-              value={form.officeAddress}
-              onChange={(e) => update("officeAddress", e.target.value)}
-              className={inputClass}
-            />
-          </FormField>
-
-          <FormField
-            label="Key Operating Areas"
-            htmlFor="operatingAreas"
-            required
-            hint="Separate multiple areas with commas."
-          >
-            <input
-              id="operatingAreas"
-              type="text"
-              placeholder="e.g. Whitefield, Indiranagar, Koramangala"
-              value={form.operatingAreas}
-              onChange={(e) => update("operatingAreas", e.target.value)}
-              className={inputClass}
-            />
-          </FormField>
-
-          <FormField label="Property Specialties" required>
+          <FormField label="I am registering as" required>
             <ChipGroup
-              options={SPECIALTIES}
-              value={form.specialties}
-              onChange={(value) => update("specialties", value)}
-              multi
+              options={APPLICANT_TYPES}
+              value={form.applicantType}
+              onChange={(value) => update("applicantType", value)}
+              layout="row"
             />
           </FormField>
+
+          {form.applicantType === "company" && (
+            <>
+              <FormField label="Agency / Company Name" htmlFor="agencyName" required>
+                <input
+                  id="agencyName"
+                  type="text"
+                  placeholder="e.g. Apex Luxury Real Estate"
+                  value={form.agencyName}
+                  onChange={(e) => update("agencyName", e.target.value)}
+                  className={inputClass}
+                />
+              </FormField>
+
+              <FormField label="Years of Experience" htmlFor="experience" required>
+                <select
+                  id="experience"
+                  value={form.experience}
+                  onChange={(e) => update("experience", e.target.value)}
+                  className={selectClass}
+                >
+                  <option value="">Select experience range</option>
+                  {EXPERIENCE_OPTIONS.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
+                  ))}
+                </select>
+              </FormField>
+
+              <FormField label="Primary Office Address" htmlFor="officeAddress" required>
+                <input
+                  id="officeAddress"
+                  type="text"
+                  placeholder="Street Address, City, State, PIN Code"
+                  value={form.officeAddress}
+                  onChange={(e) => update("officeAddress", e.target.value)}
+                  className={inputClass}
+                />
+              </FormField>
+
+              <FormField
+                label="Key Operating Areas"
+                htmlFor="operatingAreas"
+                required
+                hint="Separate multiple areas with commas."
+              >
+                <input
+                  id="operatingAreas"
+                  type="text"
+                  placeholder="e.g. Whitefield, Indiranagar, Koramangala"
+                  value={form.operatingAreas}
+                  onChange={(e) => update("operatingAreas", e.target.value)}
+                  className={inputClass}
+                />
+              </FormField>
+
+              <FormField label="Property Specialties" required>
+                <ChipGroup
+                  options={SPECIALTIES}
+                  value={form.specialties}
+                  onChange={(value) => update("specialties", value)}
+                  multi
+                />
+              </FormField>
+            </>
+          )}
+
+          {form.applicantType === "individual" && (
+            <FormField label="Years of Experience" htmlFor="experience" required>
+              <select
+                id="experience"
+                value={form.experience}
+                onChange={(e) => update("experience", e.target.value)}
+                className={selectClass}
+              >
+                <option value="">Select experience range</option>
+                {EXPERIENCE_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))}
+              </select>
+            </FormField>
+          )}
         </div>
       )}
 
       {step === 3 && (
         <div className="flex flex-col gap-4">
-          <FormField label="RERA Registration Number" htmlFor="reraNumber" optional>
-            <input
-              id="reraNumber"
-              type="text"
-              placeholder="Enter your RERA ID"
-              value={form.reraNumber}
-              onChange={(e) => update("reraNumber", e.target.value)}
-              className={inputClass}
+          <FormField label="Are you RERA registered?" required>
+            <ChipGroup
+              options={[
+                { value: "yes", label: "Yes" },
+                { value: "no", label: "No" },
+              ]}
+              value={form.reraRegistered}
+              onChange={(value) => {
+                if (value === "no") {
+                  setForm((prev) => ({
+                    ...prev,
+                    reraRegistered: value,
+                    reraNumber: "",
+                    reraCertificate: null,
+                    panNumber: "",
+                    identityDoc: null,
+                    businessProof: null,
+                  }));
+                } else {
+                  update("reraRegistered", value);
+                }
+              }}
+              layout="row"
             />
           </FormField>
 
-          <FileUpload
-            id="reraCertificate"
-            label="RERA Certificate"
-            hint="PDF, JPG, PNG up to 10MB"
-            file={form.reraCertificate}
-            onChange={(file) => update("reraCertificate", file)}
-            optional
-          />
+          {form.reraRegistered === "yes" && (
+            <>
+              <FormField label="RERA Registration Number" htmlFor="reraNumber" optional>
+                <input
+                  id="reraNumber"
+                  type="text"
+                  placeholder="Enter your RERA ID"
+                  value={form.reraNumber}
+                  onChange={(e) => update("reraNumber", e.target.value)}
+                  className={inputClass}
+                />
+              </FormField>
 
-          <FormField label="PAN Number" htmlFor="panNumber" optional>
-            <input
-              id="panNumber"
-              type="text"
-              placeholder="Enter Tax ID"
-              value={form.panNumber}
-              onChange={(e) => update("panNumber", e.target.value.toUpperCase())}
-              className={`${inputClass} uppercase`}
-            />
-          </FormField>
+              <FileUpload
+                id="reraCertificate"
+                label="RERA Certificate"
+                hint="PDF, JPG, PNG up to 10MB"
+                file={form.reraCertificate}
+                onChange={(file) => update("reraCertificate", file)}
+                optional
+              />
 
-          <FileUpload
-            id="identityDoc"
-            label="Identity Document"
-            hint="Passport, National ID · PDF, JPG, PNG up to 10MB"
-            file={form.identityDoc}
-            onChange={(file) => update("identityDoc", file)}
-            optional
-          />
+              <FormField label="PAN Number" htmlFor="panNumber" optional>
+                <input
+                  id="panNumber"
+                  type="text"
+                  placeholder="Enter Tax ID"
+                  value={form.panNumber}
+                  onChange={(e) => update("panNumber", e.target.value.toUpperCase())}
+                  className={`${inputClass} uppercase`}
+                />
+              </FormField>
 
-          <FileUpload
-            id="businessProof"
-            label="Business / Agency Proof"
-            hint="Business Registration · PDF, JPG, PNG up to 10MB"
-            file={form.businessProof}
-            onChange={(file) => update("businessProof", file)}
-            optional
-          />
+              <FileUpload
+                id="identityDoc"
+                label="Identity Document"
+                hint="Passport, National ID · PDF, JPG, PNG up to 10MB"
+                file={form.identityDoc}
+                onChange={(file) => update("identityDoc", file)}
+                optional
+              />
+
+              <FileUpload
+                id="businessProof"
+                label="Business / Agency Proof"
+                hint="Business Registration · PDF, JPG, PNG up to 10MB"
+                file={form.businessProof}
+                onChange={(file) => update("businessProof", file)}
+                optional
+              />
+            </>
+          )}
         </div>
       )}
 
       {step === 4 && (
-        <div className="flex flex-col gap-4">
-          <FormField label="Account Holder Name" htmlFor="accountHolderName" required>
-            <input
-              id="accountHolderName"
-              type="text"
-              placeholder="Full name as per bank records"
-              value={form.accountHolderName}
-              onChange={(e) => update("accountHolderName", e.target.value)}
-              className={inputClass}
-            />
-          </FormField>
-
-          <FormField label="Bank Account Number" htmlFor="bankAccountNumber" required>
-            <input
-              id="bankAccountNumber"
-              type="text"
-              inputMode="numeric"
-              placeholder="0000111122223333"
-              value={form.bankAccountNumber}
-              onChange={(e) => update("bankAccountNumber", e.target.value.replace(/\D/g, ""))}
-              className={inputClass}
-            />
-          </FormField>
-
-          <FormField label="IFSC Code" htmlFor="ifsc" required>
-            <input
-              id="ifsc"
-              type="text"
-              placeholder="SBIN0001234"
-              value={form.ifsc}
-              onChange={(e) => update("ifsc", e.target.value.toUpperCase())}
-              className={`${inputClass} uppercase`}
-            />
-          </FormField>
-
-          <FormField label="UPI ID" htmlFor="upiId" optional>
-            <input
-              id="upiId"
-              type="text"
-              placeholder="name@upi"
-              value={form.upiId}
-              onChange={(e) => update("upiId", e.target.value)}
-              className={inputClass}
-            />
-          </FormField>
-
-          <p className="text-xs text-muted">
-            All commission payments will be processed to this account within 7 business days of
-            deal closure confirmation.
-          </p>
-        </div>
-      )}
-
-      {step === 5 && (
         <div className="flex flex-col gap-6">
           <div>
             <p className="tracked-label mb-2 text-xs text-gold-400">Personal Details</p>
@@ -412,42 +425,42 @@ export default function BrokerRegistrationWizard() {
           <div>
             <p className="tracked-label mb-2 text-xs text-gold-400">Business Details</p>
             <div className="grid grid-cols-1 gap-4 border border-navy-700/60 bg-navy-950 p-4 sm:grid-cols-2">
-              <ReviewItem label="Agency Name" value={form.agencyName} />
-              <ReviewItem label="Experience" value={form.experience} />
-              <ReviewItem label="Office Address" value={form.officeAddress} />
-              <ReviewItem label="Operating Areas" value={form.operatingAreas} />
               <ReviewItem
-                label="Specialties"
-                value={
-                  SPECIALTIES.filter((s) => form.specialties.includes(s.value))
-                    .map((s) => s.label)
-                    .join(", ") || "Not selected"
-                }
+                label="Registering As"
+                value={form.applicantType === "company" ? "Agency / Company" : "Individual"}
               />
+              {form.applicantType === "company" && (
+                <>
+                  <ReviewItem label="Agency Name" value={form.agencyName} />
+                  <ReviewItem label="Office Address" value={form.officeAddress} />
+                  <ReviewItem label="Operating Areas" value={form.operatingAreas} />
+                  <ReviewItem
+                    label="Specialties"
+                    value={
+                      SPECIALTIES.filter((s) => form.specialties.includes(s.value))
+                        .map((s) => s.label)
+                        .join(", ") || "Not selected"
+                    }
+                  />
+                </>
+              )}
+              <ReviewItem label="Experience" value={form.experience} />
             </div>
           </div>
 
           <div>
             <p className="tracked-label mb-2 text-xs text-gold-400">Professional Verification</p>
             <div className="grid grid-cols-1 gap-4 border border-navy-700/60 bg-navy-950 p-4 sm:grid-cols-2">
-              <ReviewItem label="RERA Number" value={form.reraNumber || "Not provided"} />
-              <ReviewItem label="PAN Number" value={form.panNumber || "Not provided"} />
-              <ReviewItem label="RERA Certificate" value={form.reraCertificate?.name || "Not uploaded"} />
-              <ReviewItem label="Identity Document" value={form.identityDoc?.name || "Not uploaded"} />
-              <ReviewItem label="Business Proof" value={form.businessProof?.name || "Not uploaded"} />
-            </div>
-          </div>
-
-          <div>
-            <p className="tracked-label mb-2 text-xs text-gold-400">Payment Details</p>
-            <div className="grid grid-cols-1 gap-4 border border-navy-700/60 bg-navy-950 p-4 sm:grid-cols-2">
-              <ReviewItem label="Account Holder" value={form.accountHolderName} />
-              <ReviewItem
-                label="Bank Account"
-                value={form.bankAccountNumber ? `•••• ${form.bankAccountNumber.slice(-4)}` : ""}
-              />
-              <ReviewItem label="IFSC" value={form.ifsc} />
-              <ReviewItem label="UPI ID" value={form.upiId || "Not provided"} />
+              <ReviewItem label="RERA Registered" value={form.reraRegistered === "yes" ? "Yes" : "No"} />
+              {form.reraRegistered === "yes" && (
+                <>
+                  <ReviewItem label="RERA Number" value={form.reraNumber || "Not provided"} />
+                  <ReviewItem label="RERA Certificate" value={form.reraCertificate?.name || "Not uploaded"} />
+                  <ReviewItem label="PAN Number" value={form.panNumber || "Not provided"} />
+                  <ReviewItem label="Identity Document" value={form.identityDoc?.name || "Not uploaded"} />
+                  <ReviewItem label="Business Proof" value={form.businessProof?.name || "Not uploaded"} />
+                </>
+              )}
             </div>
           </div>
 

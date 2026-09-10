@@ -10,7 +10,7 @@ import AdminStatusBadge from "@/components/admin/ui/AdminStatusBadge";
 import AdminConfirmModal from "@/components/admin/ui/AdminConfirmModal";
 import UserEditDialog from "@/components/admin/users/UserEditDialog";
 import adminAxios from "@/lib/adminAxios";
-import { ADMIN_KEYS, readCollection } from "@/lib/adminStorage";
+import { ADMIN_KEYS, readCollection, writeCollection } from "@/lib/adminStorage";
 
 const ACCOUNT_TYPES = ["buyer", "broker", "investor", "freelancer", "common-person", "employee"];
 const STATUSES = ["Active", "Suspended", "Deleted"];
@@ -24,17 +24,59 @@ export default function AdminUsersPage() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
-  const load = useCallback(() => setUsers(readCollection(ADMIN_KEYS.users) || []), []);
-  useEffect(() => { load(); setLoading(false); }, [load]);
+  const load = useCallback(async () => {
+    try {
+      const res = await fetch("/api/users", { cache: "no-store" });
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        setUsers(json.data);
+        try {
+          writeCollection(ADMIN_KEYS.users, json.data);
+        } catch {
+          // ignore
+        }
+        return;
+      }
+    } catch (err) {
+      console.error("Failed to fetch users from API:", err);
+    }
+    setUsers(readCollection(ADMIN_KEYS.users) || []);
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    Promise.resolve().then(async () => {
+      if (active) {
+        await load();
+        setLoading(false);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [load]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await new Promise((r) => setTimeout(r, 500));
-    load();
+    await load();
     setRefreshing(false);
   };
 
   const handleEdit = async (updated) => {
+    try {
+      const res = await fetch(`/api/users/${updated.accountId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updated),
+      });
+      const json = await res.json();
+      if (json.success && json.data) {
+        setUsers((prev) => prev.map((u) => (u.accountId === json.data.accountId ? json.data : u)));
+        return;
+      }
+    } catch {
+      // Fallback
+    }
     const res = await adminAxios.put(`/admin/users/${updated.accountId}`, { ...updated, id: updated.accountId });
     setUsers(res.data.data);
   };
@@ -42,6 +84,23 @@ export default function AdminUsersPage() {
   const handleSoftDelete = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
+    try {
+      const res = await fetch(`/api/users/${deleteTarget.accountId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "Deleted" }),
+      });
+      const json = await res.json();
+      if (json.success && json.data) {
+        setUsers((prev) => prev.map((u) => (u.accountId === json.data.accountId ? json.data : u)));
+        toast.warning("User account marked as deleted");
+        setDeleting(false);
+        setDeleteTarget(null);
+        return;
+      }
+    } catch {
+      // Fallback
+    }
     try {
       const res = await adminAxios.patch(`/admin/users/${deleteTarget.accountId}`, { status: "Deleted", id: deleteTarget.accountId });
       setUsers(res.data.data);

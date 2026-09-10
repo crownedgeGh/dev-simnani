@@ -5,21 +5,16 @@ import AuthShell from "./AuthShell";
 import Stepper from "./Stepper";
 import FormField from "./FormField";
 import ChipGroup from "./ChipGroup";
+import { PROPERTY_CATEGORIES } from "@/lib/propertyCategories";
 import RegistrationSuccess from "./RegistrationSuccess";
-import { inputClass, selectClass } from "./inputStyles";
+import { inputClass } from "./inputStyles";
 import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
+import { MdPercent } from "react-icons/md";
 
 const TOTAL_STEPS = 3;
 
-const PROPERTY_TYPES = [
-  { value: "residential", label: "Residential" },
-  { value: "commercial", label: "Commercial" },
-  { value: "plot-land", label: "Plot / Land" },
-  { value: "farm-land", label: "Farm Land" },
-  { value: "farm-house", label: "Farm House" },
-  { value: "re-project", label: "Real Estate Project" },
-];
+const PROPERTY_TYPES = PROPERTY_CATEGORIES;
 
 const BUDGET_RANGES = [
   { value: "under-50l", label: "Under ₹50 Lakh" },
@@ -29,14 +24,6 @@ const BUDGET_RANGES = [
   { value: "10cr-plus", label: "₹10 Crore+" },
 ];
 
-const REGIONS = ["North India", "South India", "West India", "East India", "Pan-India"];
-
-const HORIZONS = [
-  "Short Term (1-3 Years)",
-  "Medium Term (3-7 Years)",
-  "Long Term (7+ Years)",
-];
-
 const INITIAL_FORM = {
   fullName: "",
   mobile: "",
@@ -44,8 +31,8 @@ const INITIAL_FORM = {
   city: "",
   propertyTypes: [],
   budget: "",
-  region: "",
-  horizon: "",
+  expectedProfit: "",
+  preferredCity: "",
   agree: false,
 };
 
@@ -69,8 +56,8 @@ export default function InvestorRegistrationWizard() {
       }
     }
     if (step === 2) {
-      if (form.propertyTypes.length === 0 || !form.budget) {
-        setError("Please select at least one property type and a budget range.");
+      if (form.propertyTypes.length === 0) {
+        setError("Please select at least one property type.");
         return;
       }
     }
@@ -83,33 +70,43 @@ export default function InvestorRegistrationWizard() {
     setStep((s) => Math.max(s - 1, 1));
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!form.agree) {
       setError("Please accept the Terms & Conditions to continue.");
       return;
     }
     setError("");
     setSubmitting(true);
-    setTimeout(() => {
-      const id = generateAccountId("INV");
-      const profile = {
-        fullName: form.fullName,
-        mobile: form.mobile,
-        email: form.email,
-        city: form.city,
-        accountType: "investor",
-        accountId: id,
-        propertyTypes: form.propertyTypes,
-        budget: form.budget,
-        region: form.region,
-        horizon: form.horizon,
-        registeredAt: new Date().toISOString(),
-      };
+    const id = generateAccountId("INV");
+    const profile = {
+      fullName: form.fullName,
+      mobile: form.mobile,
+      email: form.email,
+      city: form.city,
+      accountType: "investor",
+      accountId: id,
+      propertyTypes: form.propertyTypes,
+      budget: form.budget,
+      expectedProfit: form.expectedProfit,
+      preferredCity: form.preferredCity,
+      registeredAt: new Date().toISOString(),
+    };
+    try {
+      const res = await fetch("/api/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(profile),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || "Registration failed");
       const token = `se_mock_${form.mobile.replace(/\D/g, "")}_${Date.now()}`;
-      login(token, profile);
-      setSubmitting(false);
+      login(token, json.data);
       setAccountId(id);
-    }, 1000);
+    } catch (err) {
+      setError(err.message || "Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   if (accountId) {
@@ -213,7 +210,7 @@ export default function InvestorRegistrationWizard() {
             />
           </FormField>
 
-          <FormField label="Budget Range" required>
+          <FormField label="Budget Range" optional>
             <ChipGroup
               options={BUDGET_RANGES}
               value={form.budget}
@@ -222,37 +219,32 @@ export default function InvestorRegistrationWizard() {
             />
           </FormField>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormField label="Preferred Region" htmlFor="region" optional>
-              <select
-                id="region"
-                value={form.region}
-                onChange={(e) => update("region", e.target.value)}
-                className={selectClass}
-              >
-                <option value="">Select Region</option>
-                {REGIONS.map((r) => (
-                  <option key={r} value={r}>
-                    {r}
-                  </option>
-                ))}
-              </select>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:items-end">
+            <FormField label="Expected Profit" htmlFor="expectedProfit" optional>
+              <div className="flex items-center border border-navy-700/60 bg-navy-950 pr-4 transition focus-within:border-gold-400">
+                <input
+                  id="expectedProfit"
+                  type="number"
+                  inputMode="numeric"
+                  min="0"
+                  placeholder="e.g. 3%"
+                  value={form.expectedProfit}
+                  onChange={(e) => update("expectedProfit", e.target.value)}
+                  className="h-14 w-full bg-transparent px-4 text-cream placeholder:text-muted focus:outline-none"
+                />
+                <MdPercent className="h-5 w-5 shrink-0 text-gold-400" />
+              </div>
             </FormField>
 
-            <FormField label="Investment Horizon" htmlFor="horizon" optional>
-              <select
-                id="horizon"
-                value={form.horizon}
-                onChange={(e) => update("horizon", e.target.value)}
-                className={selectClass}
-              >
-                <option value="">Select Duration</option>
-                {HORIZONS.map((h) => (
-                  <option key={h} value={h}>
-                    {h}
-                  </option>
-                ))}
-              </select>
+            <FormField label="Preferred City" htmlFor="preferredCity" optional>
+              <input
+                id="preferredCity"
+                type="text"
+                placeholder="e.g. Mumbai, Bangalore"
+                value={form.preferredCity}
+                onChange={(e) => update("preferredCity", e.target.value)}
+                className={inputClass}
+              />
             </FormField>
           </div>
         </div>
@@ -277,8 +269,11 @@ export default function InvestorRegistrationWizard() {
               label="Budget"
               value={BUDGET_RANGES.find((b) => b.value === form.budget)?.label || "Not selected"}
             />
-            <ReviewItem label="Preferred Region" value={form.region || "Not provided"} />
-            <ReviewItem label="Investment Horizon" value={form.horizon || "Not provided"} />
+            <ReviewItem
+              label="Expected Profit"
+              value={form.expectedProfit ? `${form.expectedProfit}%` : "Not provided"}
+            />
+            <ReviewItem label="Preferred City" value={form.preferredCity || "Not provided"} />
           </div>
 
           <label className="flex items-start gap-3 text-xs text-muted">
