@@ -4,7 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import AdminDialog from "@/components/admin/ui/AdminDialog";
 import AdminFormField, { adminInputClass, adminSelectClass, adminTextareaClass } from "@/components/admin/ui/AdminFormField";
-import { getLocationCity } from "@/lib/properties";
+import { getLocationCity, CATEGORIES_BY_TYPE } from "@/lib/properties";
 
 const PROPERTY_TYPES = ["buy", "sell", "rent", "invest", "commercial", "farming", "industrial", "lease", "seized-property"];
 const STATUSES = ["Active", "Pending Review", "Rejected"];
@@ -12,6 +12,7 @@ const STATUSES = ["Active", "Pending Review", "Rejected"];
 const EMPTY_FORM = {
   title: "",
   type: "buy",
+  category: "",
   price: "",
   location: "",
   beds: "",
@@ -43,6 +44,7 @@ export default function PropertyFormDialog({ isOpen, onClose, property, onSave }
     if (!form.price.trim()) errs.price = "Price is required";
     if (!form.location.trim()) errs.location = "Location is required";
     if (!form.type) errs.type = "Type is required";
+    if (CATEGORIES_BY_TYPE[form.type] && !form.category) errs.category = "Category is required";
     return errs;
   };
 
@@ -102,10 +104,26 @@ export default function PropertyFormDialog({ isOpen, onClose, property, onSave }
         </div>
 
         <AdminFormField label="Type" id="prop-type" required error={errors.type}>
-          <select id="prop-type" value={form.type} onChange={(e) => set("type", e.target.value)} className={adminSelectClass}>
+          <select
+            id="prop-type"
+            value={form.type}
+            onChange={(e) => setForm((prev) => ({ ...prev, type: e.target.value, category: "" }))}
+            className={adminSelectClass}
+          >
             {PROPERTY_TYPES.map((t) => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
           </select>
         </AdminFormField>
+
+        {CATEGORIES_BY_TYPE[form.type] && (
+          <AdminFormField label="Category" id="prop-category" required error={errors.category}>
+            <select id="prop-category" value={form.category} onChange={(e) => set("category", e.target.value)} className={adminSelectClass}>
+              <option value="">Select category</option>
+              {CATEGORIES_BY_TYPE[form.type].map((cat) => (
+                <option key={cat.key} value={cat.key}>{cat.label}</option>
+              ))}
+            </select>
+          </AdminFormField>
+        )}
 
         <AdminFormField label="Status" id="prop-status">
           <select id="prop-status" value={form.status} onChange={(e) => set("status", e.target.value)} className={adminSelectClass}>

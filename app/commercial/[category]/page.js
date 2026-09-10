@@ -2,7 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FiArrowLeft } from "react-icons/fi";
 import PropertyGrid from "@/components/property/PropertyGrid";
-import { COMMERCIAL_CATEGORIES, getPropertiesByCategory } from "@/lib/properties";
+import { COMMERCIAL_CATEGORIES } from "@/lib/properties";
+import { getPropertiesByTypeAndCategory } from "@/lib/propertiesServer";
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }) {
   const { category } = await params;
@@ -23,7 +26,7 @@ export default async function CommercialCategoryPage({ params }) {
     notFound();
   }
 
-  const properties = getPropertiesByCategory(category);
+  const properties = await getPropertiesByTypeAndCategory("commercial", category);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">

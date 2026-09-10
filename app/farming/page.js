@@ -11,7 +11,7 @@ export const metadata = {
 };
 
 export default async function FarmingPage() {
-  const agricultureProperties = await getPropertiesByType("agriculture");
+  const agricultureProperties = await getPropertiesByType("farming");
 
   const propertiesByCategory = AGRICULTURE_CATEGORIES.reduce((acc, category) => {
     acc[category.key] = agricultureProperties.filter(

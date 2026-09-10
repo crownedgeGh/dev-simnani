@@ -7,6 +7,7 @@ import { inputClass, selectClass } from "@/components/auth/inputStyles";
 import FormField from "@/components/auth/FormField";
 import { CoverImageUpload, GalleryImageUpload } from "@/components/property/PropertyImageUpload";
 import { MdContentPaste, MdLocationOn, MdApartment, MdCameraAlt, MdPerson } from "react-icons/md";
+import { CATEGORIES_BY_TYPE } from "@/lib/properties";
 
 const PURPOSE_OPTIONS = [
   { value: "sale", label: "Sale" },
@@ -17,6 +18,14 @@ const PURPOSE_OPTIONS = [
 const YES_NO_OPTIONS = [
   { value: "yes", label: "Yes" },
   { value: "no", label: "No" },
+];
+
+const SECTION_OPTIONS = [
+  { value: "residential", label: "Residential (Buy/Sell/Rent)" },
+  { value: "commercial", label: "Commercial" },
+  { value: "farming", label: "Farming Land" },
+  { value: "industrial", label: "Industrial" },
+  { value: "invest", label: "Investment Property" },
 ];
 
 const PROPERTY_TYPES = ["Flat", "House", "Shop", "Plot", "Office", "Warehouse"];
@@ -53,9 +62,11 @@ const PREFERRED_FOR_OPTIONS = [
 ];
 
 const INITIAL_FORM = {
+  section: "residential",
   purpose: "sale",
   title: "",
   propertyType: "",
+  category: "",
   city: "",
   locality: "",
   landmark: "",
@@ -92,14 +103,23 @@ export default function PostPropertyForm() {
   }, []);
 
   function update(field, value) {
-    setForm((prev) => ({ ...prev, [field]: value }));
+    setForm((prev) => {
+      const next = { ...prev, [field]: value };
+      if (field === "section") {
+        next.category = "";
+        next.propertyType = "";
+      }
+      return next;
+    });
   }
+
+  const isResidential = form.section === "residential";
 
   async function handleSubmit(event) {
     event.preventDefault();
     if (
       !form.title.trim() ||
-      !form.propertyType ||
+      (isResidential ? !form.propertyType : !form.category) ||
       !form.city.trim() ||
       !form.locality.trim() ||
       !form.price ||
@@ -129,17 +149,23 @@ export default function PostPropertyForm() {
       const cityStr = (form.city || "").trim();
       const locationStr = localityStr && cityStr ? `${localityStr}, ${cityStr}` : localityStr || cityStr;
 
+      const categoryLabel = !isResidential
+        ? CATEGORIES_BY_TYPE[form.section]?.find((c) => c.key === form.category)?.label || ""
+        : "";
+
       const payload = {
         id: propertyId || `PROP-${Date.now()}`,
         title: (form.title || "").trim(),
         purpose: form.purpose,
-        type:
-          form.purpose === "rent"
+        type: isResidential
+          ? form.purpose === "rent"
             ? "rent"
             : form.purpose === "lease"
               ? "lease"
-              : "sell",
-        propertyType: form.propertyType,
+              : "sell"
+          : form.section,
+        propertyType: isResidential ? form.propertyType : categoryLabel,
+        category: isResidential ? "" : form.category,
         price: formattedPrice,
         rawPrice: numericPrice,
         location: locationStr,
@@ -247,13 +273,29 @@ export default function PostPropertyForm() {
             <span className="text-xs text-muted">Auto-generated</span>
           </div>
         </FormField>
-        <FormField label="Purpose" required>
-          <ToggleTwo
-            options={PURPOSE_OPTIONS}
-            value={form.purpose}
-            onChange={(value) => update("purpose", value)}
-          />
+        <FormField label="Listing Section" htmlFor="section" required hint="Where this property will be listed">
+          <select
+            id="section"
+            value={form.section}
+            onChange={(e) => update("section", e.target.value)}
+            className={selectClass}
+          >
+            {SECTION_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
         </FormField>
+        {isResidential && (
+          <FormField label="Purpose" required>
+            <ToggleTwo
+              options={PURPOSE_OPTIONS}
+              value={form.purpose}
+              onChange={(value) => update("purpose", value)}
+            />
+          </FormField>
+        )}
         <FormField label="Property Title" htmlFor="title" required hint={`${form.title.length}/80`}>
           <input
             id="title"
@@ -265,21 +307,39 @@ export default function PostPropertyForm() {
             className={inputClass}
           />
         </FormField>
-        <FormField label="Property Type" htmlFor="propertyType" required>
-          <select
-            id="propertyType"
-            value={form.propertyType}
-            onChange={(e) => update("propertyType", e.target.value)}
-            className={selectClass}
-          >
-            <option value="">Select type</option>
-            {PROPERTY_TYPES.map((type) => (
-              <option key={type} value={type}>
-                {type}
-              </option>
-            ))}
-          </select>
-        </FormField>
+        {isResidential ? (
+          <FormField label="Property Type" htmlFor="propertyType" required>
+            <select
+              id="propertyType"
+              value={form.propertyType}
+              onChange={(e) => update("propertyType", e.target.value)}
+              className={selectClass}
+            >
+              <option value="">Select type</option>
+              {PROPERTY_TYPES.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+          </FormField>
+        ) : (
+          <FormField label="Category" htmlFor="category" required>
+            <select
+              id="category"
+              value={form.category}
+              onChange={(e) => update("category", e.target.value)}
+              className={selectClass}
+            >
+              <option value="">Select category</option>
+              {(CATEGORIES_BY_TYPE[form.section] || []).map((cat) => (
+                <option key={cat.key} value={cat.key}>
+                  {cat.label}
+                </option>
+              ))}
+            </select>
+          </FormField>
+        )}
       </Section>
 
       <Section icon={<MdLocationOn className="h-5 w-5" />} title="Location" subtitle="City and area — no full address required">

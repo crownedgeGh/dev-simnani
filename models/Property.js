@@ -30,6 +30,11 @@ const PropertySchema = new mongoose.Schema(
       default: "buy",
       index: true,
     },
+    category: {
+      type: String,
+      default: "",
+      index: true,
+    },
     price: {
       type: String,
       required: [true, "Price is required"],

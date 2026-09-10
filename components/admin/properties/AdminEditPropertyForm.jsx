@@ -25,6 +25,7 @@ import AdminFormField, {
 } from "@/components/admin/ui/AdminFormField";
 import adminAxios from "@/lib/adminAxios";
 import { ADMIN_KEYS, readCollection } from "@/lib/adminStorage";
+import { CATEGORIES_BY_TYPE } from "@/lib/properties";
 
 const PURPOSE_OPTIONS = [
   { value: "sale", label: "For Sale" },
@@ -187,6 +188,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
   const [form, setForm] = useState({
     purpose: "sale",
     type: "buy",
+    category: "",
     title: "",
     propertyType: "Flat",
     city: "",
@@ -238,6 +240,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
     setForm({
       purpose: determinedPurpose,
       type: prop.type || (determinedPurpose === "rent" ? "rent" : "buy"),
+      category: prop.category || "",
       title: prop.title || "",
       propertyType: prop.propertyType || "Flat",
       city: loc.city,
@@ -331,6 +334,9 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
         if (val === "rent" && next.type === "buy") next.type = "rent";
         if (val === "lease") next.type = "lease";
       }
+      if (field === "type" && val !== prev.type) {
+        next.category = "";
+      }
       return next;
     });
     if (errors[field]) {
@@ -418,6 +424,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
     const errs = {};
     if (!form.title.trim()) errs.title = "Property title is required";
     if (!form.propertyType) errs.propertyType = "Property type is required";
+    if (CATEGORIES_BY_TYPE[form.type] && !form.category) errs.category = "Category is required";
     if (!form.city.trim()) errs.city = "City is required";
     if (!form.locality.trim()) errs.locality = "Area / Locality is required";
     if (!form.price || Number(form.price) <= 0) errs.price = "Valid price is required";
@@ -466,6 +473,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
         purpose: form.purpose,
         type: form.type,
         propertyType: form.propertyType,
+        category: form.category || "",
         price: formattedPrice,
         rawPrice: numericPrice,
         negotiable: form.negotiable,
@@ -689,6 +697,31 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
                 </select>
               </AdminFormField>
             </div>
+
+            {/* Category (commercial / farming / industrial / invest sub-category) */}
+            {CATEGORIES_BY_TYPE[form.type] && (
+              <div>
+                <AdminFormField
+                  label="Category"
+                  hint="Sub-category shown on the /invest, /commercial, /farming, /industrial pages"
+                  required
+                  error={errors.category}
+                >
+                  <select
+                    value={form.category}
+                    onChange={(e) => update("category", e.target.value)}
+                    className={adminSelectClass}
+                  >
+                    <option value="">Select category</option>
+                    {CATEGORIES_BY_TYPE[form.type].map((cat) => (
+                      <option key={cat.key} value={cat.key}>
+                        {cat.label}
+                      </option>
+                    ))}
+                  </select>
+                </AdminFormField>
+              </div>
+            )}
 
             {/* Property Title */}
             <div className="sm:col-span-2">
