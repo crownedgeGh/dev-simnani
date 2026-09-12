@@ -32,8 +32,8 @@ const ACCOUNT_TYPES = [
   },
   {
     value: "freelancer",
-    label: "Channel Partner",
-    description: "Promote, refer or manage leads as a Digital, Field or Company Channel Partner.",
+    label: "Freelancer",
+    description: "Earn commissions by referring clients and closing deals on your own schedule.",
     Icon: MdWork,
   },
   {

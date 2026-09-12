@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { getPropertyById } from "@/lib/propertiesServer";
 import { formatPostedDate } from "@/lib/properties";
 import { AMENITIES, NEARBY_PLACES, getPropertyDescription } from "@/lib/propertyContent";
-import PropertyActionCard from "@/components/property/PropertyActionCard";
+import PropertyOwnerActions from "@/components/property/PropertyOwnerActions";
 import PropertyMediaCarousel from "@/components/property/PropertyMediaCarousel";
 import {
   MdBed,
@@ -115,8 +115,8 @@ export default async function PropertyDetailPage({ params }) {
               <Stat icon={<MdTrendingUp />} label="Est. Return" value={property.roi} />
             ) : (
               <>
-                {property.beds && <Stat icon={<MdBed />} label="Bedrooms" value={property.beds} />}
-                {property.baths && <Stat icon={<MdBathtub />} label="Bathrooms" value={property.baths} />}
+                {property.beds > 0 && <Stat icon={<MdBed />} label="Bedrooms" value={property.beds} />}
+                {property.baths > 0 && <Stat icon={<MdBathtub />} label="Bathrooms" value={property.baths} />}
                 <Stat icon={<MdSquareFoot />} label="Area" value={property.area} />
                 <Stat icon={<MdCategory />} label="Type" value={property.type} />
               </>
@@ -191,8 +191,9 @@ export default async function PropertyDetailPage({ params }) {
 
         <div className="lg:col-span-1">
           <div className="lg:sticky lg:top-24">
-            <PropertyActionCard
+            <PropertyOwnerActions
               propertyId={property.id}
+              propertyTitle={property.title}
               contactName={property.contact?.fullName}
               contactMobile={property.contact?.mobile}
             />

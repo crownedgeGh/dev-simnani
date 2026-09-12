@@ -16,6 +16,7 @@ export async function GET(request) {
     const status = searchParams.get("status");
     const featured = searchParams.get("featured");
     const search = searchParams.get("search");
+    const contactMobile = searchParams.get("contactMobile");
 
     const query = {};
 
@@ -43,7 +44,14 @@ export async function GET(request) {
       ];
     }
 
-    const properties = await Property.find(query).sort({ createdAt: -1 }).lean();
+    let properties = await Property.find(query).sort({ createdAt: -1 }).lean();
+
+    if (contactMobile) {
+      const digits = contactMobile.replace(/\D/g, "").slice(-10);
+      properties = properties.filter(
+        (p) => (p.contact?.mobile || "").replace(/\D/g, "").slice(-10) === digits
+      );
+    }
 
     return NextResponse.json({
       success: true,

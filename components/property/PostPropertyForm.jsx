@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
 import { inputClass, selectClass } from "@/components/auth/inputStyles";
 import FormField from "@/components/auth/FormField";
@@ -86,24 +87,85 @@ const INITIAL_FORM = {
   coverImage: null,
   galleryImages: [],
   video: null,
+  existingCoverUrl: "",
+  existingGalleryUrls: [],
+  existingVideoUrl: "",
   fullName: "",
   mobile: "",
 };
 
-export default function PostPropertyForm() {
+export default function PostPropertyForm({ editId }) {
   const [propertyId, setPropertyId] = useState("");
   const [form, setForm] = useState(INITIAL_FORM);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [uploadStatus, setUploadStatus] = useState("");
   const [submittedId, setSubmittedId] = useState("");
+  const [loadingProperty, setLoadingProperty] = useState(!!editId);
+  const [originalAddedDate, setOriginalAddedDate] = useState("");
 
   useEffect(() => {
+    if (editId) return;
     const timer = setTimeout(() => {
       setPropertyId(generateAccountId("PROP"));
     }, 0);
     return () => clearTimeout(timer);
-  }, []);
+  }, [editId]);
+
+  useEffect(() => {
+    if (!editId) return;
+    let cancelled = false;
+    fetch(`/api/properties/${editId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (cancelled) return;
+        if (!data.success) throw new Error(data.error || "Failed to load property");
+        const p = data.data;
+        const isResidentialType = ["rent", "lease", "sell"].includes(p.type);
+        setPropertyId(p.id);
+        setOriginalAddedDate(p.addedDate || "");
+        setForm({
+          section: isResidentialType ? "residential" : p.type || "residential",
+          purpose: p.type === "sell" ? "sale" : p.type === "rent" ? "rent" : p.type === "lease" ? "lease" : "sale",
+          title: p.title || "",
+          propertyType: isResidentialType ? p.propertyType || "" : "",
+          category: p.category || "",
+          city: p.city || "",
+          locality: p.locality || "",
+          landmark: p.landmark || "",
+          address: p.address || "",
+          price: p.rawPrice ? String(p.rawPrice) : "",
+          negotiable: p.negotiable || "",
+          areaSize: p.areaSize ? String(p.areaSize) : "",
+          areaUnit: p.areaUnit || "sq ft",
+          floorNo: p.floorNo || "",
+          totalFloors: p.totalFloors ? String(p.totalFloors) : "",
+          furnishing: p.furnishing || "",
+          parking: p.parking || "",
+          facing: p.facing || "",
+          availableFrom: p.availableFrom || "",
+          preferredFor: p.preferredFor || "",
+          coverImage: null,
+          galleryImages: [],
+          video: null,
+          existingCoverUrl: p.image || "",
+          existingGalleryUrls: p.galleryImages || [],
+          existingVideoUrl: p.video || "",
+          fullName: p.contact?.fullName || "",
+          mobile: (p.contact?.mobile || "").replace(/^\+91\s*/, "").trim(),
+        });
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        toast.error(err.message || "Failed to load property for editing.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingProperty(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [editId]);
 
   function update(field, value) {
     setForm((prev) => {
@@ -131,15 +193,18 @@ export default function PostPropertyForm() {
       !isMobileValid(form.mobile)
     ) {
       setError("Please fill in all required fields.");
+      toast.error("Please fill in all required fields.");
       return;
     }
     setError("");
     setSubmitting(true);
 
     try {
-      let coverImageUrl = "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1200&q=80&auto=format&fit=crop";
-      let galleryImageUrls = [];
-      let videoUrl = "";
+      let coverImageUrl =
+        form.existingCoverUrl ||
+        "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1200&q=80&auto=format&fit=crop";
+      let galleryImageUrls = [...form.existingGalleryUrls];
+      let videoUrl = form.existingVideoUrl || "";
 
       if (form.coverImage || form.galleryImages.length || form.video) {
         setUploadStatus("Optimising & uploading photos and video… this can take a minute.");
@@ -149,7 +214,7 @@ export default function PostPropertyForm() {
           form.video ? uploadFileToR2(form.video, "properties/video", setUploadStatus) : Promise.resolve(null),
         ]);
         if (uploadedCover) coverImageUrl = uploadedCover;
-        galleryImageUrls = uploadedGallery;
+        galleryImageUrls = [...galleryImageUrls, ...uploadedGallery];
         if (uploadedVideo) videoUrl = uploadedVideo;
         setUploadStatus("");
       }
@@ -214,15 +279,18 @@ export default function PostPropertyForm() {
         image: coverImageUrl,
         galleryImages: galleryImageUrls,
         video: videoUrl,
-        addedDate: new Date().toLocaleDateString("en-IN", {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-        }),
+        addedDate:
+          editId && originalAddedDate
+            ? originalAddedDate
+            : new Date().toLocaleDateString("en-IN", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              }),
       };
 
-      const res = await fetch("/api/properties", {
-        method: "POST",
+      const res = await fetch(editId ? `/api/properties/${editId}` : "/api/properties", {
+        method: editId ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
@@ -231,12 +299,14 @@ export default function PostPropertyForm() {
         throw new Error(data.error || "Submission failed");
       }
       setSubmitting(false);
+      toast.success(editId ? "Property updated successfully." : "Property submitted successfully.");
       setSubmittedId(propertyId);
     } catch (err) {
       console.error("PostPropertyForm submit error:", err);
       setSubmitting(false);
       setUploadStatus("");
       setError(err.message || "Failed to submit property. Please try again.");
+      toast.error(err.message || "Failed to submit property. Please try again.");
     }
   }
 
@@ -247,6 +317,14 @@ export default function PostPropertyForm() {
     setError("");
   }
 
+  if (loadingProperty) {
+    return (
+      <div className="border border-navy-700/60 bg-navy-900 px-6 py-16 text-center">
+        <p className="text-muted">Loading property details…</p>
+      </div>
+    );
+  }
+
   if (submittedId) {
     return (
       <div className="flex flex-col items-center gap-6 border border-navy-700/60 bg-navy-900 p-8 text-center sm:p-10">
@@ -255,11 +333,12 @@ export default function PostPropertyForm() {
         </span>
         <div>
           <h1 className="font-display text-2xl text-cream sm:text-3xl">
-            Property Submitted Successfully
+            {editId ? "Property Updated Successfully" : "Property Submitted Successfully"}
           </h1>
           <p className="mt-2 text-sm text-muted">
-            Your property is under review. Our team will verify the details and get in touch
-            shortly.
+            {editId
+              ? "Your changes have been saved and the listing has been sent back for review."
+              : "Your property is under review. Our team will verify the details and get in touch shortly."}
           </p>
         </div>
         <div className="w-full border border-navy-700/60 bg-navy-950 p-4">
@@ -267,19 +346,37 @@ export default function PostPropertyForm() {
           <p className="mt-2 font-display text-lg tracking-widest text-gold-400">{submittedId}</p>
         </div>
         <div className="flex w-full flex-col gap-3">
-          <Link
-            href="/"
-            className="tracked-label bg-gold-400 px-6 py-4 text-center text-xs text-navy-950 transition hover:bg-gold-300"
-          >
-            Return Home
-          </Link>
-          <button
-            type="button"
-            onClick={handleReset}
-            className="tracked-label border border-navy-700/60 px-6 py-4 text-xs text-cream transition hover:border-gold-400"
-          >
-            Post Another Property
-          </button>
+          {editId ? (
+            <Link
+              href={`/property/${submittedId}`}
+              className="tracked-label bg-gold-400 px-6 py-4 text-center text-xs text-navy-950 transition hover:bg-gold-300"
+            >
+              View Listing
+            </Link>
+          ) : (
+            <Link
+              href="/"
+              className="tracked-label bg-gold-400 px-6 py-4 text-center text-xs text-navy-950 transition hover:bg-gold-300"
+            >
+              Return Home
+            </Link>
+          )}
+          {editId ? (
+            <Link
+              href="/portal/common-person"
+              className="tracked-label border border-navy-700/60 px-6 py-4 text-center text-xs text-cream transition hover:border-gold-400"
+            >
+              Back to My Listings
+            </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={handleReset}
+              className="tracked-label border border-navy-700/60 px-6 py-4 text-xs text-cream transition hover:border-gold-400"
+            >
+              Post Another Property
+            </button>
+          )}
         </div>
       </div>
     );
@@ -544,6 +641,8 @@ export default function PostPropertyForm() {
             label="Cover Image"
             hint="Main photo shown in listings · JPEG, PNG or WEBP up to 10MB"
             file={form.coverImage}
+            existingUrl={form.existingCoverUrl}
+            onRemoveExisting={() => update("existingCoverUrl", "")}
             onChange={(file) => update("coverImage", file)}
             optional
           />
@@ -554,6 +653,13 @@ export default function PostPropertyForm() {
             label="Additional Photos"
             hint="Add up to 10 more photos · JPEG, PNG or WEBP up to 10MB each"
             files={form.galleryImages}
+            existingUrls={form.existingGalleryUrls}
+            onRemoveExisting={(index) =>
+              update(
+                "existingGalleryUrls",
+                form.existingGalleryUrls.filter((_, i) => i !== index)
+              )
+            }
             onChange={(files) => update("galleryImages", files)}
             optional
             max={10}
@@ -565,6 +671,8 @@ export default function PostPropertyForm() {
             label="Property Video"
             hint="MP4, WEBM or MOV up to 100MB"
             file={form.video}
+            existingUrl={form.existingVideoUrl}
+            onRemoveExisting={() => update("existingVideoUrl", "")}
             onChange={(file) => update("video", file)}
             optional
           />
@@ -610,7 +718,7 @@ export default function PostPropertyForm() {
         disabled={submitting}
         className="tracked-label bg-gold-400 px-6 py-4 text-xs text-navy-950 transition hover:bg-gold-300 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {submitting ? "Submitting..." : "Submit Property"}
+        {submitting ? "Saving..." : editId ? "Save Changes" : "Submit Property"}
       </button>
       <p className="text-center text-xs text-muted">
         By submitting, you agree to our{" "}

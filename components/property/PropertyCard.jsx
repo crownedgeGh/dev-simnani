@@ -6,7 +6,7 @@ import Link from "next/link";
 import { MdFavorite, MdBed, MdBathtub, MdSquareFoot, MdLocationOn, MdAccessTime } from "react-icons/md";
 import { formatPostedDate } from "@/lib/properties";
 
-export default function PropertyCard({ property }) {
+export default function PropertyCard({ property, hideContactButton }) {
   const { id, title, price, location, image, badge, beds, baths, area, roi, type, address } =
     property;
   const isInvest = type === "invest";
@@ -23,7 +23,7 @@ export default function PropertyCard({ property }) {
   return (
     <Link
       href={`/property/${id}`}
-      className="group block overflow-hidden rounded-sm border border-navy-700/60 bg-navy-900 transition hover:border-gold-500/50 hover:shadow-[0_0_0_1px_var(--color-gold-500)]"
+      className="group flex h-full flex-col overflow-hidden rounded-sm border border-navy-700/60 bg-navy-900 transition hover:border-gold-500/50 hover:shadow-[0_0_0_1px_var(--color-gold-500)]"
     >
       <div className="relative aspect-[4/3] w-full overflow-hidden">
         <Image
@@ -48,33 +48,34 @@ export default function PropertyCard({ property }) {
         </button>
       </div>
 
-      <div className="p-5">
+      <div className="flex flex-1 flex-col p-5">
         <h3 className="font-display text-lg text-cream">{title}</h3>
         <p className="mt-1 flex items-start gap-1 text-sm text-muted">
           <MdLocationOn className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           {address || location}
         </p>
-        <p className="mt-3 font-display text-xl text-gold-400">{price}</p>
-
-        {postedLabel && (
-          <p className="mt-2 flex items-center gap-1 text-xs text-muted">
-            <MdAccessTime className="h-3.5 w-3.5 shrink-0" />
-            {postedLabel}
-          </p>
-        )}
+        <div className="mt-3 flex items-center justify-between gap-2">
+          <p className="font-display text-xl text-gold-400">{price}</p>
+          {postedLabel && (
+            <p className="flex items-center gap-1 text-xs text-muted">
+              <MdAccessTime className="h-3.5 w-3.5 shrink-0" />
+              {postedLabel}
+            </p>
+          )}
+        </div>
 
         <div className="mt-4 flex items-center gap-4 text-xs text-muted">
           {isInvest ? (
             <span>{roi}</span>
           ) : (
             <>
-              {beds && (
+              {beds > 0 && (
                 <span className="flex items-center gap-1">
                   <MdBed className="h-3.5 w-3.5 shrink-0" />
                   {beds} Beds
                 </span>
               )}
-              {baths && (
+              {baths > 0 && (
                 <span className="flex items-center gap-1">
                   <MdBathtub className="h-3.5 w-3.5 shrink-0" />
                   {baths} Baths
@@ -88,13 +89,17 @@ export default function PropertyCard({ property }) {
           )}
         </div>
 
-        <button
-          type="button"
-          onClick={handleContactClick}
-          className="tracked-label mt-5 block w-full border border-gold-500/70 py-2.5 text-center text-xs text-gold-400 transition hover:bg-gold-500 hover:text-navy-950"
-        >
-          Contact Person
-        </button>
+        {!hideContactButton && (
+          <div className="mt-auto pt-5">
+            <button
+              type="button"
+              onClick={handleContactClick}
+              className="tracked-label block w-full border border-gold-500/70 py-2.5 text-center text-xs text-gold-400 transition hover:bg-gold-500 hover:text-navy-950"
+            >
+              Contact Person
+            </button>
+          </div>
+        )}
       </div>
 
       {showToast && (

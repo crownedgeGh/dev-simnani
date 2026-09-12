@@ -1,4 +1,5 @@
 import { Playfair_Display, Inter, Open_Sans } from "next/font/google";
+import { Toaster } from "sonner";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import PublicShell from "@/components/layout/PublicShell";
@@ -41,6 +42,31 @@ export default function RootLayout({ children }) {
         <AuthProvider>
           <PublicShell>{children}</PublicShell>
         </AuthProvider>
+        <Toaster
+          position="top-right"
+          richColors
+          gap={12}
+          toastOptions={{
+            style: {
+              fontFamily: "var(--font-inter, Inter, sans-serif)",
+              width: "380px",
+            },
+            classNames: {
+              toast:
+                "!rounded-sm !border !border-navy-700/60 !bg-navy-900 !p-4 !shadow-2xl",
+              title: "!font-display !text-[15px] !leading-snug !text-cream",
+              description: "!mt-1.5 !text-xs !leading-relaxed !text-muted",
+              actionButton:
+                "!tracked-label !ml-2 !rounded-sm !bg-gold-400 !px-4 !py-2.5 !text-[11px] !font-semibold !text-navy-950 !transition hover:!bg-gold-300",
+              cancelButton:
+                "!tracked-label !rounded-sm !border !border-navy-700/60 !bg-transparent !px-4 !py-2.5 !text-[11px] !text-cream !transition hover:!border-gold-400 hover:!text-gold-400",
+              closeButton:
+                "!border-navy-700/60 !bg-navy-800 !text-cream hover:!bg-navy-700",
+              success: "!border-gold-500/40",
+              error: "!border-red-500/40",
+            },
+          }}
+        />
       </body>
     </html>
   );
