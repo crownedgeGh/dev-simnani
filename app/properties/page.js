@@ -56,7 +56,7 @@ export default function PropertiesPage() {
         </p>
       </div>
 
-      <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
+      <div className="mt-12 grid grid-cols-2 gap-4 sm:gap-6">
         {CATEGORIES.map(({ label, href, type, icon: Icon, description }) => {
           const count = getPropertiesByType(type).length;
           return (
