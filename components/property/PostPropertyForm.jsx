@@ -5,9 +5,10 @@ import Link from "next/link";
 import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
 import { inputClass, selectClass } from "@/components/auth/inputStyles";
 import FormField from "@/components/auth/FormField";
-import { CoverImageUpload, GalleryImageUpload } from "@/components/property/PropertyImageUpload";
+import { CoverImageUpload, GalleryImageUpload, VideoUpload } from "@/components/property/PropertyImageUpload";
 import { MdContentPaste, MdLocationOn, MdApartment, MdCameraAlt, MdPerson } from "react-icons/md";
 import { CATEGORIES_BY_TYPE } from "@/lib/properties";
+import { uploadFileToR2, uploadFilesToR2 } from "@/lib/uploadToR2";
 
 const PURPOSE_OPTIONS = [
   { value: "sale", label: "Sale" },
@@ -84,6 +85,7 @@ const INITIAL_FORM = {
   preferredFor: "",
   coverImage: null,
   galleryImages: [],
+  video: null,
   fullName: "",
   mobile: "",
 };
@@ -93,6 +95,7 @@ export default function PostPropertyForm() {
   const [form, setForm] = useState(INITIAL_FORM);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState("");
   const [submittedId, setSubmittedId] = useState("");
 
   useEffect(() => {
@@ -134,6 +137,23 @@ export default function PostPropertyForm() {
     setSubmitting(true);
 
     try {
+      let coverImageUrl = "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1200&q=80&auto=format&fit=crop";
+      let galleryImageUrls = [];
+      let videoUrl = "";
+
+      if (form.coverImage || form.galleryImages.length || form.video) {
+        setUploadStatus("Uploading photos & video…");
+        const [uploadedCover, uploadedGallery, uploadedVideo] = await Promise.all([
+          form.coverImage ? uploadFileToR2(form.coverImage, "properties/cover") : Promise.resolve(null),
+          form.galleryImages.length ? uploadFilesToR2(form.galleryImages, "properties/gallery") : Promise.resolve([]),
+          form.video ? uploadFileToR2(form.video, "properties/video") : Promise.resolve(null),
+        ]);
+        if (uploadedCover) coverImageUrl = uploadedCover;
+        galleryImageUrls = uploadedGallery;
+        if (uploadedVideo) videoUrl = uploadedVideo;
+        setUploadStatus("");
+      }
+
       const numericPrice = Number(form.price) || 0;
       let formattedPrice = `₹${numericPrice.toLocaleString("en-IN")}`;
       if (numericPrice >= 10000000) {
@@ -191,7 +211,9 @@ export default function PostPropertyForm() {
         },
         status: "Pending Review",
         featured: false,
-        image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1200&q=80&auto=format&fit=crop",
+        image: coverImageUrl,
+        galleryImages: galleryImageUrls,
+        video: videoUrl,
         addedDate: new Date().toLocaleDateString("en-IN", {
           day: "2-digit",
           month: "short",
@@ -213,6 +235,7 @@ export default function PostPropertyForm() {
     } catch (err) {
       console.error("PostPropertyForm submit error:", err);
       setSubmitting(false);
+      setUploadStatus("");
       setError(err.message || "Failed to submit property. Please try again.");
     }
   }
@@ -514,7 +537,7 @@ export default function PostPropertyForm() {
         </FormField>
       </Section>
 
-      <Section icon={<MdCameraAlt className="h-5 w-5" />} title="Photos" subtitle="Optional — add images to attract more buyers">
+      <Section icon={<MdCameraAlt className="h-5 w-5" />} title="Photos & Video" subtitle="Optional — add images and a video to attract more buyers">
         <div className="sm:col-span-2">
           <CoverImageUpload
             id="coverImage"
@@ -536,6 +559,21 @@ export default function PostPropertyForm() {
             max={10}
           />
         </div>
+        <div className="sm:col-span-2">
+          <VideoUpload
+            id="video"
+            label="Property Video"
+            hint="MP4, WEBM or MOV up to 100MB"
+            file={form.video}
+            onChange={(file) => update("video", file)}
+            optional
+          />
+        </div>
+        {uploadStatus && (
+          <div className="sm:col-span-2">
+            <p className="tracked-label text-xs text-gold-400">{uploadStatus}</p>
+          </div>
+        )}
       </Section>
 
       <Section icon={<MdPerson className="h-5 w-5" />} title="Contact Details" subtitle="So our team can reach you">

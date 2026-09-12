@@ -26,6 +26,7 @@ import AdminFormField, {
 import adminAxios from "@/lib/adminAxios";
 import { ADMIN_KEYS, readCollection } from "@/lib/adminStorage";
 import { CATEGORIES_BY_TYPE } from "@/lib/properties";
+import { uploadFileToR2 } from "@/lib/uploadToR2";
 
 const PURPOSE_OPTIONS = [
   { value: "sale", label: "For Sale" },
@@ -174,16 +175,24 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
   const [notFound, setNotFound] = useState(false);
   const [originalProperty, setOriginalProperty] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState("");
   const [errors, setErrors] = useState({});
 
   // Cover image mode: "file" | "url"
   const [coverMode, setCoverMode] = useState("url");
   const [coverUrl, setCoverUrl] = useState("");
   const [coverPreview, setCoverPreview] = useState("");
+  const [coverFile, setCoverFile] = useState(null);
 
-  // Gallery images (array of base64 or URL strings)
+  // Gallery images (array of base64 preview or URL strings)
   const [galleryImages, setGalleryImages] = useState([]);
+  // Parallel array: File object if the entry at the same index is a pending upload, null if it's already a URL
+  const [galleryMeta, setGalleryMeta] = useState([]);
   const [galleryUrlInput, setGalleryUrlInput] = useState("");
+
+  // Property video
+  const [videoFile, setVideoFile] = useState(null);
+  const [videoPreview, setVideoPreview] = useState("");
 
   const [form, setForm] = useState({
     purpose: "sale",
@@ -279,8 +288,14 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
 
     if (Array.isArray(prop.galleryImages) && prop.galleryImages.length > 0) {
       setGalleryImages(prop.galleryImages);
+      setGalleryMeta(prop.galleryImages.map(() => null));
     } else if (prop.image) {
       setGalleryImages([prop.image]);
+      setGalleryMeta([null]);
+    }
+
+    if (prop.video) {
+      setVideoPreview(prop.video);
     }
   };
 
@@ -365,6 +380,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
     const reader = new FileReader();
     reader.onload = () => {
       setCoverPreview(reader.result);
+      setCoverFile(file);
       setCoverUrl("");
     };
     reader.readAsDataURL(file);
@@ -388,6 +404,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
       const reader = new FileReader();
       reader.onload = () => {
         setGalleryImages((prev) => [...prev, reader.result]);
+        setGalleryMeta((prev) => [...prev, file]);
       };
       reader.readAsDataURL(file);
     });
@@ -396,6 +413,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
 
   const removeGalleryImage = (index) => {
     setGalleryImages((prev) => prev.filter((_, i) => i !== index));
+    setGalleryMeta((prev) => prev.filter((_, i) => i !== index));
   };
 
   const addGalleryFromUrl = () => {
@@ -405,13 +423,33 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
       return;
     }
     setGalleryImages((prev) => [...prev, galleryUrlInput.trim()]);
+    setGalleryMeta((prev) => [...prev, null]);
     setGalleryUrlInput("");
+  };
+
+  // Video File selection
+  const handleVideoFile = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 100 * 1024 * 1024) {
+      toast.error("Video should be under 100MB");
+      return;
+    }
+    setVideoFile(file);
+    setVideoPreview(URL.createObjectURL(file));
+  };
+
+  const removeVideo = () => {
+    setVideoFile(null);
+    setVideoPreview("");
   };
 
   // Reset back to original property data
   const handleResetToOriginal = () => {
     if (confirm("Discard unsaved changes and reset to original property data?")) {
       if (originalProperty) {
+        setCoverFile(null);
+        setVideoFile(null);
         populateFormData(originalProperty);
         setErrors({});
         toast.info("Form reset to original values");
@@ -449,10 +487,32 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
 
     setSaving(true);
     try {
-      const finalImage =
-        coverMode === "url"
-          ? (coverUrl.trim() || coverPreview || originalProperty?.image)
-          : (coverPreview || originalProperty?.image || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&q=80&auto=format&fit=crop");
+      if (coverFile || galleryMeta.some(Boolean) || videoFile) {
+        setUploadStatus("Uploading photos & video…");
+      }
+
+      let finalImage = coverMode === "url" ? coverUrl.trim() : "";
+
+      if (coverMode === "file" && coverFile) {
+        finalImage = await uploadFileToR2(coverFile, "properties/cover");
+      }
+      if (!finalImage) {
+        finalImage =
+          coverPreview && !coverPreview.startsWith("blob:")
+            ? coverPreview
+            : originalProperty?.image ||
+              "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&q=80&auto=format&fit=crop";
+      }
+
+      const finalGalleryImages = await Promise.all(
+        galleryImages.map((img, idx) =>
+          galleryMeta[idx] ? uploadFileToR2(galleryMeta[idx], "properties/gallery") : Promise.resolve(img)
+        )
+      );
+
+      const finalVideo = videoFile ? await uploadFileToR2(videoFile, "properties/video") : videoPreview;
+
+      setUploadStatus("");
 
       // Formatted price string for platform cards
       const numericPrice = Number(form.price);
@@ -495,7 +555,8 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
         availableFrom: form.availableFrom,
         preferredFor: form.preferredFor,
         image: finalImage,
-        galleryImages: galleryImages.length ? galleryImages : [finalImage],
+        galleryImages: finalGalleryImages.length ? finalGalleryImages : [finalImage],
+        video: finalVideo || "",
         contact: {
           fullName: form.fullName.trim(),
           mobile: `+91 ${form.mobile.trim()}`,
@@ -534,6 +595,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
     } catch (err) {
       console.error("Edit property error:", err);
       toast.error(err.message || "Failed to update property. Please try again.");
+      setUploadStatus("");
     } finally {
       setSaving(false);
     }
@@ -1271,6 +1333,40 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
                 </div>
               )}
             </div>
+
+            {/* Property Video */}
+            <div className="rounded-xl border border-[#e8e0d5] bg-[#faf8f5]/60 p-4 sm:p-5">
+              <h3 className="mb-3 text-sm font-semibold text-[#1a1a2e]">Property Video</h3>
+              {videoPreview ? (
+                <div className="relative overflow-hidden rounded-xl border border-[#e8e0d5] bg-white">
+                  <video src={videoPreview} controls className="h-48 w-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={removeVideo}
+                    className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-red-600/90 text-white transition hover:bg-red-700"
+                    title="Remove video"
+                  >
+                    <MdDelete size={16} />
+                  </button>
+                </div>
+              ) : (
+                <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#e8e0d5] bg-white px-4 py-8 text-center transition hover:border-[#f0b429]">
+                  <MdCloudUpload size={32} className="text-[#f0b429] mb-2" />
+                  <span className="text-sm font-semibold text-[#1a1a2e]">Click to upload property video</span>
+                  <span className="mt-1 text-xs text-[#9ca3af]">MP4, WEBM, or MOV up to 100MB</span>
+                  <input
+                    type="file"
+                    accept="video/mp4,video/webm,video/quicktime"
+                    className="hidden"
+                    onChange={handleVideoFile}
+                  />
+                </label>
+              )}
+            </div>
+
+            {uploadStatus && (
+              <p className="text-xs font-semibold text-[#d97706]">{uploadStatus}</p>
+            )}
           </div>
         </FormSection>
 

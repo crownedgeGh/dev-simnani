@@ -3,6 +3,7 @@
 import { useEffect, useMemo } from "react";
 
 const ACCEPT = ".jpg,.jpeg,.png,.webp";
+const VIDEO_ACCEPT = ".mp4,.webm,.mov";
 
 export function CoverImageUpload({ id, label, hint, file, onChange, optional }) {
   const previewUrl = useObjectUrl(file);
@@ -99,6 +100,53 @@ export function GalleryImageUpload({ id, label, hint, files, onChange, optional,
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+export function VideoUpload({ id, label, hint, file, onChange, optional }) {
+  const previewUrl = useObjectUrl(file);
+
+  return (
+    <div className="flex flex-col gap-2">
+      <label htmlFor={id} className="tracked-label text-xs text-cream/80">
+        {label}
+        {optional && (
+          <span className="ml-1 normal-case tracking-normal text-muted">(Optional)</span>
+        )}
+      </label>
+
+      {previewUrl ? (
+        <div className="relative overflow-hidden border border-navy-700/60 bg-navy-950">
+          <video src={previewUrl} controls className="h-48 w-full object-cover" />
+          <div className="flex items-center justify-between border-t border-navy-700/60 bg-navy-950 px-4 py-2">
+            <span className="truncate text-xs text-muted">{file.name}</span>
+            <button
+              type="button"
+              onClick={() => onChange(null)}
+              className="tracked-label ml-3 shrink-0 text-xs text-cream/80 transition hover:text-gold-400"
+            >
+              Remove
+            </button>
+          </div>
+        </div>
+      ) : (
+        <label
+          htmlFor={id}
+          className="flex cursor-pointer flex-col items-center justify-center gap-1 border border-dashed border-navy-700/60 bg-navy-950 px-4 py-8 text-center transition hover:border-gold-400"
+        >
+          <span className="text-sm text-cream">Click to upload or drag and drop</span>
+          {hint && <span className="text-xs text-muted">{hint}</span>}
+        </label>
+      )}
+
+      <input
+        id={id}
+        type="file"
+        accept={VIDEO_ACCEPT}
+        className="hidden"
+        onChange={(e) => onChange(e.target.files?.[0] || null)}
+      />
     </div>
   );
 }
