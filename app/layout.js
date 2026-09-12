@@ -24,6 +24,11 @@ export const metadata = {
   title: "Simnani Estate | Find a Place You'll Love to Call Home",
   description:
     "Discover properties, investment opportunities and trusted real estate services with Simnani Estate.",
+  icons: {
+    icon: "/favicon.png",
+    shortcut: "/favicon.png",
+    apple: "/favicon.png",
+  },
 };
 
 export default function RootLayout({ children }) {
