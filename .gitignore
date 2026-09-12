@@ -42,3 +42,6 @@ next-env.d.ts
 
 # project-specific
 stitch_simnani_estate_property_platform
+
+# generated ffmpeg.wasm core (see scripts/copy-ffmpeg-core.mjs)
+public/ffmpeg

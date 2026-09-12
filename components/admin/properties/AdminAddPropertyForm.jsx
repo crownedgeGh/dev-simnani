@@ -25,6 +25,7 @@ import AdminFormField, {
 import adminAxios from "@/lib/adminAxios";
 import { CATEGORIES_BY_TYPE } from "@/lib/properties";
 import { uploadFileToR2 } from "@/lib/uploadToR2";
+import BlurredImageFrame from "@/components/property/BlurredImageFrame";
 
 const PURPOSE_OPTIONS = [
   { value: "sale", label: "For Sale" },
@@ -294,7 +295,7 @@ export default function AdminAddPropertyForm() {
       let finalImage = coverMode === "url" ? coverUrl.trim() : "";
 
       if (coverMode === "file" || coverFile || galleryMeta.some(Boolean) || videoFile) {
-        setUploadStatus("Uploading photos & video…");
+        setUploadStatus("Optimising & uploading photos and video… this can take a minute.");
       }
 
       if (coverMode === "file" && coverFile) {
@@ -311,7 +312,7 @@ export default function AdminAddPropertyForm() {
         )
       );
 
-      const finalVideo = videoFile ? await uploadFileToR2(videoFile, "properties/video") : "";
+      const finalVideo = videoFile ? await uploadFileToR2(videoFile, "properties/video", setUploadStatus) : "";
 
       setUploadStatus("");
 
@@ -994,14 +995,7 @@ export default function AdminAddPropertyForm() {
                   />
                   {coverUrl && (
                     <div className="relative aspect-video max-w-sm overflow-hidden rounded-xl border border-[#e8e0d5]">
-                      <img
-                        src={coverUrl}
-                        alt="Cover preview"
-                        className="h-full w-full object-cover"
-                        onError={(e) => {
-                          e.target.style.display = "none";
-                        }}
-                      />
+                      <BlurredImageFrame src={coverUrl} alt="Cover preview" className="h-full w-full" />
                     </div>
                   )}
                 </div>
@@ -1009,11 +1003,7 @@ export default function AdminAddPropertyForm() {
                 <div>
                   {coverPreview ? (
                     <div className="relative aspect-video max-w-sm overflow-hidden rounded-xl border border-[#e8e0d5]">
-                      <img
-                        src={coverPreview}
-                        alt="Cover preview"
-                        className="h-full w-full object-cover"
-                      />
+                      <BlurredImageFrame src={coverPreview} alt="Cover preview" className="h-full w-full" />
                       <button
                         type="button"
                         onClick={() => setCoverPreview("")}

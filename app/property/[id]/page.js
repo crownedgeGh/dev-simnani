@@ -1,8 +1,8 @@
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getPropertyById } from "@/lib/propertiesServer";
 import { AMENITIES, NEARBY_PLACES, getPropertyDescription } from "@/lib/propertyContent";
 import PropertyActionCard from "@/components/property/PropertyActionCard";
+import PropertyMediaCarousel from "@/components/property/PropertyMediaCarousel";
 import { MdBed, MdBathtub, MdSquareFoot, MdCategory, MdTrendingUp } from "react-icons/md";
 
 export const dynamic = "force-dynamic";
@@ -30,21 +30,13 @@ export default async function PropertyDetailPage({ params }) {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-      <div className="relative aspect-[16/9] w-full overflow-hidden border border-navy-700/60">
-        <Image
-          src={property.image}
-          alt={property.title}
-          fill
-          sizes="100vw"
-          priority
-          className="object-cover"
-        />
-        {property.badge && (
-          <span className="tracked-label absolute left-4 top-4 bg-gold-500 px-3 py-1.5 text-[10px] font-semibold text-navy-950">
-            {property.badge}
-          </span>
-        )}
-      </div>
+      <PropertyMediaCarousel
+        image={property.image}
+        galleryImages={property.galleryImages}
+        video={property.video}
+        title={property.title}
+        badge={property.badge}
+      />
 
       <div className="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-3">
         <div className="lg:col-span-2">

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useState } from "react";
+import BlurredImageFrame from "@/components/property/BlurredImageFrame";
 
 const ACCEPT = ".jpg,.jpeg,.png,.webp";
 const VIDEO_ACCEPT = ".mp4,.webm,.mov";
@@ -19,8 +20,7 @@ export function CoverImageUpload({ id, label, hint, file, onChange, optional }) 
 
       {previewUrl ? (
         <div className="relative overflow-hidden border border-navy-700/60 bg-navy-950">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={previewUrl} alt="Cover preview" className="h-48 w-full object-cover" />
+          <BlurredImageFrame src={previewUrl} alt="Cover preview" className="h-48 w-full" />
           <div className="flex items-center justify-between border-t border-navy-700/60 bg-navy-950 px-4 py-2">
             <span className="truncate text-xs text-muted">{file.name}</span>
             <button
@@ -173,13 +173,18 @@ function GalleryThumb({ file, onRemove }) {
 }
 
 function useObjectUrl(file) {
-  const url = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
+  const [url, setUrl] = useState(null);
 
   useEffect(() => {
-    return () => {
-      if (url) URL.revokeObjectURL(url);
-    };
-  }, [url]);
+    if (!file) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing to external blob URL lifecycle
+      setUrl(null);
+      return;
+    }
+    const objectUrl = URL.createObjectURL(file);
+    setUrl(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [file]);
 
   return url;
 }

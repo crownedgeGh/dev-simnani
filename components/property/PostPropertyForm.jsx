@@ -142,11 +142,11 @@ export default function PostPropertyForm() {
       let videoUrl = "";
 
       if (form.coverImage || form.galleryImages.length || form.video) {
-        setUploadStatus("Uploading photos & video…");
+        setUploadStatus("Optimising & uploading photos and video… this can take a minute.");
         const [uploadedCover, uploadedGallery, uploadedVideo] = await Promise.all([
           form.coverImage ? uploadFileToR2(form.coverImage, "properties/cover") : Promise.resolve(null),
           form.galleryImages.length ? uploadFilesToR2(form.galleryImages, "properties/gallery") : Promise.resolve([]),
-          form.video ? uploadFileToR2(form.video, "properties/video") : Promise.resolve(null),
+          form.video ? uploadFileToR2(form.video, "properties/video", setUploadStatus) : Promise.resolve(null),
         ]);
         if (uploadedCover) coverImageUrl = uploadedCover;
         galleryImageUrls = uploadedGallery;

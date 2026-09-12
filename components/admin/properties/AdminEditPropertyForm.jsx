@@ -27,6 +27,7 @@ import adminAxios from "@/lib/adminAxios";
 import { ADMIN_KEYS, readCollection } from "@/lib/adminStorage";
 import { CATEGORIES_BY_TYPE } from "@/lib/properties";
 import { uploadFileToR2 } from "@/lib/uploadToR2";
+import BlurredImageFrame from "@/components/property/BlurredImageFrame";
 
 const PURPOSE_OPTIONS = [
   { value: "sale", label: "For Sale" },
@@ -488,7 +489,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
     setSaving(true);
     try {
       if (coverFile || galleryMeta.some(Boolean) || videoFile) {
-        setUploadStatus("Uploading photos & video…");
+        setUploadStatus("Optimising & uploading photos and video… this can take a minute.");
       }
 
       let finalImage = coverMode === "url" ? coverUrl.trim() : "";
@@ -510,7 +511,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
         )
       );
 
-      const finalVideo = videoFile ? await uploadFileToR2(videoFile, "properties/video") : videoPreview;
+      const finalVideo = videoFile ? await uploadFileToR2(videoFile, "properties/video", setUploadStatus) : videoPreview;
 
       setUploadStatus("");
 
@@ -910,7 +911,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
                   <input
                     type="number"
                     min="0"
-                    step="1000"
+                    step="any"
                     value={form.price}
                     onChange={(e) => update("price", e.target.value)}
                     placeholder={form.purpose === "rent" || form.purpose === "lease" ? "35000" : "12500000"}
@@ -1220,14 +1221,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
               {coverPreview && (
                 <div className="mt-3 flex items-center gap-4 rounded-xl border border-[#e8e0d5] bg-[#faf8f5] p-3">
                   <div className="h-16 w-24 overflow-hidden rounded-lg bg-gray-100 shrink-0">
-                    <img
-                      src={coverPreview}
-                      alt="Cover Preview"
-                      className="h-full w-full object-cover"
-                      onError={(e) => {
-                        e.target.style.display = "none";
-                      }}
-                    />
+                    <BlurredImageFrame src={coverPreview} alt="Cover Preview" className="h-full w-full" />
                   </div>
                   <div className="flex-1 overflow-hidden">
                     <p className="text-xs font-semibold text-[#1a1a2e]">Active Cover Image</p>
