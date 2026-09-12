@@ -32,10 +32,6 @@ export default function Hero({ children }) {
 
       <div className="relative z-10 mx-auto w-full max-w-[1400px] px-4 pt-2 sm:px-6 sm:pt-16 lg:px-8 lg:pt-24">
         <div className="max-w-2xl">
-          <span className="tracked-label inline-flex items-center gap-2 rounded-full border border-gold-500/40 bg-navy-950/60 px-4 py-1.5 text-[11px] font-medium text-gold-400 backdrop-blur-sm">
-            <MdStar className="h-3.5 w-3.5" />
-            Luxury Real Estate
-          </span>
 
           <h1 className="mt-5 font-display text-3xl font-semibold leading-[1.15] text-cream drop-shadow-[0_4px_24px_rgba(0,0,0,0.7)] sm:mt-6 sm:text-5xl lg:text-[64px]">
             Find a Place

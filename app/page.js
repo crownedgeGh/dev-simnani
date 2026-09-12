@@ -1,7 +1,6 @@
 import Hero from "@/components/home/Hero";
 import SearchBar from "@/components/home/SearchBar";
 import StatsBar from "@/components/home/StatsBar";
-import ExploreServices from "@/components/home/ExploreServices";
 import FeaturedProperties from "@/components/home/FeaturedProperties";
 import ProjectsSection from "@/components/home/ProjectsSection";
 import PopularLocations from "@/components/home/PopularLocations";
@@ -16,7 +15,6 @@ export default function Home() {
         <SearchBar />
       </Hero>
       <StatsBar />
-      <ExploreServices />
       <FeaturedProperties />
       <ProjectsSection />
       <PopularLocations />
