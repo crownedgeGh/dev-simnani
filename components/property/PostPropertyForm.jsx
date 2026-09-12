@@ -200,9 +200,7 @@ export default function PostPropertyForm({ editId }) {
     setSubmitting(true);
 
     try {
-      let coverImageUrl =
-        form.existingCoverUrl ||
-        "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1200&q=80&auto=format&fit=crop";
+      let coverImageUrl = form.existingCoverUrl || "/defaultImage.webp";
       let galleryImageUrls = [...form.existingGalleryUrls];
       let videoUrl = form.existingVideoUrl || "";
 
