@@ -3,13 +3,15 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { MdFavorite, MdBed, MdBathtub, MdSquareFoot } from "react-icons/md";
+import { MdFavorite, MdBed, MdBathtub, MdSquareFoot, MdLocationOn, MdAccessTime } from "react-icons/md";
+import { formatPostedDate } from "@/lib/properties";
 
 export default function PropertyCard({ property }) {
-  const { id, title, price, location, image, badge, beds, baths, area, roi, type } =
+  const { id, title, price, location, image, badge, beds, baths, area, roi, type, address } =
     property;
   const isInvest = type === "invest";
   const [showToast, setShowToast] = useState(false);
+  const postedLabel = formatPostedDate(property);
 
   function handleContactClick(e) {
     e.preventDefault();
@@ -48,8 +50,18 @@ export default function PropertyCard({ property }) {
 
       <div className="p-5">
         <h3 className="font-display text-lg text-cream">{title}</h3>
-        <p className="mt-1 text-sm text-muted">{location}</p>
+        <p className="mt-1 flex items-start gap-1 text-sm text-muted">
+          <MdLocationOn className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          {address || location}
+        </p>
         <p className="mt-3 font-display text-xl text-gold-400">{price}</p>
+
+        {postedLabel && (
+          <p className="mt-2 flex items-center gap-1 text-xs text-muted">
+            <MdAccessTime className="h-3.5 w-3.5 shrink-0" />
+            {postedLabel}
+          </p>
+        )}
 
         <div className="mt-4 flex items-center gap-4 text-xs text-muted">
           {isInvest ? (

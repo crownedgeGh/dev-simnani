@@ -17,14 +17,55 @@ import {
   MdChevronLeft,
   MdChevronRight,
   MdPlayCircle,
+  MdConfirmationNumber,
+  MdSell,
+  MdApartment,
+  MdLocationCity,
+  MdMap,
+  MdPlace,
+  MdHome,
+  MdLayers,
+  MdStairs,
+  MdChair,
+  MdLocalParking,
+  MdExplore,
+  MdEvent,
+  MdGroup,
+  MdAccessTime,
+  MdPerson,
+  MdPhone,
+  MdLocalOffer,
+  MdSecurity,
+  MdElevator,
+  MdSmartToy,
+  MdYard,
+  MdSpa,
+  MdPower,
 } from "react-icons/md";
+
+const AMENITY_ICONS = {
+  "24/7 Security": MdSecurity,
+  "Private Lift": MdElevator,
+  "Smart Home Automation": MdSmartToy,
+  "Landscaped Gardens": MdYard,
+  "Clubhouse & Spa": MdSpa,
+  "Power Backup": MdPower,
+  "Covered Parking": MdLocalParking,
+  "High-Speed Elevators": MdElevator,
+};
 import AdminStatusBadge from "@/components/admin/ui/AdminStatusBadge";
 import AdminConfirmModal from "@/components/admin/ui/AdminConfirmModal";
 import PropertyFormDialog from "@/components/admin/properties/PropertyFormDialog";
 import adminAxios from "@/lib/adminAxios";
 import { ADMIN_KEYS, readCollection } from "@/lib/adminStorage";
+import { formatPostedDate } from "@/lib/properties";
 import { AMENITIES, NEARBY_PLACES, getPropertyDescription } from "@/lib/propertyContent";
 import BlurredImageFrame from "@/components/property/BlurredImageFrame";
+
+function capitalize(value) {
+  if (!value || typeof value !== "string") return value;
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
 
 export default function PropertyDetailPage() {
   const { id } = useParams();
@@ -210,15 +251,21 @@ export default function PropertyDetailPage() {
 
           <section className="mt-10">
             <h2 className="text-xl font-bold text-[#1a1a2e]">Property Features</h2>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {AMENITIES.map((amenity) => (
-                <span
-                  key={amenity}
-                  className="rounded-full border border-[#e8e0d5] bg-white px-3 py-2 text-xs text-[#374151]"
-                >
-                  {amenity}
-                </span>
-              ))}
+            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+              {AMENITIES.map((amenity) => {
+                const AmenityIcon = AMENITY_ICONS[amenity] || MdCheckCircle;
+                return (
+                  <div
+                    key={amenity}
+                    className="flex items-center gap-2 rounded-2xl border border-[#e8e0d5] bg-white p-3 transition hover:border-[#f0b429]/50 sm:gap-3 sm:p-4"
+                  >
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#fff8e1] text-sm text-[#d97706] sm:h-9 sm:w-9 sm:text-base">
+                      <AmenityIcon />
+                    </span>
+                    <span className="text-xs font-medium text-[#374151] sm:text-sm">{amenity}</span>
+                  </div>
+                );
+              })}
             </div>
           </section>
 
@@ -240,21 +287,43 @@ export default function PropertyDetailPage() {
 
           <section className="mt-10">
             <h2 className="text-xl font-bold text-[#1a1a2e]">Property Information</h2>
-            <div className="mt-4 rounded-2xl border border-[#e8e0d5] bg-white p-4">
-              <table className="w-full text-sm">
-                <tbody className="divide-y divide-[#f0ebe3]">
-                  {[
-                    ["Property ID", property.id],
-                    ["Badge", property.badge || "—"],
-                    ["Added Date", property.addedDate || "—"],
-                  ].map(([k, v]) => (
-                    <tr key={k}>
-                      <td className="w-32 py-2 pr-4 text-[#9ca3af]">{k}</td>
-                      <td className="py-2 font-medium text-[#374151]">{v}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+              {[
+                { icon: <MdConfirmationNumber />, label: "Property ID", value: property.id },
+                { icon: <MdLocalOffer />, label: "Badge", value: property.badge },
+                { icon: <MdSell />, label: "Purpose", value: capitalize(property.purpose) },
+                { icon: <MdApartment />, label: "Property Type", value: property.propertyType },
+                { icon: <MdCategory />, label: "Category", value: capitalize(property.category) },
+                { icon: <MdLocationCity />, label: "City", value: property.city },
+                { icon: <MdMap />, label: "Locality", value: property.locality },
+                { icon: <MdPlace />, label: "Landmark", value: property.landmark },
+                { icon: <MdHome />, label: "Address", value: property.address },
+                { icon: <MdLayers />, label: "Floor No.", value: property.floorNo },
+                { icon: <MdStairs />, label: "Total Floors", value: property.totalFloors },
+                { icon: <MdChair />, label: "Furnishing", value: property.furnishing },
+                { icon: <MdLocalParking />, label: "Parking", value: capitalize(property.parking) },
+                { icon: <MdExplore />, label: "Facing", value: property.facing },
+                { icon: <MdEvent />, label: "Available From", value: property.availableFrom },
+                { icon: <MdGroup />, label: "Preferred For", value: property.preferredFor },
+                { icon: <MdAccessTime />, label: "Posted", value: formatPostedDate(property) || property.addedDate },
+                { icon: <MdPerson />, label: "Contact Person", value: property.contact?.fullName },
+                { icon: <MdPhone />, label: "Contact Number", value: property.contact?.mobile },
+              ]
+                .filter((row) => row.value !== undefined && row.value !== null && row.value !== "")
+                .map(({ icon, label, value }) => (
+                  <div
+                    key={label}
+                    className="flex items-start gap-2 rounded-2xl border border-[#e8e0d5] bg-white p-3 transition hover:border-[#f0b429]/50 sm:gap-3 sm:p-4"
+                  >
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#fff8e1] text-sm text-[#d97706] sm:h-9 sm:w-9 sm:text-base">
+                      {icon}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-[9px] font-semibold uppercase tracking-wide text-[#9ca3af] sm:text-[10px]">{label}</p>
+                      <p className="mt-0.5 break-words text-xs font-medium text-[#374151] sm:text-sm">{value}</p>
+                    </div>
+                  </div>
+                ))}
             </div>
           </section>
         </div>
