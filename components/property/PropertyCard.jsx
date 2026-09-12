@@ -3,8 +3,9 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { MdFavorite, MdBed, MdBathtub, MdSquareFoot, MdLocationOn, MdAccessTime } from "react-icons/md";
+import { MdFavorite, MdFavoriteBorder, MdBed, MdBathtub, MdSquareFoot, MdLocationOn, MdAccessTime } from "react-icons/md";
 import { formatPostedDate } from "@/lib/properties";
+import { useSavedPropertyIds } from "@/lib/savedProperties";
 
 export default function PropertyCard({ property, hideContactButton }) {
   const { id, title, price, location, image, badge, beds, baths, area, roi, type, address } =
@@ -12,12 +13,20 @@ export default function PropertyCard({ property, hideContactButton }) {
   const isInvest = type === "invest";
   const [showToast, setShowToast] = useState(false);
   const postedLabel = formatPostedDate(property);
+  const { isSaved, toggle } = useSavedPropertyIds();
+  const saved = isSaved(id);
 
   function handleContactClick(e) {
     e.preventDefault();
     e.stopPropagation();
     setShowToast(true);
     setTimeout(() => setShowToast(false), 2500);
+  }
+
+  function handleSaveClick(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    toggle(id);
   }
 
   return (
@@ -40,11 +49,14 @@ export default function PropertyCard({ property, hideContactButton }) {
         )}
         <button
           type="button"
-          aria-label="Save property"
-          onClick={(e) => e.preventDefault()}
-          className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-navy-950/70 text-cream transition hover:text-gold-400"
+          aria-label={saved ? "Remove from saved properties" : "Save property"}
+          aria-pressed={saved}
+          onClick={handleSaveClick}
+          className={`absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full bg-navy-950/70 transition hover:scale-110 hover:text-gold-400 ${
+            saved ? "text-gold-400" : "text-cream"
+          }`}
         >
-          <MdFavorite className="h-4 w-4" />
+          {saved ? <MdFavorite className="h-6 w-6" /> : <MdFavoriteBorder className="h-6 w-6" />}
         </button>
       </div>
 

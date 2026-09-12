@@ -1,15 +1,40 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import PortalHeader from "@/components/portal/PortalHeader";
 import PropertyGrid from "@/components/property/PropertyGrid";
-import { getPropertyById } from "@/lib/properties";
-import { SAVED_PROPERTY_IDS } from "@/lib/demoAccount";
-
-export const metadata = {
-  title: "Saved Properties | Simnani Estate",
-  description: "Your curated collection of luxury real estate.",
-};
+import { useSavedPropertyIds } from "@/lib/savedProperties";
 
 export default function SavedPropertiesPage() {
-  const properties = SAVED_PROPERTY_IDS.map((id) => getPropertyById(id)).filter(Boolean);
+  const { savedIds } = useSavedPropertyIds();
+  const [properties, setProperties] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (savedIds.length === 0) {
+      setProperties([]);
+      setIsLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setIsLoading(true);
+    Promise.all(
+      savedIds.map((id) =>
+        fetch(`/api/properties/${id}`)
+          .then((res) => (res.ok ? res.json() : null))
+          .then((json) => (json?.success ? json.data : null))
+          .catch(() => null)
+      )
+    ).then((results) => {
+      if (!cancelled) {
+        setProperties(results.filter(Boolean));
+        setIsLoading(false);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [savedIds]);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
@@ -19,10 +44,14 @@ export default function SavedPropertiesPage() {
         subtitle="Your curated collection of luxury real estate and exclusive projects."
       />
       <div className="mt-8">
-        <PropertyGrid
-          properties={properties}
-          emptyMessage="Your collection is empty. Properties you save will appear here."
-        />
+        {isLoading ? (
+          <p className="text-sm text-muted">Loading your saved properties…</p>
+        ) : (
+          <PropertyGrid
+            properties={properties}
+            emptyMessage="Your collection is empty. Properties you save will appear here."
+          />
+        )}
       </div>
     </div>
   );
