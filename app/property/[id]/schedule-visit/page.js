@@ -1,17 +1,17 @@
 import { notFound } from "next/navigation";
-import { getPropertyById } from "@/lib/properties";
+import { getPropertyById } from "@/lib/propertiesServer";
 import ScheduleVisitForm from "@/components/property/ScheduleVisitForm";
 
 export async function generateMetadata({ params }) {
   const { id } = await params;
-  const property = getPropertyById(id);
+  const property = await getPropertyById(id);
   if (!property) return {};
   return { title: `Schedule Site Visit — ${property.title} | Simnani Estate` };
 }
 
 export default async function ScheduleVisitPage({ params }) {
   const { id } = await params;
-  const property = getPropertyById(id);
+  const property = await getPropertyById(id);
   if (!property) notFound();
 
   return (

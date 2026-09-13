@@ -1,17 +1,17 @@
 import { notFound } from "next/navigation";
-import { getPropertyById } from "@/lib/properties";
+import { getPropertyById } from "@/lib/propertiesServer";
 import EnquiryForm from "@/components/property/EnquiryForm";
 
 export async function generateMetadata({ params }) {
   const { id } = await params;
-  const property = getPropertyById(id);
+  const property = await getPropertyById(id);
   if (!property) return {};
   return { title: `Enquire — ${property.title} | Simnani Estate` };
 }
 
 export default async function PropertyEnquirePage({ params }) {
   const { id } = await params;
-  const property = getPropertyById(id);
+  const property = await getPropertyById(id);
   if (!property) notFound();
 
   return (

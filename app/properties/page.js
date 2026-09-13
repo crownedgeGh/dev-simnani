@@ -2,7 +2,9 @@ import Link from "next/link";
 import { BiBuildingHouse, BiKey, BiFile } from "react-icons/bi";
 import { MdGavel } from "react-icons/md";
 import { FiArrowUpRight } from "react-icons/fi";
-import { getPropertiesByType } from "@/lib/properties";
+import { getPropertiesByType } from "@/lib/propertiesServer";
+
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Properties | Simnani Estate",
@@ -41,7 +43,13 @@ const CATEGORIES = [
   },
 ];
 
-export default function PropertiesPage() {
+export default async function PropertiesPage() {
+  const counts = Object.fromEntries(
+    await Promise.all(
+      CATEGORIES.map(async ({ type }) => [type, (await getPropertiesByType(type)).length])
+    )
+  );
+
   return (
     <div className="mx-auto max-w-7xl px-4 pt-6 pb-16 sm:px-6 sm:pt-8 sm:pb-20 lg:px-8 lg:pt-10 lg:pb-24">
       <div className="mx-auto max-w-2xl text-center">
@@ -52,7 +60,7 @@ export default function PropertiesPage() {
 
       <div className="mt-12 grid grid-cols-2 gap-4 sm:gap-6">
         {CATEGORIES.map(({ label, href, type, icon: Icon, description }) => {
-          const count = getPropertiesByType(type).length;
+          const count = counts[type];
           return (
             <Link
               key={href}
