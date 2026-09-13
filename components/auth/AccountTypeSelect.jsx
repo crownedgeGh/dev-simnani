@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { MdHome, MdTrendingUp, MdDomain, MdWork, MdPerson, MdBadge, MdScience } from "react-icons/md";
 import { FiMapPin, FiSmartphone, FiBriefcase } from "react-icons/fi";
+import BackButton from "@/components/layout/BackButton";
 
 const TEST_MODE_CP_OPTIONS = [
   { cpType: "field", label: "Field CP", description: "Field Channel Partner demo dashboard.", Icon: FiMapPin },
@@ -58,9 +59,12 @@ export default function AccountTypeSelect() {
     <div className="w-full max-w-4xl border border-navy-700/60 bg-navy-900 p-8 shadow-2xl sm:p-10">
       <div className="flex flex-col items-center gap-2 text-center">
         <span className="tracked-label text-xs text-gold-400">Simnani Estate</span>
-        <h1 className="font-display text-3xl text-cream sm:text-4xl">
-          How would you like to use Simnani Estate?
-        </h1>
+        <div className="flex items-center gap-3">
+          <BackButton />
+          <h1 className="font-display text-3xl text-cream sm:text-4xl">
+            How would you like to use Simnani Estate?
+          </h1>
+        </div>
         <p className="text-sm text-muted">
           Select your primary account type to tailor your experience.
         </p>

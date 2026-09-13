@@ -1,6 +1,7 @@
 import CommercialCategories from "@/components/property/CommercialCategories";
 import { AGRICULTURE_CATEGORIES } from "@/lib/properties";
 import { getPropertiesByType } from "@/lib/propertiesServer";
+import BackButton from "@/components/layout/BackButton";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,8 @@ export default async function FarmingPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 pt-6 pb-16 sm:px-6 sm:pt-8 sm:pb-20 lg:px-8 lg:pt-10 lg:pb-24">
-      <div className="max-w-2xl">
+      <div className="flex items-center gap-3 max-w-2xl">
+        <BackButton href="/" />
         <h1 className="font-display text-3xl text-cream sm:text-4xl">
           Farming Land Projects
         </h1>

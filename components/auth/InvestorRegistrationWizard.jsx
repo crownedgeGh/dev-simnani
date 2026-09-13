@@ -11,6 +11,7 @@ import { inputClass } from "./inputStyles";
 import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
 import { MdPercent } from "react-icons/md";
+import BackButton from "@/components/layout/BackButton";
 
 const TOTAL_STEPS = 3;
 
@@ -135,11 +136,14 @@ export default function InvestorRegistrationWizard() {
       />
 
       <div className="mb-6 text-center">
-        <h1 className="font-display text-2xl text-cream sm:text-3xl">
-          {step === 1 && "Basic Details"}
-          {step === 2 && "What are you interested in?"}
-          {step === 3 && "Review & Submit"}
-        </h1>
+        <div className="flex items-center justify-center gap-3">
+          <BackButton />
+          <h1 className="font-display text-2xl text-cream sm:text-3xl">
+            {step === 1 && "Basic Details"}
+            {step === 2 && "What are you interested in?"}
+            {step === 3 && "Review & Submit"}
+          </h1>
+        </div>
         <p className="mt-2 text-sm text-muted">
           {step === 1 && "Please provide your initial contact information to begin."}
           {step === 2 && "Select your investment preferences to help us curate the perfect portfolio for you."}

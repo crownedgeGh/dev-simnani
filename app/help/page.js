@@ -2,6 +2,7 @@ import Accordion from "@/components/portal/Accordion";
 import SectionCard from "@/components/portal/SectionCard";
 import { FiMapPin, FiMail, FiExternalLink } from "react-icons/fi";
 import { FaInstagram } from "react-icons/fa6";
+import BackButton from "@/components/layout/BackButton";
 
 const FAQS = [
   {
@@ -43,7 +44,8 @@ export const metadata = {
 export default function HelpPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
-      <div className="max-w-2xl">
+      <div className="flex items-center gap-3 max-w-2xl">
+        <BackButton />
         <h1 className="font-display text-3xl text-cream sm:text-4xl">Help & Support</h1>
       </div>
 

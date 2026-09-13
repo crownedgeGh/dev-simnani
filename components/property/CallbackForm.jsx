@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
 import { inputClass, selectClass } from "@/components/auth/inputStyles";
+import BackButton from "@/components/layout/BackButton";
 
 const TIME_OPTIONS = [
   { value: "morning", label: "Morning (9AM - 12PM)" },
@@ -61,11 +62,14 @@ export default function CallbackForm() {
       onSubmit={handleSubmit}
       className="flex flex-col gap-4 border border-navy-700/60 bg-navy-900 p-8 sm:p-10"
     >
-      <div>
-        <h1 className="font-display text-2xl text-cream sm:text-3xl">Request Callback</h1>
-        <p className="mt-2 text-sm text-muted">
-          Provide your details and an advisor will contact you shortly.
-        </p>
+      <div className="flex items-center gap-3">
+        <BackButton />
+        <div>
+          <h1 className="font-display text-2xl text-cream sm:text-3xl">Request Callback</h1>
+          <p className="mt-2 text-sm text-muted">
+            Provide your details and an advisor will contact you shortly.
+          </p>
+        </div>
       </div>
 
       <div className="flex flex-col gap-2">

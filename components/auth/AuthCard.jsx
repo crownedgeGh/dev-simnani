@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { MdScience } from "react-icons/md";
 import { useAuth } from "@/context/AuthContext";
 import { generateAccountId } from "@/lib/auth";
+import BackButton from "@/components/layout/BackButton";
 
 const OTP_LENGTH = 6;
 
@@ -175,11 +176,14 @@ export default function AuthCard() {
         <span className="tracked-label text-xs text-gold-400">
           Simnani Estate
         </span>
-        <h1 className="font-display text-3xl text-cream sm:text-4xl">
-          {step === "mobile" && "Welcome Back"}
-          {step === "otp" && "Verify Your Number"}
-          {step === "success" && "Verified"}
-        </h1>
+        <div className="flex items-center gap-3">
+          <BackButton />
+          <h1 className="font-display text-3xl text-cream sm:text-4xl">
+            {step === "mobile" && "Welcome Back"}
+            {step === "otp" && "Verify Your Number"}
+            {step === "success" && "Verified"}
+          </h1>
+        </div>
         <p className="text-sm text-muted">
           {step === "mobile" &&
             "Access your exclusive Simnani Estate portfolio."}

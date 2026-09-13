@@ -1,3 +1,5 @@
+import BackButton from "@/components/layout/BackButton";
+
 export const metadata = {
   title: "Terms & Conditions | Simnani Estate",
   description: "The rules that govern use of Simnani Estate.",
@@ -25,7 +27,10 @@ const SECTIONS = [
 export default function TermsConditionsPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
-      <h1 className="font-display text-3xl text-cream sm:text-4xl">Terms & Conditions</h1>
+      <div className="flex items-center gap-3">
+        <BackButton />
+        <h1 className="font-display text-3xl text-cream sm:text-4xl">Terms & Conditions</h1>
+      </div>
       <p className="tracked-label mt-3 text-xs text-muted">Last Updated: October 2025</p>
 
       <div className="mt-10 flex flex-col gap-10">

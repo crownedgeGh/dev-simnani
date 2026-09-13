@@ -5,6 +5,7 @@ import Link from "next/link";
 import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
 import { inputClass, textareaClass } from "@/components/auth/inputStyles";
 import ChipGroup from "@/components/auth/ChipGroup";
+import BackButton from "@/components/layout/BackButton";
 
 const TIME_SLOTS = [
   { value: "10:00 AM", label: "10:00 AM" },
@@ -82,11 +83,14 @@ export default function ScheduleVisitForm({ title: propertyTitle, backHref }) {
       onSubmit={handleSubmit}
       className="flex flex-col gap-4 border border-navy-700/60 bg-navy-900 p-8 sm:p-10"
     >
-      <div>
-        <h1 className="font-display text-2xl text-cream sm:text-3xl">Schedule Site Visit</h1>
-        <p className="mt-2 text-sm text-muted">
-          Choose a convenient date and time to visit {propertyTitle}.
-        </p>
+      <div className="flex items-center gap-3">
+        <BackButton />
+        <div>
+          <h1 className="font-display text-2xl text-cream sm:text-3xl">Schedule Site Visit</h1>
+          <p className="mt-2 text-sm text-muted">
+            Choose a convenient date and time to visit {propertyTitle}.
+          </p>
+        </div>
       </div>
 
       <div className="flex flex-col gap-2">

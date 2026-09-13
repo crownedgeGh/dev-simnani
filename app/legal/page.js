@@ -1,4 +1,5 @@
 import Link from "next/link";
+import BackButton from "@/components/layout/BackButton";
 
 const DOCUMENTS = [
   {
@@ -21,7 +22,10 @@ export const metadata = {
 export default function LegalPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
-      <h1 className="font-display text-3xl text-cream sm:text-4xl">Legal & Policies</h1>
+      <div className="flex items-center gap-3">
+        <BackButton />
+        <h1 className="font-display text-3xl text-cream sm:text-4xl">Legal & Policies</h1>
+      </div>
       <p className="mt-3 text-sm text-muted sm:text-base">
         Our commitment to transparency, security, and professional excellence.
       </p>

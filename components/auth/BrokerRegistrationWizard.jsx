@@ -11,6 +11,7 @@ import RegistrationSuccess from "./RegistrationSuccess";
 import { inputClass, selectClass } from "./inputStyles";
 import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
+import BackButton from "@/components/layout/BackButton";
 
 const TOTAL_STEPS = 4;
 
@@ -168,7 +169,10 @@ export default function BrokerRegistrationWizard() {
       <Stepper step={step} total={TOTAL_STEPS} label={STEP_LABELS[step - 1]} />
 
       <div className="mb-6 text-center">
-        <h1 className="font-display text-2xl text-cream sm:text-3xl">{STEP_LABELS[step - 1]}</h1>
+        <div className="flex items-center justify-center gap-3">
+          <BackButton />
+          <h1 className="font-display text-2xl text-cream sm:text-3xl">{STEP_LABELS[step - 1]}</h1>
+        </div>
         <p className="mt-2 text-sm text-muted">
           {step === 1 && "Tell us who you are so clients can find you."}
           {step === 2 && "Provide information about your agency or professional practice."}

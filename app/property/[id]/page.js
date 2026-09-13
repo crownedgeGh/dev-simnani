@@ -4,6 +4,7 @@ import { formatPostedDate } from "@/lib/properties";
 import { getPropertyDescription } from "@/lib/propertyContent";
 import PropertyOwnerActions from "@/components/property/PropertyOwnerActions";
 import PropertyMediaCarousel from "@/components/property/PropertyMediaCarousel";
+import BackButton from "@/components/layout/BackButton";
 import {
   MdBed,
   MdBathtub,
@@ -100,7 +101,10 @@ export default async function PropertyDetailPage({ params }) {
           <p className="tracked-label text-xs text-gold-400">
             {isInvest ? "Investment Opportunity" : "Verified Property"}
           </p>
-          <h1 className="mt-2 font-display text-3xl text-cream sm:text-4xl">{property.title}</h1>
+          <div className="mt-2 flex items-center gap-3">
+            <BackButton />
+            <h1 className="font-display text-3xl text-cream sm:text-4xl">{property.title}</h1>
+          </div>
           <p className="mt-2 text-sm text-muted">{property.location}</p>
           <p className="mt-4 font-sans text-2xl font-semibold text-gold-400">{property.price}</p>
 

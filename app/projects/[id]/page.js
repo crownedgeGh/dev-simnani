@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getProjectById } from "@/lib/projects";
 import { AMENITIES, getProjectDescription } from "@/lib/propertyContent";
+import BackButton from "@/components/layout/BackButton";
 
 export async function generateMetadata({ params }) {
   const { id } = await params;
@@ -42,7 +43,10 @@ export default async function ProjectDetailPage({ params }) {
       <div className="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <p className="tracked-label text-xs text-gold-400">Verified Project</p>
-          <h1 className="mt-2 font-display text-3xl text-cream sm:text-4xl">{project.name}</h1>
+          <div className="mt-2 flex items-center gap-3">
+            <BackButton />
+            <h1 className="font-display text-3xl text-cream sm:text-4xl">{project.name}</h1>
+          </div>
           <p className="mt-2 text-sm text-muted">{project.location}</p>
           <p className="mt-4 font-sans text-2xl font-semibold text-gold-400">{project.startingPrice}</p>
 

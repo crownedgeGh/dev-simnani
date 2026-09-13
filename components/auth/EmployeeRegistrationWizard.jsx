@@ -9,6 +9,7 @@ import { inputClass, selectClass } from "./inputStyles";
 import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
 import { LOCATIONS } from "@/lib/locations";
+import BackButton from "@/components/layout/BackButton";
 
 const TOTAL_STEPS = 3;
 
@@ -107,7 +108,10 @@ export default function EmployeeRegistrationWizard() {
       <Stepper step={step} total={TOTAL_STEPS} label={STEP_LABELS[step - 1]} />
 
       <div className="mb-6 text-center">
-        <h1 className="font-display text-2xl text-cream sm:text-3xl">{STEP_LABELS[step - 1]}</h1>
+        <div className="flex items-center justify-center gap-3">
+          <BackButton />
+          <h1 className="font-display text-2xl text-cream sm:text-3xl">{STEP_LABELS[step - 1]}</h1>
+        </div>
         <p className="mt-2 text-sm text-muted">
           {step === 1 && "Tell us who you are so we can set up your account."}
           {step === 2 && "Your employee code and district assign the leads you'll manage."}

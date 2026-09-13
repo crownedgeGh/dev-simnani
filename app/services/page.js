@@ -13,6 +13,7 @@ import {
   MdBusinessCenter,
   MdSupportAgent,
 } from "react-icons/md";
+import BackButton from "@/components/layout/BackButton";
 
 const SERVICES = [
   {
@@ -86,7 +87,8 @@ export const metadata = {
 export default function ServicesPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 pt-4 pb-8 sm:px-6 sm:pt-6 sm:pb-10 lg:px-8 lg:pt-8 lg:pb-12">
-      <div className="max-w-2xl">
+      <div className="flex items-center gap-3 max-w-2xl">
+        <BackButton href="/" />
         <h1 className="font-display text-3xl text-cream sm:text-4xl lg:text-5xl">
           Our Services
         </h1>

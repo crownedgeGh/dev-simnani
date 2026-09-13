@@ -1,5 +1,6 @@
 import PostPropertyForm from "@/components/property/PostPropertyForm";
 import { MdAddHome } from "react-icons/md";
+import BackButton from "@/components/layout/BackButton";
 
 export const metadata = {
   title: "Edit Property | Simnani Estate",
@@ -15,6 +16,7 @@ export default async function EditPropertyPage({ params }) {
 
       <div className="mx-auto max-w-3xl">
         <div className="flex items-center gap-4">
+          <BackButton />
           <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gold-400/10 text-gold-400">
             <MdAddHome className="h-7 w-7" />
           </span>
