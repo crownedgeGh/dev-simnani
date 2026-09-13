@@ -14,6 +14,12 @@ const TEST_MODE_CP_OPTIONS = [
 
 const ACCOUNT_TYPES = [
   {
+    value: "common-person",
+    label: "Common User",
+    description: "Post, Search and manage your own property directly.",
+    Icon: MdPerson,
+  },
+  {
     value: "buyer",
     label: "Buyer",
     description: "Find and purchase properties.",
@@ -36,12 +42,6 @@ const ACCOUNT_TYPES = [
     label: "Freelancer",
     description: "Earn commissions by referring clients and closing deals on your own schedule.",
     Icon: MdWork,
-  },
-  {
-    value: "common-person",
-    label: "Common Person",
-    description: "List and manage your own property directly.",
-    Icon: MdPerson,
   },
   {
     value: "employee",

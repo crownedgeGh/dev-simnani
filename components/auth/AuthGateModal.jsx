@@ -6,27 +6,36 @@ import { MdLock, MdClose, MdPersonAdd, MdLogin } from "react-icons/md";
 
 /**
  * AuthGateModal — shown when an unauthenticated user attempts a
- * protected action (e.g. "Post Property").
+ * protected action (e.g. "Post Property", "Contact Person").
  *
  * Props:
  *   isOpen    {boolean}  — whether the modal is visible
  *   onClose   {function} — called when user dismisses the modal
+ *   title     {string}   — heading text (defaults to "Post Your Property")
+ *   subtitle  {string}   — subtitle copy
  */
-export default function AuthGateModal({ isOpen, onClose }) {
+export default function AuthGateModal({
+  isOpen,
+  onClose,
+  title = "Post Your Property",
+  subtitle = "Join thousands of sellers connecting with verified buyers & investors on Simnani Estate.",
+}) {
   const overlayRef = useRef(null);
 
-  // Close on Escape key
   useEffect(() => {
     if (!isOpen) return;
-    const handler = (e) => { if (e.key === "Escape") onClose(); };
+    const handler = (e) => {
+      if (e.key === "Escape") onClose();
+    };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
   }, [isOpen, onClose]);
 
-  // Prevent body scroll
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [isOpen]);
 
   if (!isOpen) return null;
@@ -34,18 +43,14 @@ export default function AuthGateModal({ isOpen, onClose }) {
   return (
     <div
       ref={overlayRef}
-      onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
+      onClick={(e) => {
+        if (e.target === overlayRef.current) onClose();
+      }}
       role="dialog"
       aria-modal="true"
       aria-labelledby="auth-gate-title"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
       style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 9999,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "16px",
         background: "rgba(5,7,12,0.82)",
         backdropFilter: "blur(14px)",
         WebkitBackdropFilter: "blur(14px)",
@@ -62,119 +67,64 @@ export default function AuthGateModal({ isOpen, onClose }) {
           to   { opacity: 1; transform: translateY(0) scale(1); }
         }
         .ag-card { animation: agSlideUp 0.26s cubic-bezier(0.34,1.5,0.64,1); }
-        .ag-close:hover { background: rgba(255,255,255,0.1) !important; color: #f5f1e8 !important; }
-        .ag-btn-primary:hover { background: #ffde85 !important; box-shadow: 0 6px 24px rgba(255,198,51,0.35) !important; }
-        .ag-btn-secondary:hover { background: rgba(255,198,51,0.1) !important; border-color: rgba(255,198,51,0.4) !important; color: #ffc633 !important; }
       `}</style>
 
       {/* Card */}
-      <div
-        className="ag-card"
-        style={{
-          position: "relative",
-          width: "100%",
-          maxWidth: 440,
-          background: "linear-gradient(160deg, #0d1220 0%, #0a0e1a 50%, #060810 100%)",
-          border: "1px solid rgba(255,198,51,0.2)",
-          borderRadius: 22,
-          boxShadow: "0 0 0 1px rgba(255,198,51,0.05), 0 40px 100px rgba(0,0,0,0.75), 0 0 80px rgba(255,198,51,0.04) inset",
-          overflow: "hidden",
-        }}
-      >
+      <div className="ag-card relative w-full max-w-[440px] overflow-hidden rounded-2xl border border-gold-400/20 bg-navy-900 shadow-2xl">
         {/* Gold accent bar */}
-        <div style={{ height: 2, background: "linear-gradient(90deg, transparent 5%, #ffc633 45%, #ffde85 55%, transparent 95%)" }} />
+        <div
+          className="h-0.5"
+          style={{
+            background:
+              "linear-gradient(90deg, transparent 5%, var(--color-gold-400) 45%, var(--color-gold-300) 55%, transparent 95%)",
+          }}
+        />
 
         {/* Ambient glow */}
-        <div style={{ position: "absolute", top: -80, right: -80, width: 220, height: 220, background: "rgba(255,198,51,0.05)", borderRadius: "50%", filter: "blur(50px)", pointerEvents: "none" }} />
+        <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-gold-400/5 blur-3xl" />
 
         {/* Close */}
         <button
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="ag-close"
-          style={{
-            position: "absolute", top: 14, right: 14,
-            width: 30, height: 30,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            background: "rgba(255,255,255,0.05)",
-            border: "1px solid rgba(255,255,255,0.09)",
-            borderRadius: 8,
-            color: "#9aa3b8",
-            cursor: "pointer",
-            transition: "background 0.15s, color 0.15s",
-            zIndex: 10,
-          }}
+          className="absolute right-3.5 top-3.5 z-10 flex h-9 w-9 items-center justify-center rounded-lg border border-navy-700/60 bg-navy-950/60 text-muted transition hover:border-navy-600 hover:bg-navy-800 hover:text-cream"
         >
-          <MdClose style={{ width: 15, height: 15 }} />
+          <MdClose className="h-4 w-4" />
         </button>
 
         {/* Body */}
-        <div style={{ padding: "28px 24px 24px" }}>
-
+        <div className="px-6 pb-6 pt-7">
           {/* Icon + Heading row */}
-          <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 12 }}>
-            <div style={{
-              flexShrink: 0,
-              width: 48, height: 48, borderRadius: 13,
-              background: "linear-gradient(135deg, rgba(255,198,51,0.2), rgba(255,198,51,0.06))",
-              border: "1px solid rgba(255,198,51,0.22)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              color: "#ffc633",
-            }}>
-              <MdLock style={{ width: 24, height: 24 }} />
+          <div className="mb-3 flex items-center gap-3.5">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-gold-400/20 bg-gold-400/10 text-gold-400">
+              <MdLock className="h-6 w-6" />
             </div>
 
             <div>
-              <p style={{ fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "#ffc633", marginBottom: 3, fontWeight: 600 }}>
-                Members Only
-              </p>
-              <h2
-                id="auth-gate-title"
-                style={{
-                  fontFamily: "var(--font-playfair), Georgia, serif",
-                  fontSize: "clamp(1.15rem, 5vw, 1.45rem)",
-                  fontWeight: 600,
-                  color: "#f5f1e8",
-                  lineHeight: 1.2,
-                  margin: 0,
-                }}
-              >
-                Post Your Property
+              <p className="tracked-label mb-0.5 text-[11px] text-gold-400">Members Only</p>
+              <h2 id="auth-gate-title" className="font-display text-xl text-cream sm:text-2xl">
+                {title}
               </h2>
             </div>
           </div>
 
           {/* Subtitle */}
-          <p style={{ fontSize: 13.5, color: "#8a93a8", lineHeight: 1.55, marginBottom: 18 }}>
-            Join thousands of sellers connecting with verified buyers &amp; investors on Simnani Estate.
-          </p>
+          <p className="mb-5 text-[13.5px] leading-relaxed text-muted">{subtitle}</p>
 
           {/* Divider */}
-          <div style={{ height: 1, background: "linear-gradient(90deg, transparent, rgba(255,198,51,0.15) 50%, transparent)", marginBottom: 18 }} />
+          <div className="mb-5 h-px bg-navy-700/60" />
 
           {/* CTA Buttons */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <div className="flex flex-col gap-2.5">
             {/* Primary — Sign Up */}
             <Link
               href="/auth/register"
               onClick={onClose}
               id="auth-gate-signup-btn"
-              className="ag-btn-primary"
-              style={{
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                width: "100%", padding: "13px 20px",
-                background: "#ffc633",
-                color: "#05070c",
-                borderRadius: 11,
-                fontSize: 12.5, fontWeight: 700,
-                letterSpacing: "0.1em", textTransform: "uppercase",
-                textDecoration: "none",
-                boxShadow: "0 4px 18px rgba(255,198,51,0.28)",
-                transition: "background 0.18s, box-shadow 0.18s",
-              }}
+              className="tracked-label flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg bg-gold-400 px-5 py-3.5 text-center text-xs font-bold text-navy-950 transition hover:bg-gold-300"
             >
-              <MdPersonAdd style={{ width: 17, height: 17 }} />
+              <MdPersonAdd className="h-[17px] w-[17px]" />
               Create Free Account
             </Link>
 
@@ -183,29 +133,17 @@ export default function AuthGateModal({ isOpen, onClose }) {
               href="/auth"
               onClick={onClose}
               id="auth-gate-login-btn"
-              className="ag-btn-secondary"
-              style={{
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                width: "100%", padding: "12px 20px",
-                background: "transparent",
-                color: "#c2bdb4",
-                border: "1px solid rgba(255,255,255,0.1)",
-                borderRadius: 11,
-                fontSize: 12.5, fontWeight: 600,
-                letterSpacing: "0.1em", textTransform: "uppercase",
-                textDecoration: "none",
-                transition: "background 0.18s, border-color 0.18s, color 0.18s",
-              }}
+              className="tracked-label flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg border border-navy-700/60 px-5 py-3 text-center text-xs font-semibold text-cream transition hover:border-gold-500/40 hover:bg-gold-500/10 hover:text-gold-400"
             >
-              <MdLogin style={{ width: 17, height: 17 }} />
+              <MdLogin className="h-[17px] w-[17px]" />
               Sign In
             </Link>
           </div>
 
           {/* Terms */}
-          <p style={{ marginTop: 16, textAlign: "center", fontSize: 11.5, color: "#6b7280", lineHeight: 1.5 }}>
+          <p className="mt-4 text-center text-[11.5px] leading-relaxed text-muted/80">
             By continuing, you agree to our{" "}
-            <Link href="/legal" onClick={onClose} style={{ color: "#ffc633", textDecoration: "none" }}>
+            <Link href="/legal" onClick={onClose} className="text-gold-400 no-underline">
               Terms &amp; Privacy
             </Link>
             .

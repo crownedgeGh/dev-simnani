@@ -17,6 +17,8 @@ import {
 } from "react-icons/md";
 import { formatPostedDate } from "@/lib/properties";
 import { useSavedPropertyIds } from "@/lib/savedProperties";
+import { useAuth } from "@/context/AuthContext";
+import AuthGateModal from "@/components/auth/AuthGateModal";
 
 const FALLBACK_MOBILE = "+91 98765 43210";
 
@@ -30,13 +32,19 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
   const [numberRevealed, setNumberRevealed] = useState(false);
   const [numberEntered, setNumberEntered] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showAuthGate, setShowAuthGate] = useState(false);
   const postedLabel = formatPostedDate(property);
   const { isSaved, toggle } = useSavedPropertyIds();
+  const { isAuthenticated } = useAuth();
   const saved = isSaved(id);
 
   function handleContactClick(e) {
     e.preventDefault();
     e.stopPropagation();
+    if (!isAuthenticated) {
+      setShowAuthGate(true);
+      return;
+    }
     setShowToast(true);
     setTimeout(() => setShowToast(false), 2500);
   }
@@ -44,12 +52,20 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
   function handleCallPerson(e) {
     e.preventDefault();
     e.stopPropagation();
+    if (!isAuthenticated) {
+      setShowAuthGate(true);
+      return;
+    }
     window.location.href = `tel:${phone.replace(/\s+/g, "")}`;
   }
 
   function handleShowNumber(e) {
     e.preventDefault();
     e.stopPropagation();
+    if (!isAuthenticated) {
+      setShowAuthGate(true);
+      return;
+    }
     setNumberRevealed(true);
     requestAnimationFrame(() => setNumberEntered(true));
   }
@@ -73,6 +89,7 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
   }
 
   return (
+    <>
     <Link
       href={`/property/${id}`}
       className="group flex h-full flex-col overflow-hidden rounded-sm border border-navy-700/60 bg-navy-900 transition active:border-gold-500/50 active:shadow-[0_0_0_1px_var(--color-gold-500)] hover:border-gold-500/50 hover:shadow-[0_0_0_1px_var(--color-gold-500)]"
@@ -225,5 +242,12 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
         </div>
       )}
     </Link>
+    <AuthGateModal
+      isOpen={showAuthGate}
+      onClose={() => setShowAuthGate(false)}
+      title="Contact This Property"
+      subtitle="Sign in or create a free account to view contact details and connect with the owner."
+    />
+    </>
   );
 }

@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { MdCall, MdContentCopy, MdCheck, MdShare } from "react-icons/md";
+import { useAuth } from "@/context/AuthContext";
+import AuthGateModal from "@/components/auth/AuthGateModal";
 
 const FALLBACK_MOBILE = "+91 98765 43210";
 
@@ -9,6 +11,8 @@ export default function PropertyActionCard({ propertyId, contactName, contactRol
   const [shareUrl, setShareUrl] = useState("");
   const [copied, setCopied] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const [showAuthGate, setShowAuthGate] = useState(false);
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -21,8 +25,19 @@ export default function PropertyActionCard({ propertyId, contactName, contactRol
   const initial = (contactName || "A").trim().charAt(0).toUpperCase();
 
   function handleInterested() {
+    if (!isAuthenticated) {
+      setShowAuthGate(true);
+      return;
+    }
     setShowToast(true);
     setTimeout(() => setShowToast(false), 2500);
+  }
+
+  function handleCallNow(e) {
+    if (!isAuthenticated) {
+      e.preventDefault();
+      setShowAuthGate(true);
+    }
   }
 
   async function handleCopy() {
@@ -53,6 +68,7 @@ export default function PropertyActionCard({ propertyId, contactName, contactRol
         </button>
         <a
           href={`tel:${phone.replace(/\s+/g, "")}`}
+          onClick={handleCallNow}
           className="tracked-label flex items-center justify-center gap-2 border border-navy-700/60 px-6 py-4 text-center text-xs text-cream transition hover:border-gold-400"
         >
           <MdCall className="h-4 w-4 shrink-0 text-gold-400" />
@@ -103,6 +119,13 @@ export default function PropertyActionCard({ propertyId, contactName, contactRol
           </div>
         </div>
       )}
+
+      <AuthGateModal
+        isOpen={showAuthGate}
+        onClose={() => setShowAuthGate(false)}
+        title="Contact This Property"
+        subtitle="Sign in or create a free account to view contact details and connect with the owner."
+      />
     </div>
   );
 }
