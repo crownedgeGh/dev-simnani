@@ -52,7 +52,7 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }) {
   const { id } = await params;
   const property = await getPropertyById(id);
-  if (!property) return {};
+  if (!property || property.status === "Closed") return {};
 
   return {
     title: `${property.title} | Simnani Estate`,
@@ -64,7 +64,7 @@ export default async function PropertyDetailPage({ params }) {
   const { id } = await params;
   const property = await getPropertyById(id);
 
-  if (!property) {
+  if (!property || property.status === "Closed") {
     notFound();
   }
 

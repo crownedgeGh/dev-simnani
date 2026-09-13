@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
 import { inputClass, selectClass } from "@/components/auth/inputStyles";
@@ -95,12 +96,12 @@ const INITIAL_FORM = {
 };
 
 export default function PostPropertyForm({ editId }) {
+  const router = useRouter();
   const [propertyId, setPropertyId] = useState("");
   const [form, setForm] = useState(INITIAL_FORM);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [uploadStatus, setUploadStatus] = useState("");
-  const [submittedId, setSubmittedId] = useState("");
   const [loadingProperty, setLoadingProperty] = useState(!!editId);
   const [originalAddedDate, setOriginalAddedDate] = useState("");
 
@@ -296,9 +297,8 @@ export default function PostPropertyForm({ editId }) {
       if (!res.ok || !data.success) {
         throw new Error(data.error || "Submission failed");
       }
-      setSubmitting(false);
       toast.success(editId ? "Property updated successfully." : "Property submitted successfully.");
-      setSubmittedId(propertyId);
+      router.push("/portal/common-person");
     } catch (err) {
       console.error("PostPropertyForm submit error:", err);
       setSubmitting(false);
@@ -308,74 +308,10 @@ export default function PostPropertyForm({ editId }) {
     }
   }
 
-  function handleReset() {
-    setForm(INITIAL_FORM);
-    setPropertyId(generateAccountId("PROP"));
-    setSubmittedId("");
-    setError("");
-  }
-
   if (loadingProperty) {
     return (
       <div className="border border-navy-700/60 bg-navy-900 px-6 py-16 text-center">
         <p className="text-muted">Loading property details…</p>
-      </div>
-    );
-  }
-
-  if (submittedId) {
-    return (
-      <div className="flex flex-col items-center gap-6 border border-navy-700/60 bg-navy-900 p-8 text-center sm:p-10">
-        <span className="flex h-16 w-16 items-center justify-center rounded-full border border-gold-400 text-3xl text-gold-400">
-          ✓
-        </span>
-        <div>
-          <h1 className="font-display text-2xl text-cream sm:text-3xl">
-            {editId ? "Property Updated Successfully" : "Property Submitted Successfully"}
-          </h1>
-          <p className="mt-2 text-sm text-muted">
-            {editId
-              ? "Your changes have been saved and the listing has been sent back for review."
-              : "Your property is under review. Our team will verify the details and get in touch shortly."}
-          </p>
-        </div>
-        <div className="w-full border border-navy-700/60 bg-navy-950 p-4">
-          <p className="tracked-label text-xs text-muted">Property ID</p>
-          <p className="mt-2 font-display text-lg tracking-widest text-gold-400">{submittedId}</p>
-        </div>
-        <div className="flex w-full flex-col gap-3">
-          {editId ? (
-            <Link
-              href={`/property/${submittedId}`}
-              className="tracked-label bg-gold-400 px-6 py-4 text-center text-xs text-navy-950 transition hover:bg-gold-300"
-            >
-              View Listing
-            </Link>
-          ) : (
-            <Link
-              href="/"
-              className="tracked-label bg-gold-400 px-6 py-4 text-center text-xs text-navy-950 transition hover:bg-gold-300"
-            >
-              Return Home
-            </Link>
-          )}
-          {editId ? (
-            <Link
-              href="/portal/common-person"
-              className="tracked-label border border-navy-700/60 px-6 py-4 text-center text-xs text-cream transition hover:border-gold-400"
-            >
-              Back to My Listings
-            </Link>
-          ) : (
-            <button
-              type="button"
-              onClick={handleReset}
-              className="tracked-label border border-navy-700/60 px-6 py-4 text-xs text-cream transition hover:border-gold-400"
-            >
-              Post Another Property
-            </button>
-          )}
-        </div>
       </div>
     );
   }

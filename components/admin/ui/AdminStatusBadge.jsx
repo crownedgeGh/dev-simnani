@@ -4,6 +4,7 @@ const STATUS_COLORS = {
   Active: "bg-emerald-50 text-emerald-700 border-emerald-200",
   "Pending Review": "bg-amber-50 text-amber-700 border-amber-200",
   Rejected: "bg-red-50 text-red-600 border-red-200",
+  Closed: "bg-gray-100 text-gray-500 border-gray-200",
   Live: "bg-emerald-50 text-emerald-700 border-emerald-200",
   // User statuses
   Suspended: "bg-red-50 text-red-600 border-red-200",

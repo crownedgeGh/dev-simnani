@@ -9,6 +9,8 @@ import {
   MdDelete,
   MdCheckCircle,
   MdCancel,
+  MdLockOutline,
+  MdLockOpen,
   MdBed,
   MdBathtub,
   MdSquareFoot,
@@ -126,6 +128,12 @@ export default function PropertyDetailPage() {
     toast.success("Property updated successfully");
   };
 
+  const STATUS_MESSAGES = {
+    Active: "Property approved",
+    Rejected: "Property rejected",
+    Closed: "Listing closed — hidden from public site",
+  };
+
   const handleStatusChange = async (status) => {
     setStatusUpdating(true);
     try {
@@ -137,7 +145,7 @@ export default function PropertyDetailPage() {
       const json = await res.json();
       if (json.success && json.data) {
         setProperty(json.data);
-        toast.success(status === "Active" ? "Property approved" : "Property rejected");
+        toast.success(STATUS_MESSAGES[status] || "Status updated");
         setStatusUpdating(false);
         return;
       }
@@ -148,7 +156,7 @@ export default function PropertyDetailPage() {
       const res = await adminAxios.patch(`/admin/properties/${id}`, { status });
       const updated = res.data.data.find((p) => p.id === id);
       setProperty(updated);
-      toast.success(status === "Active" ? "Property approved" : "Property rejected");
+      toast.success(STATUS_MESSAGES[status] || "Status updated");
     } catch {
       toast.error("Failed to update status");
     } finally {
@@ -352,6 +360,23 @@ export default function PropertyDetailPage() {
                   <MdCancel size={16} /> Reject
                 </button>
               </div>
+              {property.status === "Closed" ? (
+                <button
+                  onClick={() => handleStatusChange("Active")}
+                  disabled={statusUpdating}
+                  className="flex h-12 items-center justify-center gap-1.5 rounded-xl border border-[#e8e0d5] bg-white text-sm font-medium text-[#374151] transition hover:bg-[#faf8f5] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <MdLockOpen size={16} /> Reopen Listing
+                </button>
+              ) : (
+                <button
+                  onClick={() => handleStatusChange("Closed")}
+                  disabled={statusUpdating}
+                  className="flex h-12 items-center justify-center gap-1.5 rounded-xl border border-[#e8e0d5] bg-white text-sm font-medium text-[#374151] transition hover:bg-[#faf8f5] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <MdLockOutline size={16} /> Close Listing
+                </button>
+              )}
               <button
                 onClick={() => router.push(`/admin/properties/${id}/edit`)}
                 className="flex h-12 items-center justify-center gap-1.5 rounded-xl border border-[#e8e0d5] bg-white text-sm font-medium text-[#374151] transition hover:bg-[#faf8f5]"
