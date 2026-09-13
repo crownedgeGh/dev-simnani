@@ -43,10 +43,22 @@ const COLUMNS = [
 ];
 
 const SOCIALS = [
-  { label: "Facebook", Icon: FaFacebookF },
-  { label: "Instagram", Icon: FaInstagram },
-  { label: "X", Icon: FaXTwitter },
-  { label: "LinkedIn", Icon: FaLinkedinIn },
+  {
+    label: "Facebook",
+    Icon: FaFacebookF,
+    href: "https://www.facebook.com/profile.php?id=61571000980523",
+  },
+  {
+    label: "Instagram",
+    Icon: FaInstagram,
+    href: "https://www.instagram.com/simnani.groups/",
+  },
+  { label: "X", Icon: FaXTwitter, href: "https://x.com/simnanigroups" },
+  {
+    label: "LinkedIn",
+    Icon: FaLinkedinIn,
+    href: "https://www.linkedin.com/in/simnanigroups-raipur-303721428/",
+  },
 ];
 
 export default function Footer() {
@@ -69,10 +81,12 @@ export default function Footer() {
               sought-after cities.
             </p>
             <div className="mt-6 flex items-center gap-4">
-              {SOCIALS.map(({ label, Icon }) => (
+              {SOCIALS.map(({ label, Icon, href }) => (
                 <a
                   key={label}
-                  href="#"
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   aria-label={label}
                   className="flex h-8 w-8 items-center justify-center rounded-full border border-navy-600 text-muted transition hover:border-gold-500 hover:text-gold-400"
                 >
