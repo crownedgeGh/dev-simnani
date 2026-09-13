@@ -1,14 +1,8 @@
-import { Playfair_Display, Inter, Open_Sans } from "next/font/google";
+import { Inter, Open_Sans } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import PublicShell from "@/components/layout/PublicShell";
-
-const playfair = Playfair_Display({
-  variable: "--font-playfair",
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
-});
 
 const inter = Inter({
   variable: "--font-inter",
@@ -36,7 +30,7 @@ export default function RootLayout({ children }) {
   return (
     <html
       lang="en"
-      className={`${playfair.variable} ${inter.variable} ${openSans.variable} h-full antialiased`}
+      className={`${inter.variable} ${openSans.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-navy-950 text-cream">
         <AuthProvider>

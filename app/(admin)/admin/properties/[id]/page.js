@@ -37,31 +37,15 @@ import {
   MdPerson,
   MdPhone,
   MdLocalOffer,
-  MdSecurity,
-  MdElevator,
-  MdSmartToy,
-  MdYard,
-  MdSpa,
-  MdPower,
+  MdWeekend,
 } from "react-icons/md";
-
-const AMENITY_ICONS = {
-  "24/7 Security": MdSecurity,
-  "Private Lift": MdElevator,
-  "Smart Home Automation": MdSmartToy,
-  "Landscaped Gardens": MdYard,
-  "Clubhouse & Spa": MdSpa,
-  "Power Backup": MdPower,
-  "Covered Parking": MdLocalParking,
-  "High-Speed Elevators": MdElevator,
-};
 import AdminStatusBadge from "@/components/admin/ui/AdminStatusBadge";
 import AdminConfirmModal from "@/components/admin/ui/AdminConfirmModal";
 import PropertyFormDialog from "@/components/admin/properties/PropertyFormDialog";
 import adminAxios from "@/lib/adminAxios";
 import { ADMIN_KEYS, readCollection } from "@/lib/adminStorage";
 import { formatPostedDate } from "@/lib/properties";
-import { AMENITIES, NEARBY_PLACES, getPropertyDescription } from "@/lib/propertyContent";
+import { getPropertyDescription } from "@/lib/propertyContent";
 import BlurredImageFrame from "@/components/property/BlurredImageFrame";
 
 function capitalize(value) {
@@ -203,6 +187,17 @@ export default function PropertyDetailPage() {
 
   const isInvest = property.type === "invest";
 
+  const features = [
+    property.parking?.toLowerCase() === "yes" && {
+      icon: <MdLocalParking />,
+      label: "Parking Available",
+    },
+    property.furnishing && property.furnishing !== "Unfurnished" && {
+      icon: <MdWeekend />,
+      label: property.furnishing,
+    },
+  ].filter(Boolean);
+
   return (
     <div>
       {/* Back */}
@@ -257,41 +252,24 @@ export default function PropertyDetailPage() {
             </p>
           </section>
 
-          <section className="mt-10">
-            <h2 className="text-xl font-bold text-[#1a1a2e]">Property Features</h2>
-            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
-              {AMENITIES.map((amenity) => {
-                const AmenityIcon = AMENITY_ICONS[amenity] || MdCheckCircle;
-                return (
+          {features.length > 0 && (
+            <section className="mt-10">
+              <h2 className="text-xl font-bold text-[#1a1a2e]">Property Features</h2>
+              <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+                {features.map(({ icon, label }) => (
                   <div
-                    key={amenity}
+                    key={label}
                     className="flex items-center gap-2 rounded-2xl border border-[#e8e0d5] bg-white p-3 transition hover:border-[#f0b429]/50 sm:gap-3 sm:p-4"
                   >
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#fff8e1] text-sm text-[#d97706] sm:h-9 sm:w-9 sm:text-base">
-                      <AmenityIcon />
+                      {icon}
                     </span>
-                    <span className="text-xs font-medium text-[#374151] sm:text-sm">{amenity}</span>
+                    <span className="text-xs font-medium text-[#374151] sm:text-sm">{label}</span>
                   </div>
-                );
-              })}
-            </div>
-          </section>
-
-          <section className="mt-10">
-            <h2 className="text-xl font-bold text-[#1a1a2e]">Location & Surroundings</h2>
-            <p className="mt-2 text-sm text-[#9ca3af]">{property.location}</p>
-            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {NEARBY_PLACES.map((place) => (
-                <div
-                  key={place.label}
-                  className="flex items-center justify-between rounded-xl border border-[#e8e0d5] bg-white px-4 py-3 text-sm"
-                >
-                  <span className="text-[#374151]">{place.label}</span>
-                  <span className="text-[#9ca3af]">{place.distance}</span>
-                </div>
-              ))}
-            </div>
-          </section>
+                ))}
+              </div>
+            </section>
+          )}
 
           <section className="mt-10">
             <h2 className="text-xl font-bold text-[#1a1a2e]">Property Information</h2>

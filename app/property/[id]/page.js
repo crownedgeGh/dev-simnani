@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { getPropertyById } from "@/lib/propertiesServer";
 import { formatPostedDate } from "@/lib/properties";
-import { AMENITIES, NEARBY_PLACES, getPropertyDescription } from "@/lib/propertyContent";
+import { getPropertyDescription } from "@/lib/propertyContent";
 import PropertyOwnerActions from "@/components/property/PropertyOwnerActions";
 import PropertyMediaCarousel from "@/components/property/PropertyMediaCarousel";
 import {
@@ -27,25 +27,8 @@ import {
   MdAccessTime,
   MdPerson,
   MdPhone,
-  MdSecurity,
-  MdElevator,
-  MdSmartToy,
-  MdYard,
-  MdSpa,
-  MdPower,
-  MdCheckCircle,
+  MdWeekend,
 } from "react-icons/md";
-
-const AMENITY_ICONS = {
-  "24/7 Security": MdSecurity,
-  "Private Lift": MdElevator,
-  "Smart Home Automation": MdSmartToy,
-  "Landscaped Gardens": MdYard,
-  "Clubhouse & Spa": MdSpa,
-  "Power Backup": MdPower,
-  "Covered Parking": MdLocalParking,
-  "High-Speed Elevators": MdElevator,
-};
 
 export const dynamic = "force-dynamic";
 
@@ -91,6 +74,17 @@ export default async function PropertyDetailPage({ params }) {
     { icon: <MdPhone />, label: "Contact Number", value: property.contact?.mobile },
   ].filter((row) => row.value !== undefined && row.value !== null && row.value !== "");
 
+  const features = [
+    property.parking?.toLowerCase() === "yes" && {
+      icon: <MdLocalParking />,
+      label: "Parking Available",
+    },
+    property.furnishing && property.furnishing !== "Unfurnished" && {
+      icon: <MdWeekend />,
+      label: property.furnishing,
+    },
+  ].filter(Boolean);
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
       <PropertyMediaCarousel
@@ -130,25 +124,24 @@ export default async function PropertyDetailPage({ params }) {
             </p>
           </section>
 
-          <section className="mt-10">
-            <h2 className="font-display text-xl text-cream">Property Features</h2>
-            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
-              {AMENITIES.map((amenity) => {
-                const AmenityIcon = AMENITY_ICONS[amenity] || MdCheckCircle;
-                return (
+          {features.length > 0 && (
+            <section className="mt-10">
+              <h2 className="font-display text-xl text-cream">Property Features</h2>
+              <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+                {features.map(({ icon, label }) => (
                   <div
-                    key={amenity}
+                    key={label}
                     className="flex items-center gap-2 border border-navy-700/60 bg-navy-900 p-3 transition hover:border-gold-500/50 sm:gap-3 sm:p-4"
                   >
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gold-400/10 text-sm text-gold-400 sm:h-9 sm:w-9 sm:text-base">
-                      <AmenityIcon />
+                      {icon}
                     </span>
-                    <span className="text-xs font-medium text-cream/90 sm:text-sm">{amenity}</span>
+                    <span className="text-xs font-medium text-cream/90 sm:text-sm">{label}</span>
                   </div>
-                );
-              })}
-            </div>
-          </section>
+                ))}
+              </div>
+            </section>
+          )}
 
           {infoRows.length > 0 && (
             <section className="mt-10">
@@ -172,21 +165,6 @@ export default async function PropertyDetailPage({ params }) {
             </section>
           )}
 
-          <section className="mt-10">
-            <h2 className="font-display text-xl text-cream">Location & Surroundings</h2>
-            <p className="mt-2 text-sm text-muted">{property.location}</p>
-            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {NEARBY_PLACES.map((place) => (
-                <div
-                  key={place.label}
-                  className="flex items-center justify-between border border-navy-700/60 bg-navy-900 px-4 py-3 text-sm"
-                >
-                  <span className="text-cream/80">{place.label}</span>
-                  <span className="text-muted">{place.distance}</span>
-                </div>
-              ))}
-            </div>
-          </section>
         </div>
 
         <div className="lg:col-span-1">
