@@ -20,7 +20,7 @@ import { useSavedPropertyIds } from "@/lib/savedProperties";
 
 const FALLBACK_MOBILE = "+91 98765 43210";
 
-export default function PropertyCard({ property, hideContactButton }) {
+export default function PropertyCard({ property, hideContactButton, emphasizeDetails }) {
   const { id, title, price, location, image, badge, beds, baths, area, roi, type, address, contact } =
     property;
   const isInvest = type === "invest";
@@ -119,25 +119,37 @@ export default function PropertyCard({ property, hideContactButton }) {
           )}
         </div>
 
-        <div className="mt-4 flex items-center gap-4 text-xs text-muted">
+        <div
+          className={`mt-4 flex items-center gap-4 text-muted ${
+            emphasizeDetails ? "text-sm" : "text-xs"
+          }`}
+        >
           {isInvest ? (
             <span>{roi}</span>
           ) : (
             <>
               {beds > 0 && (
-                <span className="flex items-center gap-1">
-                  <MdBed className="h-3.5 w-3.5 shrink-0" />
-                  {beds} Beds
+                <span
+                  className={`flex items-center gap-1 ${
+                    emphasizeDetails ? "font-semibold text-cream" : ""
+                  }`}
+                >
+                  <MdBed className={emphasizeDetails ? "h-4 w-4 shrink-0" : "h-3.5 w-3.5 shrink-0"} />
+                  {beds} {emphasizeDetails ? "BHK" : "Beds"}
                 </span>
               )}
-              {baths > 0 && (
+              {!emphasizeDetails && baths > 0 && (
                 <span className="flex items-center gap-1">
                   <MdBathtub className="h-3.5 w-3.5 shrink-0" />
                   {baths} Baths
                 </span>
               )}
-              <span className="flex items-center gap-1">
-                <MdSquareFoot className="h-3.5 w-3.5 shrink-0" />
+              <span
+                className={`flex items-center gap-1 ${
+                  emphasizeDetails ? "font-semibold text-cream" : ""
+                }`}
+              >
+                <MdSquareFoot className={emphasizeDetails ? "h-4 w-4 shrink-0" : "h-3.5 w-3.5 shrink-0"} />
                 {area}
               </span>
             </>

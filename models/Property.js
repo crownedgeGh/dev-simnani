@@ -56,7 +56,8 @@ const PropertySchema = new mongoose.Schema(
     },
     baths: {
       type: Number,
-      default: 0,
+      required: [true, "Number of bathrooms is required"],
+      min: [1, "Number of bathrooms must be at least 1"],
     },
     area: {
       type: String,

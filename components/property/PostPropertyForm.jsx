@@ -78,6 +78,8 @@ const INITIAL_FORM = {
   negotiable: "",
   areaSize: "",
   areaUnit: "sq ft",
+  beds: "",
+  baths: "",
   floorNo: "",
   totalFloors: "",
   furnishing: "",
@@ -139,6 +141,8 @@ export default function PostPropertyForm({ editId }) {
           negotiable: p.negotiable || "",
           areaSize: p.areaSize ? String(p.areaSize) : "",
           areaUnit: p.areaUnit || "sq ft",
+          beds: p.beds !== undefined && p.beds !== null ? String(p.beds) : "",
+          baths: p.baths !== undefined && p.baths !== null ? String(p.baths) : "",
           floorNo: p.floorNo || "",
           totalFloors: p.totalFloors ? String(p.totalFloors) : "",
           furnishing: p.furnishing || "",
@@ -190,6 +194,9 @@ export default function PostPropertyForm({ editId }) {
       !form.locality.trim() ||
       !form.price ||
       !form.areaSize ||
+      (isResidential && (!form.beds || Number(form.beds) < 1)) ||
+      !form.baths ||
+      Number(form.baths) < 1 ||
       !form.fullName.trim() ||
       !isMobileValid(form.mobile)
     ) {
@@ -260,8 +267,8 @@ export default function PostPropertyForm({ editId }) {
         area: `${form.areaSize || 0} ${form.areaUnit || "sq ft"}`,
         areaSize: Number(form.areaSize) || 0,
         areaUnit: form.areaUnit || "sq ft",
-        beds: Number(form.beds) || 0,
-        baths: Number(form.baths) || 0,
+        beds: isResidential ? Number(form.beds) : 0,
+        baths: Number(form.baths),
         floorNo: form.floorNo || "",
         totalFloors: form.totalFloors ? Number(form.totalFloors) : null,
         furnishing: form.furnishing || "",
@@ -482,6 +489,32 @@ export default function PostPropertyForm({ editId }) {
               ))}
             </select>
           </div>
+        </FormField>
+        {isResidential && (
+          <FormField label="No. of Bedrooms (BHK)" htmlFor="beds" required>
+            <input
+              id="beds"
+              type="number"
+              min="1"
+              autoComplete="off"
+              placeholder="e.g. 2"
+              value={form.beds}
+              onChange={(e) => update("beds", e.target.value)}
+              className={inputClass}
+            />
+          </FormField>
+        )}
+        <FormField label="No. of Bathrooms" htmlFor="baths" required>
+          <input
+            id="baths"
+            type="number"
+            min="1"
+            autoComplete="off"
+            placeholder="e.g. 2"
+            value={form.baths}
+            onChange={(e) => update("baths", e.target.value)}
+            className={inputClass}
+          />
         </FormField>
         <FormField label="Floor No." htmlFor="floorNo" optional>
           <input

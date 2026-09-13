@@ -272,6 +272,9 @@ export default function AdminAddPropertyForm() {
     if (!form.locality.trim()) errs.locality = "Area / Locality is required";
     if (!form.price || Number(form.price) <= 0) errs.price = "Valid price is required";
     if (!form.areaSize || Number(form.areaSize) <= 0) errs.areaSize = "Area size is required";
+    if (!form.baths || Number(form.baths) < 1) errs.baths = "Number of bathrooms is required";
+    if (!CATEGORIES_BY_TYPE[form.type] && (!form.beds || Number(form.beds) < 1))
+      errs.beds = "Number of bedrooms (BHK) is required";
     if (!form.fullName.trim()) errs.fullName = "Contact name is required";
     const cleanMobile = form.mobile.replace(/\s+/g, "");
     if (!cleanMobile || cleanMobile.length !== 10) {
@@ -346,8 +349,8 @@ export default function AdminAddPropertyForm() {
         area: `${form.areaSize} ${form.areaUnit}`,
         areaSize: Number(form.areaSize),
         areaUnit: form.areaUnit,
-        beds: Number(form.beds) || 0,
-        baths: Number(form.baths) || 0,
+        beds: CATEGORIES_BY_TYPE[form.type] ? 0 : Number(form.beds),
+        baths: Number(form.baths),
         floorNo: form.floorNo,
         totalFloors: form.totalFloors ? Number(form.totalFloors) : null,
         furnishing: form.furnishing,
@@ -791,11 +794,16 @@ export default function AdminAddPropertyForm() {
 
             {/* Bedrooms */}
             <div>
-              <AdminFormField label="Bedrooms (BHK)" id="prop-beds">
+              <AdminFormField
+                label="Bedrooms (BHK)"
+                id="prop-beds"
+                required={!CATEGORIES_BY_TYPE[form.type]}
+                error={errors.beds}
+              >
                 <input
                   id="prop-beds"
                   type="number"
-                  min="0"
+                  min="1"
                   value={form.beds}
                   onChange={(e) => update("beds", e.target.value)}
                   placeholder="e.g. 3"
@@ -806,11 +814,11 @@ export default function AdminAddPropertyForm() {
 
             {/* Bathrooms */}
             <div>
-              <AdminFormField label="Bathrooms" id="prop-baths">
+              <AdminFormField label="Bathrooms" id="prop-baths" required error={errors.baths}>
                 <input
                   id="prop-baths"
                   type="number"
-                  min="0"
+                  min="1"
                   value={form.baths}
                   onChange={(e) => update("baths", e.target.value)}
                   placeholder="e.g. 2"

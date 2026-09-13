@@ -1,6 +1,6 @@
 import PropertyCard from "./PropertyCard";
 
-export default function PropertyGrid({ properties, emptyMessage, hideContactButton }) {
+export default function PropertyGrid({ properties, emptyMessage, hideContactButton, emphasizeDetails }) {
   if (!properties || properties.length === 0) {
     return (
       <div className="rounded-sm border border-navy-700/60 bg-navy-900 px-6 py-16 text-center">
@@ -14,7 +14,12 @@ export default function PropertyGrid({ properties, emptyMessage, hideContactButt
   return (
     <div className="grid grid-cols-1 items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {properties.map((property) => (
-        <PropertyCard key={property.id} property={property} hideContactButton={hideContactButton} />
+        <PropertyCard
+          key={property.id}
+          property={property}
+          hideContactButton={hideContactButton}
+          emphasizeDetails={emphasizeDetails}
+        />
       ))}
     </div>
   );

@@ -25,6 +25,7 @@ export default async function BuyPage() {
           properties={properties}
           pricingMode="sale"
           emptyMessage="No properties available for sale right now. Check back soon."
+          emphasizeDetails
         />
       </div>
     </div>

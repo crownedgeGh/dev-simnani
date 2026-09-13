@@ -3,6 +3,8 @@ import dbConnect from "@/lib/mongodb";
 import Property from "@/models/Property";
 import { getLocationCity } from "@/lib/properties";
 
+const NO_BHK_TYPES = ["commercial", "farming", "industrial", "invest"];
+
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
@@ -44,8 +46,26 @@ export async function PUT(request, { params }) {
     if (updateData.location && !updateData.city) {
       updateData.city = getLocationCity(updateData.location) || "Other";
     }
-    if (updateData.beds !== undefined) updateData.beds = Number(updateData.beds) || 0;
-    if (updateData.baths !== undefined) updateData.baths = Number(updateData.baths) || 0;
+    if (updateData.beds !== undefined) {
+      const beds = Number(updateData.beds) || 0;
+      if (!NO_BHK_TYPES.includes(updateData.type) && beds < 1) {
+        return NextResponse.json(
+          { success: false, error: "Number of bedrooms (BHK) is required" },
+          { status: 400 }
+        );
+      }
+      updateData.beds = beds;
+    }
+    if (updateData.baths !== undefined) {
+      const baths = Number(updateData.baths);
+      if (!baths || baths < 1) {
+        return NextResponse.json(
+          { success: false, error: "Number of bathrooms is required" },
+          { status: 400 }
+        );
+      }
+      updateData.baths = baths;
+    }
 
     const updated = await Property.findOneAndUpdate(
       { $or: [{ id }, { _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null }] },

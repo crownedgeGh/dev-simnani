@@ -3,6 +3,8 @@ import dbConnect from "@/lib/mongodb";
 import Property from "@/models/Property";
 import { getLocationCity } from "@/lib/properties";
 
+const NO_BHK_TYPES = ["commercial", "farming", "industrial", "invest"];
+
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
@@ -73,6 +75,22 @@ export async function POST(request) {
 
     const body = await request.json();
 
+    const baths = Number(body.baths);
+    if (!baths || baths < 1) {
+      return NextResponse.json(
+        { success: false, error: "Number of bathrooms is required" },
+        { status: 400 }
+      );
+    }
+
+    const beds = Number(body.beds) || 0;
+    if (!NO_BHK_TYPES.includes(body.type) && beds < 1) {
+      return NextResponse.json(
+        { success: false, error: "Number of bedrooms (BHK) is required" },
+        { status: 400 }
+      );
+    }
+
     const id = body.id || `PROP-${Date.now()}`;
     const city = body.city || (body.location ? getLocationCity(body.location) : "") || "Other";
 
@@ -80,8 +98,8 @@ export async function POST(request) {
       ...body,
       id,
       city,
-      beds: Number(body.beds) || 0,
-      baths: Number(body.baths) || 0,
+      beds,
+      baths,
       addedDate:
         body.addedDate ||
         new Date().toLocaleDateString("en-IN", {

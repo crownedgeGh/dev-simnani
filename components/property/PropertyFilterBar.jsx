@@ -14,7 +14,7 @@ import {
 const filterFieldClass =
   "h-11 w-full rounded-sm border border-navy-700/60 bg-navy-950 px-3 text-sm text-cream outline-none transition focus:border-gold-400 sm:h-12";
 
-export default function PropertyFilterBar({ properties, pricingMode = "sale", emptyMessage }) {
+export default function PropertyFilterBar({ properties, pricingMode = "sale", emptyMessage, emphasizeDetails }) {
   const [search, setSearch] = useState("");
   const [city, setCity] = useState("");
   const [budget, setBudget] = useState("");
@@ -168,7 +168,7 @@ export default function PropertyFilterBar({ properties, pricingMode = "sale", em
       </p>
 
       <div className="mt-4">
-        <PropertyGrid properties={filtered} emptyMessage={emptyMessage} />
+        <PropertyGrid properties={filtered} emptyMessage={emptyMessage} emphasizeDetails={emphasizeDetails} />
       </div>
     </div>
   );

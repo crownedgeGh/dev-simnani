@@ -25,6 +25,7 @@ export default async function RentPage() {
           properties={properties}
           pricingMode="rent"
           emptyMessage="No rental properties available right now. Check back soon."
+          emphasizeDetails
         />
       </div>
     </div>

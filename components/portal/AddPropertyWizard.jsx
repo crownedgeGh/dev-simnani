@@ -70,7 +70,10 @@ export default function AddPropertyWizard() {
       setError("Please select a property type.");
       return;
     }
-    if (step === 2 && (!form.title.trim() || !form.city.trim() || !form.price || !form.area)) {
+    if (
+      step === 2 &&
+      (!form.title.trim() || !form.city.trim() || !form.price || !form.area || !form.bathrooms || !form.bedrooms)
+    ) {
       setError("Please fill in all required fields.");
       return;
     }
@@ -223,7 +226,7 @@ export default function AddPropertyWizard() {
                 className={inputClass}
               />
             </FormField>
-            <FormField label="Bedrooms" htmlFor="bedrooms" optional>
+            <FormField label="Bedrooms" htmlFor="bedrooms" required>
               <select
                 id="bedrooms"
                 value={form.bedrooms}
@@ -238,7 +241,7 @@ export default function AddPropertyWizard() {
                 ))}
               </select>
             </FormField>
-            <FormField label="Bathrooms" htmlFor="bathrooms" optional>
+            <FormField label="Bathrooms" htmlFor="bathrooms" required>
               <select
                 id="bathrooms"
                 value={form.bathrooms}

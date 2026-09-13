@@ -468,6 +468,9 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
     if (!form.locality.trim()) errs.locality = "Area / Locality is required";
     if (!form.price || Number(form.price) <= 0) errs.price = "Valid price is required";
     if (!form.areaSize || Number(form.areaSize) <= 0) errs.areaSize = "Area size is required";
+    if (!form.baths || Number(form.baths) < 1) errs.baths = "Number of bathrooms is required";
+    if (!CATEGORIES_BY_TYPE[form.type] && (!form.beds || Number(form.beds) < 1))
+      errs.beds = "Number of bedrooms (BHK) is required";
     if (!form.fullName.trim()) errs.fullName = "Contact name is required";
     const cleanMobile = form.mobile.replace(/\s+/g, "");
     if (!cleanMobile || cleanMobile.length !== 10) {
@@ -546,8 +549,8 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
         area: `${form.areaSize} ${form.areaUnit}`,
         areaSize: Number(form.areaSize),
         areaUnit: form.areaUnit,
-        beds: Number(form.beds) || 0,
-        baths: Number(form.baths) || 0,
+        beds: CATEGORIES_BY_TYPE[form.type] ? 0 : Number(form.beds),
+        baths: Number(form.baths),
         floorNo: form.floorNo,
         totalFloors: form.totalFloors ? Number(form.totalFloors) : null,
         furnishing: form.furnishing,
@@ -972,7 +975,11 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
 
             {/* Bedrooms */}
             <div>
-              <AdminFormField label="Bedrooms (Beds)">
+              <AdminFormField
+                label="Bedrooms (BHK)"
+                required={!CATEGORIES_BY_TYPE[form.type]}
+                error={errors.beds}
+              >
                 <select
                   value={form.beds}
                   onChange={(e) => update("beds", e.target.value)}
@@ -990,7 +997,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
 
             {/* Bathrooms */}
             <div>
-              <AdminFormField label="Bathrooms (Baths)">
+              <AdminFormField label="Bathrooms (Baths)" required error={errors.baths}>
                 <select
                   value={form.baths}
                   onChange={(e) => update("baths", e.target.value)}

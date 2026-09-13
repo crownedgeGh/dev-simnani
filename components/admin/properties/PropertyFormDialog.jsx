@@ -45,6 +45,7 @@ export default function PropertyFormDialog({ isOpen, onClose, property, onSave }
     if (!form.location.trim()) errs.location = "Location is required";
     if (!form.type) errs.type = "Type is required";
     if (CATEGORIES_BY_TYPE[form.type] && !form.category) errs.category = "Category is required";
+    if (!form.baths || Number(form.baths) < 1) errs.baths = "Number of bathrooms is required";
     return errs;
   };
 
@@ -58,7 +59,7 @@ export default function PropertyFormDialog({ isOpen, onClose, property, onSave }
         ...form,
         city: form.city || (form.location ? getLocationCity(form.location) : "") || "Other",
         beds: Number(form.beds) || 0,
-        baths: Number(form.baths) || 0,
+        baths: Number(form.baths),
       });
       toast.success(isEdit ? "Property updated successfully" : "Property created successfully");
       onClose();
@@ -143,8 +144,8 @@ export default function PropertyFormDialog({ isOpen, onClose, property, onSave }
           <input id="prop-beds" type="number" min="0" value={form.beds} onChange={(e) => set("beds", e.target.value)} placeholder="e.g. 3" className={adminInputClass} />
         </AdminFormField>
 
-        <AdminFormField label="Baths" id="prop-baths">
-          <input id="prop-baths" type="number" min="0" value={form.baths} onChange={(e) => set("baths", e.target.value)} placeholder="e.g. 2" className={adminInputClass} />
+        <AdminFormField label="Baths" id="prop-baths" required error={errors.baths}>
+          <input id="prop-baths" type="number" min="1" value={form.baths} onChange={(e) => set("baths", e.target.value)} placeholder="e.g. 2" className={adminInputClass} />
         </AdminFormField>
 
         <AdminFormField label="Area" id="prop-area">
