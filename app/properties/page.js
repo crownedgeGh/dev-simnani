@@ -43,17 +43,11 @@ const CATEGORIES = [
 
 export default function PropertiesPage() {
   return (
-    <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
+    <div className="mx-auto max-w-7xl px-4 pt-6 pb-16 sm:px-6 sm:pt-8 sm:pb-20 lg:px-8 lg:pt-10 lg:pb-24">
       <div className="mx-auto max-w-2xl text-center">
-        <span className="tracked-label text-xs text-gold-400">
-          Simnani Estate&apos;s Property Marketplace
-        </span>
-        <h1 className="mt-3 font-display text-3xl text-cream sm:text-4xl lg:text-5xl">
-          What are you looking for?
+        <h1 className="font-display text-3xl text-cream sm:text-4xl lg:text-5xl">
+          Properties
         </h1>
-        <p className="mt-4 text-sm text-muted sm:text-base">
-          Choose a category below to explore verified listings.
-        </p>
       </div>
 
       <div className="mt-12 grid grid-cols-2 gap-4 sm:gap-6">

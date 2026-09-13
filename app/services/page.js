@@ -12,7 +12,6 @@ import {
   MdPublic,
   MdBusinessCenter,
   MdSupportAgent,
-  MdStars,
 } from "react-icons/md";
 
 const SERVICES = [
@@ -86,22 +85,11 @@ export const metadata = {
 
 export default function ServicesPage() {
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
+    <div className="mx-auto max-w-7xl px-4 pt-4 pb-8 sm:px-6 sm:pt-6 sm:pb-10 lg:px-8 lg:pt-8 lg:pb-12">
       <div className="max-w-2xl">
-        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-          <h1 className="font-display text-3xl text-cream sm:text-4xl lg:text-5xl">
-            Our Services
-          </h1>
-          <span className="tracked-label inline-flex items-center gap-1.5 rounded-full border border-gold-500/40 bg-gold-500/10 px-3 py-1 text-xs text-gold-400">
-            <MdStars className="h-3.5 w-3.5" />
-            What We Offer
-          </span>
-        </div>
-        <p className="mt-4 text-sm text-muted sm:text-base">
-          From your first search to long after you move in, Simnani Estate offers a complete
-          suite of real estate services designed around a single goal — a seamless, trustworthy
-          experience at every step.
-        </p>
+        <h1 className="font-display text-3xl text-cream sm:text-4xl lg:text-5xl">
+          Our Services
+        </h1>
       </div>
 
       <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">

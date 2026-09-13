@@ -9,20 +9,15 @@ export const metadata = {
     "Find retail, office and commercial spaces available on lease.",
 };
 
-export default async function LeasePage({ searchParams }) {
-  const params = await searchParams;
+export default async function LeasePage() {
   const properties = await getPropertiesByType("lease");
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-7xl px-4 pt-6 pb-16 sm:px-6 sm:pt-8 sm:pb-20 lg:px-8 lg:pt-10 lg:pb-24">
       <div className="max-w-2xl">
         <h1 className="font-display text-3xl text-cream sm:text-4xl">
           Lease Property
         </h1>
-        <p className="mt-3 text-sm text-muted sm:text-base">
-          Find retail, office and commercial spaces available on lease.
-          {params?.location ? ` Showing results near "${params.location}".` : ""}
-        </p>
       </div>
 
       <div className="mt-10">

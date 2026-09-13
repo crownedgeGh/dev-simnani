@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { getAccountPermissions } from "@/lib/accountPermissions";
 import AuthGateModal from "@/components/auth/AuthGateModal";
@@ -22,7 +22,7 @@ const TEST_MODE_CP_OPTIONS = [
 ];
 
 const NAV_LINKS = [
-  { label: "Properties", href: "/properties", icon: BiBuildingHouse },
+  { label: "Properties", href: "/properties", icon: BiBuildingHouse, matchPaths: ["/properties", "/buy", "/rent", "/sell", "/lease", "/seized-property", "/property"] },
   { label: "Invest", href: "/invest", icon: MdTrendingUp },
   { label: "Commercial", href: "/commercial", icon: BiBuildings },
   { label: "Farming Land Projects", href: "/farming", icon: MdAgriculture },
@@ -30,6 +30,14 @@ const NAV_LINKS = [
   { label: "Services", href: "/services", icon: FiSettings },
   { label: "About Us", href: "/", icon: FiInfo },
 ];
+
+/** Whether a nav link should be shown as active for the current pathname. */
+function isNavLinkActive(link, pathname) {
+  if (!pathname) return false;
+  const paths = link.matchPaths ?? [link.href];
+  if (link.href === "/") return pathname === "/";
+  return paths.some((path) => path !== "/" && (pathname === path || pathname.startsWith(`${path}/`)));
+}
 
 const ACCOUNT_TYPE_LABEL = {
   buyer: "Buyer",
@@ -493,6 +501,7 @@ export default function Navbar() {
   const [showAuthGate, setShowAuthGate] = useState(false);
   const { isAuthenticated, user, logout } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const dropdownRef = useRef(null);
 
   // Close dropdown on outside click
@@ -566,15 +575,23 @@ export default function Navbar() {
 
           {/* Desktop nav links */}
           <nav className="hidden min-w-0 flex-1 items-center justify-center gap-3.5 xl:flex xl:gap-5 2xl:gap-7">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.label}
-                href={link.href}
-                className="tracked-label whitespace-nowrap text-xs text-cream/80 transition hover:text-gold-400"
-              >
-                {link.label}
-              </Link>
-            ))}
+            {NAV_LINKS.map((link) => {
+              const active = isNavLinkActive(link, pathname);
+              return (
+                <Link
+                  key={link.label}
+                  href={link.href}
+                  className={`tracked-label relative whitespace-nowrap pb-1 text-xs transition hover:text-gold-400 ${
+                    active ? "text-gold-400" : "text-cream/80"
+                  }`}
+                >
+                  {link.label}
+                  {active && (
+                    <span className="absolute inset-x-0 -bottom-1 h-[2px] rounded-full bg-gold-400" />
+                  )}
+                </Link>
+              );
+            })}
           </nav>
 
           {/* Desktop right section */}
@@ -856,6 +873,7 @@ export default function Navbar() {
                     icon={link.icon}
                     label={link.label}
                     href={link.href}
+                    tone={isNavLinkActive(link, pathname) ? "accent" : "default"}
                     onClick={() => setMobileOpen(false)}
                   />
                 ))}
