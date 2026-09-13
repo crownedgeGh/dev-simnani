@@ -44,7 +44,7 @@ export default async function ProjectDetailPage({ params }) {
           <p className="tracked-label text-xs text-gold-400">Verified Project</p>
           <h1 className="mt-2 font-display text-3xl text-cream sm:text-4xl">{project.name}</h1>
           <p className="mt-2 text-sm text-muted">{project.location}</p>
-          <p className="mt-4 font-display text-2xl text-gold-400">{project.startingPrice}</p>
+          <p className="mt-4 font-sans text-2xl font-semibold text-gold-400">{project.startingPrice}</p>
 
           <div className="mt-6 grid grid-cols-2 gap-4 border-y border-navy-700/60 py-6 sm:grid-cols-3">
             <Stat label="Developer" value={project.developer} />

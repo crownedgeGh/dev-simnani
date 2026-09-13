@@ -145,7 +145,7 @@ function ClosedListingCard({ property, onReopen }) {
       <div className="flex flex-1 flex-col p-5">
         <h3 className="font-display text-lg text-cream">{title}</h3>
         <p className="mt-1 text-sm text-muted">{address || location}</p>
-        <p className="mt-3 font-display text-xl text-gold-400">{price}</p>
+        <p className="mt-3 font-sans text-xl font-semibold text-gold-400">{price}</p>
 
         <div className="mt-auto flex gap-3 pt-5">
           <button

@@ -3,15 +3,33 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { MdFavorite, MdFavoriteBorder, MdBed, MdBathtub, MdSquareFoot, MdLocationOn, MdAccessTime } from "react-icons/md";
+import {
+  MdFavorite,
+  MdFavoriteBorder,
+  MdBed,
+  MdBathtub,
+  MdSquareFoot,
+  MdLocationOn,
+  MdAccessTime,
+  MdCall,
+  MdContentCopy,
+  MdCheck,
+} from "react-icons/md";
 import { formatPostedDate } from "@/lib/properties";
 import { useSavedPropertyIds } from "@/lib/savedProperties";
 
+const FALLBACK_MOBILE = "+91 98765 43210";
+
 export default function PropertyCard({ property, hideContactButton }) {
-  const { id, title, price, location, image, badge, beds, baths, area, roi, type, address } =
+  const { id, title, price, location, image, badge, beds, baths, area, roi, type, address, contact } =
     property;
   const isInvest = type === "invest";
+  const isRent = type === "rent";
+  const phone = contact?.mobile || property.mobile || FALLBACK_MOBILE;
   const [showToast, setShowToast] = useState(false);
+  const [numberRevealed, setNumberRevealed] = useState(false);
+  const [numberEntered, setNumberEntered] = useState(false);
+  const [copied, setCopied] = useState(false);
   const postedLabel = formatPostedDate(property);
   const { isSaved, toggle } = useSavedPropertyIds();
   const saved = isSaved(id);
@@ -21,6 +39,31 @@ export default function PropertyCard({ property, hideContactButton }) {
     e.stopPropagation();
     setShowToast(true);
     setTimeout(() => setShowToast(false), 2500);
+  }
+
+  function handleCallPerson(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    window.location.href = `tel:${phone.replace(/\s+/g, "")}`;
+  }
+
+  function handleShowNumber(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    setNumberRevealed(true);
+    requestAnimationFrame(() => setNumberEntered(true));
+  }
+
+  async function handleCopyNumber(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(phone);
+    } catch {
+      // Clipboard API unavailable — silently ignore in demo mode
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   }
 
   function handleSaveClick(e) {
@@ -67,7 +110,7 @@ export default function PropertyCard({ property, hideContactButton }) {
           {address || location}
         </p>
         <div className="mt-3 flex items-center justify-between gap-2">
-          <p className="font-display text-xl text-gold-400">{price}</p>
+          <p className="font-sans text-xl font-semibold text-gold-400">{price}</p>
           {postedLabel && (
             <p className="flex items-center gap-1 text-xs text-muted">
               <MdAccessTime className="h-3.5 w-3.5 shrink-0" />
@@ -103,13 +146,61 @@ export default function PropertyCard({ property, hideContactButton }) {
 
         {!hideContactButton && (
           <div className="mt-auto pt-5">
-            <button
-              type="button"
-              onClick={handleContactClick}
-              className="tracked-label block w-full border border-gold-500/70 py-2.5 text-center text-xs text-gold-400 transition active:bg-gold-500 active:text-navy-950 hover:bg-gold-500 hover:text-navy-950"
-            >
-              Contact Person
-            </button>
+            {isRent ? (
+              <>
+                {/* Mobile (<640px): Call Person opens the dialpad directly */}
+                <button
+                  type="button"
+                  onClick={handleCallPerson}
+                  className="tracked-label flex min-h-[44px] w-full items-center justify-center gap-2 border border-gold-500/70 py-2.5 text-center text-xs text-gold-400 transition active:bg-gold-500 active:text-navy-950 hover:bg-gold-500 hover:text-navy-950 sm:hidden"
+                >
+                  <MdCall className="h-4 w-4 shrink-0" />
+                  Call Person
+                </button>
+
+                {/* Tablet & up (>=640px): Show Number with copy */}
+                <div className="hidden sm:block">
+                  {!numberRevealed ? (
+                    <button
+                      type="button"
+                      onClick={handleShowNumber}
+                      className="tracked-label flex min-h-[44px] w-full items-center justify-center gap-2 border border-gold-500/70 py-2.5 text-center text-xs text-gold-400 transition active:bg-gold-500 active:text-navy-950 hover:bg-gold-500 hover:text-navy-950"
+                    >
+                      <MdCall className="h-4 w-4 shrink-0" />
+                      Show Number
+                    </button>
+                  ) : (
+                    <div
+                      className={`flex min-h-[44px] items-center gap-2 border border-gold-500/70 bg-navy-950 py-2 pl-4 pr-2 transition-all duration-300 ease-out ${
+                        numberEntered ? "scale-100 opacity-100" : "scale-95 opacity-0"
+                      }`}
+                    >
+                      <span className="min-w-0 flex-1 truncate text-sm text-cream">{phone}</span>
+                      <button
+                        type="button"
+                        onClick={handleCopyNumber}
+                        aria-label="Copy phone number"
+                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border transition active:scale-95 ${
+                          copied
+                            ? "border-gold-400 bg-gold-400 text-navy-950"
+                            : "border-navy-700/60 text-gold-400 hover:border-gold-400"
+                        }`}
+                      >
+                        {copied ? <MdCheck className="h-4 w-4" /> : <MdContentCopy className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={handleContactClick}
+                className="tracked-label flex min-h-[44px] w-full items-center justify-center border border-gold-500/70 py-2.5 text-center text-xs text-gold-400 transition active:bg-gold-500 active:text-navy-950 hover:bg-gold-500 hover:text-navy-950"
+              >
+                Contact Person
+              </button>
+            )}
           </div>
         )}
       </div>

@@ -26,7 +26,7 @@ export default function ProjectCard({ project }) {
         <h3 className="font-display text-lg text-cream transition duration-200 group-active:text-gold-300 group-hover:text-gold-300">{name}</h3>
         <p className="mt-1 text-sm text-muted">{location}</p>
         <p className="mt-1 text-xs text-muted">by {developer}</p>
-        <p className="mt-3 font-display text-xl text-gold-400">{startingPrice}</p>
+        <p className="mt-3 font-sans text-xl font-semibold text-gold-400">{startingPrice}</p>
 
         <span
           className="tracked-label mt-5 block w-full border border-gold-500/70 py-2.5 text-center text-xs text-gold-400 transition group-active:bg-gold-500 group-active:text-navy-950 group-hover:bg-gold-500 group-hover:text-navy-950"
