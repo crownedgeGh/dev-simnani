@@ -62,6 +62,13 @@ export async function POST(request) {
       );
     }
 
+    if (body.accountType === "broker" && !body.reraNumber?.trim()) {
+      return NextResponse.json(
+        { success: false, error: "RERA registration number is required for brokers" },
+        { status: 400 }
+      );
+    }
+
     const accountId = body.accountId || `SG-USR-${Date.now()}`;
 
     const userData = {

@@ -11,7 +11,7 @@ import { inputClass } from "./inputStyles";
 import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
 import { MdPercent } from "react-icons/md";
-import BackButton from "@/components/layout/BackButton";
+import { useWizardDraft } from "@/lib/useWizardDraft";
 
 const TOTAL_STEPS = 3;
 
@@ -39,8 +39,7 @@ const INITIAL_FORM = {
 
 export default function InvestorRegistrationWizard() {
   const { login } = useAuth();
-  const [step, setStep] = useState(1);
-  const [form, setForm] = useState(INITIAL_FORM);
+  const { step, setStep, form, setForm, clearDraft } = useWizardDraft("se_draft_investor", INITIAL_FORM);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [accountId, setAccountId] = useState("");
@@ -102,6 +101,7 @@ export default function InvestorRegistrationWizard() {
       if (!json.success) throw new Error(json.error || "Registration failed");
       const token = `se_mock_${form.mobile.replace(/\D/g, "")}_${Date.now()}`;
       login(token, json.data);
+      clearDraft();
       setAccountId(id);
     } catch (err) {
       setError(err.message || "Something went wrong. Please try again.");
@@ -136,14 +136,11 @@ export default function InvestorRegistrationWizard() {
       />
 
       <div className="mb-6 text-center">
-        <div className="flex items-center justify-center gap-3">
-          <BackButton />
-          <h1 className="font-display text-2xl text-cream sm:text-3xl">
+        <h1 className="font-display text-2xl text-cream sm:text-3xl">
             {step === 1 && "Basic Details"}
             {step === 2 && "What are you interested in?"}
             {step === 3 && "Review & Submit"}
           </h1>
-        </div>
         <p className="mt-2 text-sm text-muted">
           {step === 1 && "Please provide your initial contact information to begin."}
           {step === 2 && "Select your investment preferences to help us curate the perfect portfolio for you."}

@@ -9,7 +9,7 @@ import { inputClass, selectClass } from "./inputStyles";
 import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
 import { LOCATIONS } from "@/lib/locations";
-import BackButton from "@/components/layout/BackButton";
+import { useWizardDraft } from "@/lib/useWizardDraft";
 
 const TOTAL_STEPS = 3;
 
@@ -27,8 +27,7 @@ const INITIAL_FORM = {
 
 export default function EmployeeRegistrationWizard() {
   const { login } = useAuth();
-  const [step, setStep] = useState(1);
-  const [form, setForm] = useState(INITIAL_FORM);
+  const { step, setStep, form, setForm, clearDraft } = useWizardDraft("se_draft_employee", INITIAL_FORM);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [accountId, setAccountId] = useState("");
@@ -81,6 +80,7 @@ export default function EmployeeRegistrationWizard() {
       };
       const token = `se_mock_${form.mobile.replace(/\D/g, "")}_${Date.now()}`;
       login(token, profile);
+      clearDraft();
       setSubmitting(false);
       setAccountId(id);
     }, 1000);
@@ -108,10 +108,7 @@ export default function EmployeeRegistrationWizard() {
       <Stepper step={step} total={TOTAL_STEPS} label={STEP_LABELS[step - 1]} />
 
       <div className="mb-6 text-center">
-        <div className="flex items-center justify-center gap-3">
-          <BackButton />
-          <h1 className="font-display text-2xl text-cream sm:text-3xl">{STEP_LABELS[step - 1]}</h1>
-        </div>
+        <h1 className="font-display text-2xl text-cream sm:text-3xl">{STEP_LABELS[step - 1]}</h1>
         <p className="mt-2 text-sm text-muted">
           {step === 1 && "Tell us who you are so we can set up your account."}
           {step === 2 && "Your employee code and district assign the leads you'll manage."}

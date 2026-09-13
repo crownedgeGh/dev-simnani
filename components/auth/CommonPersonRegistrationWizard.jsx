@@ -7,7 +7,6 @@ import RegistrationSuccess from "./RegistrationSuccess";
 import { inputClass } from "./inputStyles";
 import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
-import BackButton from "@/components/layout/BackButton";
 
 const INITIAL_FORM = {
   fullName: "",
@@ -87,10 +86,7 @@ export default function CommonPersonRegistrationWizard() {
   return (
     <AuthShell size="lg">
       <div className="mb-6 text-center">
-        <div className="flex items-center justify-center gap-3">
-          <BackButton />
-          <h1 className="font-display text-2xl text-cream sm:text-3xl">Basic Details</h1>
-        </div>
+        <h1 className="font-display text-2xl text-cream sm:text-3xl">Basic Details</h1>
         <p className="mt-2 text-sm text-muted">
           Please provide your primary contact information to begin.
         </p>

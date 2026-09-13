@@ -44,6 +44,22 @@ const UserSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    reraRegistered: {
+      type: Boolean,
+      default: function () {
+        return this.accountType === "broker" ? true : undefined;
+      },
+    },
+    reraNumber: {
+      type: String,
+      trim: true,
+      required: [
+        function () {
+          return this.accountType === "broker";
+        },
+        "RERA registration number is required for brokers",
+      ],
+    },
     registeredDate: {
       type: String,
       default: () =>

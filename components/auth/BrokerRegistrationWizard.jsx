@@ -11,7 +11,7 @@ import RegistrationSuccess from "./RegistrationSuccess";
 import { inputClass, selectClass } from "./inputStyles";
 import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
-import BackButton from "@/components/layout/BackButton";
+import { useWizardDraft } from "@/lib/useWizardDraft";
 
 const TOTAL_STEPS = 4;
 
@@ -42,7 +42,7 @@ const INITIAL_FORM = {
   officeAddress: "",
   operatingAreas: "",
   specialties: [],
-  reraRegistered: "",
+  reraRegistered: "yes",
   reraNumber: "",
   reraCertificate: null,
   panNumber: "",
@@ -53,8 +53,7 @@ const INITIAL_FORM = {
 
 export default function BrokerRegistrationWizard() {
   const { login } = useAuth();
-  const [step, setStep] = useState(1);
-  const [form, setForm] = useState(INITIAL_FORM);
+  const { step, setStep, form, setForm, clearDraft } = useWizardDraft("se_draft_broker", INITIAL_FORM);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [accountId, setAccountId] = useState("");
@@ -88,6 +87,12 @@ export default function BrokerRegistrationWizard() {
         }
       } else if (!form.experience) {
         setError("Please fill in all required fields.");
+        return;
+      }
+    }
+    if (step === 3) {
+      if (!form.reraNumber.trim()) {
+        setError("RERA registration is mandatory. Please provide your RERA number.");
         return;
       }
     }
@@ -137,6 +142,7 @@ export default function BrokerRegistrationWizard() {
       if (!json.success) throw new Error(json.error || "Registration failed");
       const token = `se_mock_${form.mobile.replace(/\D/g, "")}_${Date.now()}`;
       login(token, json.data);
+      clearDraft();
       setAccountId(id);
     } catch (err) {
       setError(err.message || "Something went wrong. Please try again.");
@@ -169,10 +175,7 @@ export default function BrokerRegistrationWizard() {
       <Stepper step={step} total={TOTAL_STEPS} label={STEP_LABELS[step - 1]} />
 
       <div className="mb-6 text-center">
-        <div className="flex items-center justify-center gap-3">
-          <BackButton />
-          <h1 className="font-display text-2xl text-cream sm:text-3xl">{STEP_LABELS[step - 1]}</h1>
-        </div>
+        <h1 className="font-display text-2xl text-cream sm:text-3xl">{STEP_LABELS[step - 1]}</h1>
         <p className="mt-2 text-sm text-muted">
           {step === 1 && "Tell us who you are so clients can find you."}
           {step === 2 && "Provide information about your agency or professional practice."}
@@ -333,84 +336,62 @@ export default function BrokerRegistrationWizard() {
 
       {step === 3 && (
         <div className="flex flex-col gap-4">
-          <FormField label="Are you RERA registered?" required>
-            <ChipGroup
-              options={[
-                { value: "yes", label: "Yes" },
-                { value: "no", label: "No" },
-              ]}
-              value={form.reraRegistered}
-              onChange={(value) => {
-                if (value === "no") {
-                  setForm((prev) => ({
-                    ...prev,
-                    reraRegistered: value,
-                    reraNumber: "",
-                    reraCertificate: null,
-                    panNumber: "",
-                    identityDoc: null,
-                    businessProof: null,
-                  }));
-                } else {
-                  update("reraRegistered", value);
-                }
-              }}
-              layout="row"
+          <div className="border border-navy-700/60 bg-navy-900 p-4">
+            <p className="tracked-label text-xs text-gold-400">RERA Registration Is Mandatory</p>
+            <p className="mt-1 text-sm text-muted">
+              RERA registration is compulsory for all brokers on Simnani Estate. Your account
+              cannot be verified without a valid RERA number.
+            </p>
+          </div>
+
+          <FormField label="RERA Registration Number" htmlFor="reraNumber" required>
+            <input
+              id="reraNumber"
+              type="text"
+              placeholder="Enter your RERA ID"
+              value={form.reraNumber}
+              onChange={(e) => update("reraNumber", e.target.value)}
+              className={inputClass}
             />
           </FormField>
 
-          {form.reraRegistered === "yes" && (
-            <>
-              <FormField label="RERA Registration Number" htmlFor="reraNumber" optional>
-                <input
-                  id="reraNumber"
-                  type="text"
-                  placeholder="Enter your RERA ID"
-                  value={form.reraNumber}
-                  onChange={(e) => update("reraNumber", e.target.value)}
-                  className={inputClass}
-                />
-              </FormField>
+          <FileUpload
+            id="reraCertificate"
+            label="RERA Certificate"
+            hint="PDF, JPG, PNG up to 10MB"
+            file={form.reraCertificate}
+            onChange={(file) => update("reraCertificate", file)}
+            optional
+          />
 
-              <FileUpload
-                id="reraCertificate"
-                label="RERA Certificate"
-                hint="PDF, JPG, PNG up to 10MB"
-                file={form.reraCertificate}
-                onChange={(file) => update("reraCertificate", file)}
-                optional
-              />
+          <FormField label="PAN Number" htmlFor="panNumber" optional>
+            <input
+              id="panNumber"
+              type="text"
+              placeholder="Enter Tax ID"
+              value={form.panNumber}
+              onChange={(e) => update("panNumber", e.target.value.toUpperCase())}
+              className={`${inputClass} uppercase`}
+            />
+          </FormField>
 
-              <FormField label="PAN Number" htmlFor="panNumber" optional>
-                <input
-                  id="panNumber"
-                  type="text"
-                  placeholder="Enter Tax ID"
-                  value={form.panNumber}
-                  onChange={(e) => update("panNumber", e.target.value.toUpperCase())}
-                  className={`${inputClass} uppercase`}
-                />
-              </FormField>
+          <FileUpload
+            id="identityDoc"
+            label="Identity Document"
+            hint="Passport, National ID · PDF, JPG, PNG up to 10MB"
+            file={form.identityDoc}
+            onChange={(file) => update("identityDoc", file)}
+            optional
+          />
 
-              <FileUpload
-                id="identityDoc"
-                label="Identity Document"
-                hint="Passport, National ID · PDF, JPG, PNG up to 10MB"
-                file={form.identityDoc}
-                onChange={(file) => update("identityDoc", file)}
-                optional
-              />
-
-              <FileUpload
-                id="businessProof"
-                label="Business / Agency Proof"
-                hint="Business Registration · PDF, JPG, PNG up to 10MB"
-                file={form.businessProof}
-                onChange={(file) => update("businessProof", file)}
-                optional
-              />
-            </>
-          )}
+          <FileUpload
+            id="businessProof"
+            label="Business / Agency Proof"
+            hint="Business Registration · PDF, JPG, PNG up to 10MB"
+            file={form.businessProof}
+            onChange={(file) => update("businessProof", file)}
+            optional
+          />
         </div>
       )}
 
@@ -455,16 +436,12 @@ export default function BrokerRegistrationWizard() {
           <div>
             <p className="tracked-label mb-2 text-xs text-gold-400">Professional Verification</p>
             <div className="grid grid-cols-1 gap-4 border border-navy-700/60 bg-navy-950 p-4 sm:grid-cols-2">
-              <ReviewItem label="RERA Registered" value={form.reraRegistered === "yes" ? "Yes" : "No"} />
-              {form.reraRegistered === "yes" && (
-                <>
-                  <ReviewItem label="RERA Number" value={form.reraNumber || "Not provided"} />
-                  <ReviewItem label="RERA Certificate" value={form.reraCertificate?.name || "Not uploaded"} />
-                  <ReviewItem label="PAN Number" value={form.panNumber || "Not provided"} />
-                  <ReviewItem label="Identity Document" value={form.identityDoc?.name || "Not uploaded"} />
-                  <ReviewItem label="Business Proof" value={form.businessProof?.name || "Not uploaded"} />
-                </>
-              )}
+              <ReviewItem label="RERA Registered" value="Yes" />
+              <ReviewItem label="RERA Number" value={form.reraNumber} />
+              <ReviewItem label="RERA Certificate" value={form.reraCertificate?.name || "Not uploaded"} />
+              <ReviewItem label="PAN Number" value={form.panNumber || "Not provided"} />
+              <ReviewItem label="Identity Document" value={form.identityDoc?.name || "Not uploaded"} />
+              <ReviewItem label="Business Proof" value={form.businessProof?.name || "Not uploaded"} />
             </div>
           </div>
 

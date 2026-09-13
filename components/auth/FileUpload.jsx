@@ -1,8 +1,9 @@
-export default function FileUpload({ id, label, hint, file, onChange, optional }) {
+export default function FileUpload({ id, label, hint, file, onChange, optional, required }) {
   return (
     <div className="flex flex-col gap-2">
-      <label htmlFor={id} className="tracked-label text-xs text-cream/80">
+      <label htmlFor={id} className="tracked-label flex items-center gap-1 text-xs text-cream/80">
         {label}
+        {required && <span className="text-gold-400">*</span>}
         {optional && (
           <span className="ml-1 normal-case tracking-normal text-muted">(Optional)</span>
         )}
