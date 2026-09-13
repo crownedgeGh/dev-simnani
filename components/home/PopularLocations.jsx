@@ -15,18 +15,18 @@ export default function PopularLocations() {
             <Link
               key={location.city}
               href={`/buy?location=${encodeURIComponent(location.city)}`}
-              className="group relative aspect-square overflow-hidden border border-transparent transition duration-300 hover:border-gold-500/40"
+              className="group relative aspect-square overflow-hidden border border-transparent transition duration-300 active:border-gold-500/40 hover:border-gold-500/40"
             >
               <Image
                 src={location.image}
                 alt={location.city}
                 fill
                 sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
-                className="object-cover transition duration-500 group-hover:scale-105"
+                className="object-cover transition duration-500 group-active:scale-105 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-navy-950/90 via-navy-950/20 to-transparent" />
               <div className="absolute bottom-0 left-0 p-4">
-                <p className="font-display text-base text-cream transition duration-200 group-hover:text-gold-300">
+                <p className="font-display text-base text-cream transition duration-200 group-active:text-gold-300 group-hover:text-gold-300">
                   {location.city}
                 </p>
                 <p className="text-xs text-gold-400">

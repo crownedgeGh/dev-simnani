@@ -14,7 +14,7 @@ export default function ProjectsSection() {
           <Link
             key={project.id}
             href={`/projects/${project.id}`}
-            className="group block overflow-hidden border border-navy-700/60 bg-navy-900 transition hover:border-gold-500/50"
+            className="group block overflow-hidden border border-navy-700/60 bg-navy-900 transition active:border-gold-500/50 hover:border-gold-500/50"
           >
             <div className="relative aspect-[4/3] w-full overflow-hidden">
               <Image
@@ -22,11 +22,11 @@ export default function ProjectsSection() {
                 alt={project.name}
                 fill
                 sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                className="object-cover transition duration-500 group-hover:scale-105"
+                className="object-cover transition duration-500 group-active:scale-105 group-hover:scale-105"
               />
             </div>
             <div className="p-5">
-              <h3 className="font-display text-lg text-cream transition duration-200 group-hover:text-gold-300">
+              <h3 className="font-display text-lg text-cream transition duration-200 group-active:text-gold-300 group-hover:text-gold-300">
                 {project.name}
               </h3>
               <p className="mt-1 text-sm text-muted">{project.location}</p>
@@ -36,7 +36,7 @@ export default function ProjectsSection() {
               <p className="mt-1 text-xs text-muted">
                 {project.developer} · {project.status}
               </p>
-              <span className="tracked-label mt-4 inline-flex items-center gap-1 text-xs text-gold-400 transition duration-200 group-hover:text-gold-300 group-hover:translate-x-1">
+              <span className="tracked-label mt-4 inline-flex items-center gap-1 text-xs text-gold-400 transition duration-200 group-active:text-gold-300 group-active:translate-x-1 group-hover:text-gold-300 group-hover:translate-x-1">
                 View Project →
               </span>
             </div>
