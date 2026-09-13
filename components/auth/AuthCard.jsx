@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { MdScience } from "react-icons/md";
 import { useAuth } from "@/context/AuthContext";
+import { generateAccountId } from "@/lib/auth";
 
 const OTP_LENGTH = 6;
 
@@ -117,8 +118,8 @@ export default function AuthCard() {
           fullName: "",
           mobile: mobile,
           email: "",
-          accountType: "buyer",
-          accountId: `SG-BYR-${Math.floor(100000 + Math.random() * 900000)}`,
+          accountType: "common-person",
+          accountId: generateAccountId("IND"),
           city: "",
           registeredAt: new Date().toISOString(),
         };
