@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import AuthShell from "./AuthShell";
 import Stepper from "./Stepper";
 import FormField from "./FormField";
-import RegistrationSuccess from "./RegistrationSuccess";
 import { inputClass, selectClass } from "./inputStyles";
 import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
@@ -27,10 +28,10 @@ const INITIAL_FORM = {
 
 export default function EmployeeRegistrationWizard() {
   const { login } = useAuth();
+  const router = useRouter();
   const { step, setStep, form, setForm, clearDraft } = useWizardDraft("se_draft_employee", INITIAL_FORM);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [accountId, setAccountId] = useState("");
 
   function update(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -82,26 +83,10 @@ export default function EmployeeRegistrationWizard() {
       login(token, profile);
       clearDraft();
       setSubmitting(false);
-      setAccountId(id);
+      router.push("/");
     }, 1000);
   }
 
-  if (accountId) {
-    return (
-      <AuthShell size="md">
-        <RegistrationSuccess
-          title="Welcome Aboard"
-          subtitle="Your employee account is ready. Head to your dashboard to view assigned leads."
-          idLabel="Employee ID"
-          accountId={accountId}
-          primaryHref="/portal/employee"
-          primaryLabel="Go to Employee Dashboard"
-          secondaryHref="/auth"
-          secondaryLabel="Return to Login"
-        />
-      </AuthShell>
-    );
-  }
 
   return (
     <AuthShell size="xl">
@@ -231,7 +216,15 @@ export default function EmployeeRegistrationWizard() {
               onChange={(e) => update("agree", e.target.checked)}
               className="mt-0.5 h-4 w-4 accent-gold-400"
             />
-            By submitting, you agree to our Terms of Service and Privacy Policy.
+            By submitting, you agree to our{" "}
+            <Link href="/legal/terms-conditions" target="_blank" onClick={(e) => e.stopPropagation()} className="text-gold-400 hover:text-gold-300">
+              Terms of Service
+            </Link>{" "}
+            and{" "}
+            <Link href="/legal/privacy-policy" target="_blank" onClick={(e) => e.stopPropagation()} className="text-gold-400 hover:text-gold-300">
+              Privacy Policy
+            </Link>
+            .
           </label>
         </div>
       )}

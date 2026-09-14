@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { MdBusinessCenter, MdCampaign, MdLocationOn } from "react-icons/md";
 import AuthShell from "./AuthShell";
 import Stepper from "./Stepper";
 import FormField from "./FormField";
 import ChipGroup from "./ChipGroup";
-import RegistrationSuccess from "./RegistrationSuccess";
 import { inputClass } from "./inputStyles";
 import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
@@ -71,10 +72,10 @@ const INITIAL_FORM = {
 
 export default function FreelancerRegistrationWizard() {
   const { login } = useAuth();
+  const router = useRouter();
   const { step, setStep, form, setForm, clearDraft } = useWizardDraft("se_draft_freelancer", INITIAL_FORM);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [accountId, setAccountId] = useState("");
 
   function update(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -158,7 +159,7 @@ export default function FreelancerRegistrationWizard() {
       const token = `se_mock_${form.mobile.replace(/\D/g, "")}_${Date.now()}`;
       login(token, json.data);
       clearDraft();
-      setAccountId(id);
+      router.push("/");
     } catch (err) {
       setError(err.message || "Something went wrong. Please try again.");
     } finally {
@@ -166,28 +167,6 @@ export default function FreelancerRegistrationWizard() {
     }
   }
 
-  if (accountId) {
-    return (
-      <AuthShell size="md">
-        <RegistrationSuccess
-          title="Welcome to Simnani Estate"
-          subtitle="Your registration has been successfully submitted. We are thrilled to welcome you to our exclusive network of professionals."
-          idLabel={ID_LABEL[form.cpType]}
-          accountId={accountId}
-          pending={form.cpType === "company"}
-          pendingNote={
-            form.cpType === "company"
-              ? "Company Channel Partner accounts are reviewed by our team before network access is granted."
-              : undefined
-          }
-          primaryHref="/portal/freelancer"
-          primaryLabel="Start Training"
-          secondaryHref="/portal/freelancer"
-          secondaryLabel="Return to Dashboard"
-        />
-      </AuthShell>
-    );
-  }
 
   return (
     <AuthShell size="lg">
@@ -355,7 +334,15 @@ export default function FreelancerRegistrationWizard() {
               onChange={(e) => update("agree", e.target.checked)}
               className="mt-0.5 h-4 w-4 accent-gold-400"
             />
-            I agree to the Terms &amp; Conditions and Channel Partner Policy.
+            I agree to the{" "}
+          <Link href="/legal/terms-conditions" target="_blank" onClick={(e) => e.stopPropagation()} className="text-gold-400 hover:text-gold-300">
+            Terms &amp; Conditions
+          </Link>{" "}
+          and{" "}
+          <Link href="/legal/privacy-policy" target="_blank" onClick={(e) => e.stopPropagation()} className="text-gold-400 hover:text-gold-300">
+            Channel Partner Policy
+          </Link>
+          .
           </label>
         </div>
       )}

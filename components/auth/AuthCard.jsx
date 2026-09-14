@@ -21,7 +21,7 @@ export default function AuthCard() {
   const router = useRouter();
   const { login } = useAuth();
 
-  const [step, setStep] = useState("mobile"); // "mobile" | "otp" | "success"
+  const [step, setStep] = useState("mobile"); // "mobile" | "otp"
   const [mobile, setMobile] = useState("");
   const [otp, setOtp] = useState(Array(OTP_LENGTH).fill(""));
   const [error, setError] = useState("");
@@ -128,7 +128,7 @@ export default function AuthCard() {
 
       const token = `se_mock_${mobile.replace(/\D/g, "")}_${Date.now()}`;
       login(token, profile);
-      setStep("success");
+      router.push("/");
     }, 1000);
   }
 
@@ -156,7 +156,7 @@ export default function AuthCard() {
 
       const token = `se_mock_tester_${Date.now()}`;
       login(token, testerProfile);
-      setStep("success");
+      router.push("/");
     }, 400);
   }
 
@@ -164,10 +164,6 @@ export default function AuthCard() {
     clearInterval(timerRef.current);
     setError("");
     setStep("mobile");
-  }
-
-  function handleContinue() {
-    router.push("/");
   }
 
   return (
@@ -181,7 +177,6 @@ export default function AuthCard() {
           <h1 className="font-display text-3xl text-cream sm:text-4xl">
             {step === "mobile" && "Welcome Back"}
             {step === "otp" && "Verify Your Number"}
-            {step === "success" && "Verified"}
           </h1>
         </div>
         <p className="text-sm text-muted">
@@ -193,10 +188,6 @@ export default function AuthCard() {
               <span className="text-gold-400">+91 {mobile}</span>
             </>
           )}
-          {step === "success" &&
-            (isTesterLogin
-              ? "You're signed in as Tester (Common Person). Explore properties, post listings, and manage your account."
-              : "You're signed in. Explore properties, investments and more.")}
         </p>
       </div>
 
@@ -339,39 +330,14 @@ export default function AuthCard() {
         </div>
       )}
 
-      {step === "success" && (
-        <div className="mt-8 flex flex-col items-center gap-6">
-          <span className="flex h-14 w-14 items-center justify-center rounded-full border border-gold-400 text-2xl text-gold-400">
-            ✓
-          </span>
-          <div className="flex w-full flex-col gap-3">
-            <button
-              type="button"
-              onClick={handleContinue}
-              className="tracked-label w-full bg-gold-400 px-6 py-4 text-center text-xs text-navy-950 transition hover:bg-gold-300"
-            >
-              Continue to Simnani Estate
-            </button>
-            <Link
-              href="/portal/common-person"
-              className="tracked-label flex items-center justify-center gap-2 border border-navy-700/60 px-6 py-3.5 text-center text-xs text-cream transition hover:border-gold-400 hover:text-gold-400"
-            >
-              Go to My Listings
-            </Link>
-          </div>
-        </div>
-      )}
-
-      {step !== "success" && (
-        <footer className="mt-8 flex flex-col items-center gap-2 border-t border-navy-700/60 pt-6">
-          <p className="text-xs text-muted">
-            New to Simnani Estate?{" "}
-            <Link href="/auth/register" className="tracked-label text-gold-400 hover:text-gold-300">
-              Create Account
-            </Link>
-          </p>
-        </footer>
-      )}
+      <footer className="mt-8 flex flex-col items-center gap-2 border-t border-navy-700/60 pt-6">
+        <p className="text-xs text-muted">
+          New to Simnani Estate?{" "}
+          <Link href="/auth/register" className="tracked-label text-gold-400 hover:text-gold-300">
+            Create Account
+          </Link>
+        </p>
+      </footer>
     </div>
   );
 }

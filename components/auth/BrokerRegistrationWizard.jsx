@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import AuthShell from "./AuthShell";
 import Stepper from "./Stepper";
 import FormField from "./FormField";
 import ChipGroup from "./ChipGroup";
 import { PROPERTY_CATEGORIES } from "@/lib/propertyCategories";
 import FileUpload from "./FileUpload";
-import RegistrationSuccess from "./RegistrationSuccess";
 import { inputClass, selectClass } from "./inputStyles";
 import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
@@ -31,6 +32,11 @@ const APPLICANT_TYPES = [
 
 const SPECIALTIES = [{ value: "all", label: "All" }, ...PROPERTY_CATEGORIES];
 
+const RERA_OPTIONS = [
+  { value: "yes", label: "Yes" },
+  { value: "no", label: "No" },
+];
+
 const INITIAL_FORM = {
   fullName: "",
   mobile: "",
@@ -42,7 +48,7 @@ const INITIAL_FORM = {
   officeAddress: "",
   operatingAreas: "",
   specialties: [],
-  reraRegistered: "yes",
+  reraRegistered: "",
   reraNumber: "",
   reraCertificate: null,
   panNumber: "",
@@ -53,10 +59,10 @@ const INITIAL_FORM = {
 
 export default function BrokerRegistrationWizard() {
   const { login } = useAuth();
+  const router = useRouter();
   const { step, setStep, form, setForm, clearDraft } = useWizardDraft("se_draft_broker", INITIAL_FORM);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [accountId, setAccountId] = useState("");
 
   function update(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -91,13 +97,25 @@ export default function BrokerRegistrationWizard() {
       }
     }
     if (step === 3) {
-      if (!form.reraNumber.trim()) {
+      if (!form.reraRegistered) {
+        setError("Please let us know if you are RERA registered.");
+        return;
+      }
+      if (form.reraRegistered === "yes" && !form.reraNumber.trim()) {
         setError("RERA registration is mandatory. Please provide your RERA number.");
         return;
       }
     }
     setError("");
     setStep((s) => Math.min(s + 1, TOTAL_STEPS));
+  }
+
+  function selectReraStatus(value) {
+    update("reraRegistered", value);
+    if (value === "no") {
+      setError("");
+      setStep((s) => Math.min(s + 1, TOTAL_STEPS));
+    }
   }
 
   function goBack() {
@@ -143,7 +161,7 @@ export default function BrokerRegistrationWizard() {
       const token = `se_mock_${form.mobile.replace(/\D/g, "")}_${Date.now()}`;
       login(token, json.data);
       clearDraft();
-      setAccountId(id);
+      router.push("/");
     } catch (err) {
       setError(err.message || "Something went wrong. Please try again.");
     } finally {
@@ -151,24 +169,6 @@ export default function BrokerRegistrationWizard() {
     }
   }
 
-  if (accountId) {
-    return (
-      <AuthShell size="md">
-        <RegistrationSuccess
-          title="Registration Submitted"
-          subtitle="Your broker profile is under verification. Our team is reviewing your credentials."
-          idLabel="Broker ID"
-          accountId={accountId}
-          pending
-          pendingNote="Estimated review time: 24 - 48 hours."
-          primaryHref="/buy"
-          primaryLabel="Explore Properties"
-          secondaryHref="/auth"
-          secondaryLabel="Return to Login"
-        />
-      </AuthShell>
-    );
-  }
 
   return (
     <AuthShell size="xl">
@@ -336,62 +336,75 @@ export default function BrokerRegistrationWizard() {
 
       {step === 3 && (
         <div className="flex flex-col gap-4">
-          <div className="border border-navy-700/60 bg-navy-900 p-4">
-            <p className="tracked-label text-xs text-gold-400">RERA Registration Is Mandatory</p>
-            <p className="mt-1 text-sm text-muted">
-              RERA registration is compulsory for all brokers on Simnani Estate. Your account
-              cannot be verified without a valid RERA number.
-            </p>
-          </div>
-
-          <FormField label="RERA Registration Number" htmlFor="reraNumber" required>
-            <input
-              id="reraNumber"
-              type="text"
-              placeholder="Enter your RERA ID"
-              value={form.reraNumber}
-              onChange={(e) => update("reraNumber", e.target.value)}
-              className={inputClass}
+          <FormField label="Are you RERA Registered?" required>
+            <ChipGroup
+              options={RERA_OPTIONS}
+              value={form.reraRegistered}
+              onChange={selectReraStatus}
+              layout="row"
             />
           </FormField>
 
-          <FileUpload
-            id="reraCertificate"
-            label="RERA Certificate"
-            hint="PDF, JPG, PNG up to 10MB"
-            file={form.reraCertificate}
-            onChange={(file) => update("reraCertificate", file)}
-            optional
-          />
+          {form.reraRegistered === "yes" && (
+            <>
+              <div className="border border-navy-700/60 bg-navy-900 p-4">
+                <p className="tracked-label text-xs text-gold-400">RERA Registration Is Mandatory</p>
+                <p className="mt-1 text-sm text-muted">
+                  RERA registration is compulsory for all brokers on Simnani Estate. Your account
+                  cannot be verified without a valid RERA number.
+                </p>
+              </div>
 
-          <FormField label="PAN Number" htmlFor="panNumber" optional>
-            <input
-              id="panNumber"
-              type="text"
-              placeholder="Enter Tax ID"
-              value={form.panNumber}
-              onChange={(e) => update("panNumber", e.target.value.toUpperCase())}
-              className={`${inputClass} uppercase`}
-            />
-          </FormField>
+              <FormField label="RERA Registration Number" htmlFor="reraNumber" required>
+                <input
+                  id="reraNumber"
+                  type="text"
+                  placeholder="Enter your RERA ID"
+                  value={form.reraNumber}
+                  onChange={(e) => update("reraNumber", e.target.value)}
+                  className={inputClass}
+                />
+              </FormField>
 
-          <FileUpload
-            id="identityDoc"
-            label="Identity Document"
-            hint="Passport, National ID · PDF, JPG, PNG up to 10MB"
-            file={form.identityDoc}
-            onChange={(file) => update("identityDoc", file)}
-            optional
-          />
+              <FileUpload
+                id="reraCertificate"
+                label="RERA Certificate"
+                hint="PDF, JPG, PNG up to 10MB"
+                file={form.reraCertificate}
+                onChange={(file) => update("reraCertificate", file)}
+                optional
+              />
 
-          <FileUpload
-            id="businessProof"
-            label="Business / Agency Proof"
-            hint="Business Registration · PDF, JPG, PNG up to 10MB"
-            file={form.businessProof}
-            onChange={(file) => update("businessProof", file)}
-            optional
-          />
+              <FormField label="PAN Number" htmlFor="panNumber" optional>
+                <input
+                  id="panNumber"
+                  type="text"
+                  placeholder="Enter Tax ID"
+                  value={form.panNumber}
+                  onChange={(e) => update("panNumber", e.target.value.toUpperCase())}
+                  className={`${inputClass} uppercase`}
+                />
+              </FormField>
+
+              <FileUpload
+                id="identityDoc"
+                label="Identity Document"
+                hint="Passport, National ID · PDF, JPG, PNG up to 10MB"
+                file={form.identityDoc}
+                onChange={(file) => update("identityDoc", file)}
+                optional
+              />
+
+              <FileUpload
+                id="businessProof"
+                label="Business / Agency Proof"
+                hint="Business Registration · PDF, JPG, PNG up to 10MB"
+                file={form.businessProof}
+                onChange={(file) => update("businessProof", file)}
+                optional
+              />
+            </>
+          )}
         </div>
       )}
 
@@ -436,9 +449,13 @@ export default function BrokerRegistrationWizard() {
           <div>
             <p className="tracked-label mb-2 text-xs text-gold-400">Professional Verification</p>
             <div className="grid grid-cols-1 gap-4 border border-navy-700/60 bg-navy-950 p-4 sm:grid-cols-2">
-              <ReviewItem label="RERA Registered" value="Yes" />
-              <ReviewItem label="RERA Number" value={form.reraNumber} />
-              <ReviewItem label="RERA Certificate" value={form.reraCertificate?.name || "Not uploaded"} />
+              <ReviewItem label="RERA Registered" value={form.reraRegistered === "yes" ? "Yes" : "No"} />
+              {form.reraRegistered === "yes" && (
+                <>
+                  <ReviewItem label="RERA Number" value={form.reraNumber} />
+                  <ReviewItem label="RERA Certificate" value={form.reraCertificate?.name || "Not uploaded"} />
+                </>
+              )}
               <ReviewItem label="PAN Number" value={form.panNumber || "Not provided"} />
               <ReviewItem label="Identity Document" value={form.identityDoc?.name || "Not uploaded"} />
               <ReviewItem label="Business Proof" value={form.businessProof?.name || "Not uploaded"} />
@@ -452,8 +469,15 @@ export default function BrokerRegistrationWizard() {
               onChange={(e) => update("agree", e.target.checked)}
               className="mt-0.5 h-4 w-4 accent-gold-400"
             />
-            By submitting, you agree to our Terms of Service and Privacy Policy. All information
-            provided will be verified.
+            By submitting, you agree to our{" "}
+            <Link href="/legal/terms-conditions" target="_blank" onClick={(e) => e.stopPropagation()} className="text-gold-400 hover:text-gold-300">
+              Terms of Service
+            </Link>{" "}
+            and{" "}
+            <Link href="/legal/privacy-policy" target="_blank" onClick={(e) => e.stopPropagation()} className="text-gold-400 hover:text-gold-300">
+              Privacy Policy
+            </Link>
+            . All information provided will be verified.
           </label>
         </div>
       )}
@@ -474,13 +498,15 @@ export default function BrokerRegistrationWizard() {
         )}
 
         {step < TOTAL_STEPS ? (
-          <button
-            type="button"
-            onClick={goNext}
-            className="tracked-label bg-gold-400 px-6 py-4 text-xs text-navy-950 transition hover:bg-gold-300"
-          >
-            Continue
-          </button>
+          (step !== 3 || form.reraRegistered === "yes") && (
+            <button
+              type="button"
+              onClick={goNext}
+              className="tracked-label bg-gold-400 px-6 py-4 text-xs text-navy-950 transition hover:bg-gold-300"
+            >
+              Continue
+            </button>
+          )
         ) : (
           <button
             type="button"
