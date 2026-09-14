@@ -62,7 +62,7 @@ export async function POST(request) {
       );
     }
 
-    if (body.accountType === "broker" && !body.reraNumber?.trim()) {
+    if (body.accountType === "broker" && body.reraRegistered === true && !body.reraNumber?.trim()) {
       return NextResponse.json(
         { success: false, error: "RERA registration number is required for brokers" },
         { status: 400 }

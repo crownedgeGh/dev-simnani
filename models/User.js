@@ -55,7 +55,7 @@ const UserSchema = new mongoose.Schema(
       trim: true,
       required: [
         function () {
-          return this.accountType === "broker";
+          return this.accountType === "broker" && this.reraRegistered === true;
         },
         "RERA registration number is required for brokers",
       ],

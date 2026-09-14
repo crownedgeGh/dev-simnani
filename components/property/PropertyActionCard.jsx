@@ -12,6 +12,9 @@ export default function PropertyActionCard({ propertyId, contactName, contactRol
   const [copied, setCopied] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [showAuthGate, setShowAuthGate] = useState(false);
+  const [numberRevealed, setNumberRevealed] = useState(false);
+  const [numberEntered, setNumberEntered] = useState(false);
+  const [numberCopied, setNumberCopied] = useState(false);
   const { isAuthenticated } = useAuth();
 
   useEffect(() => {
@@ -33,11 +36,30 @@ export default function PropertyActionCard({ propertyId, contactName, contactRol
     setTimeout(() => setShowToast(false), 2500);
   }
 
-  function handleCallNow(e) {
+  function handleCallPerson(e) {
     if (!isAuthenticated) {
       e.preventDefault();
       setShowAuthGate(true);
     }
+  }
+
+  function handleShowNumber() {
+    if (!isAuthenticated) {
+      setShowAuthGate(true);
+      return;
+    }
+    setNumberRevealed(true);
+    requestAnimationFrame(() => setNumberEntered(true));
+  }
+
+  async function handleCopyNumber() {
+    try {
+      await navigator.clipboard.writeText(phone);
+    } catch {
+      // Clipboard API unavailable — silently ignore in demo mode
+    }
+    setNumberCopied(true);
+    setTimeout(() => setNumberCopied(false), 2000);
   }
 
   async function handleCopy() {
@@ -66,14 +88,49 @@ export default function PropertyActionCard({ propertyId, contactName, contactRol
         >
           I&apos;m Interested
         </button>
+        {/* Mobile (<640px): Call Person opens the dialpad directly */}
         <a
           href={`tel:${phone.replace(/\s+/g, "")}`}
-          onClick={handleCallNow}
-          className="tracked-label flex items-center justify-center gap-2 border border-navy-700/60 px-6 py-4 text-center text-xs text-cream transition hover:border-gold-400"
+          onClick={handleCallPerson}
+          className="tracked-label flex min-h-[44px] items-center justify-center gap-2 border border-navy-700/60 px-6 py-4 text-center text-xs text-cream transition hover:border-gold-400 sm:hidden"
         >
           <MdCall className="h-4 w-4 shrink-0 text-gold-400" />
           Call Now
         </a>
+
+        {/* Tablet & up (>=640px): Show Number with copy */}
+        <div className="hidden sm:block">
+          {!numberRevealed ? (
+            <button
+              type="button"
+              onClick={handleShowNumber}
+              className="tracked-label flex min-h-[44px] w-full items-center justify-center gap-2 border border-navy-700/60 px-6 py-4 text-center text-xs text-cream transition hover:border-gold-400"
+            >
+              <MdCall className="h-4 w-4 shrink-0 text-gold-400" />
+              Call Now
+            </button>
+          ) : (
+            <div
+              className={`flex min-h-[44px] items-center gap-2 border border-navy-700/60 bg-navy-950 py-2 pl-4 pr-2 transition-all duration-300 ease-out ${
+                numberEntered ? "scale-100 opacity-100" : "scale-95 opacity-0"
+              }`}
+            >
+              <span className="min-w-0 flex-1 truncate text-sm text-cream">{phone}</span>
+              <button
+                type="button"
+                onClick={handleCopyNumber}
+                aria-label="Copy phone number"
+                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border transition active:scale-95 ${
+                  numberCopied
+                    ? "border-gold-400 bg-gold-400 text-navy-950"
+                    : "border-navy-700/60 text-gold-400 hover:border-gold-400"
+                }`}
+              >
+                {numberCopied ? <MdCheck className="h-4 w-4" /> : <MdContentCopy className="h-4 w-4" />}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="mt-5 border-t border-navy-700/60 pt-5">
