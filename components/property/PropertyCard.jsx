@@ -35,8 +35,10 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
   const [showAuthGate, setShowAuthGate] = useState(false);
   const postedLabel = formatPostedDate(property);
   const { isSaved, toggle } = useSavedPropertyIds();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const saved = isSaved(id);
+  const isBrokerViewer = isAuthenticated && user?.accountType === "broker";
+  const showViewProperty = hideContactButton || isBrokerViewer;
 
   async function handleContactClick(e) {
     e.preventDefault();
@@ -182,7 +184,15 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
           )}
         </div>
 
-        {!hideContactButton && (
+        {showViewProperty && (
+          <div className="mt-auto pt-5">
+            <span className="tracked-label flex min-h-[44px] w-full items-center justify-center border border-gold-500/70 py-2.5 text-center text-xs text-gold-400 transition group-active:bg-gold-500 group-active:text-navy-950 group-hover:bg-gold-500 group-hover:text-navy-950">
+              View Property
+            </span>
+          </div>
+        )}
+
+        {!showViewProperty && (
           <div className="mt-auto pt-5">
             {isRent ? (
               <>

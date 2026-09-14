@@ -69,7 +69,11 @@ export default function BrokerDashboard({ stats, listings, leads, clients, commi
                 </button>
               </div>
               <div className="mt-4">
-                <PropertyGrid properties={listings} emptyMessage="You don't have any listings yet." />
+                <PropertyGrid
+                  properties={listings}
+                  emptyMessage="You don't have any listings yet."
+                  hideContactButton
+                />
               </div>
             </div>
           </div>

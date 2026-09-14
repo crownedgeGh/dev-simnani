@@ -15,7 +15,7 @@ export default function PropertyActionCard({ propertyId, contactName, contactRol
   const [numberRevealed, setNumberRevealed] = useState(false);
   const [numberEntered, setNumberEntered] = useState(false);
   const [numberCopied, setNumberCopied] = useState(false);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -26,6 +26,10 @@ export default function PropertyActionCard({ propertyId, contactName, contactRol
 
   const phone = contactMobile || FALLBACK_MOBILE;
   const initial = (contactName || "A").trim().charAt(0).toUpperCase();
+
+  if (isAuthenticated && user?.accountType === "broker") {
+    return null;
+  }
 
   async function handleInterested() {
     if (!isAuthenticated) {

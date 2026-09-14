@@ -27,7 +27,6 @@ import {
   MdGroup,
   MdAccessTime,
   MdPerson,
-  MdPhone,
   MdWeekend,
 } from "react-icons/md";
 
@@ -72,7 +71,6 @@ export default async function PropertyDetailPage({ params }) {
     { icon: <MdGroup />, label: "Preferred For", value: property.preferredFor },
     { icon: <MdAccessTime />, label: "Posted", value: formatPostedDate(property) || property.addedDate },
     { icon: <MdPerson />, label: "Contact Person", value: property.contact?.fullName },
-    { icon: <MdPhone />, label: "Contact Number", value: property.contact?.mobile },
   ].filter((row) => row.value !== undefined && row.value !== null && row.value !== "");
 
   const features = [
