@@ -108,6 +108,7 @@ export default function PostPropertyForm({ editId }) {
   const [uploadStatus, setUploadStatus] = useState("");
   const [loadingProperty, setLoadingProperty] = useState(!!editId);
   const [originalAddedDate, setOriginalAddedDate] = useState("");
+  const [invalidFields, setInvalidFields] = useState(new Set());
 
   useEffect(() => {
     if (editId) return;
@@ -187,29 +188,50 @@ export default function PostPropertyForm({ editId }) {
       }
       return next;
     });
+    setInvalidFields((prev) => {
+      if (!prev.has(field)) return prev;
+      const next = new Set(prev);
+      next.delete(field);
+      return next;
+    });
+  }
+
+  function errClass(base, field) {
+    if (!invalidFields.has(field)) return base;
+    return base.replace(/border-navy-700\/60/g, "border-red-500").replace(/gold-400/g, "red-400");
   }
 
   const isResidential = form.section === "residential";
 
   async function handleSubmit(event) {
     event.preventDefault();
-    if (
-      !form.title.trim() ||
-      (isResidential ? !form.propertyType : !form.category) ||
-      !form.city.trim() ||
-      !form.locality.trim() ||
-      !form.price ||
-      !form.areaSize ||
-      (isResidential && (!form.beds || Number(form.beds) < 1)) ||
-      !form.baths ||
-      Number(form.baths) < 1 ||
-      !form.fullName.trim() ||
-      !isMobileValid(form.mobile)
-    ) {
+
+    const fieldChecks = [
+      { id: "title", invalid: !form.title.trim() },
+      isResidential
+        ? { id: "propertyType", invalid: !form.propertyType }
+        : { id: "category", invalid: !form.category },
+      { id: "city", invalid: !form.city.trim() },
+      { id: "locality", invalid: !form.locality.trim() },
+      { id: "price", invalid: !form.price },
+      { id: "areaSize", invalid: !form.areaSize },
+      ...(isResidential ? [{ id: "beds", invalid: !form.beds || Number(form.beds) < 1 }] : []),
+      { id: "baths", invalid: !form.baths || Number(form.baths) < 1 },
+      { id: "fullName", invalid: !form.fullName.trim() },
+      { id: "mobile", invalid: !isMobileValid(form.mobile) },
+    ];
+    const missing = fieldChecks.filter((f) => f.invalid);
+
+    if (missing.length) {
+      setInvalidFields(new Set(missing.map((f) => f.id)));
       setError("Please fill in all required fields.");
       toast.error("Please fill in all required fields.");
+      const target = document.getElementById(missing[0].id);
+      target?.scrollIntoView({ behavior: "smooth", block: "center" });
+      target?.focus({ preventScroll: true });
       return;
     }
+    setInvalidFields(new Set());
     setError("");
     setSubmitting(true);
 
@@ -372,7 +394,7 @@ export default function PostPropertyForm({ editId }) {
             placeholder="e.g. Spacious 2BHK near City Center"
             value={form.title}
             onChange={(e) => update("title", e.target.value)}
-            className={inputClass}
+            className={errClass(inputClass, "title")}
           />
         </FormField>
         {isResidential ? (
@@ -381,7 +403,7 @@ export default function PostPropertyForm({ editId }) {
               id="propertyType"
               value={form.propertyType}
               onChange={(e) => update("propertyType", e.target.value)}
-              className={selectClass}
+              className={errClass(selectClass, "propertyType")}
             >
               <option value="">Select type</option>
               {PROPERTY_TYPES.map((type) => (
@@ -397,7 +419,7 @@ export default function PostPropertyForm({ editId }) {
               id="category"
               value={form.category}
               onChange={(e) => update("category", e.target.value)}
-              className={selectClass}
+              className={errClass(selectClass, "category")}
             >
               <option value="">Select category</option>
               {(CATEGORIES_BY_TYPE[form.section] || []).map((cat) => (
@@ -418,7 +440,7 @@ export default function PostPropertyForm({ editId }) {
             placeholder="e.g. Raipur"
             value={form.city}
             onChange={(e) => update("city", e.target.value)}
-            className={inputClass}
+            className={errClass(inputClass, "city")}
           />
         </FormField>
         <FormField label="Area / Locality" htmlFor="locality" required>
@@ -428,7 +450,7 @@ export default function PostPropertyForm({ editId }) {
             placeholder="e.g. Shankar Nagar"
             value={form.locality}
             onChange={(e) => update("locality", e.target.value)}
-            className={inputClass}
+            className={errClass(inputClass, "locality")}
           />
         </FormField>
         <div className="sm:col-span-2">
@@ -451,7 +473,12 @@ export default function PostPropertyForm({ editId }) {
         subtitle="Specifications, features, and price"
       >
         <FormField label="Price (₹)" htmlFor="price" required>
-          <div className="flex items-center border border-navy-700/60 bg-navy-950 px-4 transition focus-within:border-gold-400">
+          <div
+            className={errClass(
+              "flex items-center border border-navy-700/60 bg-navy-950 px-4 transition focus-within:border-gold-400",
+              "price"
+            )}
+          >
             <span className="text-sm text-muted">₹</span>
             <input
               id="price"
@@ -482,7 +509,7 @@ export default function PostPropertyForm({ editId }) {
               placeholder="Area size"
               value={form.areaSize}
               onChange={(e) => update("areaSize", e.target.value)}
-              className={`${inputClass} min-w-0 flex-1`}
+              className={errClass(`${inputClass} min-w-0 flex-1`, "areaSize")}
             />
             <select
               value={form.areaUnit}
@@ -507,7 +534,7 @@ export default function PostPropertyForm({ editId }) {
               placeholder="e.g. 2"
               value={form.beds}
               onChange={(e) => update("beds", e.target.value)}
-              className={inputClass}
+              className={errClass(inputClass, "beds")}
             />
           </FormField>
         )}
@@ -520,7 +547,7 @@ export default function PostPropertyForm({ editId }) {
             placeholder="e.g. 2"
             value={form.baths}
             onChange={(e) => update("baths", e.target.value)}
-            className={inputClass}
+            className={errClass(inputClass, "baths")}
           />
         </FormField>
         <FormField label="Floor No." htmlFor="floorNo" optional>
@@ -666,11 +693,16 @@ export default function PostPropertyForm({ editId }) {
             placeholder="John Doe"
             value={form.fullName}
             onChange={(e) => update("fullName", e.target.value)}
-            className={inputClass}
+            className={errClass(inputClass, "fullName")}
           />
         </FormField>
         <FormField label="Mobile Number" htmlFor="mobile" required>
-          <div className="flex items-center border border-navy-700/60 bg-navy-950 px-4 transition focus-within:border-gold-400">
+          <div
+            className={errClass(
+              "flex items-center border border-navy-700/60 bg-navy-950 px-4 transition focus-within:border-gold-400",
+              "mobile"
+            )}
+          >
             <span className="text-sm text-muted">+91</span>
             <input
               id="mobile"

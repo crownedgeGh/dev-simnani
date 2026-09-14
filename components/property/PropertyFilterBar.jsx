@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { FiSearch, FiX } from "react-icons/fi";
 import PropertyGrid from "./PropertyGrid";
 import {
@@ -15,18 +16,28 @@ const filterFieldClass =
   "h-11 w-full rounded-sm border border-navy-700/60 bg-navy-950 px-3 text-sm text-cream outline-none transition focus:border-gold-400 sm:h-12";
 
 export default function PropertyFilterBar({ properties, pricingMode = "sale", emptyMessage, emphasizeDetails }) {
-  const [search, setSearch] = useState("");
-  const [city, setCity] = useState("");
-  const [budget, setBudget] = useState("");
-  const [bhk, setBhk] = useState("");
-
-  const hasBeds = useMemo(() => properties.some((p) => p.beds), [properties]);
-  const budgetRanges = pricingMode === "rent" ? RENT_BUDGET_RANGES : SALE_BUDGET_RANGES;
+  const searchParams = useSearchParams();
+  const locationParam = searchParams.get("location");
 
   const cityOptions = useMemo(() => {
     const cities = new Set(properties.map((p) => getLocationCity(p.location)));
     return Array.from(cities).sort();
   }, [properties]);
+
+  const initialCity = useMemo(() => {
+    if (!locationParam) return "";
+    const requestedCity = getLocationCity(locationParam);
+    return cityOptions.includes(requestedCity) ? requestedCity : "";
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const [search, setSearch] = useState("");
+  const [city, setCity] = useState(initialCity);
+  const [budget, setBudget] = useState("");
+  const [bhk, setBhk] = useState("");
+
+  const hasBeds = useMemo(() => properties.some((p) => p.beds), [properties]);
+  const budgetRanges = pricingMode === "rent" ? RENT_BUDGET_RANGES : SALE_BUDGET_RANGES;
 
   const selectedRange = budgetRanges.find((range) => range.label === budget);
 
