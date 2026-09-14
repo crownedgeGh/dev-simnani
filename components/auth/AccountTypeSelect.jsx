@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { MdHome, MdTrendingUp, MdDomain, MdWork, MdPerson, MdBadge, MdScience } from "react-icons/md";
 import { FiMapPin, FiSmartphone, FiBriefcase } from "react-icons/fi";
 import BackButton from "@/components/layout/BackButton";
@@ -52,7 +53,7 @@ const ACCOUNT_TYPES = [
 ];
 
 export default function AccountTypeSelect() {
-  const [selected, setSelected] = useState("");
+  const router = useRouter();
   const [testModeOpen, setTestModeOpen] = useState(false);
 
   return (
@@ -75,17 +76,10 @@ export default function AccountTypeSelect() {
           <button
             key={value}
             type="button"
-            onClick={() => setSelected(value)}
-            aria-pressed={selected === value}
-            className={`flex flex-col items-center gap-3 border p-6 text-center transition ${
-              selected === value
-                ? "border-gold-400 bg-gold-400/5"
-                : "border-navy-700/60 hover:border-navy-600"
-            }`}
+            onClick={() => router.push(`/auth/register/${value}`)}
+            className="flex flex-col items-center gap-3 border border-navy-700/60 p-6 text-center transition hover:border-gold-500"
           >
-            <Icon
-              className={`h-9 w-9 ${selected === value ? "text-gold-400" : "text-cream"}`}
-            />
+            <Icon className="h-9 w-9 text-cream" />
             <span className="tracked-label text-xs text-cream">{label}</span>
             <p className="text-xs text-muted">{description}</p>
           </button>
@@ -93,10 +87,7 @@ export default function AccountTypeSelect() {
 
         <button
           type="button"
-          onClick={() => {
-            setSelected("");
-            setTestModeOpen((open) => !open);
-          }}
+          onClick={() => setTestModeOpen((open) => !open)}
           aria-pressed={testModeOpen}
           className={`flex flex-col items-center gap-3 border p-6 text-center transition ${
             testModeOpen
@@ -128,25 +119,6 @@ export default function AccountTypeSelect() {
           </div>
         </div>
       )}
-
-      <div className="mt-8 flex justify-center">
-        {selected ? (
-          <Link
-            href={`/auth/register/${selected}`}
-            className="tracked-label bg-gold-400 px-8 py-4 text-xs text-navy-950 transition hover:bg-gold-300"
-          >
-            Continue
-          </Link>
-        ) : (
-          <button
-            type="button"
-            disabled
-            className="tracked-label cursor-not-allowed bg-gold-400 px-8 py-4 text-xs text-navy-950 opacity-50"
-          >
-            Continue
-          </button>
-        )}
-      </div>
 
       <footer className="mt-8 flex flex-col items-center gap-2 border-t border-navy-700/60 pt-6">
         <p className="text-xs text-muted">
