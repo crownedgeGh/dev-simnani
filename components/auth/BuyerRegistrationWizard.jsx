@@ -98,7 +98,7 @@ export default function BuyerRegistrationWizard() {
       const json = await res.json();
       if (!json.success) throw new Error(json.error || "Registration failed");
       const token = `se_mock_${form.mobile.replace(/\D/g, "")}_${Date.now()}`;
-      login(token, json.data);
+      await login(token, json.data);
       clearDraft();
       router.push("/");
     } catch (err) {

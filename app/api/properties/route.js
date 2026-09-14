@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Property from "@/models/Property";
 import { getLocationCity } from "@/lib/properties";
+import { getSessionUser } from "@/lib/session";
 
 const NO_BHK_TYPES = ["commercial", "farming", "industrial", "invest"];
 
@@ -19,11 +20,16 @@ export async function GET(request) {
     const featured = searchParams.get("featured");
     const search = searchParams.get("search");
     const contactMobile = searchParams.get("contactMobile");
+    const ownerId = searchParams.get("ownerId");
 
     const query = {};
 
     if (type && type !== "all") {
       query.type = type;
+    }
+
+    if (ownerId) {
+      query.ownerId = ownerId;
     }
 
     if (city && city !== "all") {
@@ -73,6 +79,14 @@ export async function POST(request) {
   try {
     await dbConnect();
 
+    const sessionUser = await getSessionUser(request);
+    if (!sessionUser) {
+      return NextResponse.json(
+        { success: false, error: "You must be logged in to post a property" },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
 
     const baths = Number(body.baths);
@@ -100,6 +114,7 @@ export async function POST(request) {
       city,
       beds,
       baths,
+      ownerId: sessionUser.accountId,
       addedDate:
         body.addedDate ||
         new Date().toLocaleDateString("en-IN", {

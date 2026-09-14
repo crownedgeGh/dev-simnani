@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
+import { useAuth } from "@/context/AuthContext";
 import { inputClass, selectClass } from "@/components/auth/inputStyles";
 import FormField from "@/components/auth/FormField";
 import { CoverImageUpload, GalleryImageUpload, VideoUpload } from "@/components/property/PropertyImageUpload";
@@ -99,6 +100,7 @@ const INITIAL_FORM = {
 
 export default function PostPropertyForm({ editId }) {
   const router = useRouter();
+  const { user } = useAuth();
   const [propertyId, setPropertyId] = useState("");
   const [form, setForm] = useState(INITIAL_FORM);
   const [error, setError] = useState("");
@@ -124,6 +126,9 @@ export default function PostPropertyForm({ editId }) {
         if (cancelled) return;
         if (!data.success) throw new Error(data.error || "Failed to load property");
         const p = data.data;
+        if (p.ownerId && user?.accountId && p.ownerId !== user.accountId) {
+          throw new Error("You can only edit your own listings.");
+        }
         const isResidentialType = ["rent", "lease", "sell"].includes(p.type);
         setPropertyId(p.id);
         setOriginalAddedDate(p.addedDate || "");
@@ -163,6 +168,7 @@ export default function PostPropertyForm({ editId }) {
       .catch((err) => {
         if (cancelled) return;
         toast.error(err.message || "Failed to load property for editing.");
+        router.push("/portal/common-person");
       })
       .finally(() => {
         if (!cancelled) setLoadingProperty(false);
@@ -170,7 +176,7 @@ export default function PostPropertyForm({ editId }) {
     return () => {
       cancelled = true;
     };
-  }, [editId]);
+  }, [editId, user, router]);
 
   function update(field, value) {
     setForm((prev) => {
@@ -280,6 +286,7 @@ export default function PostPropertyForm({ editId }) {
           fullName: (form.fullName || "").trim(),
           mobile: `+91 ${(form.mobile || "").trim()}`,
         },
+        ownerId: user?.accountId || "",
         status: "Pending Review",
         featured: false,
         image: coverImageUrl,

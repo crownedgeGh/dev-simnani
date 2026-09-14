@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Property from "@/models/Property";
 import { getLocationCity } from "@/lib/properties";
+import { getSessionUser } from "@/lib/session";
 
 const NO_BHK_TYPES = ["commercial", "farming", "industrial", "invest"];
 
@@ -40,6 +41,27 @@ export async function PUT(request, { params }) {
     await dbConnect();
     const resolvedParams = await params;
     const id = resolvedParams.id;
+
+    const sessionUser = await getSessionUser(request);
+    if (!sessionUser) {
+      return NextResponse.json({ success: false, error: "You must be logged in" }, { status: 401 });
+    }
+
+    const existing = await Property.findOne({
+      $or: [{ id }, { _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null }],
+    }).lean();
+
+    if (!existing) {
+      return NextResponse.json({ success: false, error: "Property not found" }, { status: 404 });
+    }
+
+    if (existing.ownerId !== sessionUser.accountId) {
+      return NextResponse.json(
+        { success: false, error: "You can only manage your own listings" },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
 
     const updateData = { ...body };
@@ -99,6 +121,26 @@ export async function DELETE(request, { params }) {
     await dbConnect();
     const resolvedParams = await params;
     const id = resolvedParams.id;
+
+    const sessionUser = await getSessionUser(request);
+    if (!sessionUser) {
+      return NextResponse.json({ success: false, error: "You must be logged in" }, { status: 401 });
+    }
+
+    const existing = await Property.findOne({
+      $or: [{ id }, { _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null }],
+    }).lean();
+
+    if (!existing) {
+      return NextResponse.json({ success: false, error: "Property not found" }, { status: 404 });
+    }
+
+    if (existing.ownerId !== sessionUser.accountId) {
+      return NextResponse.json(
+        { success: false, error: "You can only manage your own listings" },
+        { status: 403 }
+      );
+    }
 
     const deleted = await Property.findOneAndDelete({
       $or: [{ id }, { _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null }],

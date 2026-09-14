@@ -82,6 +82,11 @@ const PropertySchema = new mongoose.Schema(
       default: "Active",
       index: true,
     },
+    ownerId: {
+      type: String,
+      default: "",
+      index: true,
+    },
     addedDate: {
       type: String,
       default: () =>

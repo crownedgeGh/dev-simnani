@@ -49,7 +49,7 @@ export default function BrokerDashboard({ stats, listings, leads, clients, commi
                 </button>
               </div>
               <div className="mt-4">
-                <PropertyGrid properties={listings} />
+                <PropertyGrid properties={listings} emptyMessage="You don't have any listings yet." />
               </div>
             </div>
           </div>
@@ -72,6 +72,7 @@ export default function BrokerDashboard({ stats, listings, leads, clients, commi
 
         {tab === "leads" && (
           <div className="flex flex-col gap-3">
+            {leads.length === 0 && <EmptyState message="No leads yet." />}
             {leads.map((lead) => (
               <div
                 key={lead.id}
@@ -94,6 +95,7 @@ export default function BrokerDashboard({ stats, listings, leads, clients, commi
 
         {tab === "clients" && (
           <div className="flex flex-col gap-3">
+            {clients.length === 0 && <EmptyState message="No clients yet." />}
             {clients.map((client) => (
               <div
                 key={client.name}
@@ -115,6 +117,7 @@ export default function BrokerDashboard({ stats, listings, leads, clients, commi
 
         {tab === "commissions" && (
           <div className="flex flex-col gap-3">
+            {commissions.length === 0 && <EmptyState message="No commissions recorded yet." />}
             {commissions.map((c) => (
               <div
                 key={c.property}
@@ -135,6 +138,14 @@ export default function BrokerDashboard({ stats, listings, leads, clients, commi
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function EmptyState({ message }) {
+  return (
+    <div className="border border-navy-700/60 bg-navy-900 px-6 py-16 text-center">
+      <p className="text-muted">{message}</p>
     </div>
   );
 }

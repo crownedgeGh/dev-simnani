@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { MdScience } from "react-icons/md";
 import { useAuth } from "@/context/AuthContext";
-import { generateAccountId } from "@/lib/auth";
 import BackButton from "@/components/layout/BackButton";
 
 const OTP_LENGTH = 6;
@@ -19,7 +18,7 @@ function formatMobile(value) {
 
 export default function AuthCard() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, loginWithMobile } = useAuth();
 
   const [step, setStep] = useState("mobile"); // "mobile" | "otp"
   const [mobile, setMobile] = useState("");
@@ -97,7 +96,7 @@ export default function AuthCard() {
     otpRefs.current[Math.min(pasted.length, OTP_LENGTH - 1)]?.focus();
   }
 
-  function handleVerify() {
+  async function handleVerify() {
     const code = otp.join("");
     if (code.length < OTP_LENGTH) {
       setError("Please enter all 6 digits");
@@ -105,59 +104,43 @@ export default function AuthCard() {
     }
     setLoading(true);
     setError("");
-    setTimeout(() => {
+    try {
+      await loginWithMobile(mobile);
       clearInterval(timerRef.current);
-      setLoading(false);
-
-      // Mock login — check if a registered profile exists for this mobile
-      const rawProfile = localStorage.getItem("se_user_profile");
-      let profile = rawProfile ? JSON.parse(rawProfile) : null;
-
-      // If no existing profile (returning user who registered elsewhere), create a minimal one
-      if (!profile || profile.mobile?.replace(/\D/g, "") !== mobile.replace(/\D/g, "")) {
-        profile = {
-          fullName: "",
-          mobile: mobile,
-          email: "",
-          accountType: "common-person",
-          accountId: generateAccountId("IND"),
-          city: "",
-          registeredAt: new Date().toISOString(),
-        };
-      }
-
-      const token = `se_mock_${mobile.replace(/\D/g, "")}_${Date.now()}`;
-      login(token, profile);
       router.push("/");
-    }, 1000);
+    } catch (err) {
+      setLoading(false);
+      setError(err.message || "Verification failed. Please try again.");
+    }
   }
 
-  function handleTesterLogin() {
+  async function handleTesterLogin() {
     if (loading) return;
     setLoading(true);
     setIsTesterLogin(true);
     setError("");
-    setTimeout(() => {
+
+    const testerProfile = {
+      fullName: "Tester Account",
+      mobile: "98765 43210",
+      email: "tester@simnaniestate.com",
+      accountType: "common-person",
+      accountId: "SG-IND-TESTER",
+      city: "Mumbai",
+      propertyType: "flat",
+      purpose: "sale",
+      locality: "Bandra West",
+      registeredAt: new Date().toISOString(),
+    };
+
+    try {
+      await login(null, testerProfile);
       clearInterval(timerRef.current);
-      setLoading(false);
-
-      const testerProfile = {
-        fullName: "Tester Account",
-        mobile: "98765 43210",
-        email: "tester@simnaniestate.com",
-        accountType: "common-person",
-        accountId: "SG-IND-TESTER",
-        city: "Mumbai",
-        propertyType: "flat",
-        purpose: "sale",
-        locality: "Bandra West",
-        registeredAt: new Date().toISOString(),
-      };
-
-      const token = `se_mock_tester_${Date.now()}`;
-      login(token, testerProfile);
       router.push("/");
-    }, 400);
+    } catch (err) {
+      setLoading(false);
+      setError(err.message || "Tester login failed. Please try again.");
+    }
   }
 
   function handleChangeNumber() {

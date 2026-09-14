@@ -4,60 +4,102 @@ import { createContext, useContext, useState, useEffect, useCallback } from "rea
 
 const AuthContext = createContext(null);
 
-const STORAGE_TOKEN_KEY = "se_auth_token";
-const STORAGE_PROFILE_KEY = "se_user_profile";
-
 export function AuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState(null); // { fullName, mobile, email, accountType, accountId, city, ... }
 
   useEffect(() => {
-    const token = localStorage.getItem(STORAGE_TOKEN_KEY);
-    if (token) {
-      const profileRaw = localStorage.getItem(STORAGE_PROFILE_KEY);
-      const profile = profileRaw ? JSON.parse(profileRaw) : null;
-      setUser(profile);
-      setIsAuthenticated(true);
-    }
-    setIsLoading(false);
+    let active = true;
+    fetch("/api/auth/me")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!active || !data?.success) return;
+        setUser(data.data);
+        setIsAuthenticated(true);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (active) setIsLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   /**
-   * login — called after OTP verify or after registration wizard submit.
-   * @param {string} token   — a mock token string (e.g. mobile number or account ID)
-   * @param {object} profile — user profile data to persist { fullName, mobile, email, accountType, accountId, ... }
+   * login — called after registration wizard submit, or tester login.
+   * Creates a DB-backed session for the given profile's accountId (the user
+   * record itself must already exist, or is created on first use for the
+   * tester account). The first argument is a legacy token placeholder kept
+   * for call-site compatibility — the server is the source of truth now.
    */
-  const login = useCallback((token, profile = null) => {
-    localStorage.setItem(STORAGE_TOKEN_KEY, token);
-    if (profile) {
-      localStorage.setItem(STORAGE_PROFILE_KEY, JSON.stringify(profile));
-    }
-    setUser(profile);
+  const login = useCallback(async (_token, profile) => {
+    const res = await fetch("/api/auth/session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(profile),
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || "Login failed");
+    setUser(data.data);
     setIsAuthenticated(true);
+    return data.data;
   }, []);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem(STORAGE_TOKEN_KEY);
-    localStorage.removeItem(STORAGE_PROFILE_KEY);
+  /**
+   * loginWithMobile — OTP login path. Looks the user up by mobile number in
+   * the database (creating a minimal Common Person profile on first login).
+   */
+  const loginWithMobile = useCallback(async (mobile) => {
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mobile }),
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || "Login failed");
+    setUser(data.data);
+    setIsAuthenticated(true);
+    return data.data;
+  }, []);
+
+  const logout = useCallback(async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch {
+      // best-effort — clear local state regardless
+    }
     setUser(null);
     setIsAuthenticated(false);
   }, []);
 
   /**
-   * updateProfile — update stored profile without re-logging in.
-   * Merges the patch into the existing profile.
+   * updateProfile — persists a patch to the user's DB record and refreshes
+   * local state from the server's response.
    */
-  const updateProfile = useCallback((patch) => {
-    setUser((prev) => {
-      const next = { ...prev, ...patch };
-      localStorage.setItem(STORAGE_PROFILE_KEY, JSON.stringify(next));
-      return next;
-    });
-  }, []);
+  const updateProfile = useCallback(
+    async (patch) => {
+      if (!user?.accountId) return;
+      try {
+        const res = await fetch(`/api/users/${user.accountId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(patch),
+        });
+        const data = await res.json();
+        if (data.success) setUser(data.data);
+      } catch {
+        // best-effort — UI already reflects the optimistic edit
+      }
+    },
+    [user]
+  );
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isLoading, user, login, logout, updateProfile }}>
+    <AuthContext.Provider
+      value={{ isAuthenticated, isLoading, user, login, loginWithMobile, logout, updateProfile }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { getPropertyById } from "@/lib/propertiesServer";
 import { formatPostedDate } from "@/lib/properties";
 import { getPropertyDescription } from "@/lib/propertyContent";
-import PropertyOwnerActions from "@/components/property/PropertyOwnerActions";
+import PropertyActionCard from "@/components/property/PropertyActionCard";
 import PropertyMediaCarousel from "@/components/property/PropertyMediaCarousel";
 import BackButton from "@/components/layout/BackButton";
 import {
@@ -173,9 +173,8 @@ export default async function PropertyDetailPage({ params }) {
 
         <div className="lg:col-span-1">
           <div className="lg:sticky lg:top-24">
-            <PropertyOwnerActions
+            <PropertyActionCard
               propertyId={property.id}
-              propertyTitle={property.title}
               contactName={property.contact?.fullName}
               contactMobile={property.contact?.mobile}
             />

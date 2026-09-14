@@ -59,32 +59,41 @@ export default function EmployeeRegistrationWizard() {
     setStep((s) => Math.max(s - 1, 1));
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!form.agree) {
       setError("Please accept the Terms & Conditions to continue.");
       return;
     }
     setError("");
     setSubmitting(true);
-    setTimeout(() => {
-      const id = generateAccountId("EMP");
+    try {
       const profile = {
         fullName: form.fullName,
         mobile: form.mobile,
         email: form.email,
         accountType: "employee",
-        accountId: id,
+        accountId: generateAccountId("EMP"),
         employeeCode: form.employeeCode,
         designation: form.designation,
         assignedDistrict: form.assignedDistrict,
         registeredAt: new Date().toISOString(),
       };
+      const res = await fetch("/api/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(profile),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || "Registration failed");
       const token = `se_mock_${form.mobile.replace(/\D/g, "")}_${Date.now()}`;
-      login(token, profile);
+      await login(token, json.data);
       clearDraft();
-      setSubmitting(false);
       router.push("/");
-    }, 1000);
+    } catch (err) {
+      setError(err.message || "Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
 
