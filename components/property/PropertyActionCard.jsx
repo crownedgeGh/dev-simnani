@@ -27,10 +27,19 @@ export default function PropertyActionCard({ propertyId, contactName, contactRol
   const phone = contactMobile || FALLBACK_MOBILE;
   const initial = (contactName || "A").trim().charAt(0).toUpperCase();
 
-  function handleInterested() {
+  async function handleInterested() {
     if (!isAuthenticated) {
       setShowAuthGate(true);
       return;
+    }
+    try {
+      await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ propertyId }),
+      });
+    } catch {
+      // best-effort — still show the callback confirmation
     }
     setShowToast(true);
     setTimeout(() => setShowToast(false), 2500);

@@ -38,12 +38,21 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
   const { isAuthenticated } = useAuth();
   const saved = isSaved(id);
 
-  function handleContactClick(e) {
+  async function handleContactClick(e) {
     e.preventDefault();
     e.stopPropagation();
     if (!isAuthenticated) {
       setShowAuthGate(true);
       return;
+    }
+    try {
+      await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ propertyId: id }),
+      });
+    } catch {
+      // best-effort — still show the callback confirmation
     }
     setShowToast(true);
     setTimeout(() => setShowToast(false), 2500);
