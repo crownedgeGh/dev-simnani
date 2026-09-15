@@ -210,7 +210,7 @@ function OpenListingCard({ property, onClose, onDelete }) {
 
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-sm border border-navy-700/60 bg-navy-900">
-      <Link href={`/property/${id}`} className="relative block aspect-[4/3] w-full overflow-hidden">
+      <Link href={`/portal/listing/${id}`} className="relative block aspect-[4/3] w-full overflow-hidden">
         <Image src={image} alt={title} fill sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" className="object-cover" />
         {status && (
           <span className="tracked-label absolute left-3 top-3 rounded-sm bg-navy-950/80 px-2 py-1 text-[10px] font-semibold text-gold-400">
@@ -220,7 +220,7 @@ function OpenListingCard({ property, onClose, onDelete }) {
       </Link>
 
       <div className="flex flex-1 flex-col p-5">
-        <Link href={`/property/${id}`}>
+        <Link href={`/portal/listing/${id}`}>
           <h3 className="font-display text-lg text-cream transition hover:text-gold-400">{title}</h3>
         </Link>
         <p className="mt-1 text-sm text-muted">{address || location}</p>
@@ -230,7 +230,7 @@ function OpenListingCard({ property, onClose, onDelete }) {
           <div className="flex gap-3">
             <Link
               href={`/post-property/edit/${id}`}
-              className="tracked-label flex flex-1 items-center justify-center gap-1.5 border border-gold-500/70 py-2.5 text-xs text-gold-400 transition hover:bg-gold-500/10"
+              className="tracked-label flex min-h-11 flex-1 items-center justify-center gap-1.5 border border-gold-500/70 py-2.5 text-xs text-gold-400 transition hover:bg-gold-500/10"
             >
               <MdEdit className="h-4 w-4" />
               Edit
@@ -238,7 +238,7 @@ function OpenListingCard({ property, onClose, onDelete }) {
             <button
               type="button"
               onClick={() => onDelete(property)}
-              className="tracked-label flex flex-1 items-center justify-center gap-1.5 border border-navy-700/60 py-2.5 text-xs text-cream transition hover:border-red-400 hover:text-red-400"
+              className="tracked-label flex min-h-11 flex-1 items-center justify-center gap-1.5 border border-navy-700/60 py-2.5 text-xs text-cream transition hover:border-red-400 hover:text-red-400"
             >
               <MdDeleteOutline className="h-4 w-4" />
               Delete
@@ -247,7 +247,7 @@ function OpenListingCard({ property, onClose, onDelete }) {
           <button
             type="button"
             onClick={() => onClose(property)}
-            className="tracked-label flex items-center justify-center gap-1.5 border border-navy-700/60 py-2.5 text-xs text-muted transition hover:border-gold-500/50 hover:text-gold-400"
+            className="tracked-label flex min-h-11 items-center justify-center gap-1.5 border border-navy-700/60 py-2.5 text-xs text-muted transition hover:border-gold-500/50 hover:text-gold-400"
           >
             <MdLockOutline className="h-4 w-4" />
             Close Listing
@@ -279,14 +279,14 @@ function ClosedListingCard({ property, onReopen }) {
           <button
             type="button"
             onClick={() => onReopen(id)}
-            className="tracked-label flex flex-1 items-center justify-center gap-1.5 border border-gold-500/70 py-2.5 text-xs text-gold-400 transition hover:bg-gold-500/10"
+            className="tracked-label flex min-h-11 flex-1 items-center justify-center gap-1.5 border border-gold-500/70 py-2.5 text-xs text-gold-400 transition hover:bg-gold-500/10"
           >
             <MdLockOpen className="h-4 w-4" />
             Reopen
           </button>
           <Link
             href={`/post-property/edit/${id}`}
-            className="tracked-label flex flex-1 items-center justify-center gap-1.5 border border-navy-700/60 py-2.5 text-xs text-cream transition hover:border-gold-500/50 hover:text-gold-400"
+            className="tracked-label flex min-h-11 flex-1 items-center justify-center gap-1.5 border border-navy-700/60 py-2.5 text-xs text-cream transition hover:border-gold-500/50 hover:text-gold-400"
           >
             <MdEdit className="h-4 w-4" />
             Edit

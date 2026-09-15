@@ -22,7 +22,7 @@ import AuthGateModal from "@/components/auth/AuthGateModal";
 
 const FALLBACK_MOBILE = "+91 98765 43210";
 
-export default function PropertyCard({ property, hideContactButton, emphasizeDetails }) {
+export default function PropertyCard({ property, hideContactButton, emphasizeDetails, ownerView }) {
   const { id, title, price, location, image, badge, beds, baths, area, roi, type, address, contact } =
     property;
   const isInvest = type === "invest";
@@ -102,7 +102,7 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
   return (
     <>
     <Link
-      href={`/property/${id}`}
+      href={ownerView ? `/portal/listing/${id}` : `/property/${id}`}
       className="group flex h-full flex-col overflow-hidden rounded-sm border border-navy-700/60 bg-navy-900 transition active:border-gold-500/50 active:shadow-[0_0_0_1px_var(--color-gold-500)] hover:border-gold-500/50 hover:shadow-[0_0_0_1px_var(--color-gold-500)]"
     >
       <div className="relative aspect-[4/3] w-full overflow-hidden">

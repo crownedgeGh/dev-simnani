@@ -144,6 +144,7 @@ export default function BrokerDashboard({ stats, listings, leads, clients, commi
                   properties={listings}
                   emptyMessage="You don't have any listings yet."
                   hideContactButton
+                  ownerView
                 />
               </div>
             </div>
@@ -161,7 +162,7 @@ export default function BrokerDashboard({ stats, listings, leads, clients, commi
                 Add Property
               </Link>
             </div>
-            <PropertyGrid properties={listings} emptyMessage="You don't have any listings yet." />
+            <PropertyGrid properties={listings} emptyMessage="You don't have any listings yet." ownerView />
           </div>
         )}
 
