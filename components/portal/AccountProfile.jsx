@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { FiEdit3 } from "react-icons/fi";
+import Link from "next/link";
+import { FiEdit3, FiAlertCircle } from "react-icons/fi";
 import Badge from "./Badge";
 import SectionCard from "./SectionCard";
 import { inputClass } from "@/components/auth/inputStyles";
@@ -53,8 +54,27 @@ export default function AccountProfile({ user }) {
     }
   }
 
+  const isProfileIncomplete = authUser?.profileComplete === false;
+
   return (
     <div className="flex flex-col gap-5">
+      {isProfileIncomplete && (
+        <div className="flex flex-col items-start gap-3 border border-gold-500/40 bg-gold-400/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <FiAlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-gold-400" />
+            <p className="text-sm text-cream">
+              Your profile is incomplete. Please complete your profile to unlock full access.
+            </p>
+          </div>
+          <Link
+            href={`/auth/register/${authUser.accountType}?step=${authUser.registrationStep || 1}`}
+            className="tracked-label shrink-0 border border-gold-500/70 px-4 py-3 text-xs text-gold-400 transition hover:bg-gold-500/10"
+          >
+            Complete Your Profile
+          </Link>
+        </div>
+      )}
+
       <SectionCard>
         <div className="flex items-center gap-4 border-b border-navy-700/60 pb-5">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-navy-700/60 font-display text-2xl text-gold-400">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import AuthShell from "./AuthShell";
@@ -13,6 +13,8 @@ import { useAuth } from "@/context/AuthContext";
 import { PROPERTY_CATEGORIES } from "@/lib/propertyCategories";
 import { useWizardDraft } from "@/lib/useWizardDraft";
 
+const ACCOUNT_TYPE = "buyer";
+const ACCOUNT_PREFIX = "BYR";
 const TOTAL_STEPS = 3;
 
 const PROPERTY_TYPES = PROPERTY_CATEGORIES;
@@ -26,6 +28,7 @@ const BUDGET_RANGES = [
 ];
 
 const INITIAL_FORM = {
+  accountId: "",
   fullName: "",
   mobile: "",
   email: "",
@@ -37,22 +40,78 @@ const INITIAL_FORM = {
 };
 
 export default function BuyerRegistrationWizard() {
-  const { login } = useAuth();
+  const { login, user: authUser, updateProfile } = useAuth();
   const router = useRouter();
   const { step, setStep, form, setForm, clearDraft } = useWizardDraft("se_draft_buyer", INITIAL_FORM);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  useEffect(() => {
+    if (!authUser || authUser.accountType !== ACCOUNT_TYPE || form.accountId) return;
+    const params = new URLSearchParams(window.location.search);
+    const resumeStep = Number(params.get("step")) || authUser.registrationStep || 1;
+    setForm((prev) => ({
+      ...prev,
+      accountId: authUser.accountId,
+      fullName: authUser.fullName || prev.fullName,
+      mobile: authUser.mobile || prev.mobile,
+      email: authUser.email || prev.email,
+      city: authUser.city || prev.city,
+    }));
+    setStep(Math.min(Math.max(resumeStep, 1), TOTAL_STEPS));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authUser]);
+
   function update(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
-  function goNext() {
+  async function goNext() {
     if (step === 1) {
       if (!form.fullName.trim() || !isMobileValid(form.mobile) || !form.city.trim()) {
         setError("Please fill in all required fields.");
         return;
       }
+      setError("");
+      setSubmitting(true);
+      try {
+        if (!form.accountId) {
+          const id = generateAccountId(ACCOUNT_PREFIX);
+          const profile = {
+            fullName: form.fullName,
+            mobile: form.mobile,
+            email: form.email,
+            city: form.city,
+            accountType: ACCOUNT_TYPE,
+            accountId: id,
+            registeredAt: new Date().toISOString(),
+            profileComplete: false,
+            registrationStep: 2,
+          };
+          const res = await fetch("/api/users", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(profile),
+          });
+          const json = await res.json();
+          if (!json.success) throw new Error(json.error || "Registration failed");
+          await login(null, json.data);
+          setForm((prev) => ({ ...prev, accountId: id }));
+        } else {
+          const result = await updateProfile({
+            fullName: form.fullName,
+            email: form.email,
+            city: form.city,
+            registrationStep: 2,
+          });
+          if (!result?.success) throw new Error(result?.error || "Something went wrong. Please try again.");
+        }
+      } catch (err) {
+        setError(err.message || "Something went wrong. Please try again.");
+        setSubmitting(false);
+        return;
+      }
+      setSubmitting(false);
     }
     if (step === 2) {
       if (form.propertyTypes.length === 0) {
@@ -69,6 +128,15 @@ export default function BuyerRegistrationWizard() {
     setStep((s) => Math.max(s - 1, 1));
   }
 
+  async function handleSkip() {
+    setError("");
+    if (form.accountId) {
+      await updateProfile({ registrationStep: step });
+    }
+    clearDraft();
+    router.push("/account");
+  }
+
   async function handleSubmit() {
     if (!form.agree) {
       setError("Please accept the Terms & Conditions to continue.");
@@ -76,31 +144,17 @@ export default function BuyerRegistrationWizard() {
     }
     setError("");
     setSubmitting(true);
-    const id = generateAccountId("BYR");
-    const profile = {
-      fullName: form.fullName,
-      mobile: form.mobile,
-      email: form.email,
-      city: form.city,
-      accountType: "buyer",
-      accountId: id,
-      propertyTypes: form.propertyTypes,
-      budget: form.budget,
-      location: form.location,
-      registeredAt: new Date().toISOString(),
-    };
     try {
-      const res = await fetch("/api/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(profile),
+      const result = await updateProfile({
+        propertyTypes: form.propertyTypes,
+        budget: form.budget,
+        location: form.location,
+        profileComplete: true,
+        registrationStep: null,
       });
-      const json = await res.json();
-      if (!json.success) throw new Error(json.error || "Registration failed");
-      const token = `se_mock_${form.mobile.replace(/\D/g, "")}_${Date.now()}`;
-      await login(token, json.data);
+      if (!result?.success) throw new Error(result?.error || "Something went wrong. Please try again.");
       clearDraft();
-      router.push("/");
+      router.push("/buy");
     } catch (err) {
       setError(err.message || "Something went wrong. Please try again.");
     } finally {
@@ -259,7 +313,7 @@ export default function BuyerRegistrationWizard() {
 
       {error && <p className="mt-4 text-center text-xs text-red-400">{error}</p>}
 
-      <div className="mt-8 flex items-center justify-between gap-4">
+      <div className="mt-8 flex flex-col-reverse items-center justify-between gap-4 sm:flex-row">
         {step > 1 ? (
           <button
             type="button"
@@ -272,24 +326,37 @@ export default function BuyerRegistrationWizard() {
           <span />
         )}
 
-        {step < TOTAL_STEPS ? (
-          <button
-            type="button"
-            onClick={goNext}
-            className="tracked-label bg-gold-400 px-6 py-4 text-xs text-navy-950 transition hover:bg-gold-300"
-          >
-            Continue
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={submitting}
-            className="tracked-label bg-gold-400 px-6 py-4 text-xs text-navy-950 transition hover:bg-gold-300 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {submitting ? "Creating Account..." : "Create Buyer Account"}
-          </button>
-        )}
+        <div className="flex w-full items-center justify-end gap-3 sm:w-auto">
+          {step > 1 && (
+            <button
+              type="button"
+              onClick={handleSkip}
+              className="tracked-label px-4 py-4 text-xs text-muted transition hover:text-gold-400"
+            >
+              Skip for now
+            </button>
+          )}
+
+          {step < TOTAL_STEPS ? (
+            <button
+              type="button"
+              onClick={goNext}
+              disabled={submitting}
+              className="tracked-label bg-gold-400 px-6 py-4 text-xs text-navy-950 transition hover:bg-gold-300 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {submitting && step === 1 ? "Please wait..." : "Continue"}
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={submitting}
+              className="tracked-label bg-gold-400 px-6 py-4 text-xs text-navy-950 transition hover:bg-gold-300 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {submitting ? "Creating Account..." : "Create Buyer Account"}
+            </button>
+          )}
+        </div>
       </div>
     </AuthShell>
   );

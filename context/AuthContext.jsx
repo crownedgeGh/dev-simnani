@@ -80,7 +80,7 @@ export function AuthProvider({ children }) {
    */
   const updateProfile = useCallback(
     async (patch) => {
-      if (!user?.accountId) return;
+      if (!user?.accountId) return { success: false, error: "Not authenticated" };
       try {
         const res = await fetch(`/api/users/${user.accountId}`, {
           method: "PUT",
@@ -89,8 +89,9 @@ export function AuthProvider({ children }) {
         });
         const data = await res.json();
         if (data.success) setUser(data.data);
-      } catch {
-        // best-effort — UI already reflects the optimistic edit
+        return data;
+      } catch (err) {
+        return { success: false, error: err.message || "Failed to update profile" };
       }
     },
     [user]

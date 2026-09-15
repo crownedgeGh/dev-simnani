@@ -48,6 +48,7 @@ export default function CommonPersonRegistrationWizard() {
       accountType: "common-person",
       accountId: id,
       registeredAt: new Date().toISOString(),
+      profileComplete: true,
     };
     try {
       const res = await fetch("/api/users", {

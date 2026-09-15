@@ -121,9 +121,9 @@ export default function AccountTypeSelect() {
       )}
 
       <footer className="mt-8 flex flex-col items-center gap-2 border-t border-navy-700/60 pt-6">
-        <p className="text-xs text-muted">
+        <p className="text-sm text-muted">
           Already have an account?{" "}
-          <Link href="/auth" className="tracked-label text-gold-400 hover:text-gold-300">
+          <Link href="/auth" className="tracked-label text-sm text-gold-400 hover:text-gold-300">
             Sign In
           </Link>
         </p>
