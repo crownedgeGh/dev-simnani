@@ -3,14 +3,13 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MdClose, MdDashboard, MdApartment, MdPeople, MdBusiness, MdLeaderboard, MdSupervisedUserCircle, MdPhone, MdSettings, MdLightMode, MdDarkMode } from "react-icons/md";
+import { MdClose, MdDashboard, MdApartment, MdPeople, MdLeaderboard, MdSupervisedUserCircle, MdPhone, MdSettings, MdLightMode, MdDarkMode } from "react-icons/md";
 import { useAdminTheme } from "@/context/AdminThemeContext";
 
 const NAV_ITEMS = [
   { href: "/admin/dashboard", label: "Dashboard", icon: MdDashboard },
   { href: "/admin/properties", label: "Properties", icon: MdApartment },
   { href: "/admin/users", label: "Users", icon: MdPeople },
-  { href: "/admin/projects", label: "Projects", icon: MdBusiness },
   { href: "/admin/leads", label: "Leads", icon: MdLeaderboard },
   { href: "/admin/freelancer-cp", label: "Freelancer & CP", icon: MdSupervisedUserCircle },
   { href: "/admin/callbacks", label: "Callbacks", icon: MdPhone },
