@@ -42,7 +42,46 @@ export default function PropertyActionCard({
     : "#";
 
   if (isAuthenticated && user?.accountType === "broker") {
-    return null;
+    return (
+      <div className="border border-navy-700/60 bg-navy-900 p-6">
+        <p className="tracked-label flex items-center gap-2 text-xs text-muted">
+          <MdShare className="h-4 w-4 shrink-0 text-gold-400" />
+          Share This Property
+        </p>
+        <div className="mt-3 flex items-center gap-2 border border-navy-700/60 bg-navy-950 p-2">
+          <span className="min-w-0 flex-1 truncate px-2 text-xs text-cream/80">
+            {shareUrl || "Generating link…"}
+          </span>
+          <button
+            type="button"
+            onClick={handleCopy}
+            aria-label="Copy property link"
+            className={`flex h-10 w-10 shrink-0 items-center justify-center border transition ${
+              copied
+                ? "border-gold-400 bg-gold-400 text-navy-950"
+                : "border-navy-700/60 text-cream hover:border-gold-400 hover:text-gold-400"
+            }`}
+          >
+            {copied ? <MdCheck className="h-4 w-4" /> : <MdContentCopy className="h-4 w-4" />}
+          </button>
+        </div>
+        {copied && <p className="mt-2 text-xs text-gold-400">Link copied to clipboard!</p>}
+
+        <a
+          href={whatsappHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-disabled={!shareUrl}
+          onClick={(e) => {
+            if (!shareUrl) e.preventDefault();
+          }}
+          className="tracked-label mt-3 flex min-h-[44px] w-full items-center justify-center gap-2 border border-navy-700/60 px-6 py-3 text-center text-xs text-cream transition hover:border-gold-400 hover:text-gold-400"
+        >
+          <FaWhatsapp className="h-4 w-4 shrink-0 text-gold-400" />
+          Share on WhatsApp
+        </a>
+      </div>
+    );
   }
 
   async function handleInterested() {
