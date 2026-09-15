@@ -15,7 +15,7 @@ import {
   MdContentCopy,
   MdCheck,
 } from "react-icons/md";
-import { formatPostedDate } from "@/lib/properties";
+import { formatPostedDate, getPropertyCategoryLabels } from "@/lib/properties";
 import { useSavedPropertyIds } from "@/lib/savedProperties";
 import { useAuth } from "@/context/AuthContext";
 import AuthGateModal from "@/components/auth/AuthGateModal";
@@ -34,6 +34,7 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
   const [copied, setCopied] = useState(false);
   const [showAuthGate, setShowAuthGate] = useState(false);
   const postedLabel = formatPostedDate(property);
+  const { typeLabel, categoryLabel } = getPropertyCategoryLabels(property);
   const { isSaved, toggle } = useSavedPropertyIds();
   const { isAuthenticated, user } = useAuth();
   const saved = isSaved(id);
@@ -132,7 +133,12 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
       </div>
 
       <div className="flex flex-1 flex-col p-5">
-        <h3 className="font-display text-lg text-cream">{title}</h3>
+        {categoryLabel && (
+          <p className="tracked-label text-[10px] text-gold-400">
+            {typeLabel} <span className="text-muted">&gt; {categoryLabel}</span>
+          </p>
+        )}
+        <h3 className={`font-display text-lg text-cream ${categoryLabel ? "mt-1" : ""}`}>{title}</h3>
         <p className="mt-1 flex items-start gap-1 text-sm text-muted">
           <MdLocationOn className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           {address || location}
