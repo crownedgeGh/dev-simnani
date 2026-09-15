@@ -2,12 +2,20 @@
 
 import { useState, useEffect } from "react";
 import { MdCall, MdContentCopy, MdCheck, MdShare } from "react-icons/md";
+import { FaWhatsapp } from "react-icons/fa6";
 import { useAuth } from "@/context/AuthContext";
 import AuthGateModal from "@/components/auth/AuthGateModal";
 
 const FALLBACK_MOBILE = "+91 98765 43210";
 
-export default function PropertyActionCard({ propertyId, contactName, contactRole, contactMobile }) {
+export default function PropertyActionCard({
+  propertyId,
+  propertyTitle,
+  propertyPrice,
+  contactName,
+  contactRole,
+  contactMobile,
+}) {
   const [shareUrl, setShareUrl] = useState("");
   const [copied, setCopied] = useState(false);
   const [showToast, setShowToast] = useState(false);
@@ -26,6 +34,12 @@ export default function PropertyActionCard({ propertyId, contactName, contactRol
 
   const phone = contactMobile || FALLBACK_MOBILE;
   const initial = (contactName || "A").trim().charAt(0).toUpperCase();
+
+  const whatsappHref = shareUrl
+    ? `https://wa.me/?text=${encodeURIComponent(
+        `${propertyTitle ? `${propertyTitle} — ` : ""}${propertyPrice ? `${propertyPrice}\n` : ""}${shareUrl}`
+      )}`
+    : "#";
 
   if (isAuthenticated && user?.accountType === "broker") {
     return null;
@@ -169,6 +183,20 @@ export default function PropertyActionCard({ propertyId, contactName, contactRol
           </button>
         </div>
         {copied && <p className="mt-2 text-xs text-gold-400">Link copied to clipboard!</p>}
+
+        <a
+          href={whatsappHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-disabled={!shareUrl}
+          onClick={(e) => {
+            if (!shareUrl) e.preventDefault();
+          }}
+          className="tracked-label mt-3 flex min-h-[44px] w-full items-center justify-center gap-2 border border-navy-700/60 px-6 py-3 text-center text-xs text-cream transition hover:border-gold-400 hover:text-gold-400"
+        >
+          <FaWhatsapp className="h-4 w-4 shrink-0 text-gold-400" />
+          Share on WhatsApp
+        </a>
       </div>
 
       <div className="mt-6 flex items-center gap-3 border-t border-navy-700/60 pt-6">

@@ -30,6 +30,8 @@ export default async function PropertyDetailPage({ params }) {
       sidebar={
         <PropertyActionCard
           propertyId={property.id}
+          propertyTitle={property.title}
+          propertyPrice={property.price}
           contactName={property.contact?.fullName}
           contactMobile={property.contact?.mobile}
         />
