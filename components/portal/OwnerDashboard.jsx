@@ -19,15 +19,25 @@ import Badge from "./Badge";
 import PropertyGrid from "@/components/property/PropertyGrid";
 import ConfirmDialog from "./ConfirmDialog";
 
-const TABS = [
+const BASE_TABS = [
   { key: "overview", label: "Overview" },
   { key: "listings", label: "My Listings" },
   { key: "leads", label: "Leads" },
   { key: "clients", label: "Clients" },
-  { key: "commissions", label: "Commissions" },
 ];
 
-export default function BrokerDashboard({ stats, listings, leads, clients, commissions }) {
+const COMMISSIONS_TAB = { key: "commissions", label: "Commissions" };
+
+export default function OwnerDashboard({
+  stats,
+  listings,
+  leads,
+  clients,
+  commissions = [],
+  addPropertyHref = "/portal/broker/add-property",
+  showCommissions = true,
+}) {
+  const TABS = showCommissions ? [...BASE_TABS, COMMISSIONS_TAB] : BASE_TABS;
   const [tab, setTab] = useState("overview");
   const [leadList, setLeadList] = useState(leads);
   const [clientList, setClientList] = useState(clients);
@@ -156,7 +166,7 @@ export default function BrokerDashboard({ stats, listings, leads, clients, commi
             <div className="mb-4 flex items-center justify-between">
               <h2 className="font-display text-xl text-cream">My Listings</h2>
               <Link
-                href="/portal/broker/add-property"
+                href={addPropertyHref}
                 className="tracked-label bg-gold-400 px-4 py-2 text-xs text-navy-950 transition hover:bg-gold-300"
               >
                 Add Property
@@ -198,7 +208,7 @@ export default function BrokerDashboard({ stats, listings, leads, clients, commi
           </div>
         )}
 
-        {tab === "commissions" && (
+        {showCommissions && tab === "commissions" && (
           <div className="flex flex-col gap-3">
             {commissions.length === 0 && <EmptyState message="No commissions recorded yet." />}
             {commissions.map((c) => (
