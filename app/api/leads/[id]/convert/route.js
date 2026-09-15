@@ -31,7 +31,10 @@ export async function POST(request, { params }) {
       phone: lead.phone,
       address: lead.address,
       property: lead.interest,
+      propertyId: lead.propertyId || "",
       ownerId: lead.ownerId,
+      notes: Array.isArray(lead.notes) ? lead.notes : [],
+      callDone: Boolean(lead.callDone),
     });
 
     await Lead.deleteOne({ id });

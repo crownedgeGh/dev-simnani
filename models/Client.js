@@ -27,6 +27,10 @@ const ClientSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    propertyId: {
+      type: String,
+      default: "",
+    },
     status: {
       type: String,
       default: "Active Negotiation",
@@ -34,6 +38,27 @@ const ClientSchema = new mongoose.Schema(
     lastActivity: {
       type: String,
       default: "Just now",
+    },
+    callDone: {
+      type: Boolean,
+      default: false,
+    },
+    notes: {
+      type: [
+        {
+          text: { type: String, trim: true, required: true },
+          date: {
+            type: String,
+            default: () =>
+              new Date().toLocaleDateString("en-IN", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              }),
+          },
+        },
+      ],
+      default: [],
     },
     ownerId: {
       type: String,

@@ -26,7 +26,12 @@ export default async function BrokerPortalPage() {
   const leads = leadDocs.map((doc) => ({ ...doc, _id: doc._id.toString() }));
 
   const clientDocs = await Client.find({ ownerId: user.accountId }).sort({ createdAt: -1 }).lean();
-  const clients = clientDocs.map((doc) => ({ ...doc, _id: doc._id.toString() }));
+  const titleToPropertyId = new Map(listings.map((p) => [p.title, p.id]));
+  const clients = clientDocs.map((doc) => ({
+    ...doc,
+    _id: doc._id.toString(),
+    propertyId: doc.propertyId || titleToPropertyId.get(doc.property) || "",
+  }));
 
   const stats = {
     activeListings: listings.filter((p) => p.status === "Active").length,

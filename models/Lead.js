@@ -46,6 +46,27 @@ const LeadSchema = new mongoose.Schema(
       type: String,
       default: "Website",
     },
+    callDone: {
+      type: Boolean,
+      default: false,
+    },
+    notes: {
+      type: [
+        {
+          text: { type: String, trim: true, required: true },
+          date: {
+            type: String,
+            default: () =>
+              new Date().toLocaleDateString("en-IN", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              }),
+          },
+        },
+      ],
+      default: [],
+    },
     date: {
       type: String,
       default: () =>
