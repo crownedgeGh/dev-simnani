@@ -1,15 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { MdBusinessCenter, MdCampaign, MdLocationOn } from "react-icons/md";
+import { MdBusinessCenter, MdCampaign, MdLocationOn, MdCheckCircle } from "react-icons/md";
 import AuthShell from "./AuthShell";
 import Stepper from "./Stepper";
 import FormField from "./FormField";
 import ChipGroup from "./ChipGroup";
 import { inputClass } from "./inputStyles";
 import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
+import { findInvitationCode, markInvitationCodeUsed } from "@/lib/adminStorage";
 import { useAuth } from "@/context/AuthContext";
 import { useWizardDraft } from "@/lib/useWizardDraft";
 
@@ -21,18 +22,21 @@ const CP_TYPES = [
   {
     value: "company",
     label: "Company Channel Partner",
+    shortLabel: "Company CP",
     description: "Core office team — verify leads, assign partners and manage the network.",
     Icon: MdBusinessCenter,
   },
   {
     value: "digital",
     label: "Digital Channel Partner",
+    shortLabel: "Digital CP",
     description: "Promote projects online and generate leads from social media.",
     Icon: MdCampaign,
   },
   {
     value: "field",
     label: "Field Channel Partner",
+    shortLabel: "Field CP",
     description: "Meet clients on ground, arrange site visits and close deals.",
     Icon: MdLocationOn,
   },
@@ -58,14 +62,12 @@ const ID_LABEL = {
 
 const INITIAL_FORM = {
   cpType: "",
-  fullName: "",
   mobile: "",
   email: "",
   city: "",
   currentlyWorking: "",
   coverageAreas: "",
   experience: "",
-  inviteCode: "",
   invitationCode: "",
   agree: false,
 };
@@ -81,19 +83,38 @@ export default function FreelancerRegistrationWizard() {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
+  const code = form.invitationCode.trim();
+  const inviteLookup = useMemo(() => {
+    if (!code || !form.cpType) return { record: null, error: "" };
+    const record = findInvitationCode(code);
+    if (!record) return { record: null, error: "Invalid invitation code. Please check and try again." };
+    if (record.cpType !== form.cpType) {
+      const label = CP_TYPES.find((t) => t.value === form.cpType)?.shortLabel || "this";
+      return { record: null, error: `This code isn't valid for ${label} registrations.` };
+    }
+    if (record.used) return { record: null, error: "This invitation code has already been used." };
+    return { record, error: "" };
+  }, [code, form.cpType]);
+  const matchedInvite = inviteLookup.record;
+  const codeError = inviteLookup.error;
+
   function goNext() {
     if (step === 1) {
       if (!form.cpType) {
         setError("Please select how you'd like to join the network.");
         return;
       }
-      if (form.cpType === "company" && !form.inviteCode.trim()) {
-        setError("Please enter your staff / invitation code to continue.");
+      if (!form.invitationCode.trim()) {
+        setError("Please enter your invitation code to continue.");
+        return;
+      }
+      if (!matchedInvite) {
+        setError(codeError || "Invalid invitation code. Please check and try again.");
         return;
       }
     }
     if (step === 2) {
-      if (!form.fullName.trim() || !isMobileValid(form.mobile) || !form.city.trim()) {
+      if (!isMobileValid(form.mobile) || !form.city.trim()) {
         setError("Please fill in all required fields.");
         return;
       }
@@ -107,10 +128,6 @@ export default function FreelancerRegistrationWizard() {
       }
       if (form.cpType === "field" && !form.coverageAreas.trim()) {
         setError("Please enter the localities you cover.");
-        return;
-      }
-      if (form.cpType !== "company" && !form.invitationCode.trim()) {
-        setError("Please enter your invitation code to continue.");
         return;
       }
     }
@@ -128,11 +145,15 @@ export default function FreelancerRegistrationWizard() {
       setError("Please accept the Terms & Conditions to continue.");
       return;
     }
+    if (!matchedInvite) {
+      setError("Please enter a valid invitation code to continue.");
+      return;
+    }
     setError("");
     setSubmitting(true);
     const id = generateAccountId(ACCOUNT_ID_PREFIX[form.cpType]);
     const profile = {
-      fullName: form.fullName,
+      fullName: matchedInvite.name,
       mobile: form.mobile,
       email: form.email,
       city: form.city,
@@ -142,7 +163,6 @@ export default function FreelancerRegistrationWizard() {
       currentlyWorking: form.currentlyWorking,
       coverageAreas: form.coverageAreas,
       experience: form.experience,
-      inviteCode: form.inviteCode,
       invitationCode: form.invitationCode,
       verificationStatus: form.cpType === "company" ? "pending" : "active",
       pendingVerification: form.cpType === "company",
@@ -157,6 +177,7 @@ export default function FreelancerRegistrationWizard() {
       });
       const json = await res.json();
       if (!json.success) throw new Error(json.error || "Registration failed");
+      markInvitationCodeUsed(form.invitationCode, id);
       const token = `se_mock_${form.mobile.replace(/\D/g, "")}_${Date.now()}`;
       await login(token, json.data);
       clearDraft();
@@ -206,23 +227,35 @@ export default function FreelancerRegistrationWizard() {
             </button>
           ))}
 
-          {form.cpType === "company" && (
+          {form.cpType && (
             <div className="sm:col-span-3">
               <FormField
-                label="Staff / Invitation Code"
-                htmlFor="inviteCode"
+                label="Invitation Code"
+                htmlFor="invitationCode"
                 required
-                hint="Company Channel Partner accounts require an internal invitation code."
+                hint="Enter the invitation code shared with you to auto-fill your details."
               >
                 <input
-                  id="inviteCode"
+                  id="invitationCode"
                   type="text"
-                  placeholder="Enter your staff or invitation code"
-                  value={form.inviteCode}
-                  onChange={(e) => update("inviteCode", e.target.value)}
+                  placeholder="Enter your invitation code"
+                  value={form.invitationCode}
+                  onChange={(e) => update("invitationCode", e.target.value)}
                   className={inputClass}
                 />
               </FormField>
+
+              {codeError && <p className="mt-2 text-xs text-red-400">{codeError}</p>}
+
+              {matchedInvite && (
+                <div className="mt-4 flex items-center gap-3 border border-gold-500/40 bg-gold-400/5 px-4 py-3">
+                  <MdCheckCircle className="h-6 w-6 shrink-0 text-gold-400" />
+                  <p className="text-sm text-cream">
+                    Hi <span className="font-display text-gold-400">{matchedInvite.name}</span>, welcome as a{" "}
+                    {CP_TYPES.find((t) => t.value === form.cpType)?.shortLabel}!
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -230,16 +263,15 @@ export default function FreelancerRegistrationWizard() {
 
       {step === 2 && (
         <div className="flex flex-col gap-4">
-          <FormField label="Full Name" htmlFor="fullName" required>
-            <input
-              id="fullName"
-              type="text"
-              placeholder="Enter your full name"
-              value={form.fullName}
-              onChange={(e) => update("fullName", e.target.value)}
-              className={inputClass}
-            />
-          </FormField>
+          {matchedInvite && (
+            <div className="flex items-center gap-3 border border-gold-500/40 bg-gold-400/5 px-4 py-3">
+              <MdCheckCircle className="h-6 w-6 shrink-0 text-gold-400" />
+              <p className="text-sm text-cream">
+                Hi <span className="font-display text-gold-400">{matchedInvite.name}</span>, welcome as a{" "}
+                {CP_TYPES.find((t) => t.value === form.cpType)?.shortLabel}!
+              </p>
+            </div>
+          )}
 
           <FormField label="Mobile Number" htmlFor="mobile" required>
             <div className="flex items-center border border-navy-700/60 bg-navy-950 px-4 transition focus-within:border-gold-400">
@@ -314,19 +346,6 @@ export default function FreelancerRegistrationWizard() {
               layout="card"
             />
           </FormField>
-
-          {form.cpType !== "company" && (
-            <FormField label="Invitation Code" htmlFor="invitationCode" required>
-              <input
-                id="invitationCode"
-                type="text"
-                placeholder="Enter invitation code"
-                value={form.invitationCode}
-                onChange={(e) => update("invitationCode", e.target.value)}
-                className={inputClass}
-              />
-            </FormField>
-          )}
 
           <label className="flex items-start gap-3 text-xs text-muted">
             <input
