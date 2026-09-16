@@ -11,7 +11,17 @@ const NAV_ITEMS = [
   { href: "/admin/properties", label: "Properties", icon: MdApartment },
   { href: "/admin/users", label: "Users", icon: MdPeople },
   { href: "/admin/leads", label: "Leads", icon: MdLeaderboard },
-  { href: "/admin/freelancer-cp", label: "Freelancer & CP", icon: MdSupervisedUserCircle },
+  {
+    href: "/admin/freelancer-cp",
+    label: "Freelancer & CP",
+    icon: MdSupervisedUserCircle,
+    children: [
+      { href: "/admin/freelancer-cp", label: "Overview" },
+      { href: "/admin/freelancer-cp/company", label: "Company CP" },
+      { href: "/admin/freelancer-cp/digital", label: "Digital CP" },
+      { href: "/admin/freelancer-cp/field", label: "Field CP" },
+    ],
+  },
   { href: "/admin/callbacks", label: "Callbacks", icon: MdPhone },
   { href: "/admin/settings", label: "Settings", icon: MdSettings },
 ];
@@ -80,21 +90,42 @@ export default function AdminMobileDrawer({ isOpen, onClose }) {
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto py-3 px-3">
-          {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+          {NAV_ITEMS.map(({ href, label, icon: Icon, children }) => {
             const isActive = pathname === href || pathname.startsWith(href + "/");
             return (
-              <Link
-                key={href}
-                href={href}
-                className={`flex items-center gap-3 px-3 py-3 rounded-xl mb-0.5 transition-all ${
-                  isActive
-                    ? "bg-[#fff8e1] text-[#d97706] font-semibold"
-                    : "text-[#6b7280] hover:bg-[#faf8f5] hover:text-[#1a1a2e]"
-                }`}
-              >
-                <Icon size={20} className={isActive ? "text-[#f0b429]" : "text-[#9ca3af]"} />
-                <span className="text-sm">{label}</span>
-              </Link>
+              <div key={href}>
+                <Link
+                  href={href}
+                  className={`flex items-center gap-3 px-3 py-3 rounded-xl mb-0.5 transition-all ${
+                    isActive
+                      ? "bg-[#fff8e1] text-[#d97706] font-semibold"
+                      : "text-[#6b7280] hover:bg-[#faf8f5] hover:text-[#1a1a2e]"
+                  }`}
+                >
+                  <Icon size={20} className={isActive ? "text-[#f0b429]" : "text-[#9ca3af]"} />
+                  <span className="text-sm">{label}</span>
+                </Link>
+                {children && isActive && (
+                  <div className="mb-1 ml-5 flex flex-col gap-0.5 border-l border-[#e8e0d5] pl-3">
+                    {children.map((child) => {
+                      const isChildActive = pathname === child.href;
+                      return (
+                        <Link
+                          key={child.href}
+                          href={child.href}
+                          className={`rounded-lg px-3 py-2 text-sm transition ${
+                            isChildActive
+                              ? "font-semibold text-[#d97706]"
+                              : "text-[#9ca3af] hover:text-[#1a1a2e]"
+                          }`}
+                        >
+                          {child.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             );
           })}
         </nav>

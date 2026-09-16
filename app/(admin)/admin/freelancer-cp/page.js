@@ -1,52 +1,88 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import Link from "next/link";
 import { toast } from "sonner";
-import { MdCheckCircle, MdEdit, MdBlock } from "react-icons/md";
+import {
+  MdBusiness,
+  MdCampaign,
+  MdDirectionsWalk,
+  MdArrowForward,
+  MdGroups,
+  MdLeaderboard,
+  MdVpnKey,
+} from "react-icons/md";
 import AdminPageHeader from "@/components/admin/layout/AdminPageHeader";
 import AdminTable from "@/components/admin/ui/AdminTable";
-import AdminStatusBadge from "@/components/admin/ui/AdminStatusBadge";
-import VideoModerationDialog from "@/components/admin/freelancer-cp/VideoModerationDialog";
+import InvitationCodeDialog from "@/components/admin/freelancer-cp/InvitationCodeDialog";
 import adminAxios from "@/lib/adminAxios";
 import { ADMIN_KEYS, readCollection } from "@/lib/adminStorage";
-import { adminSelectClass } from "@/components/admin/ui/AdminFormField";
 
 const TABS = [
   { key: "freelancerLeads", label: "Freelancer Leads" },
   { key: "freelancerProps", label: "Freelancer Properties" },
-  { key: "cpNetwork", label: "CP Network" },
-  { key: "cpLeads", label: "CP Leads" },
-  { key: "campaignVideos", label: "Campaign Videos" },
-  { key: "commissions", label: "Commissions" },
 ];
 
 const LEAD_STATUSES = ["New", "Contacted", "Qualified", "Site Visit", "Converted", "Lost"];
-const CP_LEAD_STATUSES = ["Pending Verification", "Verified", "Assigned", "Site Visit Scheduled", "Site Visit Completed", "Converted", "Lost"];
-const CP_TYPES = ["digital", "field", "company"];
 const PROP_STATUSES = ["Pending Review", "Live", "Rejected"];
-const COMM_STATUSES = ["Pending", "Approved", "On Hold"];
-const VIDEO_STATUSES = ["Pending Review", "Approved", "Suggested Edit"];
+
+// CP type segments — each has its own dedicated management page with full
+// CRUD, mirroring the three public dashboards at
+// /portal/freelancer?cpType=company|digital|field.
+const CP_SEGMENTS = [
+  {
+    key: "company",
+    href: "/admin/freelancer-cp/company",
+    label: "Company CP",
+    icon: MdBusiness,
+    description: "Verifies leads, assigns Field CPs and manages the wider network.",
+    classes: "border-blue-200 bg-blue-50 text-blue-700",
+    iconBg: "bg-white/70",
+  },
+  {
+    key: "digital",
+    href: "/admin/freelancer-cp/digital",
+    label: "Digital CP",
+    icon: MdCampaign,
+    description: "Promotes approved projects, generates leads and earns commission.",
+    classes: "border-purple-200 bg-purple-50 text-purple-700",
+    iconBg: "bg-white/70",
+  },
+  {
+    key: "field",
+    href: "/admin/freelancer-cp/field",
+    label: "Field CP",
+    icon: MdDirectionsWalk,
+    description: "Converts assigned leads through site visits and earns commission.",
+    classes: "border-orange-200 bg-orange-50 text-orange-700",
+    iconBg: "bg-white/70",
+  },
+];
 
 export default function FreelancerCPPage() {
   const [tab, setTab] = useState("freelancerLeads");
-  const [data, setData] = useState({ freelancerLeads: [], freelancerProps: [], cpNetwork: [], cpLeads: [], campaignVideos: [], commissions: [] });
+  const [data, setData] = useState({ freelancerLeads: [], freelancerProps: [], cpNetwork: [], cpLeads: [] });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [videoTarget, setVideoTarget] = useState(null);
-  const [fieldCPs, setFieldCPs] = useState([]);
+  const [showInviteDialog, setShowInviteDialog] = useState(false);
 
   const load = useCallback(() => {
     const fl = readCollection(ADMIN_KEYS.freelancerLeads) || [];
     const fp = readCollection(ADMIN_KEYS.freelancerProperties) || [];
     const cpn = readCollection(ADMIN_KEYS.cpNetwork) || [];
     const cpl = readCollection(ADMIN_KEYS.cpLeads) || [];
-    const cv = readCollection(ADMIN_KEYS.campaignVideos) || [];
-    const comm = readCollection(ADMIN_KEYS.commissions) || [];
-    setData({ freelancerLeads: fl, freelancerProps: fp, cpNetwork: cpn, cpLeads: cpl, campaignVideos: cv, commissions: comm });
-    setFieldCPs(cpn.filter((c) => c.cpType === "field").map((c) => c.name));
+    setData({ freelancerLeads: fl, freelancerProps: fp, cpNetwork: cpn, cpLeads: cpl });
   }, []);
 
-  useEffect(() => { load(); setLoading(false); }, [load]);
+  useEffect(() => {
+    let active = true;
+    Promise.resolve().then(() => {
+      if (!active) return;
+      load();
+      setLoading(false);
+    });
+    return () => { active = false; };
+  }, [load]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -62,6 +98,17 @@ export default function FreelancerCPPage() {
       return true;
     } catch { toast.error("Operation failed"); return false; }
   };
+
+  const segmentCounts = useMemo(() => {
+    const counts = {};
+    CP_SEGMENTS.forEach((seg) => {
+      counts[seg.key] = {
+        partners: data.cpNetwork.filter((n) => n.cpType === seg.key).length,
+        leads: data.cpLeads.filter((l) => l.submittedBy?.cpType === seg.key).length,
+      };
+    });
+    return counts;
+  }, [data.cpNetwork, data.cpLeads]);
 
   // Freelancer leads columns
   const FL_COLUMNS = [
@@ -119,159 +166,9 @@ export default function FreelancerCPPage() {
     },
   ];
 
-  // CP Network columns
-  const CPN_COLUMNS = [
-    { key: "id", label: "CP ID", render: (v) => <span className="font-mono text-xs text-[#9ca3af]">{v}</span> },
-    { key: "name", label: "Name", sortable: true, primary: true },
-    { key: "cpType", label: "CP Type", type: "status", filterOptions: CP_TYPES },
-    { key: "leadsSubmitted", label: "Leads", sortable: true },
-    { key: "siteVisits", label: "Visits", sortable: true },
-    { key: "dealsClosed", label: "Deals", sortable: true },
-    { key: "status", label: "Status", type: "status", filterOptions: ["Active", "Suspended"] },
-    {
-      key: "actions",
-      label: "",
-      type: "actions",
-      searchable: false,
-      actions: (row) => [
-        {
-          label: row.status === "Active" ? "Suspend" : "Reactivate",
-          icon: MdBlock,
-          variant: row.status === "Active" ? "danger" : "default",
-          onClick: async () => {
-            const newStatus = row.status === "Active" ? "Suspended" : "Active";
-            const ok = await patchItem("cp-network", row.id, { status: newStatus }, "cpNetwork");
-            if (ok) toast.success(`CP status changed to ${newStatus}`);
-          },
-        },
-      ],
-    },
-  ];
-
-  // CP Leads columns
-  const CPL_COLUMNS = [
-    { key: "id", label: "Lead ID", render: (v) => <span className="font-mono text-xs text-[#9ca3af]">{v}</span> },
-    { key: "customer", label: "Customer", sortable: true, primary: true },
-    { key: "project", label: "Project", sortable: true },
-    { key: "source", label: "Source" },
-    {
-      key: "submittedBy",
-      label: "Submitted By",
-      render: (_, row) => (
-        <div>
-          <p className="text-xs font-medium text-[#374151]">{row.submittedBy?.name || "—"}</p>
-          <AdminStatusBadge status={row.submittedBy?.cpType} />
-        </div>
-      ),
-    },
-    { key: "status", label: "Status", type: "status", filterOptions: CP_LEAD_STATUSES },
-    { key: "assignedTo", label: "Assigned To", render: (v) => <span className="text-sm">{v || "—"}</span> },
-    {
-      key: "statusChange",
-      label: "Pipeline",
-      searchable: false,
-      render: (_, row) => (
-        <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
-          <select
-            value={row.status}
-            onChange={async (e) => {
-              const ok = await patchItem("cp-leads", row.id, { status: e.target.value }, "cpLeads");
-              if (ok) toast.success(`Lead status updated to ${e.target.value}`);
-            }}
-            className="h-8 rounded-lg border border-[#e8e0d5] bg-white px-1.5 text-xs outline-none focus:border-[#f0b429] cursor-pointer"
-          >
-            {CP_LEAD_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-          </select>
-          {fieldCPs.length > 0 && (
-            <select
-              value={row.assignedTo || ""}
-              onChange={async (e) => {
-                const ok = await patchItem("cp-leads", row.id, { assignedTo: e.target.value, status: e.target.value ? "Assigned" : row.status }, "cpLeads");
-                if (ok) toast.success(`Lead assigned to ${e.target.value}`);
-              }}
-              className="h-8 rounded-lg border border-[#e8e0d5] bg-white px-1.5 text-xs outline-none focus:border-[#f0b429] cursor-pointer"
-            >
-              <option value="">Assign to…</option>
-              {fieldCPs.map((cp) => <option key={cp} value={cp}>{cp}</option>)}
-            </select>
-          )}
-        </div>
-      ),
-    },
-  ];
-
-  // Campaign videos columns
-  const CV_COLUMNS = [
-    { key: "id", label: "ID", render: (v) => <span className="font-mono text-xs text-[#9ca3af]">{v}</span> },
-    { key: "partnerName", label: "Partner", sortable: true, primary: true },
-    { key: "project", label: "Project", sortable: true },
-    { key: "videoName", label: "Video" },
-    { key: "status", label: "Status", type: "status", filterOptions: VIDEO_STATUSES },
-    { key: "note", label: "Note", render: (v) => <span className="text-xs text-[#9ca3af] max-w-[140px] block truncate">{v || "—"}</span> },
-    {
-      key: "actions",
-      label: "",
-      type: "actions",
-      searchable: false,
-      actions: (row) => [
-        {
-          label: "Approve",
-          icon: MdCheckCircle,
-          onClick: async () => {
-            const ok = await patchItem("campaign-videos", row.id, { status: "Approved", note: "" }, "campaignVideos");
-            if (ok) toast.success("Video approved");
-          },
-        },
-        {
-          label: "Suggest Edit",
-          icon: MdEdit,
-          onClick: () => setVideoTarget(row),
-        },
-      ],
-    },
-  ];
-
-  // Commissions columns
-  const COMM_COLUMNS = [
-    { key: "leadId", label: "Lead ID", render: (v) => <span className="font-mono text-xs text-[#9ca3af]">{v}</span> },
-    { key: "customer", label: "Customer", sortable: true, primary: true },
-    { key: "project", label: "Project", sortable: true },
-    { key: "amount", label: "Amount", render: (v) => <span className="text-sm font-semibold text-[#d97706]">{v}</span> },
-    { key: "source", label: "Source", filterOptions: ["CP", "Broker"] },
-    { key: "approvalStatus", label: "Status", type: "status", filterOptions: COMM_STATUSES },
-    {
-      key: "actions",
-      label: "",
-      type: "actions",
-      searchable: false,
-      actions: (row) => [
-        {
-          label: "Approve",
-          icon: MdCheckCircle,
-          onClick: async () => {
-            const ok = await patchItem("commissions", row.leadId, { approvalStatus: "Approved", id: row.leadId }, "commissions");
-            if (ok) toast.success("Commission approved");
-          },
-        },
-        {
-          label: "Put On Hold",
-          icon: MdBlock,
-          onClick: async () => {
-            const ok = await patchItem("commissions", row.leadId, { approvalStatus: "On Hold", id: row.leadId }, "commissions");
-            if (ok) toast.success("Commission put on hold");
-          },
-        },
-      ],
-    },
-  ];
-
   const tabContent = {
-    freelancerLeads: { columns: FL_COLUMNS, data: data.freelancerLeads, key: "freelancerLeads" },
-    freelancerProps: { columns: FP_COLUMNS, data: data.freelancerProps, key: "freelancerProps" },
-    cpNetwork: { columns: CPN_COLUMNS, data: data.cpNetwork, key: "cpNetwork" },
-    cpLeads: { columns: CPL_COLUMNS, data: data.cpLeads, key: "cpLeads" },
-    campaignVideos: { columns: CV_COLUMNS, data: data.campaignVideos, key: "campaignVideos" },
-    commissions: { columns: COMM_COLUMNS, data: data.commissions, key: "commissions" },
+    freelancerLeads: { columns: FL_COLUMNS, data: data.freelancerLeads },
+    freelancerProps: { columns: FP_COLUMNS, data: data.freelancerProps },
   };
 
   const current = tabContent[tab];
@@ -280,12 +177,56 @@ export default function FreelancerCPPage() {
     <div>
       <AdminPageHeader
         title="Freelancer & CP Management"
-        description="Manage freelancer leads, channel partners, campaign videos, and commissions"
+        description="Manage freelancer leads, channel partner networks, and commissions"
         onRefresh={handleRefresh}
         isRefreshing={refreshing}
+        actions={
+          <button
+            onClick={() => setShowInviteDialog(true)}
+            className="flex h-9 min-h-[44px] items-center gap-1.5 rounded-xl bg-[#f0b429] px-3.5 text-xs font-semibold text-white shadow-sm transition hover:bg-[#d97706] sm:min-h-0"
+          >
+            <MdVpnKey size={16} />
+            <span>Generate Invitation Code</span>
+          </button>
+        }
       />
 
-      {/* Tabs */}
+      <InvitationCodeDialog isOpen={showInviteDialog} onClose={() => setShowInviteDialog(false)} />
+
+      {/* CP Type — dedicated management pages */}
+      <div className="mb-6">
+        <h3 className="mb-3 text-sm font-semibold text-[#1a1a2e]">Channel Partner Networks</h3>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          {CP_SEGMENTS.map((seg) => {
+            const SegIcon = seg.icon;
+            const counts = segmentCounts[seg.key] || { partners: 0, leads: 0 };
+            return (
+              <Link
+                key={seg.key}
+                href={seg.href}
+                className={`group flex flex-col gap-3 rounded-2xl border p-5 transition hover:shadow-md ${seg.classes}`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${seg.iconBg}`}>
+                    <SegIcon size={20} />
+                  </div>
+                  <MdArrowForward size={18} className="opacity-50 transition group-hover:translate-x-1 group-hover:opacity-100" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold">{seg.label}</p>
+                  <p className="mt-1 text-xs opacity-80">{seg.description}</p>
+                </div>
+                <div className="mt-1 flex items-center gap-4 border-t border-current/15 pt-3 text-xs font-semibold">
+                  <span className="flex items-center gap-1.5"><MdGroups size={14} /> {counts.partners} partners</span>
+                  <span className="flex items-center gap-1.5"><MdLeaderboard size={14} /> {counts.leads} leads</span>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Freelancer tabs */}
       <div className="mb-4 flex gap-1 overflow-x-auto rounded-xl border border-[#e8e0d5] bg-white p-1 gold-scrollbar">
         {TABS.map((t) => (
           <button
@@ -309,16 +250,6 @@ export default function FreelancerCPPage() {
         loading={loading}
         emptyMessage="No records found"
         pageSize={10}
-      />
-
-      <VideoModerationDialog
-        isOpen={!!videoTarget}
-        onClose={() => setVideoTarget(null)}
-        video={videoTarget}
-        onSave={async (updated) => {
-          const ok = await patchItem("campaign-videos", updated.id, { status: updated.status, note: updated.note }, "campaignVideos");
-          if (ok) setVideoTarget(null);
-        }}
       />
     </div>
   );
