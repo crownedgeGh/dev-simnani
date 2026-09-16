@@ -16,6 +16,11 @@ import { getAccountPermissions } from "@/lib/accountPermissions";
 // isAuthenticated flips true while still mounted, but that's the wizard's
 // own submit handler navigating them (e.g. to "/" or "/buy"); this guard
 // must not race it with its own redirect to the portal.
+//
+// Exception: a signed-in user with an unfinished registration
+// (profileComplete === false) must be allowed through — that's the "Complete
+// Your Profile" link from the account page resuming this very wizard.
+// Redirecting them to the portal would make that link a dead end.
 export default function RequireGuest({ children }) {
   const { isAuthenticated, isLoading, user } = useAuth();
   const router = useRouter();
@@ -32,7 +37,7 @@ export default function RequireGuest({ children }) {
     setWasAuthedOnLoad(isAuthenticated);
   }
 
-  const shouldRedirect = wasAuthedOnLoad === true;
+  const shouldRedirect = wasAuthedOnLoad === true && user?.profileComplete !== false;
 
   useEffect(() => {
     if (shouldRedirect) {
