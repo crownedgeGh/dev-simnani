@@ -8,7 +8,23 @@ import UserEditDialog from "@/components/admin/users/UserEditDialog";
 import UserPortalSnapshot from "@/components/admin/users/UserPortalSnapshot";
 import adminAxios from "@/lib/adminAxios";
 import { ADMIN_KEYS, readCollection } from "@/lib/adminStorage";
+import { PROPERTY_CATEGORIES } from "@/lib/propertyCategories";
 import { toast } from "sonner";
+
+const INVESTOR_BUDGET_LABELS = {
+  "under-50l": "Under ₹50 Lakh",
+  "50l-1cr": "₹50 Lakh - ₹1 Crore",
+  "1-5cr": "₹1 Crore - ₹5 Crore",
+  "5-10cr": "₹5 Crore - ₹10 Crore",
+  "10cr-plus": "₹10 Crore+",
+};
+
+function propertyTypeLabels(values) {
+  if (!Array.isArray(values) || values.length === 0) return "";
+  return values
+    .map((v) => PROPERTY_CATEGORIES.find((c) => c.value === v)?.label || v)
+    .join(", ");
+}
 
 export default function UserDetailPage() {
   const { accountId } = useParams();
@@ -79,6 +95,15 @@ export default function UserDetailPage() {
     ["CP Type", user.cpType || "—"],
     ["Registered Date", user.registeredDate],
   ];
+
+  if (user.accountType === "investor") {
+    fields.push(
+      ["Property Types", propertyTypeLabels(user.propertyTypes) || "—"],
+      ["Budget Range", INVESTOR_BUDGET_LABELS[user.budget] || user.budget || "—"],
+      ["Expected Profit", user.expectedProfit ? `${user.expectedProfit}%` : "—"],
+      ["Preferred City", user.preferredCity || "—"]
+    );
+  }
 
   return (
     <div>

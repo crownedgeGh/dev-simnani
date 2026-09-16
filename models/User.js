@@ -69,6 +69,10 @@ const UserSchema = new mongoose.Schema(
           year: "numeric",
         }),
     },
+    savedProperties: {
+      type: [String],
+      default: [],
+    },
   },
   {
     timestamps: true,

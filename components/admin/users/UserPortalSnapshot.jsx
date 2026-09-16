@@ -113,12 +113,15 @@ function tabsForKind(kind) {
     case "buyer":
       return [
         { key: "overview", label: "Overview" },
+        { key: "saved", label: "Saved Properties" },
         { key: "interested", label: "I'm Interested" },
         { key: "recommended", label: "Recommended Properties" },
       ];
     case "investor":
       return [
         { key: "overview", label: "Overview" },
+        { key: "saved", label: "Saved Properties" },
+        { key: "interested", label: "I'm Interested" },
         { key: "opportunities", label: "Investment Opportunities" },
       ];
     case "employee":
@@ -373,28 +376,32 @@ function OwnerTabs({ data, tab }) {
 /* -------------------------------------------------------------------------- */
 
 function BuyerTabs({ data, tab }) {
-  const { stats, recommended, interested = [] } = data;
+  const { stats, recommended, interested = [], saved = [] } = data;
 
   if (tab === "overview") {
     return (
       <div className="flex flex-col gap-5">
         <KpiGrid
           items={[
-            { title: "Saved Properties", value: stats.savedProperties, icon: MdBookmarkBorder, color: "gold" },
-            { title: "Recently Viewed", value: stats.recentlyViewed, icon: MdVisibility, color: "blue" },
-            { title: "Enquiries", value: stats.enquiries, icon: MdLeaderboard, color: "green" },
+            { title: "Saved Properties", value: stats.saved, icon: MdBookmarkBorder, color: "gold" },
+            { title: "I'm Interested", value: stats.interested, icon: MdVisibility, color: "blue" },
+            { title: "Recommended Matches", value: stats.recommended, icon: MdLeaderboard, color: "green" },
           ]}
         />
+        <div>
+          <p className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-[#9ca3af]">Saved Properties</p>
+          <PropertyTileGrid properties={saved.slice(0, 3)} emptyMessage="No properties saved yet." />
+        </div>
         <div>
           <p className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-[#9ca3af]">I&apos;m Interested</p>
           <InterestedList leads={interested.slice(0, 3)} />
         </div>
-        <div>
-          <p className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-[#9ca3af]">Recommended Properties</p>
-          <PropertyTileGrid properties={recommended.slice(0, 3)} emptyMessage="No recommendations available." />
-        </div>
       </div>
     );
+  }
+
+  if (tab === "saved") {
+    return <PropertyTileGrid properties={saved} emptyMessage="No properties saved yet." />;
   }
 
   if (tab === "interested") {
@@ -432,24 +439,36 @@ function InterestedList({ leads }) {
 /* -------------------------------------------------------------------------- */
 
 function InvestorTabs({ data, tab }) {
-  const { stats, opportunities } = data;
+  const { stats, opportunities, saved = [], interested = [] } = data;
 
   if (tab === "overview") {
     return (
       <div className="flex flex-col gap-5">
         <KpiGrid
           items={[
-            { title: "Opportunities", value: stats.opportunities, icon: MdApartment, color: "gold" },
-            { title: "Saved Opportunities", value: stats.savedOpportunities, icon: MdBookmarkBorder, color: "blue" },
-            { title: "Enquiries", value: stats.enquiries, icon: MdLeaderboard, color: "green" },
+            { title: "Saved Properties", value: stats.saved, icon: MdBookmarkBorder, color: "gold" },
+            { title: "I'm Interested", value: stats.interested, icon: MdVisibility, color: "blue" },
+            { title: "Matching Opportunities", value: stats.opportunities, icon: MdApartment, color: "green" },
           ]}
         />
+        <div>
+          <p className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-[#9ca3af]">Saved Properties</p>
+          <PropertyTileGrid properties={saved.slice(0, 3)} emptyMessage="No properties saved yet." />
+        </div>
         <div>
           <p className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-[#9ca3af]">Recommended Investments</p>
           <PropertyTileGrid properties={opportunities.slice(0, 3)} emptyMessage="No opportunities available." />
         </div>
       </div>
     );
+  }
+
+  if (tab === "saved") {
+    return <PropertyTileGrid properties={saved} emptyMessage="No properties saved yet." />;
+  }
+
+  if (tab === "interested") {
+    return <InterestedList leads={interested} />;
   }
 
   if (tab === "opportunities") {

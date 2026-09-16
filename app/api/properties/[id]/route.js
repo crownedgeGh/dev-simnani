@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Property from "@/models/Property";
 import { getLocationCity } from "@/lib/properties";
+import { getPropertyById } from "@/lib/propertiesServer";
 import { getSessionUser } from "@/lib/session";
 
 const NO_BHK_TYPES = ["commercial", "farming", "industrial", "invest"];
@@ -11,13 +12,10 @@ export const revalidate = 0;
 
 export async function GET(request, { params }) {
   try {
-    await dbConnect();
     const resolvedParams = await params;
     const id = resolvedParams.id;
 
-    const property = await Property.findOne({
-      $or: [{ id }, { _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null }],
-    }).lean();
+    const property = await getPropertyById(id);
 
     if (!property) {
       return NextResponse.json(

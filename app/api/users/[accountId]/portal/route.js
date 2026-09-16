@@ -4,8 +4,8 @@ import User from "@/models/User";
 import Property from "@/models/Property";
 import Lead from "@/models/Lead";
 import Client from "@/models/Client";
-import { getFeaturedProperties, getPropertiesByType } from "@/lib/properties";
-import { DEMO_USER, SAVED_PROPERTY_IDS, SUPPORT_TICKETS } from "@/lib/demoAccount";
+import { getFeaturedProperties, getPropertiesByType, PROPERTIES } from "@/lib/properties";
+import { getPropertyById } from "@/lib/propertiesServer";
 import {
   BROKER_COMMISSIONS,
   CP_LEADS,
@@ -66,7 +66,15 @@ async function getOwnerSnapshot(accountId, { includeCommissions }) {
   };
 }
 
-async function getBuyerSnapshot(accountId) {
+// Resolves a user's `savedProperties` id list (set from the public portal's
+// heart/save button, see lib/savedProperties.js) into full property tiles.
+async function resolveSavedProperties(user) {
+  const ids = Array.isArray(user?.savedProperties) ? user.savedProperties : [];
+  const resolved = await Promise.all(ids.map((id) => getPropertyById(id)));
+  return resolved.filter(Boolean);
+}
+
+async function getBuyerSnapshot(accountId, user) {
   await dbConnect();
 
   const leadDocs = await Lead.find({ buyerId: accountId }).sort({ createdAt: -1 }).lean();
@@ -89,29 +97,84 @@ async function getBuyerSnapshot(accountId) {
     };
   });
 
+  const saved = await resolveSavedProperties(user);
+  const recommended = getFeaturedProperties();
+
   return {
     kind: "buyer",
     stats: {
-      savedProperties: SAVED_PROPERTY_IDS.length,
-      recentlyViewed: 12,
-      enquiries: interested.length,
+      saved: saved.length,
+      interested: interested.length,
+      recommended: recommended.length,
     },
-    recommended: getFeaturedProperties(),
+    recommended,
     interested,
-    memberSince: DEMO_USER.memberSince,
+    saved,
+    memberSince: user?.registeredDate || "",
   };
 }
 
-function getInvestorSnapshot() {
-  const opportunities = getPropertiesByType("invest");
+// Property-category aliases: a handful of investor-facing labels
+// (see lib/propertyCategories.js) don't exist as literal `type`/`category`
+// values on lib/properties.js listings, so they're mapped to the closest
+// browsable equivalent.
+const PROPERTY_TYPE_ALIASES = {
+  "seized-property": "seized",
+  "company-project": "invest",
+};
+
+function getMatchingOpportunities(propertyTypes) {
+  const wanted = new Set(
+    (propertyTypes || []).map((t) => PROPERTY_TYPE_ALIASES[t] || t)
+  );
+  if (wanted.size === 0) return getPropertiesByType("invest");
+
+  const matched = PROPERTIES.filter((p) => wanted.has(p.type) || wanted.has(p.category));
+  return matched.length ? matched : getPropertiesByType("invest");
+}
+
+async function getInvestorSnapshot(accountId, user) {
+  await dbConnect();
+
+  const leadDocs = await Lead.find({ buyerId: accountId }).sort({ createdAt: -1 }).lean();
+  const propertyIds = [...new Set(leadDocs.map((l) => l.propertyId).filter(Boolean))];
+  const propertyDocs = propertyIds.length
+    ? await Property.find({ id: { $in: propertyIds } }).lean()
+    : [];
+  const propertyById = new Map(propertyDocs.map((p) => [p.id, p]));
+
+  const interested = leadDocs.map((lead) => {
+    const property = propertyById.get(lead.propertyId);
+    return {
+      id: lead.propertyId,
+      title: property?.title || lead.interest || lead.propertyId,
+      location: property?.location || "",
+      price: property?.price || "",
+      image: property?.image || "",
+      status: lead.status,
+      date: lead.date,
+    };
+  });
+
+  const saved = await resolveSavedProperties(user);
+  const opportunities = getMatchingOpportunities(user?.propertyTypes);
+
   return {
     kind: "investor",
     stats: {
       opportunities: opportunities.length,
-      savedOpportunities: SAVED_PROPERTY_IDS.length,
-      enquiries: SUPPORT_TICKETS.length,
+      saved: saved.length,
+      interested: interested.length,
     },
     opportunities,
+    saved,
+    interested,
+    preferences: {
+      propertyTypes: user?.propertyTypes || [],
+      budget: user?.budget || "",
+      expectedProfit: user?.expectedProfit || "",
+      preferredCity: user?.preferredCity || "",
+    },
   };
 }
 
@@ -157,10 +220,10 @@ export async function GET(request, { params }) {
         portal = await getOwnerSnapshot(accountId, { includeCommissions: false });
         break;
       case "buyer":
-        portal = await getBuyerSnapshot(accountId);
+        portal = await getBuyerSnapshot(accountId, user);
         break;
       case "investor":
-        portal = getInvestorSnapshot();
+        portal = await getInvestorSnapshot(accountId, user);
         break;
       case "employee":
         portal = getEmployeeSnapshot();
