@@ -23,6 +23,7 @@ export default function PropertyActionCard({
   const [numberRevealed, setNumberRevealed] = useState(false);
   const [numberEntered, setNumberEntered] = useState(false);
   const [numberCopied, setNumberCopied] = useState(false);
+  const [alreadyInterested, setAlreadyInterested] = useState(false);
   const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
@@ -30,6 +31,15 @@ export default function PropertyActionCard({
       setShareUrl(`${window.location.origin}/property/${propertyId}`);
     }, 0);
     return () => clearTimeout(timer);
+  }, [propertyId]);
+
+  useEffect(() => {
+    try {
+      const interestedIds = JSON.parse(localStorage.getItem("se_interested_properties") || "[]");
+      setAlreadyInterested(interestedIds.includes(propertyId));
+    } catch {
+      // localStorage unavailable — allow the button to work as normal
+    }
   }, [propertyId]);
 
   const phone = contactMobile || FALLBACK_MOBILE;
@@ -89,6 +99,7 @@ export default function PropertyActionCard({
       setShowAuthGate(true);
       return;
     }
+    if (alreadyInterested) return;
     try {
       await fetch("/api/leads", {
         method: "POST",
@@ -97,6 +108,18 @@ export default function PropertyActionCard({
       });
     } catch {
       // best-effort — still show the callback confirmation
+    }
+    setAlreadyInterested(true);
+    try {
+      const interestedIds = JSON.parse(localStorage.getItem("se_interested_properties") || "[]");
+      if (!interestedIds.includes(propertyId)) {
+        localStorage.setItem(
+          "se_interested_properties",
+          JSON.stringify([...interestedIds, propertyId])
+        );
+      }
+    } catch {
+      // localStorage unavailable — in-memory state still prevents a repeat click this session
     }
     setShowToast(true);
     setTimeout(() => setShowToast(false), 2500);
@@ -150,9 +173,14 @@ export default function PropertyActionCard({
         <button
           type="button"
           onClick={handleInterested}
-          className="tracked-label bg-gold-400 px-6 py-4 text-center text-xs text-navy-950 transition hover:bg-gold-300"
+          disabled={alreadyInterested}
+          className={`tracked-label px-6 py-4 text-center text-xs transition ${
+            alreadyInterested
+              ? "cursor-not-allowed border border-navy-700/60 bg-navy-950 text-muted"
+              : "bg-gold-400 text-navy-950 hover:bg-gold-300"
+          }`}
         >
-          I&apos;m Interested
+          {alreadyInterested ? "Interest Sent" : "I'm Interested"}
         </button>
         {/* Mobile (<640px): Call Person opens the dialpad directly */}
         <a

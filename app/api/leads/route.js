@@ -15,7 +15,13 @@ export async function GET(request) {
     }
 
     await dbConnect();
-    const leads = await Lead.find({ ownerId: sessionUser.accountId }).sort({ createdAt: -1 }).lean();
+    const { searchParams } = new URL(request.url);
+    const scope = searchParams.get("scope");
+    const filter =
+      scope === "buyer"
+        ? { buyerId: sessionUser.accountId }
+        : { ownerId: sessionUser.accountId };
+    const leads = await Lead.find(filter).sort({ createdAt: -1 }).lean();
 
     return NextResponse.json({ success: true, data: leads });
   } catch (error) {
@@ -61,6 +67,7 @@ export async function POST(request) {
       propertyId: property.id,
       interest: property.title,
       ownerId: property.ownerId,
+      buyerId: sessionUser.accountId,
     });
 
     return NextResponse.json({ success: true, data: lead });

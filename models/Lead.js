@@ -37,6 +37,11 @@ const LeadSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    buyerId: {
+      type: String,
+      default: "",
+      index: true,
+    },
     status: {
       type: String,
       enum: ["New", "Contacted", "Site Visit"],

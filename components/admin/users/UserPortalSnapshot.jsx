@@ -113,6 +113,7 @@ function tabsForKind(kind) {
     case "buyer":
       return [
         { key: "overview", label: "Overview" },
+        { key: "interested", label: "I'm Interested" },
         { key: "recommended", label: "Recommended Properties" },
       ];
     case "investor":
@@ -372,7 +373,7 @@ function OwnerTabs({ data, tab }) {
 /* -------------------------------------------------------------------------- */
 
 function BuyerTabs({ data, tab }) {
-  const { stats, recommended } = data;
+  const { stats, recommended, interested = [] } = data;
 
   if (tab === "overview") {
     return (
@@ -385,6 +386,10 @@ function BuyerTabs({ data, tab }) {
           ]}
         />
         <div>
+          <p className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-[#9ca3af]">I&apos;m Interested</p>
+          <InterestedList leads={interested.slice(0, 3)} />
+        </div>
+        <div>
           <p className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-[#9ca3af]">Recommended Properties</p>
           <PropertyTileGrid properties={recommended.slice(0, 3)} emptyMessage="No recommendations available." />
         </div>
@@ -392,11 +397,34 @@ function BuyerTabs({ data, tab }) {
     );
   }
 
+  if (tab === "interested") {
+    return <InterestedList leads={interested} />;
+  }
+
   if (tab === "recommended") {
     return <PropertyTileGrid properties={recommended} emptyMessage="No recommendations available." />;
   }
 
   return null;
+}
+
+function InterestedList({ leads }) {
+  if (!leads?.length) return <EmptyRow message="No properties marked as interested yet." />;
+  return (
+    <div className="flex flex-col gap-2">
+      {leads.map((lead) => (
+        <Row
+          key={lead.id}
+          title={lead.title}
+          subtitle={`${lead.location || "—"} · ${lead.price || "—"}`}
+          meta={lead.date}
+          status={lead.status}
+          href={`/property/${lead.id}`}
+          external
+        />
+      ))}
+    </div>
+  );
 }
 
 /* -------------------------------------------------------------------------- */

@@ -66,15 +66,38 @@ async function getOwnerSnapshot(accountId, { includeCommissions }) {
   };
 }
 
-function getBuyerSnapshot() {
+async function getBuyerSnapshot(accountId) {
+  await dbConnect();
+
+  const leadDocs = await Lead.find({ buyerId: accountId }).sort({ createdAt: -1 }).lean();
+  const propertyIds = [...new Set(leadDocs.map((l) => l.propertyId).filter(Boolean))];
+  const propertyDocs = propertyIds.length
+    ? await Property.find({ id: { $in: propertyIds } }).lean()
+    : [];
+  const propertyById = new Map(propertyDocs.map((p) => [p.id, p]));
+
+  const interested = leadDocs.map((lead) => {
+    const property = propertyById.get(lead.propertyId);
+    return {
+      id: lead.propertyId,
+      title: property?.title || lead.interest || lead.propertyId,
+      location: property?.location || "",
+      price: property?.price || "",
+      image: property?.image || "",
+      status: lead.status,
+      date: lead.date,
+    };
+  });
+
   return {
     kind: "buyer",
     stats: {
       savedProperties: SAVED_PROPERTY_IDS.length,
       recentlyViewed: 12,
-      enquiries: SUPPORT_TICKETS.length,
+      enquiries: interested.length,
     },
     recommended: getFeaturedProperties(),
+    interested,
     memberSince: DEMO_USER.memberSince,
   };
 }
@@ -134,7 +157,7 @@ export async function GET(request, { params }) {
         portal = await getOwnerSnapshot(accountId, { includeCommissions: false });
         break;
       case "buyer":
-        portal = getBuyerSnapshot();
+        portal = await getBuyerSnapshot(accountId);
         break;
       case "investor":
         portal = getInvestorSnapshot();
