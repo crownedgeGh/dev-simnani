@@ -14,6 +14,7 @@ import {
   MdGroups,
   MdAttachMoney,
   MdArrowBack,
+  MdContentCopy,
 } from "react-icons/md";
 import AdminPageHeader from "@/components/admin/layout/AdminPageHeader";
 import AdminTable from "@/components/admin/ui/AdminTable";
@@ -32,7 +33,7 @@ const ACTIVE_LEAD_STATUSES = ["Assigned", "Site Visit Scheduled", "Site Visit Co
 
 export default function CPTypeWorkspace({ cpType, title, description, icon: Icon, accentClasses, showCampaignVideos = true }) {
   const [tab, setTab] = useState("network");
-  const [data, setData] = useState({ cpNetwork: [], cpLeads: [], campaignVideos: [], commissions: [] });
+  const [data, setData] = useState({ cpNetwork: [], cpLeads: [], campaignVideos: [], commissions: [], invitationCodes: [] });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [videoTarget, setVideoTarget] = useState(null);
@@ -46,7 +47,8 @@ export default function CPTypeWorkspace({ cpType, title, description, icon: Icon
     const cpl = readCollection(ADMIN_KEYS.cpLeads) || [];
     const cv = readCollection(ADMIN_KEYS.campaignVideos) || [];
     const comm = readCollection(ADMIN_KEYS.commissions) || [];
-    setData({ cpNetwork: cpn, cpLeads: cpl, campaignVideos: cv, commissions: comm });
+    const inv = readCollection(ADMIN_KEYS.invitationCodes) || [];
+    setData({ cpNetwork: cpn, cpLeads: cpl, campaignVideos: cv, commissions: comm, invitationCodes: inv });
     setFieldCPs(cpn.filter((c) => c.cpType === "field").map((c) => c.name));
   }, []);
 
@@ -80,6 +82,7 @@ export default function CPTypeWorkspace({ cpType, title, description, icon: Icon
   // ---------------------------------------------------------------------
   const network = useMemo(() => data.cpNetwork.filter((n) => n.cpType === cpType), [data.cpNetwork, cpType]);
   const leads = useMemo(() => data.cpLeads.filter((l) => l.submittedBy?.cpType === cpType), [data.cpLeads, cpType]);
+  const invitationCodes = useMemo(() => data.invitationCodes.filter((c) => c.cpType === cpType), [data.invitationCodes, cpType]);
 
   const leadCpTypeById = useMemo(() => {
     const map = {};
@@ -293,11 +296,54 @@ export default function CPTypeWorkspace({ cpType, title, description, icon: Icon
     },
   ];
 
+  const handleCopyCode = async (code) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      toast.success("Invitation code copied");
+    } catch {
+      toast.error("Couldn't copy — please copy manually");
+    }
+  };
+
+  const INVITATION_COLUMNS = [
+    {
+      key: "code",
+      label: "Invitation Code",
+      primary: true,
+      searchable: true,
+      render: (v) => (
+        <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+          <span className="font-mono text-xs font-semibold text-[#d97706]">{v}</span>
+          <button
+            type="button"
+            onClick={() => handleCopyCode(v)}
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[#9ca3af] transition hover:bg-[#fff8e1] hover:text-[#d97706]"
+            aria-label={`Copy ${v}`}
+            title="Copy code"
+          >
+            <MdContentCopy size={14} />
+          </button>
+        </div>
+      ),
+    },
+    { key: "name", label: "Name", sortable: true },
+    { key: "mobile", label: "Mobile", render: (v) => <span className="text-sm text-[#374151]">{v || "—"}</span> },
+    { key: "state", label: "State", sortable: true },
+    { key: "address", label: "Full Address", render: (v) => <span className="max-w-[220px] block truncate text-xs text-[#6b7280]" title={v}>{v || "—"}</span> },
+    {
+      key: "createdAt",
+      label: "Generated On",
+      sortable: true,
+      render: (v) => <span className="text-xs text-[#9ca3af]">{v ? new Date(v).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"}</span>,
+    },
+  ];
+
   const TABS = [
     { key: "network", label: "Network", count: network.length },
     { key: "leads", label: "Leads", count: leads.length },
     ...(showCampaignVideos ? [{ key: "campaignVideos", label: "Campaign Videos", count: campaignVideos.length }] : []),
     { key: "commissions", label: "Commissions", count: commissions.length },
+    { key: "invitationCodes", label: "Invitation Codes", count: invitationCodes.length },
   ];
 
   const tabContent = {
@@ -305,6 +351,7 @@ export default function CPTypeWorkspace({ cpType, title, description, icon: Icon
     leads: { columns: LEAD_COLUMNS, data: leads },
     campaignVideos: { columns: VIDEO_COLUMNS, data: campaignVideos },
     commissions: { columns: COMM_COLUMNS, data: commissions },
+    invitationCodes: { columns: INVITATION_COLUMNS, data: invitationCodes },
   };
   const current = tabContent[tab] || tabContent.network;
 
