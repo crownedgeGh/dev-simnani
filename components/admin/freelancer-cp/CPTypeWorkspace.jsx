@@ -328,6 +328,7 @@ export default function CPTypeWorkspace({ cpType, title, description, icon: Icon
     },
     { key: "name", label: "Name", sortable: true },
     { key: "mobile", label: "Mobile", render: (v) => <span className="text-sm text-[#374151]">{v || "—"}</span> },
+    { key: "city", label: "City", sortable: true, render: (v) => <span className="text-sm text-[#374151]">{v || "—"}</span> },
     { key: "state", label: "State", sortable: true },
     { key: "address", label: "Full Address", render: (v) => <span className="max-w-[220px] block truncate text-xs text-[#6b7280]" title={v}>{v || "—"}</span> },
     {

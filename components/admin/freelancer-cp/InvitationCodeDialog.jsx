@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   MdBusiness,
@@ -11,9 +11,10 @@ import {
   MdCheckCircle,
 } from "react-icons/md";
 import AdminDialog from "@/components/admin/ui/AdminDialog";
-import AdminFormField, { adminInputClass, adminSelectClass, adminTextareaClass } from "@/components/admin/ui/AdminFormField";
+import AdminFormField, { adminInputClass, adminTextareaClass } from "@/components/admin/ui/AdminFormField";
+import AdminSearchableSelect from "@/components/admin/ui/AdminSearchableSelect";
 import { ADMIN_KEYS, readCollection, writeCollection } from "@/lib/adminStorage";
-import { INDIAN_STATES } from "@/lib/indianStates";
+import { RTO_STATES, getCitiesForState, getRtoCode } from "@/lib/cityRto";
 
 const CP_TYPES = [
   {
@@ -42,13 +43,13 @@ const CP_TYPES = [
   },
 ];
 
-const EMPTY_FORM = { name: "", mobile: "", state: "", address: "" };
+const EMPTY_FORM = { name: "", mobile: "", state: "", city: "", address: "" };
 
-function buildCode(prefix, stateCode, existingCodes) {
+function buildCode(prefix, rtoCode, existingCodes) {
   let code;
   do {
     const random = Math.floor(10000 + Math.random() * 90000);
-    code = `${prefix}${stateCode}-${random}`;
+    code = `${prefix}${rtoCode}-${random}`;
   } while (existingCodes.includes(code));
   return code;
 }
@@ -77,6 +78,10 @@ export default function InvitationCodeDialog({ isOpen, onClose }) {
 
   const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
 
+  const setState = (state) => setForm((p) => ({ ...p, state, city: "" }));
+
+  const cityOptions = useMemo(() => getCitiesForState(form.state).map((c) => c.city), [form.state]);
+
   const selectType = (type) => {
     setCpType(type);
     setStep("details");
@@ -87,6 +92,7 @@ export default function InvitationCodeDialog({ isOpen, onClose }) {
     if (!form.name.trim()) next.name = "Name is required";
     if (!/^[6-9]\d{9}$/.test(form.mobile.trim())) next.mobile = "Enter a valid 10-digit mobile number";
     if (!form.state) next.state = "State is required";
+    if (!form.city) next.city = "City is required";
     if (!form.address.trim()) next.address = "Full address is required";
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -96,16 +102,17 @@ export default function InvitationCodeDialog({ isOpen, onClose }) {
     e.preventDefault();
     if (!validate()) return;
 
-    const stateInfo = INDIAN_STATES.find((s) => s.code === form.state);
+    const rtoCode = getRtoCode(form.state, form.city) || form.state.slice(0, 2).toUpperCase();
     const existing = readCollection(ADMIN_KEYS.invitationCodes) || [];
-    const code = buildCode(cpType.prefix, stateInfo.code, existing.map((c) => c.code));
+    const code = buildCode(cpType.prefix, rtoCode, existing.map((c) => c.code));
 
     const record = {
       code,
       cpType: cpType.key,
       name: form.name.trim(),
       mobile: form.mobile.trim(),
-      state: stateInfo.name,
+      state: form.state,
+      city: form.city,
       address: form.address.trim(),
       createdAt: new Date().toISOString(),
     };
@@ -194,13 +201,27 @@ export default function InvitationCodeDialog({ isOpen, onClose }) {
             />
           </AdminFormField>
 
-          <AdminFormField label="State" id="inv-state" required error={errors.state} hint="Used to build the invitation code">
-            <select id="inv-state" value={form.state} onChange={(e) => set("state", e.target.value)} className={adminSelectClass}>
-              <option value="">Select state…</option>
-              {INDIAN_STATES.map((s) => (
-                <option key={s.code} value={s.code}>{s.name}</option>
-              ))}
-            </select>
+          <AdminFormField label="State" id="inv-state" required error={errors.state}>
+            <AdminSearchableSelect
+              id="inv-state"
+              value={form.state}
+              onChange={setState}
+              options={RTO_STATES}
+              placeholder="Select state…"
+              searchPlaceholder="Search state…"
+            />
+          </AdminFormField>
+
+          <AdminFormField label="City" id="inv-city" required error={errors.city} hint="Used to build the invitation code's RTO-style prefix">
+            <AdminSearchableSelect
+              id="inv-city"
+              value={form.city}
+              onChange={(city) => set("city", city)}
+              options={cityOptions}
+              disabled={!form.state}
+              placeholder={form.state ? "Select city…" : "Select a state first"}
+              searchPlaceholder="Search city…"
+            />
           </AdminFormField>
 
           <AdminFormField label="Full Address" id="inv-address" required error={errors.address}>
@@ -228,7 +249,7 @@ export default function InvitationCodeDialog({ isOpen, onClose }) {
           <div className={`flex flex-col items-center gap-2 rounded-2xl border p-6 text-center ${cpType?.classes}`}>
             <MdCheckCircle size={28} />
             <p className="break-all font-mono text-xl font-bold sm:text-2xl">{generatedCode}</p>
-            <p className="text-xs opacity-80">{cpType?.label} • {form.name} • {INDIAN_STATES.find((s) => s.code === form.state)?.name}</p>
+            <p className="text-xs opacity-80">{cpType?.label} • {form.name} • {form.city}, {form.state}</p>
           </div>
 
           <button
