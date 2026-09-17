@@ -249,8 +249,8 @@ export default function AdminAddPropertyForm() {
   const handleVideoFile = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 100 * 1024 * 1024) {
-      toast.error("Video should be under 100MB");
+    if (file.size > 50 * 1024 * 1024) {
+      toast.error("Video should be under 50MB");
       return;
     }
     setVideoFile(file);
@@ -1141,7 +1141,7 @@ export default function AdminAddPropertyForm() {
                 <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#e8e0d5] bg-white px-4 py-8 text-center transition hover:border-[#f0b429]">
                   <MdCloudUpload size={32} className="text-[#f0b429] mb-2" />
                   <span className="text-sm font-semibold text-[#1a1a2e]">Click to upload property video</span>
-                  <span className="mt-1 text-xs text-[#9ca3af]">MP4, WEBM, or MOV up to 100MB</span>
+                  <span className="mt-1 text-xs text-[#9ca3af]">MP4, WEBM, or MOV up to 50MB</span>
                   <input
                     type="file"
                     accept="video/mp4,video/webm,video/quicktime"

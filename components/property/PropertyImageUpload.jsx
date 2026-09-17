@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { MAX_VIDEO_BYTES } from "@/lib/videoCompress";
 
 const ACCEPT = ".jpg,.jpeg,.png,.webp";
 const VIDEO_ACCEPT = ".mp4,.webm,.mov";
@@ -141,6 +143,18 @@ export function VideoUpload({ id, label, hint, file, existingUrl, onRemoveExisti
   const objectUrl = useObjectUrl(file);
   const previewUrl = objectUrl || existingUrl || null;
 
+  function handleSelect(selected) {
+    if (!selected) {
+      onChange(null);
+      return;
+    }
+    if (selected.size > MAX_VIDEO_BYTES) {
+      toast.error(`Video should be under ${Math.round(MAX_VIDEO_BYTES / (1024 * 1024))}MB`);
+      return;
+    }
+    onChange(selected);
+  }
+
   return (
     <div className="flex flex-col gap-2">
       <label htmlFor={id} className="tracked-label text-xs text-cream/80">
@@ -184,7 +198,7 @@ export function VideoUpload({ id, label, hint, file, existingUrl, onRemoveExisti
         type="file"
         accept={VIDEO_ACCEPT}
         className="hidden"
-        onChange={(e) => onChange(e.target.files?.[0] || null)}
+        onChange={(e) => handleSelect(e.target.files?.[0] || null)}
       />
     </div>
   );

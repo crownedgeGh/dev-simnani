@@ -655,7 +655,7 @@ export default function PostPropertyForm({ editId }) {
           <VideoUpload
             id="video"
             label="Property Video"
-            hint="MP4, WEBM or MOV up to 100MB"
+            hint="MP4, WEBM or MOV up to 50MB"
             file={form.video}
             existingUrl={form.existingVideoUrl}
             onRemoveExisting={() => update("existingVideoUrl", "")}
