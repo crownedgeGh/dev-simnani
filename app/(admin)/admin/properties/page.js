@@ -171,8 +171,8 @@ export default function AdminPropertiesPage() {
   // Featured toggle
   const handleFeaturedToggle = async (row, val) => {
     try {
-      const res = await fetch(`/api/properties/${row.id}`, {
-        method: "PUT",
+      const res = await fetch(`/api/admin/properties/${row.id}`, {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ featured: val }),
       });
@@ -180,18 +180,12 @@ export default function AdminPropertiesPage() {
       if (json.success && json.data) {
         const updated = normalizeProperty(json.data);
         setProperties((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
-        toast.success(val ? "Featured enabled" : "Featured disabled");
+        toast.success(val ? "Featured on the public site" : "Removed from public site");
         return;
       }
+      toast.error(json.error || "Failed to update featured status");
     } catch {
-      // Fallback
-    }
-    try {
-      const res = await adminAxios.patch(`/admin/properties/${row.id}`, { featured: val });
-      setProperties((res.data.data || []).map(normalizeProperty));
-      toast.success(val ? "Featured enabled" : "Featured disabled");
-    } catch {
-      toast.error("Failed to update featured status");
+      toast.error("Failed to update featured status — check your connection and try again");
     }
   };
 
