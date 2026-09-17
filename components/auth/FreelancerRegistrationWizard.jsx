@@ -3,17 +3,19 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { MdBusinessCenter, MdCampaign, MdLocationOn, MdCheckCircle } from "react-icons/md";
+import { MdBusinessCenter, MdCampaign, MdLocationOn } from "react-icons/md";
 import AuthShell from "./AuthShell";
 import Stepper from "./Stepper";
 import FormField from "./FormField";
 import ChipGroup from "./ChipGroup";
 import PasswordFields from "./PasswordFields";
+import SearchableSelect from "./SearchableSelect";
 import { inputClass } from "./inputStyles";
 import { formatMobile, isMobileValid, isPasswordValid, generateAccountId } from "@/lib/auth";
-import { findInvitationCode, markInvitationCodeUsed } from "@/lib/adminStorage";
+import { RTO_STATES, getCitiesForState } from "@/lib/cityRto";
 import { useAuth } from "@/context/AuthContext";
 import { useWizardDraft } from "@/lib/useWizardDraft";
+import CPUnderReviewModal from "@/components/portal/freelancer/CPUnderReviewModal";
 
 const TOTAL_STEPS = 2;
 
@@ -55,23 +57,19 @@ const EXPERIENCE_LEVELS = [
 ];
 
 const ACCOUNT_ID_PREFIX = { company: "CCP", digital: "DCP", field: "FCP" };
-const ID_LABEL = {
-  company: "Your Company CP ID",
-  digital: "Your Digital CP ID",
-  field: "Your Field CP ID",
-};
 
 const INITIAL_FORM = {
   cpType: "",
+  fullName: "",
   mobile: "",
   email: "",
+  state: "",
   city: "",
   password: "",
   confirmPassword: "",
   currentlyWorking: "",
   coverageAreas: "",
   experience: "",
-  invitationCode: "",
   agree: false,
 };
 
@@ -81,25 +79,20 @@ export default function FreelancerRegistrationWizard() {
   const { step, setStep, form, setForm, clearDraft } = useWizardDraft("se_draft_freelancer", INITIAL_FORM);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [registered, setRegistered] = useState(false);
 
   function update(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
-  const code = form.invitationCode.trim();
-  const inviteLookup = useMemo(() => {
-    if (!code || !form.cpType) return { record: null, error: "" };
-    const record = findInvitationCode(code);
-    if (!record) return { record: null, error: "Invalid invitation code. Please check and try again." };
-    if (record.cpType !== form.cpType) {
-      const label = CP_TYPES.find((t) => t.value === form.cpType)?.shortLabel || "this";
-      return { record: null, error: `This code isn't valid for ${label} registrations.` };
-    }
-    if (record.used) return { record: null, error: "This invitation code has already been used." };
-    return { record, error: "" };
-  }, [code, form.cpType]);
-  const matchedInvite = inviteLookup.record;
-  const codeError = inviteLookup.error;
+  const cityOptions = useMemo(() => {
+    if (!form.state) return [];
+    return getCitiesForState(form.state).map((c) => c.city);
+  }, [form.state]);
+
+  function handleStateChange(state) {
+    setForm((prev) => ({ ...prev, state, city: "" }));
+  }
 
   function goNext() {
     if (step === 1) {
@@ -107,18 +100,22 @@ export default function FreelancerRegistrationWizard() {
         setError("Please select how you'd like to join the network.");
         return;
       }
-      if (!form.invitationCode.trim()) {
-        setError("Please enter your invitation code to continue.");
-        return;
-      }
-      if (!matchedInvite) {
-        setError(codeError || "Invalid invitation code. Please check and try again.");
-        return;
-      }
     }
     if (step === 2) {
-      if (!isMobileValid(form.mobile) || !form.city.trim()) {
-        setError("Please fill in all required fields.");
+      if (!form.fullName.trim()) {
+        setError("Please enter your full name.");
+        return;
+      }
+      if (!isMobileValid(form.mobile)) {
+        setError("Please enter a valid 10-digit mobile number.");
+        return;
+      }
+      if (!form.state) {
+        setError("Please select your state.");
+        return;
+      }
+      if (!form.city) {
+        setError("Please select your city.");
         return;
       }
       if (!form.experience) {
@@ -148,10 +145,6 @@ export default function FreelancerRegistrationWizard() {
       setError("Please accept the Terms & Conditions to continue.");
       return;
     }
-    if (!matchedInvite) {
-      setError("Please enter a valid invitation code to continue.");
-      return;
-    }
     if (!isPasswordValid(form.password)) {
       setError("Password must be at least 8 characters.");
       return;
@@ -164,9 +157,10 @@ export default function FreelancerRegistrationWizard() {
     setSubmitting(true);
     const id = generateAccountId(ACCOUNT_ID_PREFIX[form.cpType]);
     const profile = {
-      fullName: matchedInvite.name,
+      fullName: form.fullName.trim(),
       mobile: form.mobile,
       email: form.email,
+      state: form.state,
       city: form.city,
       password: form.password,
       accountType: "freelancer",
@@ -175,9 +169,7 @@ export default function FreelancerRegistrationWizard() {
       currentlyWorking: form.currentlyWorking,
       coverageAreas: form.coverageAreas,
       experience: form.experience,
-      invitationCode: form.invitationCode,
-      verificationStatus: form.cpType === "company" ? "pending" : "active",
-      pendingVerification: form.cpType === "company",
+      cpApprovalStatus: "pending",
       registeredAt: new Date().toISOString(),
       profileComplete: true,
     };
@@ -189,11 +181,10 @@ export default function FreelancerRegistrationWizard() {
       });
       const json = await res.json();
       if (!json.success) throw new Error(json.error || "Registration failed");
-      markInvitationCodeUsed(form.invitationCode, id);
       const token = `se_mock_${form.mobile.replace(/\D/g, "")}_${Date.now()}`;
       await login(token, json.data);
       clearDraft();
-      router.push("/");
+      setRegistered(true);
     } catch (err) {
       setError(err.message || "Something went wrong. Please try again.");
     } finally {
@@ -201,6 +192,15 @@ export default function FreelancerRegistrationWizard() {
     }
   }
 
+  if (registered) {
+    return (
+      <CPUnderReviewModal
+        status="pending"
+        actionLabel="Go to My Portal"
+        onGoHome={() => router.push("/portal/freelancer")}
+      />
+    );
+  }
 
   return (
     <AuthShell size="lg">
@@ -238,52 +238,21 @@ export default function FreelancerRegistrationWizard() {
               <p className="text-xs text-muted">{description}</p>
             </button>
           ))}
-
-          {form.cpType && (
-            <div className="sm:col-span-3">
-              <FormField
-                label="Invitation Code"
-                htmlFor="invitationCode"
-                required
-                hint="Enter the invitation code shared with you to auto-fill your details."
-              >
-                <input
-                  id="invitationCode"
-                  type="text"
-                  placeholder="Enter your invitation code"
-                  value={form.invitationCode}
-                  onChange={(e) => update("invitationCode", e.target.value)}
-                  className={inputClass}
-                />
-              </FormField>
-
-              {codeError && <p className="mt-2 text-xs text-red-400">{codeError}</p>}
-
-              {matchedInvite && (
-                <div className="mt-4 flex items-center gap-3 border border-gold-500/40 bg-gold-400/5 px-4 py-3">
-                  <MdCheckCircle className="h-6 w-6 shrink-0 text-gold-400" />
-                  <p className="text-sm text-cream">
-                    Hi <span className="font-display text-gold-400">{matchedInvite.name}</span>, welcome as a{" "}
-                    {CP_TYPES.find((t) => t.value === form.cpType)?.shortLabel}!
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
         </div>
       )}
 
       {step === 2 && (
         <div className="flex flex-col gap-4">
-          {matchedInvite && (
-            <div className="flex items-center gap-3 border border-gold-500/40 bg-gold-400/5 px-4 py-3">
-              <MdCheckCircle className="h-6 w-6 shrink-0 text-gold-400" />
-              <p className="text-sm text-cream">
-                Hi <span className="font-display text-gold-400">{matchedInvite.name}</span>, welcome as a{" "}
-                {CP_TYPES.find((t) => t.value === form.cpType)?.shortLabel}!
-              </p>
-            </div>
-          )}
+          <FormField label="Full Name" htmlFor="fullName" required>
+            <input
+              id="fullName"
+              type="text"
+              placeholder="Enter your full name"
+              value={form.fullName}
+              onChange={(e) => update("fullName", e.target.value)}
+              className={inputClass}
+            />
+          </FormField>
 
           <FormField label="Mobile Number" htmlFor="mobile" required>
             <div className="flex items-center border border-navy-700/60 bg-navy-950 px-4 transition focus-within:border-gold-400">
@@ -311,16 +280,31 @@ export default function FreelancerRegistrationWizard() {
             />
           </FormField>
 
-          <FormField label="City of Operation" htmlFor="city" required>
-            <input
-              id="city"
-              type="text"
-              placeholder="e.g. Bangalore, Mumbai"
-              value={form.city}
-              onChange={(e) => update("city", e.target.value)}
-              className={inputClass}
-            />
-          </FormField>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <FormField label="State" htmlFor="state" required>
+              <SearchableSelect
+                id="state"
+                value={form.state}
+                onChange={handleStateChange}
+                options={RTO_STATES}
+                placeholder="Select your state"
+                searchPlaceholder="Search states…"
+              />
+            </FormField>
+
+            <FormField label="City" htmlFor="city" required>
+              <SearchableSelect
+                id="city"
+                value={form.city}
+                onChange={(city) => update("city", city)}
+                options={cityOptions}
+                placeholder={form.state ? "Select your city" : "Select a state first"}
+                searchPlaceholder="Search cities…"
+                disabled={!form.state}
+                emptyMessage="No cities found for this state"
+              />
+            </FormField>
+          </div>
 
           {form.cpType === "digital" && (
             <FormField label="Currently working anywhere?" required>

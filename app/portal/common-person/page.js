@@ -23,6 +23,7 @@ export default async function CommonPersonPortalPage() {
         eyebrow="My Portal"
         title={`Welcome, ${user.fullName || "there"}`}
         subtitle="Manage your listings, leads and client relationships."
+        backHref="/"
       />
       <div className="mt-8">
         <OwnerDashboard

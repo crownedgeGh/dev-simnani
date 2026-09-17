@@ -9,23 +9,39 @@ export function AuthProvider({ children }) {
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState(null); // { fullName, mobile, email, accountType, accountId, city, ... }
 
-  useEffect(() => {
-    let active = true;
-    fetch("/api/auth/me")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (!active || !data?.success) return;
+  const fetchMe = useCallback(async () => {
+    try {
+      const res = await fetch("/api/auth/me");
+      const data = res.ok ? await res.json() : null;
+      if (data?.success) {
         setUser(data.data);
         setIsAuthenticated(true);
-      })
-      .catch(() => {})
+        return data.data;
+      }
+    } catch {
+      // ignore — leave existing auth state as-is
+    }
+    return null;
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    Promise.resolve()
+      .then(() => fetchMe())
       .finally(() => {
         if (active) setIsLoading(false);
       });
     return () => {
       active = false;
     };
-  }, []);
+  }, [fetchMe]);
+
+  /**
+   * refreshUser — re-fetches the current session's user record from the DB.
+   * Used where server-side state can change without a client action, e.g. an
+   * admin approving a channel partner while they're waiting on their portal.
+   */
+  const refreshUser = useCallback(() => fetchMe(), [fetchMe]);
 
   /**
    * login — called after registration wizard submit, or tester login.
@@ -126,6 +142,7 @@ export function AuthProvider({ children }) {
         loginWithPassword,
         logout,
         updateProfile,
+        refreshUser,
       }}
     >
       {children}

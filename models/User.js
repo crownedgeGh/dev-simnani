@@ -32,6 +32,20 @@ const UserSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
+    state: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    cpType: {
+      type: String,
+      enum: ["company", "digital", "field"],
+    },
+    cpApprovalStatus: {
+      type: String,
+      enum: ["pending", "hold", "approved", "rejected"],
+      default: "pending",
+    },
     accountType: {
       type: String,
       required: [true, "Account type is required"],

@@ -10,21 +10,13 @@ import {
   MdArrowForward,
   MdGroups,
   MdLeaderboard,
-  MdVpnKey,
+  MdCheckCircle,
+  MdPauseCircle,
+  MdCancel,
 } from "react-icons/md";
 import AdminPageHeader from "@/components/admin/layout/AdminPageHeader";
 import AdminTable from "@/components/admin/ui/AdminTable";
-import InvitationCodeDialog from "@/components/admin/freelancer-cp/InvitationCodeDialog";
-import adminAxios from "@/lib/adminAxios";
 import { ADMIN_KEYS, readCollection } from "@/lib/adminStorage";
-
-const TABS = [
-  { key: "freelancerLeads", label: "Freelancer Leads" },
-  { key: "freelancerProps", label: "Freelancer Properties" },
-];
-
-const LEAD_STATUSES = ["New", "Contacted", "Qualified", "Site Visit", "Converted", "Lost"];
-const PROP_STATUSES = ["Pending Review", "Live", "Rejected"];
 
 // CP type segments — each has its own dedicated management page with full
 // CRUD, mirroring the three public dashboards at
@@ -59,139 +51,160 @@ const CP_SEGMENTS = [
   },
 ];
 
+const ROLE_LABEL = { company: "Company CP", digital: "Digital CP", field: "Field CP" };
+
+const STATUS_LABEL = { pending: "Pending", hold: "On Hold", approved: "Approved", rejected: "Rejected" };
+
 export default function FreelancerCPPage() {
-  const [tab, setTab] = useState("freelancerLeads");
-  const [data, setData] = useState({ freelancerLeads: [], freelancerProps: [], cpNetwork: [], cpLeads: [] });
+  const [freelancers, setFreelancers] = useState([]);
+  const [cpCounts, setCpCounts] = useState({ cpNetwork: [], cpLeads: [] });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [showInviteDialog, setShowInviteDialog] = useState(false);
+  const [updatingId, setUpdatingId] = useState(null);
 
-  const load = useCallback(() => {
-    const fl = readCollection(ADMIN_KEYS.freelancerLeads) || [];
-    const fp = readCollection(ADMIN_KEYS.freelancerProperties) || [];
-    const cpn = readCollection(ADMIN_KEYS.cpNetwork) || [];
-    const cpl = readCollection(ADMIN_KEYS.cpLeads) || [];
-    setData({ freelancerLeads: fl, freelancerProps: fp, cpNetwork: cpn, cpLeads: cpl });
+  const load = useCallback(async () => {
+    try {
+      const res = await fetch("/api/users?accountType=freelancer");
+      const json = await res.json();
+      const list = (json.success ? json.data : []).map((u) => ({ ...u, id: u.accountId }));
+      setFreelancers(list);
+    } catch {
+      toast.error("Failed to load channel partners");
+    }
+    setCpCounts({
+      cpNetwork: readCollection(ADMIN_KEYS.cpNetwork) || [],
+      cpLeads: readCollection(ADMIN_KEYS.cpLeads) || [],
+    });
   }, []);
 
   useEffect(() => {
     let active = true;
-    Promise.resolve().then(() => {
-      if (!active) return;
-      load();
-      setLoading(false);
-    });
-    return () => { active = false; };
+    Promise.resolve()
+      .then(() => load())
+      .then(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, [load]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await new Promise((r) => setTimeout(r, 500));
-    load();
+    await load();
     setRefreshing(false);
   };
 
-  const patchItem = async (collection, id, patch, setKey) => {
+  const updateStatus = async (accountId, cpApprovalStatus) => {
+    setUpdatingId(accountId);
     try {
-      const res = await adminAxios.patch(`/admin/${collection}/${id}`, { ...patch, id });
-      setData((prev) => ({ ...prev, [setKey]: res.data.data }));
-      return true;
-    } catch { toast.error("Operation failed"); return false; }
+      const res = await fetch(`/api/users/${accountId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cpApprovalStatus }),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || "Update failed");
+      setFreelancers((prev) =>
+        prev.map((f) => (f.accountId === accountId ? { ...f, cpApprovalStatus } : f))
+      );
+      toast.success(`Marked as ${STATUS_LABEL[cpApprovalStatus]}`);
+    } catch (err) {
+      toast.error(err.message || "Failed to update status");
+    } finally {
+      setUpdatingId(null);
+    }
   };
 
   const segmentCounts = useMemo(() => {
     const counts = {};
     CP_SEGMENTS.forEach((seg) => {
       counts[seg.key] = {
-        partners: data.cpNetwork.filter((n) => n.cpType === seg.key).length,
-        leads: data.cpLeads.filter((l) => l.submittedBy?.cpType === seg.key).length,
+        partners: cpCounts.cpNetwork.filter((n) => n.cpType === seg.key).length,
+        leads: cpCounts.cpLeads.filter((l) => l.submittedBy?.cpType === seg.key).length,
       };
     });
     return counts;
-  }, [data.cpNetwork, data.cpLeads]);
+  }, [cpCounts]);
 
-  // Freelancer leads columns
-  const FL_COLUMNS = [
-    { key: "id", label: "Lead ID", primary: true, render: (v) => <span className="font-mono text-xs text-[#9ca3af]">{v}</span> },
-    { key: "customer", label: "Customer", sortable: true },
-    { key: "phone", label: "Phone" },
-    { key: "project", label: "Project", sortable: true },
-    { key: "date", label: "Date", sortable: true },
-    { key: "status", label: "Status", type: "status", sortable: true, filterOptions: LEAD_STATUSES },
-    { key: "commission", label: "Commission" },
+  const COLUMNS = [
+    { key: "fullName", label: "Name", primary: true, sortable: true },
+    { key: "city", label: "City", sortable: true, render: (v) => v || "—" },
+    { key: "state", label: "State", sortable: true, render: (v) => v || "—" },
     {
-      key: "statusChange",
-      label: "Change Status",
+      key: "cpType",
+      label: "Role",
+      sortable: true,
+      filterOptions: Object.entries(ROLE_LABEL).map(([value, label]) => ({ value, label })),
+      render: (v) => ROLE_LABEL[v] || v || "—",
+    },
+    {
+      key: "cpApprovalStatus",
+      label: "Status",
+      sortable: true,
+      filterOptions: Object.entries(STATUS_LABEL).map(([value, label]) => ({ value, label })),
+      render: (v) => {
+        const status = v || "pending";
+        const classes = {
+          pending: "bg-amber-50 text-amber-700 border-amber-200",
+          hold: "bg-gray-100 text-gray-600 border-gray-200",
+          approved: "bg-emerald-50 text-emerald-700 border-emerald-200",
+          rejected: "bg-red-50 text-red-600 border-red-200",
+        }[status];
+        return (
+          <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium whitespace-nowrap ${classes}`}>
+            {STATUS_LABEL[status]}
+          </span>
+        );
+      },
+    },
+    {
+      key: "actions",
+      label: "Approve / Hold / Reject",
       searchable: false,
-      render: (_, row) => (
-        <select
-          value={row.status}
-          onClick={(e) => e.stopPropagation()}
-          onChange={async (e) => {
-            const ok = await patchItem("freelancer-leads", row.id, { status: e.target.value }, "freelancerLeads");
-            if (ok) toast.success(`Lead status updated to ${e.target.value}`);
-          }}
-          className="h-8 rounded-lg border border-[#e8e0d5] bg-white px-2 text-xs text-[#374151] outline-none focus:border-[#f0b429] cursor-pointer"
-        >
-          {LEAD_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-        </select>
-      ),
+      render: (_, row) => {
+        const busy = updatingId === row.accountId;
+        const status = row.cpApprovalStatus || "pending";
+        return (
+          <div className="flex flex-wrap items-center gap-1.5">
+            <button
+              type="button"
+              disabled={busy || status === "approved"}
+              onClick={() => updateStatus(row.accountId, "approved")}
+              className="flex h-8 min-h-[32px] items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 text-xs font-medium text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <MdCheckCircle size={14} /> Approve
+            </button>
+            <button
+              type="button"
+              disabled={busy || status === "hold"}
+              onClick={() => updateStatus(row.accountId, "hold")}
+              className="flex h-8 min-h-[32px] items-center gap-1 rounded-lg border border-gray-200 bg-gray-50 px-2.5 text-xs font-medium text-gray-600 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <MdPauseCircle size={14} /> Hold
+            </button>
+            <button
+              type="button"
+              disabled={busy || status === "rejected"}
+              onClick={() => updateStatus(row.accountId, "rejected")}
+              className="flex h-8 min-h-[32px] items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-2.5 text-xs font-medium text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <MdCancel size={14} /> Reject
+            </button>
+          </div>
+        );
+      },
     },
   ];
-
-  // Freelancer properties columns
-  const FP_COLUMNS = [
-    { key: "id", label: "ID", render: (v) => <span className="font-mono text-xs text-[#9ca3af]">{v}</span> },
-    { key: "title", label: "Title", sortable: true, primary: true },
-    { key: "city", label: "City", sortable: true },
-    { key: "price", label: "Price" },
-    { key: "status", label: "Status", type: "status", filterOptions: PROP_STATUSES },
-    {
-      key: "statusChange",
-      label: "Change Status",
-      searchable: false,
-      render: (_, row) => (
-        <select
-          value={row.status}
-          onClick={(e) => e.stopPropagation()}
-          onChange={async (e) => {
-            const ok = await patchItem("freelancer-properties", row.id, { status: e.target.value }, "freelancerProps");
-            if (ok) toast.success(`Property status changed to ${e.target.value}`);
-          }}
-          className="h-8 rounded-lg border border-[#e8e0d5] bg-white px-2 text-xs outline-none focus:border-[#f0b429] cursor-pointer"
-        >
-          {PROP_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-        </select>
-      ),
-    },
-  ];
-
-  const tabContent = {
-    freelancerLeads: { columns: FL_COLUMNS, data: data.freelancerLeads },
-    freelancerProps: { columns: FP_COLUMNS, data: data.freelancerProps },
-  };
-
-  const current = tabContent[tab];
 
   return (
     <div>
       <AdminPageHeader
         title="Freelancer & CP Management"
-        description="Manage freelancer leads, channel partner networks, and commissions"
+        description="Review channel partner registrations and manage the network"
         onRefresh={handleRefresh}
         isRefreshing={refreshing}
-        actions={
-          <button
-            onClick={() => setShowInviteDialog(true)}
-            className="flex h-9 min-h-[44px] items-center gap-1.5 rounded-xl bg-[#f0b429] px-3.5 text-xs font-semibold text-white shadow-sm transition hover:bg-[#d97706] sm:min-h-0"
-          >
-            <MdVpnKey size={16} />
-            <span>Generate Invitation Code</span>
-          </button>
-        }
       />
-
-      <InvitationCodeDialog isOpen={showInviteDialog} onClose={() => setShowInviteDialog(false)} />
 
       {/* CP Type — dedicated management pages */}
       <div className="mb-6">
@@ -226,29 +239,12 @@ export default function FreelancerCPPage() {
         </div>
       </div>
 
-      {/* Freelancer tabs */}
-      <div className="mb-4 flex gap-1 overflow-x-auto rounded-xl border border-[#e8e0d5] bg-white p-1 gold-scrollbar">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
-            className={`flex-shrink-0 rounded-lg px-3 py-2 text-xs font-medium transition ${
-              tab === t.key ? "bg-[#fff8e1] text-[#d97706]" : "text-[#6b7280] hover:bg-[#faf8f5] hover:text-[#1a1a2e]"
-            }`}
-          >
-            {t.label}
-            <span className={`ml-1.5 rounded-full px-1.5 py-0.5 text-[10px] ${tab === t.key ? "bg-[#f0b429]/20 text-[#d97706]" : "bg-[#f0ebe3] text-[#9ca3af]"}`}>
-              {tabContent[t.key]?.data?.length || 0}
-            </span>
-          </button>
-        ))}
-      </div>
-
+      <h3 className="mb-3 text-sm font-semibold text-[#1a1a2e]">Channel Partner Registrations</h3>
       <AdminTable
-        columns={current.columns}
-        data={current.data}
+        columns={COLUMNS}
+        data={freelancers}
         loading={loading}
-        emptyMessage="No records found"
+        emptyMessage="No channel partner registrations yet"
         pageSize={10}
       />
     </div>
