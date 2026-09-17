@@ -15,7 +15,6 @@ import { formatMobile, isMobileValid, isPasswordValid, generateAccountId } from 
 import { RTO_STATES, getCitiesForState } from "@/lib/cityRto";
 import { useAuth } from "@/context/AuthContext";
 import { useWizardDraft } from "@/lib/useWizardDraft";
-import CPUnderReviewModal from "@/components/portal/freelancer/CPUnderReviewModal";
 
 const TOTAL_STEPS = 2;
 
@@ -79,7 +78,6 @@ export default function FreelancerRegistrationWizard() {
   const { step, setStep, form, setForm, clearDraft } = useWizardDraft("se_draft_freelancer", INITIAL_FORM);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [registered, setRegistered] = useState(false);
 
   function update(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -169,7 +167,6 @@ export default function FreelancerRegistrationWizard() {
       currentlyWorking: form.currentlyWorking,
       coverageAreas: form.coverageAreas,
       experience: form.experience,
-      cpApprovalStatus: "pending",
       registeredAt: new Date().toISOString(),
       profileComplete: true,
     };
@@ -184,22 +181,12 @@ export default function FreelancerRegistrationWizard() {
       const token = `se_mock_${form.mobile.replace(/\D/g, "")}_${Date.now()}`;
       await login(token, json.data);
       clearDraft();
-      setRegistered(true);
+      router.push("/portal/freelancer");
     } catch (err) {
       setError(err.message || "Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);
     }
-  }
-
-  if (registered) {
-    return (
-      <CPUnderReviewModal
-        status="pending"
-        actionLabel="Go to My Portal"
-        onGoHome={() => router.push("/portal/freelancer")}
-      />
-    );
   }
 
   return (

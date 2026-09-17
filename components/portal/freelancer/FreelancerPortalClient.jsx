@@ -1,13 +1,12 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { FiSun, FiMoon, FiPlusSquare, FiCheckCircle, FiX } from "react-icons/fi";
+import { FiSun, FiMoon, FiPlusSquare } from "react-icons/fi";
 import PortalHeader from "@/components/portal/PortalHeader";
 import CompanyCPDashboard from "@/components/portal/CompanyCPDashboard";
 import DigitalCPDashboard from "@/components/portal/DigitalCPDashboard";
 import FieldCPDashboard from "@/components/portal/FieldCPDashboard";
-import CPUnderReviewModal from "@/components/portal/freelancer/CPUnderReviewModal";
 import { useAuth } from "@/context/AuthContext";
 
 let themeListeners = [];
@@ -72,17 +71,9 @@ export default function FreelancerPortalClient({
   digitalCampaigns,
   campaignVideos,
 }) {
-  const { user, isLoading, refreshUser } = useAuth();
+  const { user, isLoading } = useAuth();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [showApprovedBanner, setShowApprovedBanner] = useState(true);
-  const [checkingStatus, setCheckingStatus] = useState(false);
-
-  const handleCheckStatus = async () => {
-    setCheckingStatus(true);
-    await refreshUser();
-    setCheckingStatus(false);
-  };
 
   // Portal defaults to the sunlight-friendly light theme.
   // We use useSyncExternalStore to synchronize client-side localStorage
@@ -114,44 +105,11 @@ export default function FreelancerPortalClient({
     : (isRealFreelancer && user ? user : { fullName: DEMO_CP_NAMES[cpType], cpType });
   const copy = PORTAL_COPY[cpType];
 
-  // Real freelancers must be approved by an admin before their portal opens —
-  // Test Mode (?cpType=...) intentionally bypasses this so demo links keep working.
-  const needsApprovalGate = isRealFreelancer && !isValidRequestedCp && user?.cpApprovalStatus !== "approved";
-
   if (isLoading) return null;
-
-  if (needsApprovalGate) {
-    return (
-      <CPUnderReviewModal
-        status={user?.cpApprovalStatus || "pending"}
-        onGoHome={() => router.push("/")}
-        onRefresh={handleCheckStatus}
-        refreshing={checkingStatus}
-      />
-    );
-  }
-
-  const showApproved = isRealFreelancer && !isValidRequestedCp && user?.cpApprovalStatus === "approved" && showApprovedBanner;
 
   return (
     <div className={`min-h-screen bg-navy-950 ${isLight ? "cp-light-theme" : ""}`}>
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
-        {showApproved && (
-          <div className="mb-6 flex items-start gap-3 border border-gold-500/40 bg-gold-400/5 px-4 py-3 sm:items-center">
-            <FiCheckCircle className="h-5 w-5 shrink-0 text-gold-400" />
-            <p className="flex-1 text-sm text-cream">
-              Your profile is approved. You can start working now!
-            </p>
-            <button
-              type="button"
-              onClick={() => setShowApprovedBanner(false)}
-              aria-label="Dismiss"
-              className="shrink-0 text-muted transition hover:text-cream"
-            >
-              <FiX className="h-4 w-4" />
-            </button>
-          </div>
-        )}
         <PortalHeader
           eyebrow={copy.eyebrow}
           title={`Welcome, ${partner.fullName}`}

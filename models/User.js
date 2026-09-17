@@ -41,10 +41,13 @@ const UserSchema = new mongoose.Schema(
       type: String,
       enum: ["company", "digital", "field"],
     },
+    // Channel Partners get portal access immediately by default; an admin
+    // can only place them on hold (blocks portal access) — rejecting a
+    // registration deletes the user record outright rather than flagging it.
     cpApprovalStatus: {
       type: String,
-      enum: ["pending", "hold", "approved", "rejected"],
-      default: "pending",
+      enum: ["active", "hold"],
+      default: "active",
     },
     accountType: {
       type: String,

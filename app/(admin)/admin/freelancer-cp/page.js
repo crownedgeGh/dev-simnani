@@ -10,12 +10,13 @@ import {
   MdArrowForward,
   MdGroups,
   MdLeaderboard,
-  MdCheckCircle,
   MdPauseCircle,
+  MdPlayCircle,
   MdCancel,
 } from "react-icons/md";
 import AdminPageHeader from "@/components/admin/layout/AdminPageHeader";
 import AdminTable from "@/components/admin/ui/AdminTable";
+import AdminConfirmModal from "@/components/admin/ui/AdminConfirmModal";
 import { ADMIN_KEYS, readCollection } from "@/lib/adminStorage";
 
 // CP type segments — each has its own dedicated management page with full
@@ -53,7 +54,7 @@ const CP_SEGMENTS = [
 
 const ROLE_LABEL = { company: "Company CP", digital: "Digital CP", field: "Field CP" };
 
-const STATUS_LABEL = { pending: "Pending", hold: "On Hold", approved: "Approved", rejected: "Rejected" };
+const STATUS_LABEL = { active: "Active", hold: "On Hold" };
 
 export default function FreelancerCPPage() {
   const [freelancers, setFreelancers] = useState([]);
@@ -61,6 +62,8 @@ export default function FreelancerCPPage() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [updatingId, setUpdatingId] = useState(null);
+  const [rejectTarget, setRejectTarget] = useState(null);
+  const [rejecting, setRejecting] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -95,24 +98,42 @@ export default function FreelancerCPPage() {
     setRefreshing(false);
   };
 
-  const updateStatus = async (accountId, cpApprovalStatus) => {
+  const toggleHold = async (accountId, currentStatus) => {
+    const nextStatus = currentStatus === "hold" ? "active" : "hold";
     setUpdatingId(accountId);
     try {
       const res = await fetch(`/api/users/${accountId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cpApprovalStatus }),
+        body: JSON.stringify({ cpApprovalStatus: nextStatus }),
       });
       const json = await res.json();
       if (!json.success) throw new Error(json.error || "Update failed");
       setFreelancers((prev) =>
-        prev.map((f) => (f.accountId === accountId ? { ...f, cpApprovalStatus } : f))
+        prev.map((f) => (f.accountId === accountId ? { ...f, cpApprovalStatus: nextStatus } : f))
       );
-      toast.success(`Marked as ${STATUS_LABEL[cpApprovalStatus]}`);
+      toast.success(nextStatus === "hold" ? "Partner put on hold" : "Hold lifted — access restored");
     } catch (err) {
       toast.error(err.message || "Failed to update status");
     } finally {
       setUpdatingId(null);
+    }
+  };
+
+  const confirmReject = async () => {
+    if (!rejectTarget) return;
+    setRejecting(true);
+    try {
+      const res = await fetch(`/api/users/${rejectTarget.accountId}`, { method: "DELETE" });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || "Failed to reject");
+      setFreelancers((prev) => prev.filter((f) => f.accountId !== rejectTarget.accountId));
+      toast.success("Registration rejected and account removed");
+      setRejectTarget(null);
+    } catch (err) {
+      toast.error(err.message || "Failed to reject registration");
+    } finally {
+      setRejecting(false);
     }
   };
 
@@ -144,13 +165,11 @@ export default function FreelancerCPPage() {
       sortable: true,
       filterOptions: Object.entries(STATUS_LABEL).map(([value, label]) => ({ value, label })),
       render: (v) => {
-        const status = v || "pending";
-        const classes = {
-          pending: "bg-amber-50 text-amber-700 border-amber-200",
-          hold: "bg-gray-100 text-gray-600 border-gray-200",
-          approved: "bg-emerald-50 text-emerald-700 border-emerald-200",
-          rejected: "bg-red-50 text-red-600 border-red-200",
-        }[status];
+        const status = v === "hold" ? "hold" : "active";
+        const classes =
+          status === "hold"
+            ? "bg-gray-100 text-gray-600 border-gray-200"
+            : "bg-emerald-50 text-emerald-700 border-emerald-200";
         return (
           <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium whitespace-nowrap ${classes}`}>
             {STATUS_LABEL[status]}
@@ -160,33 +179,30 @@ export default function FreelancerCPPage() {
     },
     {
       key: "actions",
-      label: "Approve / Hold / Reject",
+      label: "Hold / Reject",
       searchable: false,
       render: (_, row) => {
         const busy = updatingId === row.accountId;
-        const status = row.cpApprovalStatus || "pending";
+        const isHold = row.cpApprovalStatus === "hold";
         return (
           <div className="flex flex-wrap items-center gap-1.5">
             <button
               type="button"
-              disabled={busy || status === "approved"}
-              onClick={() => updateStatus(row.accountId, "approved")}
-              className="flex h-8 min-h-[32px] items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 text-xs font-medium text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={busy}
+              onClick={() => toggleHold(row.accountId, row.cpApprovalStatus)}
+              className={`flex h-8 min-h-[32px] items-center gap-1 rounded-lg border px-2.5 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                isHold
+                  ? "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                  : "border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100"
+              }`}
             >
-              <MdCheckCircle size={14} /> Approve
+              {isHold ? <MdPlayCircle size={14} /> : <MdPauseCircle size={14} />}
+              {isHold ? "Resume" : "Hold"}
             </button>
             <button
               type="button"
-              disabled={busy || status === "hold"}
-              onClick={() => updateStatus(row.accountId, "hold")}
-              className="flex h-8 min-h-[32px] items-center gap-1 rounded-lg border border-gray-200 bg-gray-50 px-2.5 text-xs font-medium text-gray-600 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <MdPauseCircle size={14} /> Hold
-            </button>
-            <button
-              type="button"
-              disabled={busy || status === "rejected"}
-              onClick={() => updateStatus(row.accountId, "rejected")}
+              disabled={busy}
+              onClick={() => setRejectTarget(row)}
               className="flex h-8 min-h-[32px] items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-2.5 text-xs font-medium text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <MdCancel size={14} /> Reject
@@ -201,7 +217,7 @@ export default function FreelancerCPPage() {
     <div>
       <AdminPageHeader
         title="Freelancer & CP Management"
-        description="Review channel partner registrations and manage the network"
+        description="Manage channel partner access and registrations"
         onRefresh={handleRefresh}
         isRefreshing={refreshing}
       />
@@ -246,6 +262,17 @@ export default function FreelancerCPPage() {
         loading={loading}
         emptyMessage="No channel partner registrations yet"
         pageSize={10}
+      />
+
+      <AdminConfirmModal
+        isOpen={!!rejectTarget}
+        onClose={() => setRejectTarget(null)}
+        onConfirm={confirmReject}
+        title="Reject Registration"
+        message={`This will permanently delete ${rejectTarget?.fullName || "this user"}'s account. This action cannot be undone.`}
+        confirmLabel="Reject & Delete"
+        confirmVariant="danger"
+        isLoading={rejecting}
       />
     </div>
   );
