@@ -107,6 +107,7 @@ function tabsForKind(kind) {
         { key: "overview", label: "Overview" },
         { key: "listings", label: "Listings" },
         { key: "leads", label: "Leads" },
+        { key: "interested", label: "I'm Interested" },
         { key: "clients", label: "Clients" },
         { key: "commissions", label: "Commissions" },
       ];
@@ -253,7 +254,7 @@ function PropertyTileGrid({ properties, emptyMessage }) {
 /* -------------------------------------------------------------------------- */
 
 function OwnerTabs({ data, tab }) {
-  const { stats, listings, leads, clients, commissions } = data;
+  const { stats, listings, leads, clients, commissions, interested = [] } = data;
 
   if (tab === "overview") {
     return (
@@ -264,6 +265,7 @@ function OwnerTabs({ data, tab }) {
             { title: "Total Leads", value: stats.totalLeads, icon: MdLeaderboard, color: "blue" },
             { title: "Site Visits", value: stats.siteVisits, icon: MdCalendarToday, color: "green" },
             { title: "Closed Deals", value: stats.closedDeals, icon: MdAttachMoney, color: "purple" },
+            { title: "I'm Interested", value: stats.interested, icon: MdVisibility, color: "orange" },
           ]}
         />
         <div>
@@ -284,8 +286,16 @@ function OwnerTabs({ data, tab }) {
             </div>
           )}
         </div>
+        <div>
+          <p className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-[#9ca3af]">I&apos;m Interested</p>
+          <InterestedList leads={interested.slice(0, 3)} />
+        </div>
       </div>
     );
+  }
+
+  if (tab === "interested") {
+    return <InterestedList leads={interested} />;
   }
 
   if (tab === "listings") {

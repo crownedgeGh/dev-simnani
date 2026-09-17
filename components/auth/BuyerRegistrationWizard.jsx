@@ -7,8 +7,9 @@ import AuthShell from "./AuthShell";
 import Stepper from "./Stepper";
 import FormField from "./FormField";
 import ChipGroup from "./ChipGroup";
+import PasswordFields from "./PasswordFields";
 import { inputClass } from "./inputStyles";
-import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
+import { formatMobile, isMobileValid, isPasswordValid, generateAccountId } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
 import { PROPERTY_CATEGORIES } from "@/lib/propertyCategories";
 import { useWizardDraft } from "@/lib/useWizardDraft";
@@ -33,6 +34,8 @@ const INITIAL_FORM = {
   mobile: "",
   email: "",
   city: "",
+  password: "",
+  confirmPassword: "",
   propertyTypes: [],
   budget: "",
   location: "",
@@ -72,6 +75,16 @@ export default function BuyerRegistrationWizard() {
         setError("Please fill in all required fields.");
         return;
       }
+      if (!form.accountId) {
+        if (!isPasswordValid(form.password)) {
+          setError("Password must be at least 8 characters.");
+          return;
+        }
+        if (form.password !== form.confirmPassword) {
+          setError("Passwords do not match.");
+          return;
+        }
+      }
       setError("");
       setSubmitting(true);
       try {
@@ -82,6 +95,7 @@ export default function BuyerRegistrationWizard() {
             mobile: form.mobile,
             email: form.email,
             city: form.city,
+            password: form.password,
             accountType: ACCOUNT_TYPE,
             accountId: id,
             registeredAt: new Date().toISOString(),
@@ -233,6 +247,15 @@ export default function BuyerRegistrationWizard() {
               className={inputClass}
             />
           </FormField>
+
+          {!form.accountId && (
+            <PasswordFields
+              password={form.password}
+              confirmPassword={form.confirmPassword}
+              onPasswordChange={(value) => update("password", value)}
+              onConfirmPasswordChange={(value) => update("confirmPassword", value)}
+            />
+          )}
         </div>
       )}
 

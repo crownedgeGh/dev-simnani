@@ -49,11 +49,33 @@ async function getOwnerSnapshot(accountId, { includeCommissions }) {
     propertyId: doc.propertyId || titleToPropertyId.get(doc.property) || "",
   }));
 
+  // Leads this account raised as a buyer/enquirer on other owners' listings —
+  // i.e. properties they've expressed interest in.
+  const interestedLeadDocs = await Lead.find({ buyerId: accountId }).sort({ createdAt: -1 }).lean();
+  const interestedPropertyIds = [...new Set(interestedLeadDocs.map((l) => l.propertyId).filter(Boolean))];
+  const interestedPropertyDocs = interestedPropertyIds.length
+    ? await Property.find({ id: { $in: interestedPropertyIds } }).lean()
+    : [];
+  const interestedPropertyById = new Map(interestedPropertyDocs.map((p) => [p.id, p]));
+  const interested = interestedLeadDocs.map((lead) => {
+    const property = interestedPropertyById.get(lead.propertyId);
+    return {
+      id: lead.propertyId,
+      title: property?.title || lead.interest || lead.propertyId,
+      location: property?.location || "",
+      price: property?.price || "",
+      image: property?.image || "",
+      status: lead.status,
+      date: lead.date,
+    };
+  });
+
   const stats = {
     activeListings: listings.filter((p) => p.status === "Active").length,
     totalLeads: leads.length,
     siteVisits: leads.filter((l) => l.status === "Site Visit").length,
     closedDeals: 0,
+    interested: interested.length,
   };
 
   return {
@@ -62,6 +84,7 @@ async function getOwnerSnapshot(accountId, { includeCommissions }) {
     listings,
     leads,
     clients,
+    interested,
     commissions: includeCommissions ? BROKER_COMMISSIONS : [],
   };
 }

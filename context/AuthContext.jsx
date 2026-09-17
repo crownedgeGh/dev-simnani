@@ -64,6 +64,24 @@ export function AuthProvider({ children }) {
     return data.data;
   }, []);
 
+  /**
+   * loginWithPassword — mobile + password login path, the alternative to
+   * the OTP flow above. Fails if the account has no password set (e.g. it
+   * was only ever used via OTP login).
+   */
+  const loginWithPassword = useCallback(async (mobile, password) => {
+    const res = await fetch("/api/auth/login-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mobile, password }),
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || "Login failed");
+    setUser(data.data);
+    setIsAuthenticated(true);
+    return data.data;
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
@@ -99,7 +117,16 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ isAuthenticated, isLoading, user, login, loginWithMobile, logout, updateProfile }}
+      value={{
+        isAuthenticated,
+        isLoading,
+        user,
+        login,
+        loginWithMobile,
+        loginWithPassword,
+        logout,
+        updateProfile,
+      }}
     >
       {children}
     </AuthContext.Provider>

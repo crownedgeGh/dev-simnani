@@ -8,8 +8,9 @@ import AuthShell from "./AuthShell";
 import Stepper from "./Stepper";
 import FormField from "./FormField";
 import ChipGroup from "./ChipGroup";
+import PasswordFields from "./PasswordFields";
 import { inputClass } from "./inputStyles";
-import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
+import { formatMobile, isMobileValid, isPasswordValid, generateAccountId } from "@/lib/auth";
 import { findInvitationCode, markInvitationCodeUsed } from "@/lib/adminStorage";
 import { useAuth } from "@/context/AuthContext";
 import { useWizardDraft } from "@/lib/useWizardDraft";
@@ -65,6 +66,8 @@ const INITIAL_FORM = {
   mobile: "",
   email: "",
   city: "",
+  password: "",
+  confirmPassword: "",
   currentlyWorking: "",
   coverageAreas: "",
   experience: "",
@@ -149,6 +152,14 @@ export default function FreelancerRegistrationWizard() {
       setError("Please enter a valid invitation code to continue.");
       return;
     }
+    if (!isPasswordValid(form.password)) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+    if (form.password !== form.confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
     setError("");
     setSubmitting(true);
     const id = generateAccountId(ACCOUNT_ID_PREFIX[form.cpType]);
@@ -157,6 +168,7 @@ export default function FreelancerRegistrationWizard() {
       mobile: form.mobile,
       email: form.email,
       city: form.city,
+      password: form.password,
       accountType: "freelancer",
       cpType: form.cpType,
       accountId: id,
@@ -346,6 +358,13 @@ export default function FreelancerRegistrationWizard() {
               layout="card"
             />
           </FormField>
+
+          <PasswordFields
+            password={form.password}
+            confirmPassword={form.confirmPassword}
+            onPasswordChange={(value) => update("password", value)}
+            onConfirmPasswordChange={(value) => update("confirmPassword", value)}
+          />
 
           <label className="flex items-start gap-3 text-xs text-muted">
             <input

@@ -6,8 +6,9 @@ import Link from "next/link";
 import AuthShell from "./AuthShell";
 import Stepper from "./Stepper";
 import FormField from "./FormField";
+import PasswordFields from "./PasswordFields";
 import { inputClass, selectClass } from "./inputStyles";
-import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
+import { formatMobile, isMobileValid, isPasswordValid, generateAccountId } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
 import { LOCATIONS } from "@/lib/locations";
 import { useWizardDraft } from "@/lib/useWizardDraft";
@@ -23,6 +24,8 @@ const INITIAL_FORM = {
   fullName: "",
   mobile: "",
   email: "",
+  password: "",
+  confirmPassword: "",
   employeeCode: "",
   designation: "",
   assignedDistrict: "",
@@ -61,6 +64,16 @@ export default function EmployeeRegistrationWizard() {
         setError("Please fill in all required fields.");
         return;
       }
+      if (!form.accountId) {
+        if (!isPasswordValid(form.password)) {
+          setError("Password must be at least 8 characters.");
+          return;
+        }
+        if (form.password !== form.confirmPassword) {
+          setError("Passwords do not match.");
+          return;
+        }
+      }
       setError("");
       setSubmitting(true);
       try {
@@ -70,6 +83,7 @@ export default function EmployeeRegistrationWizard() {
             fullName: form.fullName,
             mobile: form.mobile,
             email: form.email,
+            password: form.password,
             accountType: ACCOUNT_TYPE,
             accountId: id,
             registeredAt: new Date().toISOString(),
@@ -201,6 +215,15 @@ export default function EmployeeRegistrationWizard() {
               className={inputClass}
             />
           </FormField>
+
+          {!form.accountId && (
+            <PasswordFields
+              password={form.password}
+              confirmPassword={form.confirmPassword}
+              onPasswordChange={(value) => update("password", value)}
+              onConfirmPasswordChange={(value) => update("confirmPassword", value)}
+            />
+          )}
         </div>
       )}
 

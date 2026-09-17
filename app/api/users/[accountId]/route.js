@@ -1,6 +1,21 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import User from "@/models/User";
+import { isPasswordValid } from "@/lib/auth";
+import { hashPassword } from "@/lib/password";
+
+async function preparePatch(body) {
+  const { confirmPassword, ...rest } = body;
+  if (!rest.password) {
+    delete rest.password;
+    return rest;
+  }
+  if (!isPasswordValid(rest.password)) {
+    throw new Error("Password must be at least 8 characters");
+  }
+  rest.password = await hashPassword(rest.password);
+  return rest;
+}
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -36,7 +51,7 @@ export async function PUT(request, { params }) {
   try {
     await dbConnect();
     const { accountId } = await params;
-    const body = await request.json();
+    const body = await preparePatch(await request.json());
 
     const updated = await User.findOneAndUpdate(buildLookup(accountId), { $set: body }, {
       new: true,
@@ -65,7 +80,7 @@ export async function PATCH(request, { params }) {
   try {
     await dbConnect();
     const { accountId } = await params;
-    const body = await request.json();
+    const body = await preparePatch(await request.json());
 
     const updated = await User.findOneAndUpdate(buildLookup(accountId), { $set: body }, {
       new: true,

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import User from "@/models/User";
+import { isPasswordValid } from "@/lib/auth";
+import { hashPassword } from "@/lib/password";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -69,11 +71,20 @@ export async function POST(request) {
       );
     }
 
+    if (!isPasswordValid(body.password)) {
+      return NextResponse.json(
+        { success: false, error: "Password must be at least 8 characters" },
+        { status: 400 }
+      );
+    }
+
     const accountId = body.accountId || `SG-USR-${Date.now()}`;
+    const { confirmPassword, ...rest } = body;
 
     const userData = {
-      ...body,
+      ...rest,
       accountId,
+      password: await hashPassword(body.password),
       status: body.status || "Active",
       registeredDate:
         body.registeredDate ||
@@ -85,12 +96,13 @@ export async function POST(request) {
     };
 
     const newUser = await User.create(userData);
+    const { password, ...safeUser } = newUser.toObject();
 
     return NextResponse.json(
       {
         success: true,
         message: "User registered successfully",
-        data: newUser,
+        data: safeUser,
       },
       { status: 201 }
     );

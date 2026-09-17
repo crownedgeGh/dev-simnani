@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import AuthShell from "./AuthShell";
 import FormField from "./FormField";
+import PasswordFields from "./PasswordFields";
 import { inputClass } from "./inputStyles";
-import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
+import { formatMobile, isMobileValid, isPasswordValid, generateAccountId } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
 
 const INITIAL_FORM = {
@@ -14,6 +15,8 @@ const INITIAL_FORM = {
   mobile: "",
   email: "",
   city: "",
+  password: "",
+  confirmPassword: "",
   agree: false,
 };
 
@@ -33,6 +36,14 @@ export default function CommonPersonRegistrationWizard() {
       setError("Please fill in all required fields.");
       return;
     }
+    if (!isPasswordValid(form.password)) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+    if (form.password !== form.confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
     if (!form.agree) {
       setError("Please accept the Terms & Conditions to continue.");
       return;
@@ -45,6 +56,7 @@ export default function CommonPersonRegistrationWizard() {
       mobile: form.mobile,
       email: form.email,
       city: form.city,
+      password: form.password,
       accountType: "common-person",
       accountId: id,
       registeredAt: new Date().toISOString(),
@@ -126,6 +138,13 @@ export default function CommonPersonRegistrationWizard() {
             className={inputClass}
           />
         </FormField>
+
+        <PasswordFields
+          password={form.password}
+          confirmPassword={form.confirmPassword}
+          onPasswordChange={(value) => update("password", value)}
+          onConfirmPasswordChange={(value) => update("confirmPassword", value)}
+        />
 
         <label className="flex items-start gap-3 text-xs text-muted">
           <input

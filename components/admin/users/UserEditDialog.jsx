@@ -10,16 +10,24 @@ const STATUSES = ["Active", "Suspended", "Deleted"];
 
 export default function UserEditDialog({ isOpen, onClose, user, onSave }) {
   const [form, setForm] = useState(user ? { accountType: user.accountType, status: user.status } : {});
+  const [newPassword, setNewPassword] = useState("");
   const [saving, setSaving] = useState(false);
 
   const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (newPassword && newPassword.length < 8) {
+      toast.error("New password must be at least 8 characters");
+      return;
+    }
     setSaving(true);
     try {
-      await onSave({ ...user, ...form });
+      const payload = { ...user, ...form };
+      if (newPassword) payload.password = newPassword;
+      await onSave(payload);
       toast.success("User updated successfully");
+      setNewPassword("");
       onClose();
     } catch {
       toast.error("Failed to update user");
@@ -56,6 +64,17 @@ export default function UserEditDialog({ isOpen, onClose, user, onSave }) {
           <select id="user-status" value={form.status || ""} onChange={(e) => set("status", e.target.value)} className={adminSelectClass}>
             {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
+        </AdminFormField>
+        <AdminFormField label="Reset Password" id="user-new-password" hint="Leave blank to keep the current password">
+          <input
+            id="user-new-password"
+            type="password"
+            autoComplete="new-password"
+            placeholder="Minimum 8 characters"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            className={adminInputClass}
+          />
         </AdminFormField>
       </form>
     </AdminDialog>

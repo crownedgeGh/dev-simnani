@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { MdScience } from "react-icons/md";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 import { useAuth } from "@/context/AuthContext";
 import BackButton from "@/components/layout/BackButton";
 
@@ -18,10 +19,13 @@ function formatMobile(value) {
 
 export default function AuthCard() {
   const router = useRouter();
-  const { login, loginWithMobile } = useAuth();
+  const { login, loginWithMobile, loginWithPassword } = useAuth();
 
+  const [mode, setMode] = useState("password"); // "password" | "otp"
   const [step, setStep] = useState("mobile"); // "mobile" | "otp"
   const [mobile, setMobile] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [otp, setOtp] = useState(Array(OTP_LENGTH).fill(""));
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -46,6 +50,27 @@ export default function AuthCard() {
         return prev - 1;
       });
     }, 1000);
+  }
+
+  async function handlePasswordSubmit(event) {
+    event.preventDefault();
+    if (!mobileValid || !password || loading) return;
+    setLoading(true);
+    setError("");
+    try {
+      await loginWithPassword(mobile, password);
+      router.push("/");
+    } catch (err) {
+      setError(err.message || "Login failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function switchMode(nextMode) {
+    setMode(nextMode);
+    setError("");
+    setPassword("");
   }
 
   function handleMobileSubmit(event) {
@@ -163,7 +188,9 @@ export default function AuthCard() {
           </h1>
         </div>
         <p className="text-sm text-muted">
-          {step === "mobile" &&
+          {step === "mobile" && mode === "password" &&
+            "Login with your mobile number and password."}
+          {step === "mobile" && mode === "otp" &&
             "Access your exclusive Simnani Estate portfolio."}
           {step === "otp" && (
             <>
@@ -176,7 +203,10 @@ export default function AuthCard() {
 
       {step === "mobile" && (
         <>
-          <form onSubmit={handleMobileSubmit} className="mt-8 flex flex-col gap-4">
+          <form
+            onSubmit={mode === "password" ? handlePasswordSubmit : handleMobileSubmit}
+            className="mt-8 flex flex-col gap-4"
+          >
             <div className="flex flex-col gap-2">
               <label htmlFor="mobile" className="tracked-label text-xs text-cream/80">
                 Mobile Number
@@ -196,14 +226,70 @@ export default function AuthCard() {
               </div>
             </div>
 
+            {mode === "password" && (
+              <div className="flex flex-col gap-2">
+                <label htmlFor="password" className="tracked-label text-xs text-cream/80">
+                  Password
+                </label>
+                <div className="relative flex items-center border border-navy-700/60 bg-navy-950 px-4 transition focus-within:border-gold-400">
+                  <input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="current-password"
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(event) => {
+                      setPassword(event.target.value);
+                      setError("");
+                    }}
+                    className="h-14 w-full bg-transparent px-0 pr-8 text-cream placeholder:text-muted focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((s) => !s)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    className="absolute right-3 text-muted transition hover:text-gold-400"
+                  >
+                    {showPassword ? <FiEyeOff className="h-5 w-5" /> : <FiEye className="h-5 w-5" />}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {error && mode === "password" && (
+              <p className="text-xs text-red-400">{error}</p>
+            )}
+
             <button
               type="submit"
-              disabled={!mobileValid || loading}
+              disabled={mode === "password" ? !mobileValid || !password || loading : !mobileValid || loading}
               className="tracked-label mt-2 flex items-center justify-center gap-2 bg-gold-400 px-6 py-4 text-xs text-navy-950 transition hover:bg-gold-300 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {loading && !isTesterLogin ? "Sending OTP..." : "Continue with OTP"}
+              {mode === "password"
+                ? loading ? "Logging in..." : "Login"
+                : loading && !isTesterLogin ? "Sending OTP..." : "Continue with OTP"}
             </button>
           </form>
+
+          <div className="mt-4 text-center">
+            {mode === "password" ? (
+              <button
+                type="button"
+                onClick={() => switchMode("otp")}
+                className="tracked-label text-xs text-gold-400 hover:text-gold-300"
+              >
+                Or Login via OTP
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => switchMode("password")}
+                className="tracked-label text-xs text-gold-400 hover:text-gold-300"
+              >
+                Or Login with Password
+              </button>
+            )}
+          </div>
 
           {/* Tester Login Divider & Button */}
           <div className="relative my-6 flex items-center justify-center">
