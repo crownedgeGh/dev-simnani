@@ -8,7 +8,7 @@ import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
 import { inputClass, selectClass } from "@/components/auth/inputStyles";
 import FormField from "@/components/auth/FormField";
-import { CoverImageUpload, GalleryImageUpload, VideoUpload } from "@/components/property/PropertyImageUpload";
+import { PhotosUpload, VideoUpload } from "@/components/property/PropertyImageUpload";
 import { MdContentPaste, MdLocationOn, MdApartment, MdCameraAlt, MdPerson } from "react-icons/md";
 import { CATEGORIES_BY_TYPE } from "@/lib/properties";
 import { uploadFileToR2, uploadFilesToR2 } from "@/lib/uploadToR2";
@@ -88,11 +88,8 @@ const INITIAL_FORM = {
   facing: "",
   availableFrom: "",
   preferredFor: "",
-  coverImage: null,
-  galleryImages: [],
+  photos: [],
   video: null,
-  existingCoverUrl: "",
-  existingGalleryUrls: [],
   existingVideoUrl: "",
   fullName: "",
   mobile: "",
@@ -156,11 +153,11 @@ export default function PostPropertyForm({ editId }) {
           facing: p.facing || "",
           availableFrom: p.availableFrom || "",
           preferredFor: p.preferredFor || "",
-          coverImage: null,
-          galleryImages: [],
+          photos: [
+            ...(p.image ? [{ type: "existing", url: p.image }] : []),
+            ...(p.galleryImages || []).map((url) => ({ type: "existing", url })),
+          ],
           video: null,
-          existingCoverUrl: p.image || "",
-          existingGalleryUrls: p.galleryImages || [],
           existingVideoUrl: p.video || "",
           fullName: p.contact?.fullName || "",
           mobile: (p.contact?.mobile || "").replace(/^\+91\s*/, "").trim(),
@@ -215,6 +212,7 @@ export default function PostPropertyForm({ editId }) {
       { id: "locality", invalid: !form.locality.trim() },
       { id: "price", invalid: !form.price },
       { id: "areaSize", invalid: !form.areaSize },
+      { id: "photos", invalid: !form.photos.length },
       ...(isResidential ? [{ id: "beds", invalid: !form.beds || Number(form.beds) < 1 }] : []),
       { id: "baths", invalid: !form.baths || Number(form.baths) < 1 },
       { id: "fullName", invalid: !form.fullName.trim() },
@@ -236,22 +234,26 @@ export default function PostPropertyForm({ editId }) {
     setSubmitting(true);
 
     try {
-      let coverImageUrl = form.existingCoverUrl || "/defaultImage.webp";
-      let galleryImageUrls = [...form.existingGalleryUrls];
+      const newFiles = form.photos.filter((p) => p.type === "new").map((p) => p.file);
       let videoUrl = form.existingVideoUrl || "";
 
-      if (form.coverImage || form.galleryImages.length || form.video) {
+      let orderedPhotoUrls = [];
+      if (newFiles.length || form.video) {
         setUploadStatus("Optimising & uploading photos and video… this can take a minute.");
-        const [uploadedCover, uploadedGallery, uploadedVideo] = await Promise.all([
-          form.coverImage ? uploadFileToR2(form.coverImage, "properties/cover") : Promise.resolve(null),
-          form.galleryImages.length ? uploadFilesToR2(form.galleryImages, "properties/gallery") : Promise.resolve([]),
+        const [uploadedFiles, uploadedVideo] = await Promise.all([
+          newFiles.length ? uploadFilesToR2(newFiles, "properties/gallery") : Promise.resolve([]),
           form.video ? uploadFileToR2(form.video, "properties/video", setUploadStatus) : Promise.resolve(null),
         ]);
-        if (uploadedCover) coverImageUrl = uploadedCover;
-        galleryImageUrls = [...galleryImageUrls, ...uploadedGallery];
+        let uploadedIndex = 0;
+        orderedPhotoUrls = form.photos.map((p) => (p.type === "existing" ? p.url : uploadedFiles[uploadedIndex++]));
         if (uploadedVideo) videoUrl = uploadedVideo;
         setUploadStatus("");
+      } else {
+        orderedPhotoUrls = form.photos.map((p) => p.url);
       }
+
+      const coverImageUrl = orderedPhotoUrls[0] || "/defaultImage.webp";
+      const galleryImageUrls = orderedPhotoUrls.slice(1);
 
       const numericPrice = Number(form.price) || 0;
       let formattedPrice = `₹${numericPrice.toLocaleString("en-IN")}`;
@@ -635,36 +637,19 @@ export default function PostPropertyForm({ editId }) {
         </FormField>
       </Section>
 
-      <Section icon={<MdCameraAlt className="h-5 w-5" />} title="Photos & Video" subtitle="Optional — add images and a video to attract more buyers">
-        <div className="sm:col-span-2">
-          <CoverImageUpload
-            id="coverImage"
-            label="Cover Image"
-            hint="Main photo shown in listings · JPEG, PNG or WEBP up to 10MB"
-            file={form.coverImage}
-            existingUrl={form.existingCoverUrl}
-            onRemoveExisting={() => update("existingCoverUrl", "")}
-            onChange={(file) => update("coverImage", file)}
-            optional
+      <Section icon={<MdCameraAlt className="h-5 w-5" />} title="Photos & Video" subtitle="Add photos to attract more buyers — video is optional">
+        <div id="photos" className={`sm:col-span-2 ${invalidFields.has("photos") ? "outline outline-1 outline-offset-4 outline-red-500" : ""}`}>
+          <PhotosUpload
+            id="photosInput"
+            label="Add Photos"
+            hint="First photo is the cover shown in listings · use “Make Cover” to change it · JPEG, PNG or WEBP up to 10MB each"
+            photos={form.photos}
+            onChange={(photos) => update("photos", photos)}
+            max={11}
           />
-        </div>
-        <div className="sm:col-span-2">
-          <GalleryImageUpload
-            id="galleryImages"
-            label="Additional Photos"
-            hint="Add up to 10 more photos · JPEG, PNG or WEBP up to 10MB each"
-            files={form.galleryImages}
-            existingUrls={form.existingGalleryUrls}
-            onRemoveExisting={(index) =>
-              update(
-                "existingGalleryUrls",
-                form.existingGalleryUrls.filter((_, i) => i !== index)
-              )
-            }
-            onChange={(files) => update("galleryImages", files)}
-            optional
-            max={10}
-          />
+          {invalidFields.has("photos") && (
+            <p className="mt-2 text-xs text-red-400">Please add at least one photo.</p>
+          )}
         </div>
         <div className="sm:col-span-2">
           <VideoUpload
