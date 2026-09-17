@@ -12,6 +12,8 @@ import { PhotosUpload, VideoUpload } from "@/components/property/PropertyImageUp
 import { MdContentPaste, MdLocationOn, MdApartment, MdCameraAlt, MdPerson } from "react-icons/md";
 import { CATEGORIES_BY_TYPE } from "@/lib/properties";
 import { uploadFileToR2, uploadFilesToR2 } from "@/lib/uploadToR2";
+import { STATES, getCitiesForState } from "@/lib/cityState";
+import SearchableSelect from "@/components/property/SearchableSelect";
 
 const PURPOSE_OPTIONS = [
   { value: "sale", label: "Sale" },
@@ -71,6 +73,7 @@ const INITIAL_FORM = {
   title: "",
   propertyType: "",
   category: "",
+  state: "",
   city: "",
   locality: "",
   landmark: "",
@@ -136,6 +139,7 @@ export default function PostPropertyForm({ editId }) {
           title: p.title || "",
           propertyType: isResidentialType ? p.propertyType || "" : "",
           category: p.category || "",
+          state: p.state || "",
           city: p.city || "",
           locality: p.locality || "",
           landmark: p.landmark || "",
@@ -183,6 +187,9 @@ export default function PostPropertyForm({ editId }) {
         next.category = "";
         next.propertyType = "";
       }
+      if (field === "state") {
+        next.city = "";
+      }
       return next;
     });
     setInvalidFields((prev) => {
@@ -208,6 +215,7 @@ export default function PostPropertyForm({ editId }) {
       isResidential
         ? { id: "propertyType", invalid: !form.propertyType }
         : { id: "category", invalid: !form.category },
+      { id: "state", invalid: !form.state.trim() },
       { id: "city", invalid: !form.city.trim() },
       { id: "locality", invalid: !form.locality.trim() },
       { id: "price", invalid: !form.price },
@@ -290,6 +298,7 @@ export default function PostPropertyForm({ editId }) {
         price: formattedPrice,
         rawPrice: numericPrice,
         location: locationStr,
+        state: (form.state || "").trim(),
         city: cityStr,
         locality: localityStr,
         landmark: (form.landmark || "").trim(),
@@ -435,14 +444,27 @@ export default function PostPropertyForm({ editId }) {
       </Section>
 
       <Section icon={<MdLocationOn className="h-5 w-5" />} title="Location" subtitle="City and area — no full address required">
+        <FormField label="State" htmlFor="state" required>
+          <SearchableSelect
+            id="state"
+            value={form.state}
+            onChange={(state) => update("state", state)}
+            options={STATES}
+            placeholder="Select state"
+            searchPlaceholder="Search state…"
+            className={errClass(selectClass, "state")}
+          />
+        </FormField>
         <FormField label="City" htmlFor="city" required>
-          <input
+          <SearchableSelect
             id="city"
-            type="text"
-            placeholder="e.g. Raipur"
             value={form.city}
-            onChange={(e) => update("city", e.target.value)}
-            className={errClass(inputClass, "city")}
+            onChange={(city) => update("city", city)}
+            options={getCitiesForState(form.state)}
+            disabled={!form.state}
+            placeholder={form.state ? "Select city" : "Select state first"}
+            searchPlaceholder="Search city…"
+            className={errClass(selectClass, "city")}
           />
         </FormField>
         <FormField label="Area / Locality" htmlFor="locality" required>
