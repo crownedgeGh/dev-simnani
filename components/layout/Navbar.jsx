@@ -7,11 +7,11 @@ import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { getAccountPermissions } from "@/lib/accountPermissions";
 import AuthGateModal from "@/components/auth/AuthGateModal";
-import { MdTrendingUp, MdPersonAdd, MdAgriculture, MdFactory, MdScience } from "react-icons/md";
+import { MdTrendingUp, MdPersonAdd, MdAgriculture, MdFactory, MdScience, MdWorkspacePremium, MdStar } from "react-icons/md";
 import {
   FiUser, FiPlus, FiMenu, FiX,
   FiList, FiBookmark, FiSettings, FiLogOut, FiHelpCircle, FiInfo,
-  FiChevronDown, FiMapPin, FiSmartphone, FiBriefcase,
+  FiChevronDown, FiMapPin, FiSmartphone, FiBriefcase, FiZap,
 } from "react-icons/fi";
 import { BiBuildings, BiBuildingHouse } from "react-icons/bi";
 
@@ -28,6 +28,7 @@ const NAV_LINKS = [
   { label: "Farming Land Projects", href: "/farming", icon: MdAgriculture },
   { label: "Industrial", href: "/industrial", icon: MdFactory },
   { label: "Services", href: "/services", icon: FiSettings },
+  { label: "Pricing", href: "/pricing", icon: MdWorkspacePremium },
   { label: "About Us", href: "/about", icon: FiInfo },
 ];
 
@@ -48,11 +49,53 @@ const ACCOUNT_TYPE_LABEL = {
   employee: "Employee",
 };
 
+// Membership plan badge — /pricing is Broker-only, so this only ever
+// renders for broker accounts (see PLAN_BADGE usage below).
+const PLAN_BADGE = {
+  free: { label: "Free Member", icon: FiZap, color: "#9aa3b8" },
+  standard: { label: "Standard Member", icon: MdStar, color: "#ffc633" },
+  premium: { label: "Premium Member", icon: MdWorkspacePremium, color: "#ffde85" },
+};
+
+const PLAN_STATUS_SUFFIX = {
+  pending: " (Pending Approval)",
+  hold: " (On Hold)",
+  rejected: " (Rejected)",
+};
+
 function getInitials(name) {
   if (!name) return "?";
   const parts = name.trim().split(" ");
   if (parts.length === 1) return parts[0][0]?.toUpperCase() ?? "?";
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+/** Membership plan badge — icon + level, shown for Broker accounts only. */
+function PlanBadgeTag({ plan, planStatus, size = "sm" }) {
+  const meta = PLAN_BADGE[plan] || PLAN_BADGE.free;
+  const Icon = meta.icon;
+  const suffix = PLAN_STATUS_SUFFIX[planStatus] || "";
+  const isCompact = size === "sm";
+  return (
+    <span
+      style={{
+        display: "inline-flex", alignItems: "center", gap: 5,
+        marginTop: 6,
+        padding: isCompact ? "2px 8px" : "3px 10px",
+        background: "rgba(255,255,255,0.05)",
+        border: "1px solid rgba(255,255,255,0.12)",
+        borderRadius: 20,
+        fontSize: isCompact ? 10 : 11,
+        fontWeight: 600,
+        color: meta.color,
+        whiteSpace: "nowrap",
+      }}
+    >
+      <Icon style={{ width: isCompact ? 11 : 12, height: isCompact ? 11 : 12, flexShrink: 0 }} />
+      {meta.label}
+      {suffix}
+    </span>
+  );
 }
 
 /** One icon-badge row used throughout the mobile sidebar (nav links, account links, sign out). */
@@ -326,6 +369,12 @@ function UserDropdown({ user, onClose, onLogout }) {
             }}>
               {typeLabel}
             </span>
+            {/* Membership plan badge — Broker accounts only */}
+            {user?.accountType === "broker" && (
+              <div>
+                <PlanBadgeTag plan={user?.plan} planStatus={user?.planStatus} />
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -551,6 +600,10 @@ export default function Navbar() {
   const initials = getInitials(user?.fullName);
   const perms = getAccountPermissions(user?.accountType);
   const canPostProperty = !isAuthenticated || perms.canPostProperty;
+  // Pricing/membership plans are a Broker-only feature.
+  const visibleNavLinks = NAV_LINKS.filter(
+    (link) => link.href !== "/pricing" || user?.accountType === "broker"
+  );
 
   return (
     <>
@@ -575,7 +628,7 @@ export default function Navbar() {
 
           {/* Desktop nav links */}
           <nav className="hidden min-w-0 flex-1 items-center justify-center gap-3.5 xl:flex xl:gap-5 2xl:gap-7">
-            {NAV_LINKS.map((link) => {
+            {visibleNavLinks.map((link) => {
               const active = isNavLinkActive(link, pathname);
               return (
                 <Link
@@ -770,6 +823,11 @@ export default function Navbar() {
                     }}>
                       {typeLabel}
                     </span>
+                    {user?.accountType === "broker" && (
+                      <div>
+                        <PlanBadgeTag plan={user?.plan} planStatus={user?.planStatus} />
+                      </div>
+                    )}
                   </div>
                 </div>
               ) : (
@@ -867,7 +925,7 @@ export default function Navbar() {
             <div className="border-t border-navy-700/60 px-4 py-4">
               <p className="tracked-label text-xs text-muted">Navigation</p>
               <div className="mt-3 flex flex-col gap-1">
-                {NAV_LINKS.map((link) => (
+                {visibleNavLinks.map((link) => (
                   <MobileNavRow
                     key={link.label}
                     icon={link.icon}

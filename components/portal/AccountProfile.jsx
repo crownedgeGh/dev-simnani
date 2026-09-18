@@ -2,11 +2,25 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { FiEdit3, FiAlertCircle } from "react-icons/fi";
+import { FiEdit3, FiAlertCircle, FiZap } from "react-icons/fi";
+import { MdStar, MdWorkspacePremium } from "react-icons/md";
 import Badge from "./Badge";
 import SectionCard from "./SectionCard";
 import { inputClass } from "@/components/auth/inputStyles";
 import { useAuth } from "@/context/AuthContext";
+
+const PLAN_META = {
+  free: { name: "Free", icon: FiZap },
+  standard: { name: "Standard", icon: MdStar },
+  premium: { name: "Premium", icon: MdWorkspacePremium },
+};
+
+const PLAN_STATUS_TONE = {
+  active: { tone: "success", label: "Active" },
+  pending: { tone: "gold", label: "Pending Approval" },
+  hold: { tone: "muted", label: "On Hold" },
+  rejected: { tone: "error", label: "Rejected" },
+};
 
 export default function AccountProfile({ user }) {
   const { user: authUser, updateProfile } = useAuth();
@@ -82,7 +96,10 @@ export default function AccountProfile({ user }) {
           </div>
           <div className="flex-1">
             <p className="font-display text-lg text-cream">{form.name}</p>
-            <Badge tone="gold">{displayRole}</Badge>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge tone="gold">{displayRole}</Badge>
+              {authUser?.accountType === "broker" && <PlanBadge user={authUser} />}
+            </div>
           </div>
           {!editing && (
             <button
@@ -174,6 +191,22 @@ export default function AccountProfile({ user }) {
         </p>
       </SectionCard>
     </div>
+  );
+}
+
+// Membership plan is a Broker-only feature (see /pricing) — shown as a
+// small badge right next to the account-type badge, e.g. "STANDARD MEMBER".
+function PlanBadge({ user }) {
+  const planMeta = PLAN_META[user?.plan] || PLAN_META.free;
+  const PlanIcon = planMeta.icon;
+  const statusMeta = PLAN_STATUS_TONE[user?.planStatus] || PLAN_STATUS_TONE.active;
+
+  return (
+    <Badge tone={statusMeta.tone}>
+      <PlanIcon className="h-3 w-3" />
+      {planMeta.name} Member
+      {user?.planStatus !== "active" && ` · ${statusMeta.label}`}
+    </Badge>
   );
 }
 

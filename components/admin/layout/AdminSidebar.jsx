@@ -12,6 +12,7 @@ import {
   MdSettings,
   MdChevronLeft,
   MdChevronRight,
+  MdWorkspacePremium,
 } from "react-icons/md";
 import { useState } from "react";
 
@@ -20,6 +21,7 @@ const NAV_ITEMS = [
   { href: "/admin/properties", label: "Properties", icon: MdApartment },
   { href: "/admin/users", label: "Users", icon: MdPeople },
   { href: "/admin/leads", label: "Leads", icon: MdLeaderboard },
+  { href: "/admin/plans", label: "Plans", icon: MdWorkspacePremium },
   {
     href: "/admin/freelancer-cp",
     label: "Freelancer & CP",

@@ -94,6 +94,31 @@ const UserSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    // Membership plan — set on purchase (see /pricing + /api/subscriptions).
+    // "free" is auto-active; "standard"/"premium" start "pending" until an
+    // admin approves them from /admin/plans.
+    plan: {
+      type: String,
+      enum: ["free", "standard", "premium"],
+      default: "free",
+    },
+    planStatus: {
+      type: String,
+      enum: ["active", "pending", "hold", "rejected"],
+      default: "active",
+    },
+    planPropertyLimit: {
+      type: Number,
+      default: 10,
+    },
+    planExpiresAt: {
+      type: Date,
+      default: null,
+    },
+    planSubscriptionId: {
+      type: String,
+      default: null,
+    },
   },
   {
     timestamps: true,

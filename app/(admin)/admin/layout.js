@@ -25,6 +25,7 @@ function AdminShell({ children }) {
     "/admin/properties": "Properties",
     "/admin/users": "Users",
     "/admin/leads": "Leads",
+    "/admin/plans": "Plans & Subscriptions",
     "/admin/freelancer-cp": "Freelancer & CP Management",
     "/admin/callbacks": "Callback Requests",
     "/admin/settings": "Settings",
