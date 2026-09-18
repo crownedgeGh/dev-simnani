@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import AuthShell from "./AuthShell";
@@ -10,8 +10,10 @@ import ChipGroup from "./ChipGroup";
 import { PROPERTY_CATEGORIES } from "@/lib/propertyCategories";
 import FileUpload from "./FileUpload";
 import PasswordFields from "./PasswordFields";
+import SearchableSelect from "./SearchableSelect";
 import { inputClass, selectClass } from "./inputStyles";
 import { formatMobile, isMobileValid, isPasswordValid, generateAccountId } from "@/lib/auth";
+import { RTO_STATES, getCitiesForState } from "@/lib/cityRto";
 import { useAuth } from "@/context/AuthContext";
 import { useWizardDraft } from "@/lib/useWizardDraft";
 
@@ -45,6 +47,7 @@ const INITIAL_FORM = {
   fullName: "",
   mobile: "",
   email: "",
+  state: "",
   city: "",
   password: "",
   confirmPassword: "",
@@ -70,6 +73,11 @@ export default function BrokerRegistrationWizard() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  const cityOptions = useMemo(() => {
+    if (!form.state) return [];
+    return getCitiesForState(form.state).map((c) => c.city);
+  }, [form.state]);
+
   useEffect(() => {
     if (!authUser || authUser.accountType !== ACCOUNT_TYPE || form.accountId) return;
     const params = new URLSearchParams(window.location.search);
@@ -80,6 +88,7 @@ export default function BrokerRegistrationWizard() {
       fullName: authUser.fullName || prev.fullName,
       mobile: authUser.mobile || prev.mobile,
       email: authUser.email || prev.email,
+      state: authUser.state || prev.state,
       city: authUser.city || prev.city,
     }));
     setStep(Math.min(Math.max(resumeStep, 1), TOTAL_STEPS));
@@ -90,9 +99,13 @@ export default function BrokerRegistrationWizard() {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
+  function handleStateChange(state) {
+    setForm((prev) => ({ ...prev, state, city: "" }));
+  }
+
   async function goNext() {
     if (step === 1) {
-      if (!form.fullName.trim() || !isMobileValid(form.mobile) || !form.email.trim() || !form.city.trim()) {
+      if (!form.fullName.trim() || !isMobileValid(form.mobile) || !form.email.trim() || !form.state || !form.city) {
         setError("Please fill in all required fields.");
         return;
       }
@@ -115,6 +128,7 @@ export default function BrokerRegistrationWizard() {
             fullName: form.fullName,
             mobile: form.mobile,
             email: form.email,
+            state: form.state,
             city: form.city,
             password: form.password,
             accountType: ACCOUNT_TYPE,
@@ -137,6 +151,7 @@ export default function BrokerRegistrationWizard() {
           const result = await updateProfile({
             fullName: form.fullName,
             email: form.email,
+            state: form.state,
             city: form.city,
             registrationStep: 2,
           });
@@ -292,16 +307,31 @@ export default function BrokerRegistrationWizard() {
             />
           </FormField>
 
-          <FormField label="Primary City of Operation" htmlFor="city" required>
-            <input
-              id="city"
-              type="text"
-              placeholder="e.g. Bangalore, Mumbai"
-              value={form.city}
-              onChange={(e) => update("city", e.target.value)}
-              className={inputClass}
-            />
-          </FormField>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <FormField label="State" htmlFor="state" required>
+              <SearchableSelect
+                id="state"
+                value={form.state}
+                onChange={handleStateChange}
+                options={RTO_STATES}
+                placeholder="Select your state"
+                searchPlaceholder="Search states…"
+              />
+            </FormField>
+
+            <FormField label="Primary City of Operation" htmlFor="city" required>
+              <SearchableSelect
+                id="city"
+                value={form.city}
+                onChange={(city) => update("city", city)}
+                options={cityOptions}
+                placeholder={form.state ? "Select your city" : "Select a state first"}
+                searchPlaceholder="Search cities…"
+                disabled={!form.state}
+                emptyMessage="No cities found for this state"
+              />
+            </FormField>
+          </div>
 
           {!form.accountId && (
             <PasswordFields
@@ -494,6 +524,7 @@ export default function BrokerRegistrationWizard() {
               <ReviewItem label="Full Name" value={form.fullName} />
               <ReviewItem label="Mobile" value={`+91 ${form.mobile}`} />
               <ReviewItem label="Email" value={form.email} />
+              <ReviewItem label="State" value={form.state} />
               <ReviewItem label="City" value={form.city} />
             </div>
           </div>

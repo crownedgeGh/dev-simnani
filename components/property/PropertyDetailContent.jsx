@@ -88,7 +88,7 @@ export default function PropertyDetailContent({ property, eyebrow, sidebar, back
               <Stat icon={<MdTrendingUp />} label="Est. Return" value={property.roi} />
             ) : (
               <>
-                {property.beds > 0 && <Stat icon={<MdBed />} label="Bedrooms" value={property.beds} />}
+                {property.beds > 0 && <Stat icon={<MdBed />} label="BHK" value={`${property.beds} BHK`} />}
                 {property.baths > 0 && <Stat icon={<MdBathtub />} label="Bathrooms" value={property.baths} />}
                 <Stat icon={<MdSquareFoot />} label="Area" value={property.area} />
                 <Stat icon={<MdCategory />} label="Type" value={property.type} />

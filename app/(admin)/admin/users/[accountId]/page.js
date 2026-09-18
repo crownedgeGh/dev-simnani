@@ -91,6 +91,7 @@ export default function UserDetailPage() {
     ["Mobile", user.mobile],
     ["Email", user.email],
     ["City", user.city],
+    ["State", user.state || "—"],
     ["District", user.district || "—"],
     ["CP Type", user.cpType || "—"],
     ["Registered Date", user.registeredDate],

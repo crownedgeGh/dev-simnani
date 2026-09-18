@@ -44,6 +44,14 @@ const SECTION_OPTIONS = [
 
 const PROPERTY_TYPES = ["Flat", "House", "Shop", "Plot", "Office", "Warehouse"];
 
+const BHK_OPTIONS = [
+  { value: "1", label: "1 BHK" },
+  { value: "2", label: "2 BHK" },
+  { value: "3", label: "3 BHK" },
+  { value: "4", label: "4 BHK" },
+  { value: "5", label: "5 BHK+" },
+];
+
 const AREA_UNITS = ["sq ft", "sq m", "acres", "gaj"];
 
 const FURNISHING_OPTIONS = ["Unfurnished", "Semi-Furnished", "Fully Furnished"];
@@ -194,6 +202,10 @@ export default function PostPropertyForm({ editId }) {
       if (field === "section") {
         next.category = "";
         next.propertyType = "";
+        next.beds = "";
+      }
+      if (field === "propertyType") {
+        next.beds = "";
       }
       if (field === "state") {
         next.city = "";
@@ -214,6 +226,7 @@ export default function PostPropertyForm({ editId }) {
   }
 
   const isResidential = form.section === "residential";
+  const showBhkSelect = form.propertyType === "Flat" || form.propertyType === "House";
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -419,23 +432,44 @@ export default function PostPropertyForm({ editId }) {
           />
         </FormField>
         {isResidential ? (
-          <FormField label="Property Type" htmlFor="propertyType" required>
-            <SelectWrap>
-              <select
-                id="propertyType"
-                value={form.propertyType}
-                onChange={(e) => update("propertyType", e.target.value)}
-                className={errClass(`${selectClass} rounded-sm pr-10`, "propertyType")}
-              >
-                <option value="">Select type</option>
-                {PROPERTY_TYPES.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
-            </SelectWrap>
-          </FormField>
+          <>
+            <FormField label="Property Type" htmlFor="propertyType" required>
+              <SelectWrap>
+                <select
+                  id="propertyType"
+                  value={form.propertyType}
+                  onChange={(e) => update("propertyType", e.target.value)}
+                  className={errClass(`${selectClass} rounded-sm pr-10`, "propertyType")}
+                >
+                  <option value="">Select type</option>
+                  {PROPERTY_TYPES.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
+                </select>
+              </SelectWrap>
+            </FormField>
+            {showBhkSelect && (
+              <FormField label="BHK" htmlFor="beds" required>
+                <SelectWrap>
+                  <select
+                    id="beds"
+                    value={form.beds}
+                    onChange={(e) => update("beds", e.target.value)}
+                    className={errClass(`${selectClass} rounded-sm pr-10`, "beds")}
+                  >
+                    <option value="">Select BHK</option>
+                    {BHK_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </SelectWrap>
+              </FormField>
+            )}
+          </>
         ) : (
           <FormField label="Category" htmlFor="category" required>
             <SelectWrap>
@@ -562,7 +596,7 @@ export default function PostPropertyForm({ editId }) {
             </SelectWrap>
           </div>
         </FormField>
-        {isResidential && (
+        {isResidential && !showBhkSelect && (
           <FormField label="No. of Bedrooms (BHK)" htmlFor="beds" required>
             <input
               id="beds"
