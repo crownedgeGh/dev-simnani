@@ -15,7 +15,7 @@ import {
   MdContentCopy,
   MdCheck,
 } from "react-icons/md";
-import { formatPostedDate, getPropertyCategoryLabels } from "@/lib/properties";
+import { formatPostedDate, getPropertyCategoryLabels, formatBhkLabel } from "@/lib/properties";
 import { useSavedPropertyIds } from "@/lib/savedProperties";
 import { useAuth } from "@/context/AuthContext";
 import AuthGateModal from "@/components/auth/AuthGateModal";
@@ -23,7 +23,7 @@ import AuthGateModal from "@/components/auth/AuthGateModal";
 const FALLBACK_MOBILE = "+91 98765 43210";
 
 export default function PropertyCard({ property, hideContactButton, emphasizeDetails, ownerView }) {
-  const { id, title, price, location, image, badge, beds, baths, area, roi, type, address, contact } =
+  const { id, title, price, location, image, badge, beds, bedsPlus, baths, area, roi, type, address, contact } =
     property;
   const isInvest = type === "invest";
   const isRent = type === "rent";
@@ -169,7 +169,7 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
                   }`}
                 >
                   <MdBed className={emphasizeDetails ? "h-4 w-4 shrink-0" : "h-3.5 w-3.5 shrink-0"} />
-                  {beds} {emphasizeDetails ? "BHK" : "Beds"}
+                  {emphasizeDetails ? formatBhkLabel(beds, bedsPlus) : `${beds} Beds`}
                 </span>
               )}
               {!emphasizeDetails && baths > 0 && (

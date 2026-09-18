@@ -54,6 +54,10 @@ const PropertySchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    bedsPlus: {
+      type: Boolean,
+      default: false,
+    },
     baths: {
       type: Number,
       required: [true, "Number of bathrooms is required"],

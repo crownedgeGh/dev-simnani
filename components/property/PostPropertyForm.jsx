@@ -49,7 +49,8 @@ const BHK_OPTIONS = [
   { value: "2", label: "2 BHK" },
   { value: "3", label: "3 BHK" },
   { value: "4", label: "4 BHK" },
-  { value: "5", label: "5 BHK+" },
+  { value: "5", label: "5 BHK" },
+  { value: "5+", label: "5 BHK+" },
 ];
 
 const AREA_UNITS = ["sq ft", "sq m", "acres", "gaj"];
@@ -164,7 +165,12 @@ export default function PostPropertyForm({ editId }) {
           negotiable: p.negotiable || "",
           areaSize: p.areaSize ? String(p.areaSize) : "",
           areaUnit: p.areaUnit || "sq ft",
-          beds: p.beds !== undefined && p.beds !== null ? String(p.beds) : "",
+          beds:
+            p.beds !== undefined && p.beds !== null && p.beds !== ""
+              ? p.bedsPlus
+                ? "5+"
+                : String(p.beds)
+              : "",
           baths: p.baths !== undefined && p.baths !== null ? String(p.baths) : "",
           floorNo: p.floorNo || "",
           totalFloors: p.totalFloors ? String(p.totalFloors) : "",
@@ -303,6 +309,9 @@ export default function PostPropertyForm({ editId }) {
         ? CATEGORIES_BY_TYPE[form.section]?.find((c) => c.key === form.category)?.label || ""
         : "";
 
+      const isBedsPlus = form.beds === "5+";
+      const numericBeds = isBedsPlus ? 5 : Number(form.beds) || 0;
+
       const payload = {
         id: propertyId || `PROP-${Date.now()}`,
         title: (form.title || "").trim(),
@@ -327,7 +336,8 @@ export default function PostPropertyForm({ editId }) {
         area: `${form.areaSize || 0} ${form.areaUnit || "sq ft"}`,
         areaSize: Number(form.areaSize) || 0,
         areaUnit: form.areaUnit || "sq ft",
-        beds: isResidential ? Number(form.beds) : 0,
+        beds: isResidential ? numericBeds : 0,
+        bedsPlus: isResidential ? isBedsPlus : false,
         baths: Number(form.baths),
         floorNo: form.floorNo || "",
         totalFloors: form.totalFloors ? Number(form.totalFloors) : null,

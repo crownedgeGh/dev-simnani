@@ -113,6 +113,7 @@ export async function POST(request) {
       id,
       city,
       beds,
+      bedsPlus: Boolean(body.bedsPlus),
       baths,
       ownerId: sessionUser.accountId,
       addedDate:

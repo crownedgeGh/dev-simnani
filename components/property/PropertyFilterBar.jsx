@@ -61,9 +61,9 @@ export default function PropertyFilterBar({ properties, pricingMode = "sale", em
       }
 
       if (bhk) {
-        const wantsFourPlus = bhk === "4";
+        const wantsFivePlus = bhk === "5";
         if (!property.beds) return false;
-        if (wantsFourPlus ? property.beds < 4 : property.beds !== Number(bhk)) return false;
+        if (wantsFivePlus ? property.beds < 5 : property.beds !== Number(bhk)) return false;
       }
 
       return true;
@@ -75,7 +75,7 @@ export default function PropertyFilterBar({ properties, pricingMode = "sale", em
     budget && { key: "budget", label: budget, clear: () => setBudget("") },
     bhk && {
       key: "bhk",
-      label: bhk === "4" ? "4+ BHK" : `${bhk} BHK`,
+      label: bhk === "5" ? "5+ BHK" : `${bhk} BHK`,
       clear: () => setBhk(""),
     },
   ].filter(Boolean);
@@ -140,7 +140,7 @@ export default function PropertyFilterBar({ properties, pricingMode = "sale", em
               <option value="">Any BHK</option>
               {BHK_OPTIONS.map((n) => (
                 <option key={n} value={n}>
-                  {n === 4 ? "4+ BHK" : `${n} BHK`}
+                  {n === 5 ? "5+ BHK" : `${n} BHK`}
                 </option>
               ))}
             </select>

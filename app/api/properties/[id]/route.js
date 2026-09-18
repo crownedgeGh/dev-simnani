@@ -76,6 +76,9 @@ export async function PUT(request, { params }) {
       }
       updateData.beds = beds;
     }
+    if (updateData.bedsPlus !== undefined) {
+      updateData.bedsPlus = Boolean(updateData.bedsPlus);
+    }
     if (updateData.baths !== undefined) {
       const baths = Number(updateData.baths);
       if (!baths || baths < 1) {

@@ -1,4 +1,4 @@
-import { formatPostedDate } from "@/lib/properties";
+import { formatPostedDate, formatBhkLabel } from "@/lib/properties";
 import { getPropertyDescription } from "@/lib/propertyContent";
 import PropertyMediaCarousel from "@/components/property/PropertyMediaCarousel";
 import BackButton from "@/components/layout/BackButton";
@@ -88,7 +88,9 @@ export default function PropertyDetailContent({ property, eyebrow, sidebar, back
               <Stat icon={<MdTrendingUp />} label="Est. Return" value={property.roi} />
             ) : (
               <>
-                {property.beds > 0 && <Stat icon={<MdBed />} label="BHK" value={`${property.beds} BHK`} />}
+                {property.beds > 0 && (
+                  <Stat icon={<MdBed />} label="BHK" value={formatBhkLabel(property.beds, property.bedsPlus)} />
+                )}
                 {property.baths > 0 && <Stat icon={<MdBathtub />} label="Bathrooms" value={property.baths} />}
                 <Stat icon={<MdSquareFoot />} label="Area" value={property.area} />
                 <Stat icon={<MdCategory />} label="Type" value={property.type} />
