@@ -95,6 +95,10 @@ export async function POST(request) {
         }),
     };
 
+    if (body.dealsClosed !== undefined) {
+      userData.dealsClosed = Math.max(0, Number(body.dealsClosed) || 0);
+    }
+
     const newUser = await User.create(userData);
     const { password, ...safeUser } = newUser.toObject();
 

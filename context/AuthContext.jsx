@@ -131,6 +131,23 @@ export function AuthProvider({ children }) {
     [user]
   );
 
+  /**
+   * resetPassword — updates the user's password in MongoDB and sets up
+   * an authenticated session.
+   */
+  const resetPassword = useCallback(async (mobile, password, confirmPassword) => {
+    const res = await fetch("/api/auth/reset-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mobile, password, confirmPassword }),
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || "Failed to reset password");
+    setUser(data.data);
+    setIsAuthenticated(true);
+    return data.data;
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -140,6 +157,7 @@ export function AuthProvider({ children }) {
         login,
         loginWithMobile,
         loginWithPassword,
+        resetPassword,
         logout,
         updateProfile,
         refreshUser,

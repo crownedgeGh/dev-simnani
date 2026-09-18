@@ -151,6 +151,12 @@ export default function AdminFeaturedBrokersPage() {
       render: (v) => <span className="text-sm text-[#374151]">{v || "—"}</span>,
     },
     {
+      key: "dealsClosed",
+      label: "Deals Closed",
+      sortable: true,
+      render: (v) => <span className="text-sm font-semibold text-[#1a1a2e]">{v ?? 0}</span>,
+    },
+    {
       key: "propertiesListed",
       label: "Properties Listed",
       sortable: true,

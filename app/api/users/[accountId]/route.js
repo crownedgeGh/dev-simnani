@@ -14,6 +14,9 @@ async function preparePatch(body) {
     throw new Error("Password must be at least 8 characters");
   }
   rest.password = await hashPassword(rest.password);
+  if (rest.dealsClosed !== undefined) {
+    rest.dealsClosed = Math.max(0, Number(rest.dealsClosed) || 0);
+  }
   return rest;
 }
 

@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { MdScience } from "react-icons/md";
-import { FiEye, FiEyeOff } from "react-icons/fi";
+import { MdScience, MdCheckCircle } from "react-icons/md";
+import { FiEye, FiEyeOff, FiArrowLeft } from "react-icons/fi";
 import { useAuth } from "@/context/AuthContext";
 import BackButton from "@/components/layout/BackButton";
 
@@ -19,15 +19,20 @@ function formatMobile(value) {
 
 export default function AuthCard() {
   const router = useRouter();
-  const { login, loginWithMobile, loginWithPassword } = useAuth();
+  const { login, loginWithMobile, loginWithPassword, resetPassword } = useAuth();
 
   const [mode, setMode] = useState("password"); // "password" | "otp"
-  const [step, setStep] = useState("mobile"); // "mobile" | "otp"
+  const [step, setStep] = useState("mobile"); // "mobile" | "otp" | "forgot-otp" | "new-password"
   const [mobile, setMobile] = useState("");
   const [password, setPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [otp, setOtp] = useState(Array(OTP_LENGTH).fill(""));
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [isTesterLogin, setIsTesterLogin] = useState(false);
   const [resendIn, setResendIn] = useState(59);
@@ -171,7 +176,85 @@ export default function AuthCard() {
   function handleChangeNumber() {
     clearInterval(timerRef.current);
     setError("");
+    setSuccessMessage("");
+    setNewPassword("");
+    setConfirmPassword("");
     setStep("mobile");
+  }
+
+  async function handleForgotPassword() {
+    if (!mobileValid) {
+      setError("Please enter your 10-digit mobile number first.");
+      const mobileEl = document.getElementById("mobile");
+      if (mobileEl) mobileEl.focus();
+      return;
+    }
+    setLoading(true);
+    setError("");
+    setSuccessMessage("");
+    try {
+      const res = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mobile, checkOnly: true }),
+      });
+      const data = await res.json();
+      if (!data.success) {
+        throw new Error(data.error || "No account found with this mobile number");
+      }
+      setOtp(Array(OTP_LENGTH).fill(""));
+      setStep("forgot-otp");
+      startResendTimer();
+      requestAnimationFrame(() => otpRefs.current[0]?.focus());
+    } catch (err) {
+      setError(err.message || "Failed to start password reset");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleForgotOtpVerify() {
+    const code = otp.join("");
+    if (code.length < OTP_LENGTH) {
+      setError("Please enter all 6 digits of the verification code");
+      return;
+    }
+    setError("");
+    setSuccessMessage("");
+    setStep("new-password");
+  }
+
+  async function handleNewPasswordSubmit(event) {
+    event.preventDefault();
+    if (loading) return;
+
+    if (!newPassword) {
+      setError("Please enter a new password");
+      return;
+    }
+    if (newPassword.length < 8) {
+      setError("Password must be at least 8 characters");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+    setSuccessMessage("");
+
+    try {
+      await resetPassword(mobile, newPassword, confirmPassword);
+      setSuccessMessage("Password updated successfully in database! Redirecting...");
+      setTimeout(() => {
+        router.push("/");
+      }, 1200);
+    } catch (err) {
+      setError(err.message || "Failed to update password. Please try again.");
+      setLoading(false);
+    }
   }
 
   return (
@@ -181,10 +264,23 @@ export default function AuthCard() {
           Simnani Estate
         </span>
         <div className="flex items-center gap-3">
-          <BackButton />
+          {step === "mobile" ? (
+            <BackButton />
+          ) : (
+            <button
+              type="button"
+              onClick={handleChangeNumber}
+              aria-label="Back to login"
+              className="flex h-11 w-11 shrink-0 items-center justify-center border border-navy-700/60 bg-navy-900 text-cream transition hover:border-gold-400 hover:text-gold-400"
+            >
+              <FiArrowLeft className="h-5 w-5" />
+            </button>
+          )}
           <h1 className="font-display text-3xl text-cream sm:text-4xl">
             {step === "mobile" && "Welcome Back"}
             {step === "otp" && "Verify Your Number"}
+            {step === "forgot-otp" && "Reset Password"}
+            {step === "new-password" && "New Password"}
           </h1>
         </div>
         <p className="text-sm text-muted">
@@ -195,6 +291,18 @@ export default function AuthCard() {
           {step === "otp" && (
             <>
               We&apos;ve sent a 6-digit code to{" "}
+              <span className="text-gold-400">+91 {mobile}</span>
+            </>
+          )}
+          {step === "forgot-otp" && (
+            <>
+              Enter the 6-digit code sent to{" "}
+              <span className="text-gold-400">+91 {mobile}</span> to reset your password.
+            </>
+          )}
+          {step === "new-password" && (
+            <>
+              Create a new secure password for{" "}
               <span className="text-gold-400">+91 {mobile}</span>
             </>
           )}
@@ -228,9 +336,18 @@ export default function AuthCard() {
 
             {mode === "password" && (
               <div className="flex flex-col gap-2">
-                <label htmlFor="password" className="tracked-label text-xs text-cream/80">
-                  Password
-                </label>
+                <div className="flex items-center justify-between">
+                  <label htmlFor="password" className="tracked-label text-xs text-cream/80">
+                    Password
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleForgotPassword}
+                    className="tracked-label text-[11px] text-gold-400 transition hover:text-gold-300"
+                  >
+                    Forgot Password?
+                  </button>
+                </div>
                 <div className="relative flex items-center border border-navy-700/60 bg-navy-950 px-4 transition focus-within:border-gold-400">
                   <input
                     id="password"
@@ -397,6 +514,165 @@ export default function AuthCard() {
             </button>
           </div>
         </div>
+      )}
+
+      {step === "forgot-otp" && (
+        <div className="mt-8 flex flex-col gap-6">
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-sm text-muted">Wrong number?</span>
+            <button
+              type="button"
+              onClick={handleChangeNumber}
+              className="tracked-label text-xs text-gold-400 hover:text-gold-300"
+            >
+              Change
+            </button>
+          </div>
+
+          <div className="flex justify-between gap-2">
+            {otp.map((digit, index) => (
+              <input
+                key={index}
+                ref={(el) => {
+                  otpRefs.current[index] = el;
+                }}
+                type="text"
+                inputMode="numeric"
+                maxLength={1}
+                value={digit}
+                onChange={(event) => handleOtpChange(index, event.target.value)}
+                onKeyDown={(event) => handleOtpKeyDown(index, event)}
+                onPaste={handleOtpPaste}
+                className={`h-14 w-12 border bg-navy-950 text-center text-lg text-cream outline-none transition focus:border-gold-400 ${
+                  error ? "border-red-500" : "border-navy-700/60"
+                }`}
+              />
+            ))}
+          </div>
+
+          {error && <p className="text-center text-xs text-red-400">{error}</p>}
+
+          <button
+            type="button"
+            onClick={handleForgotOtpVerify}
+            disabled={loading}
+            className="tracked-label flex items-center justify-center gap-2 bg-gold-400 px-6 py-4 text-xs text-navy-950 transition hover:bg-gold-300 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Verify &amp; Set New Password
+          </button>
+
+          <div className="text-center text-xs text-muted">
+            Didn&apos;t receive the code?{" "}
+            {resendIn > 0 ? (
+              <span>Resend in 0:{String(resendIn).padStart(2, "0")}</span>
+            ) : (
+              <button
+                type="button"
+                onClick={startResendTimer}
+                className="tracked-label text-gold-400 hover:text-gold-300"
+              >
+                Resend OTP
+              </button>
+            )}
+          </div>
+
+          <div className="border-t border-navy-700/60 pt-4 text-center">
+            <button
+              type="button"
+              onClick={handleChangeNumber}
+              className="tracked-label text-xs text-muted transition hover:text-gold-400"
+            >
+              Back to Login
+            </button>
+          </div>
+        </div>
+      )}
+
+      {step === "new-password" && (
+        <form onSubmit={handleNewPasswordSubmit} className="mt-8 flex flex-col gap-4">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <label htmlFor="new-password" className="tracked-label text-xs text-cream/80">
+                Create New Password
+              </label>
+              <span className="text-[11px] text-muted">Min. 8 characters</span>
+            </div>
+            <div className="relative flex items-center border border-navy-700/60 bg-navy-950 px-4 transition focus-within:border-gold-400">
+              <input
+                id="new-password"
+                type={showNewPassword ? "text" : "password"}
+                autoComplete="new-password"
+                placeholder="Enter new password"
+                value={newPassword}
+                onChange={(e) => {
+                  setNewPassword(e.target.value);
+                  setError("");
+                }}
+                className="h-14 w-full bg-transparent px-0 pr-8 text-cream placeholder:text-muted focus:outline-none"
+              />
+              <button
+                type="button"
+                onClick={() => setShowNewPassword((s) => !s)}
+                aria-label={showNewPassword ? "Hide password" : "Show password"}
+                className="absolute right-3 text-muted transition hover:text-gold-400"
+              >
+                {showNewPassword ? <FiEyeOff className="h-5 w-5" /> : <FiEye className="h-5 w-5" />}
+              </button>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label htmlFor="confirm-password" className="tracked-label text-xs text-cream/80">
+              Confirm Password
+            </label>
+            <div className="relative flex items-center border border-navy-700/60 bg-navy-950 px-4 transition focus-within:border-gold-400">
+              <input
+                id="confirm-password"
+                type={showConfirmPassword ? "text" : "password"}
+                autoComplete="new-password"
+                placeholder="Re-enter new password"
+                value={confirmPassword}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                  setError("");
+                }}
+                className="h-14 w-full bg-transparent px-0 pr-8 text-cream placeholder:text-muted focus:outline-none"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword((s) => !s)}
+                aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                className="absolute right-3 text-muted transition hover:text-gold-400"
+              >
+                {showConfirmPassword ? <FiEyeOff className="h-5 w-5" /> : <FiEye className="h-5 w-5" />}
+              </button>
+            </div>
+          </div>
+
+          {error && <p className="text-xs text-red-400">{error}</p>}
+          {successMessage && (
+            <div className="flex items-center gap-2 border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs text-emerald-400">
+              <MdCheckCircle className="h-4 w-4 shrink-0" />
+              <span>{successMessage}</span>
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={!newPassword || !confirmPassword || loading || Boolean(successMessage)}
+            className="tracked-label mt-2 flex items-center justify-center gap-2 bg-gold-400 px-6 py-4 text-xs text-navy-950 transition hover:bg-gold-300 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {loading ? "Updating Password..." : "Update Password & Login"}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleChangeNumber}
+            className="tracked-label mt-2 text-center text-xs text-muted hover:text-cream"
+          >
+            Cancel and Return to Login
+          </button>
+        </form>
       )}
 
       <footer className="mt-8 flex flex-col items-center gap-2 border-t border-navy-700/60 pt-6">

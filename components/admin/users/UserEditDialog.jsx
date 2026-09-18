@@ -9,7 +9,9 @@ const ACCOUNT_TYPES = ["buyer", "broker", "investor", "freelancer", "common-pers
 const STATUSES = ["Active", "Suspended", "Deleted"];
 
 export default function UserEditDialog({ isOpen, onClose, user, onSave }) {
-  const [form, setForm] = useState(user ? { accountType: user.accountType, status: user.status } : {});
+  const [form, setForm] = useState(
+    user ? { accountType: user.accountType, status: user.status, dealsClosed: user.dealsClosed ?? 0 } : {}
+  );
   const [newPassword, setNewPassword] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -24,6 +26,9 @@ export default function UserEditDialog({ isOpen, onClose, user, onSave }) {
     setSaving(true);
     try {
       const payload = { ...user, ...form };
+      if (payload.accountType === "broker" && payload.dealsClosed !== undefined && payload.dealsClosed !== "") {
+        payload.dealsClosed = Math.max(0, Number(payload.dealsClosed) || 0);
+      }
       if (newPassword) payload.password = newPassword;
       await onSave(payload);
       toast.success("User updated successfully");
@@ -65,6 +70,18 @@ export default function UserEditDialog({ isOpen, onClose, user, onSave }) {
             {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
         </AdminFormField>
+        {(user.accountType === "broker" || form.accountType === "broker") && (
+          <AdminFormField label="Deals Closed" id="user-deals-closed">
+            <input
+              id="user-deals-closed"
+              type="number"
+              min="0"
+              value={form.dealsClosed ?? 0}
+              onChange={(e) => set("dealsClosed", e.target.value === "" ? "" : Math.max(0, parseInt(e.target.value, 10) || 0))}
+              className={adminInputClass}
+            />
+          </AdminFormField>
+        )}
         <AdminFormField label="Reset Password" id="user-new-password" hint="Leave blank to keep the current password">
           <input
             id="user-new-password"

@@ -49,6 +49,7 @@ const INITIAL_FORM = {
   email: "",
   state: "",
   city: "",
+  dealsClosed: "",
   password: "",
   confirmPassword: "",
   applicantType: "",
@@ -90,6 +91,7 @@ export default function BrokerRegistrationWizard() {
       email: authUser.email || prev.email,
       state: authUser.state || prev.state,
       city: authUser.city || prev.city,
+      dealsClosed: authUser.dealsClosed !== undefined && authUser.dealsClosed !== null ? String(authUser.dealsClosed) : prev.dealsClosed,
     }));
     setStep(Math.min(Math.max(resumeStep, 1), TOTAL_STEPS));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -121,6 +123,10 @@ export default function BrokerRegistrationWizard() {
         setError("Please fill in all required fields.");
         return;
       }
+      if (form.dealsClosed !== "" && (isNaN(Number(form.dealsClosed)) || Number(form.dealsClosed) < 0)) {
+        setError("Please enter a valid non-negative number for deals closed.");
+        return;
+      }
       if (!form.accountId) {
         if (!isPasswordValid(form.password)) {
           setError("Password must be at least 8 characters.");
@@ -133,6 +139,7 @@ export default function BrokerRegistrationWizard() {
       }
       setError("");
       setSubmitting(true);
+      const dealsClosedNum = form.dealsClosed !== "" ? Math.max(0, parseInt(form.dealsClosed, 10) || 0) : 0;
       try {
         if (!form.accountId) {
           const id = generateAccountId(ACCOUNT_PREFIX);
@@ -142,6 +149,7 @@ export default function BrokerRegistrationWizard() {
             email: form.email,
             state: form.state,
             city: form.city,
+            dealsClosed: dealsClosedNum,
             password: form.password,
             accountType: ACCOUNT_TYPE,
             accountId: id,
@@ -165,6 +173,7 @@ export default function BrokerRegistrationWizard() {
             email: form.email,
             state: form.state,
             city: form.city,
+            dealsClosed: dealsClosedNum,
             registrationStep: 2,
           });
           if (!result?.success) throw new Error(result?.error || "Something went wrong. Please try again.");
@@ -251,6 +260,7 @@ export default function BrokerRegistrationWizard() {
         reraRegistered: form.reraRegistered === "yes",
         reraNumber: form.reraNumber,
         panNumber: form.panNumber,
+        dealsClosed: form.dealsClosed !== "" ? Math.max(0, parseInt(form.dealsClosed, 10) || 0) : 0,
         pendingVerification: true,
         profileComplete: true,
         registrationStep: null,
@@ -344,6 +354,18 @@ export default function BrokerRegistrationWizard() {
               />
             </FormField>
           </div>
+
+          <FormField label="Deals Closed" htmlFor="dealsClosed" optional hint="Number of deals successfully closed so far">
+            <input
+              id="dealsClosed"
+              type="number"
+              min="0"
+              placeholder="e.g. 0"
+              value={form.dealsClosed}
+              onChange={(e) => update("dealsClosed", e.target.value)}
+              className={inputClass}
+            />
+          </FormField>
 
           {!form.accountId && (
             <PasswordFields
@@ -538,6 +560,7 @@ export default function BrokerRegistrationWizard() {
               <ReviewItem label="Email" value={form.email} />
               <ReviewItem label="State" value={form.state} />
               <ReviewItem label="City" value={form.city} />
+              <ReviewItem label="Deals Closed" value={form.dealsClosed !== "" ? form.dealsClosed : "0"} />
             </div>
           </div>
 

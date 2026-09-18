@@ -146,20 +146,26 @@ export default async function FeaturedBrokers() {
 
               {/* Stats */}
               <div
-                className="mt-4 grid grid-cols-2 gap-3 pt-4"
+                className="mt-4 grid grid-cols-3 gap-2 pt-4"
                 style={{ borderTop: "1px solid rgba(17,26,44,0.8)" }}
               >
                 <div>
-                  <p className="font-display text-lg text-gold-400">
+                  <p className="font-display text-base sm:text-lg text-gold-400">
                     {broker.experience || "—"}
                   </p>
-                  <p className="text-xs text-muted">Experience</p>
+                  <p className="text-[11px] text-muted">Experience</p>
                 </div>
                 <div>
-                  <p className="font-display text-lg text-gold-400">
-                    {broker.propertiesListed}
+                  <p className="font-display text-base sm:text-lg text-gold-400">
+                    {broker.dealsClosed ?? 0}
                   </p>
-                  <p className="text-xs text-muted">Properties Listed</p>
+                  <p className="text-[11px] text-muted">Deals Closed</p>
+                </div>
+                <div>
+                  <p className="font-display text-base sm:text-lg text-gold-400">
+                    {broker.propertiesListed ?? 0}
+                  </p>
+                  <p className="text-[11px] text-muted">Properties</p>
                 </div>
               </div>
 

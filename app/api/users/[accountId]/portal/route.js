@@ -32,7 +32,7 @@ function buildLookup(accountId) {
   };
 }
 
-async function getOwnerSnapshot(accountId, { includeCommissions }) {
+async function getOwnerSnapshot(accountId, { includeCommissions, user }) {
   await dbConnect();
 
   const docs = await Property.find({ ownerId: accountId }).sort({ createdAt: -1 }).lean();
@@ -74,7 +74,7 @@ async function getOwnerSnapshot(accountId, { includeCommissions }) {
     activeListings: listings.filter((p) => p.status === "Active").length,
     totalLeads: leads.length,
     siteVisits: leads.filter((l) => l.status === "Site Visit").length,
-    closedDeals: 0,
+    closedDeals: user?.dealsClosed ?? 0,
     interested: interested.length,
   };
 
@@ -237,10 +237,10 @@ export async function GET(request, { params }) {
     let portal;
     switch (user.accountType) {
       case "broker":
-        portal = await getOwnerSnapshot(accountId, { includeCommissions: true });
+        portal = await getOwnerSnapshot(accountId, { includeCommissions: true, user });
         break;
       case "common-person":
-        portal = await getOwnerSnapshot(accountId, { includeCommissions: false });
+        portal = await getOwnerSnapshot(accountId, { includeCommissions: false, user });
         break;
       case "buyer":
         portal = await getBuyerSnapshot(accountId, user);

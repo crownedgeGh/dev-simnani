@@ -29,6 +29,7 @@ export default function AccountProfile({ user }) {
     name: authUser?.fullName || user.name,
     email: authUser?.email || user.email,
     city: authUser?.city || user.city,
+    dealsClosed: authUser?.dealsClosed ?? 0,
   });
   const [saved, setSaved] = useState(false);
 
@@ -38,6 +39,7 @@ export default function AccountProfile({ user }) {
         name: authUser.fullName || user.name,
         email: authUser.email || user.email,
         city: authUser.city || user.city,
+        dealsClosed: authUser.dealsClosed ?? 0,
       });
     }
   }, [authUser, user]);
@@ -60,11 +62,15 @@ export default function AccountProfile({ user }) {
     setEditing(false);
     setSaved(true);
     if (updateProfile) {
-      updateProfile({
+      const patch = {
         fullName: form.name,
         email: form.email,
         city: form.city,
-      });
+      };
+      if (authUser?.accountType === "broker") {
+        patch.dealsClosed = form.dealsClosed !== "" ? Math.max(0, parseInt(form.dealsClosed, 10) || 0) : 0;
+      }
+      updateProfile(patch);
     }
   }
 
@@ -139,6 +145,17 @@ export default function AccountProfile({ user }) {
                 className={inputClass}
               />
             </Field>
+            {authUser?.accountType === "broker" && (
+              <Field label="Deals Closed">
+                <input
+                  type="number"
+                  min="0"
+                  value={form.dealsClosed ?? ""}
+                  onChange={(e) => update("dealsClosed", e.target.value)}
+                  className={inputClass}
+                />
+              </Field>
+            )}
             <Field label="Mobile Number">
               <div className="flex items-center justify-between border border-navy-700/60 bg-navy-950 px-4 py-4 text-sm text-muted">
                 <span>+91 {displayMobile}</span>
@@ -176,6 +193,11 @@ export default function AccountProfile({ user }) {
             <Field label="City">
               <p className="text-[15px] font-medium text-cream">{form.city}</p>
             </Field>
+            {authUser?.accountType === "broker" && (
+              <Field label="Deals Closed">
+                <p className="text-[15px] font-medium text-cream">{authUser?.dealsClosed ?? form.dealsClosed ?? 0}</p>
+              </Field>
+            )}
           </div>
         )}
 

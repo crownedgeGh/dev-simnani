@@ -97,6 +97,16 @@ export default function UserDetailPage() {
     ["Registered Date", user.registeredDate],
   ];
 
+  if (user.accountType === "broker") {
+    fields.push(
+      ["Deals Closed", user.dealsClosed !== undefined ? String(user.dealsClosed) : "0"],
+      ["RERA Registered", user.reraRegistered ? "Yes" : "No"],
+      ["RERA Number", user.reraNumber || "—"],
+      ["Applicant Type", user.applicantType || "—"],
+      ["Experience", user.experience || "—"]
+    );
+  }
+
   if (user.accountType === "investor") {
     fields.push(
       ["Property Types", propertyTypeLabels(user.propertyTypes) || "—"],

@@ -81,6 +81,11 @@ const UserSchema = new mongoose.Schema(
         "RERA registration number is required for brokers",
       ],
     },
+    dealsClosed: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
     registeredDate: {
       type: String,
       default: () =>
