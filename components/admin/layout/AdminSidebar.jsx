@@ -14,6 +14,7 @@ import {
   MdChevronRight,
   MdWorkspacePremium,
 } from "react-icons/md";
+import { BiBuildingHouse } from "react-icons/bi";
 import { useState } from "react";
 
 const NAV_ITEMS = [
@@ -22,6 +23,14 @@ const NAV_ITEMS = [
   { href: "/admin/users", label: "Users", icon: MdPeople },
   { href: "/admin/leads", label: "Leads", icon: MdLeaderboard },
   { href: "/admin/plans", label: "Plans", icon: MdWorkspacePremium },
+  {
+    href: "/admin/brokers",
+    label: "Brokers",
+    icon: BiBuildingHouse,
+    children: [
+      { href: "/admin/brokers/featured", label: "Featured Brokers" },
+    ],
+  },
   {
     href: "/admin/freelancer-cp",
     label: "Freelancer & CP",

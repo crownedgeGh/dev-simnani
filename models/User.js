@@ -119,6 +119,18 @@ const UserSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    // Homepage broker showcase — admin-controlled, only meaningful for
+    // brokers on the "premium" plan (see /admin/brokers/featured).
+    isFeaturedBroker: {
+      type: Boolean,
+      default: false,
+    },
+    featuredPosition: {
+      type: Number,
+      min: 1,
+      max: 10,
+      default: null,
+    },
   },
   {
     timestamps: true,

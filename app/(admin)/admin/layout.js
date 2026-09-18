@@ -26,6 +26,8 @@ function AdminShell({ children }) {
     "/admin/users": "Users",
     "/admin/leads": "Leads",
     "/admin/plans": "Plans & Subscriptions",
+    "/admin/brokers/featured": "Featured Brokers",
+    "/admin/brokers": "Brokers",
     "/admin/freelancer-cp": "Freelancer & CP Management",
     "/admin/callbacks": "Callback Requests",
     "/admin/settings": "Settings",

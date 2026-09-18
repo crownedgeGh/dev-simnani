@@ -33,7 +33,7 @@ const INITIAL_FORM = {
 };
 
 export default function EmployeeRegistrationWizard() {
-  const { login, user: authUser, updateProfile } = useAuth();
+  const { login, user: authUser, updateProfile, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const { step, setStep, form, setForm, clearDraft } = useWizardDraft("se_draft_employee", INITIAL_FORM);
   const [error, setError] = useState("");
@@ -53,6 +53,18 @@ export default function EmployeeRegistrationWizard() {
     setStep(Math.min(Math.max(resumeStep, 1), TOTAL_STEPS));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authUser]);
+
+  // A draft resumed from sessionStorage can carry an accountId from a
+  // session that no longer exists server-side (cookie cleared/expired).
+  // Once auth has resolved with no matching user, drop the stale accountId
+  // so step 1 falls back to fresh registration instead of silently failing
+  // with "Not authenticated" when updateProfile is called.
+  useEffect(() => {
+    if (authLoading || authUser || !form.accountId) return;
+    setForm((prev) => ({ ...prev, accountId: "" }));
+    setStep(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, authUser]);
 
   function update(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));

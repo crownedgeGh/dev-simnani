@@ -261,7 +261,12 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
       negotiable: prop.negotiable || "no",
       areaSize: area.size,
       areaUnit: area.unit,
-      beds: prop.beds !== undefined && prop.beds !== null ? String(prop.beds) : "",
+      beds:
+        prop.beds !== undefined && prop.beds !== null && prop.beds !== ""
+          ? prop.bedsPlus
+            ? "5+"
+            : String(prop.beds)
+          : "",
       baths: prop.baths !== undefined && prop.baths !== null ? String(prop.baths) : "",
       floorNo: prop.floorNo || "",
       totalFloors: prop.totalFloors ? String(prop.totalFloors) : "",
@@ -549,7 +554,8 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
         area: `${form.areaSize} ${form.areaUnit}`,
         areaSize: Number(form.areaSize),
         areaUnit: form.areaUnit,
-        beds: CATEGORIES_BY_TYPE[form.type] ? 0 : Number(form.beds),
+        beds: CATEGORIES_BY_TYPE[form.type] ? 0 : form.beds === "5+" ? 5 : Number(form.beds),
+        bedsPlus: CATEGORIES_BY_TYPE[form.type] ? false : form.beds === "5+",
         baths: Number(form.baths),
         floorNo: form.floorNo,
         totalFloors: form.totalFloors ? Number(form.totalFloors) : null,
@@ -986,11 +992,12 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
                   className={adminSelectClass}
                 >
                   <option value="">Select Bedrooms</option>
-                  {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+                  {[1, 2, 3, 4, 5].map((n) => (
                     <option key={n} value={n}>
-                      {n} BHK / {n} Beds
+                      {n} BHK
                     </option>
                   ))}
+                  <option value="5+">5 BHK+</option>
                 </select>
               </AdminFormField>
             </div>
