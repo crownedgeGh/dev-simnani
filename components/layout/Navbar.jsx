@@ -588,10 +588,10 @@ export default function Navbar() {
 
   function handlePostProperty(e) {
     e.preventDefault();
+    setMobileOpen(false);
     if (isAuthenticated) {
       router.push("/post-property");
     } else {
-      setMobileOpen(false);
       setShowAuthGate(true);
     }
   }
