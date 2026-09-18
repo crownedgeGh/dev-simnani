@@ -9,7 +9,15 @@ import { useAuth } from "@/context/AuthContext";
 import { inputClass, selectClass } from "@/components/auth/inputStyles";
 import FormField from "@/components/auth/FormField";
 import { PhotosUpload, VideoUpload } from "@/components/property/PropertyImageUpload";
-import { MdContentPaste, MdLocationOn, MdApartment, MdCameraAlt, MdPerson } from "react-icons/md";
+import {
+  MdContentPaste,
+  MdLocationOn,
+  MdApartment,
+  MdCameraAlt,
+  MdPerson,
+  MdArrowForward,
+  MdKeyboardArrowDown,
+} from "react-icons/md";
 import { CATEGORIES_BY_TYPE } from "@/lib/properties";
 import { uploadFileToR2, uploadFilesToR2 } from "@/lib/uploadToR2";
 import { STATES, getCitiesForState } from "@/lib/cityState";
@@ -367,26 +375,28 @@ export default function PostPropertyForm({ editId }) {
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
       <Section icon={<MdContentPaste className="h-5 w-5" />} title="Property Identity" subtitle="Basic info about your listing">
         <FormField label="Property ID" htmlFor="propertyId">
-          <div className="flex h-14 items-center justify-between border border-navy-700/60 bg-navy-950 px-4">
+          <div className="flex h-14 items-center justify-between rounded-sm border border-navy-700/60 bg-navy-950 px-4">
             <span className="font-display text-sm tracking-widest text-gold-400">
               {propertyId ? `#${propertyId}` : "#SG-PROP-......"}
             </span>
-            <span className="text-xs text-muted">Auto-generated</span>
+            <span className="tracked-label text-[10px] text-muted">Auto-generated</span>
           </div>
         </FormField>
         <FormField label="Listing Section" htmlFor="section" required hint="Where this property will be listed">
-          <select
-            id="section"
-            value={form.section}
-            onChange={(e) => update("section", e.target.value)}
-            className={selectClass}
-          >
-            {SECTION_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+          <SelectWrap>
+            <select
+              id="section"
+              value={form.section}
+              onChange={(e) => update("section", e.target.value)}
+              className={`${selectClass} rounded-sm pr-10`}
+            >
+              {SECTION_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </SelectWrap>
         </FormField>
         {isResidential && (
           <FormField label="Purpose" required>
@@ -402,43 +412,47 @@ export default function PostPropertyForm({ editId }) {
             id="title"
             type="text"
             maxLength={80}
-            placeholder="e.g. Spacious 2BHK near City Center"
+            placeholder="Spacious 2BHK near City Center"
             value={form.title}
             onChange={(e) => update("title", e.target.value)}
-            className={errClass(inputClass, "title")}
+            className={errClass(`${inputClass} rounded-sm`, "title")}
           />
         </FormField>
         {isResidential ? (
           <FormField label="Property Type" htmlFor="propertyType" required>
-            <select
-              id="propertyType"
-              value={form.propertyType}
-              onChange={(e) => update("propertyType", e.target.value)}
-              className={errClass(selectClass, "propertyType")}
-            >
-              <option value="">Select type</option>
-              {PROPERTY_TYPES.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
+            <SelectWrap>
+              <select
+                id="propertyType"
+                value={form.propertyType}
+                onChange={(e) => update("propertyType", e.target.value)}
+                className={errClass(`${selectClass} rounded-sm pr-10`, "propertyType")}
+              >
+                <option value="">Select type</option>
+                {PROPERTY_TYPES.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </select>
+            </SelectWrap>
           </FormField>
         ) : (
           <FormField label="Category" htmlFor="category" required>
-            <select
-              id="category"
-              value={form.category}
-              onChange={(e) => update("category", e.target.value)}
-              className={errClass(selectClass, "category")}
-            >
-              <option value="">Select category</option>
-              {(CATEGORIES_BY_TYPE[form.section] || []).map((cat) => (
-                <option key={cat.key} value={cat.key}>
-                  {cat.label}
-                </option>
-              ))}
-            </select>
+            <SelectWrap>
+              <select
+                id="category"
+                value={form.category}
+                onChange={(e) => update("category", e.target.value)}
+                className={errClass(`${selectClass} rounded-sm pr-10`, "category")}
+              >
+                <option value="">Select category</option>
+                {(CATEGORIES_BY_TYPE[form.section] || []).map((cat) => (
+                  <option key={cat.key} value={cat.key}>
+                    {cat.label}
+                  </option>
+                ))}
+              </select>
+            </SelectWrap>
           </FormField>
         )}
       </Section>
@@ -452,7 +466,7 @@ export default function PostPropertyForm({ editId }) {
             options={STATES}
             placeholder="Select state"
             searchPlaceholder="Search state…"
-            className={errClass(selectClass, "state")}
+            className={errClass(`${selectClass} rounded-sm`, "state")}
           />
         </FormField>
         <FormField label="City" htmlFor="city" required>
@@ -464,17 +478,17 @@ export default function PostPropertyForm({ editId }) {
             disabled={!form.state}
             placeholder={form.state ? "Select city" : "Select state first"}
             searchPlaceholder="Search city…"
-            className={errClass(selectClass, "city")}
+            className={errClass(`${selectClass} rounded-sm`, "city")}
           />
         </FormField>
         <FormField label="Area / Locality" htmlFor="locality" required>
           <input
             id="locality"
             type="text"
-            placeholder="e.g. Shankar Nagar"
+            placeholder="Shankar Nagar"
             value={form.locality}
             onChange={(e) => update("locality", e.target.value)}
-            className={errClass(inputClass, "locality")}
+            className={errClass(`${inputClass} rounded-sm`, "locality")}
           />
         </FormField>
         <div className="sm:col-span-2">
@@ -482,10 +496,10 @@ export default function PostPropertyForm({ editId }) {
             <input
               id="landmark"
               type="text"
-              placeholder="e.g. Near City Mall"
+              placeholder="Near City Mall"
               value={form.landmark}
               onChange={(e) => update("landmark", e.target.value)}
-              className={inputClass}
+              className={`${inputClass} rounded-sm`}
             />
           </FormField>
         </div>
@@ -499,7 +513,7 @@ export default function PostPropertyForm({ editId }) {
         <FormField label="Price (₹)" htmlFor="price" required>
           <div
             className={errClass(
-              "flex items-center border border-navy-700/60 bg-navy-950 px-4 transition focus-within:border-gold-400",
+              "flex items-center rounded-sm border border-navy-700/60 bg-navy-950 pl-4 transition focus-within:border-gold-400",
               "price"
             )}
           >
@@ -509,7 +523,6 @@ export default function PostPropertyForm({ editId }) {
               type="number"
               min="0"
               autoComplete="off"
-              placeholder="Enter total amount"
               value={form.price}
               onChange={(e) => update("price", e.target.value)}
               className="h-14 w-full bg-transparent px-3 text-cream placeholder:text-muted focus:outline-none"
@@ -530,22 +543,23 @@ export default function PostPropertyForm({ editId }) {
               type="number"
               min="0"
               autoComplete="off"
-              placeholder="Area size"
               value={form.areaSize}
               onChange={(e) => update("areaSize", e.target.value)}
-              className={errClass(`${inputClass} min-w-0 flex-1`, "areaSize")}
+              className={errClass(`${inputClass} min-w-0 flex-1 rounded-sm`, "areaSize")}
             />
-            <select
-              value={form.areaUnit}
-              onChange={(e) => update("areaUnit", e.target.value)}
-              className="h-14 w-28 shrink-0 appearance-none border border-navy-700/60 bg-navy-950 px-3 text-cream outline-none transition focus:border-gold-400"
-            >
-              {AREA_UNITS.map((unit) => (
-                <option key={unit} value={unit}>
-                  {unit}
-                </option>
-              ))}
-            </select>
+            <SelectWrap className="w-28 shrink-0">
+              <select
+                value={form.areaUnit}
+                onChange={(e) => update("areaUnit", e.target.value)}
+                className="h-14 w-full appearance-none rounded-sm border border-navy-700/60 bg-navy-950 px-3 text-cream outline-none transition focus:border-gold-400"
+              >
+                {AREA_UNITS.map((unit) => (
+                  <option key={unit} value={unit}>
+                    {unit}
+                  </option>
+                ))}
+              </select>
+            </SelectWrap>
           </div>
         </FormField>
         {isResidential && (
@@ -555,10 +569,9 @@ export default function PostPropertyForm({ editId }) {
               type="number"
               min="1"
               autoComplete="off"
-              placeholder="e.g. 2"
               value={form.beds}
               onChange={(e) => update("beds", e.target.value)}
-              className={errClass(inputClass, "beds")}
+              className={errClass(`${inputClass} rounded-sm`, "beds")}
             />
           </FormField>
         )}
@@ -568,20 +581,19 @@ export default function PostPropertyForm({ editId }) {
             type="number"
             min="1"
             autoComplete="off"
-            placeholder="e.g. 2"
             value={form.baths}
             onChange={(e) => update("baths", e.target.value)}
-            className={errClass(inputClass, "baths")}
+            className={errClass(`${inputClass} rounded-sm`, "baths")}
           />
         </FormField>
         <FormField label="Floor No." htmlFor="floorNo" optional>
           <input
             id="floorNo"
             type="text"
-            placeholder="e.g. 3rd Floor"
+            placeholder="e.g. 3rd, Ground"
             value={form.floorNo}
             onChange={(e) => update("floorNo", e.target.value)}
-            className={inputClass}
+            className={`${inputClass} rounded-sm`}
           />
         </FormField>
         <FormField label="Total Floors in Building" htmlFor="totalFloors" optional>
@@ -590,26 +602,27 @@ export default function PostPropertyForm({ editId }) {
             type="number"
             min="0"
             autoComplete="off"
-            placeholder="e.g. 8"
             value={form.totalFloors}
             onChange={(e) => update("totalFloors", e.target.value)}
-            className={inputClass}
+            className={`${inputClass} rounded-sm`}
           />
         </FormField>
         <FormField label="Furnishing Status" htmlFor="furnishing" optional>
-          <select
-            id="furnishing"
-            value={form.furnishing}
-            onChange={(e) => update("furnishing", e.target.value)}
-            className={selectClass}
-          >
-            <option value="">Select</option>
-            {FURNISHING_OPTIONS.map((opt) => (
-              <option key={opt} value={opt}>
-                {opt}
-              </option>
-            ))}
-          </select>
+          <SelectWrap>
+            <select
+              id="furnishing"
+              value={form.furnishing}
+              onChange={(e) => update("furnishing", e.target.value)}
+              className={`${selectClass} rounded-sm pr-10`}
+            >
+              <option value="">Select</option>
+              {FURNISHING_OPTIONS.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
+              ))}
+            </select>
+          </SelectWrap>
         </FormField>
         <FormField label="Parking Available" optional>
           <ToggleTwo
@@ -619,19 +632,21 @@ export default function PostPropertyForm({ editId }) {
           />
         </FormField>
         <FormField label="Facing Direction" htmlFor="facing" optional>
-          <select
-            id="facing"
-            value={form.facing}
-            onChange={(e) => update("facing", e.target.value)}
-            className={selectClass}
-          >
-            <option value="">Select</option>
-            {FACING_OPTIONS.map((opt) => (
-              <option key={opt} value={opt}>
-                {opt}
-              </option>
-            ))}
-          </select>
+          <SelectWrap>
+            <select
+              id="facing"
+              value={form.facing}
+              onChange={(e) => update("facing", e.target.value)}
+              className={`${selectClass} rounded-sm pr-10`}
+            >
+              <option value="">Select</option>
+              {FACING_OPTIONS.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
+              ))}
+            </select>
+          </SelectWrap>
         </FormField>
         <FormField label="Available From" htmlFor="availableFrom" optional>
           <input
@@ -639,23 +654,25 @@ export default function PostPropertyForm({ editId }) {
             type="date"
             value={form.availableFrom}
             onChange={(e) => update("availableFrom", e.target.value)}
-            className={inputClass}
+            className={`${inputClass} rounded-sm`}
           />
         </FormField>
         <FormField label="Preferred For" htmlFor="preferredFor" optional>
-          <select
-            id="preferredFor"
-            value={form.preferredFor}
-            onChange={(e) => update("preferredFor", e.target.value)}
-            className={selectClass}
-          >
-            <option value="">Select</option>
-            {PREFERRED_FOR_OPTIONS.map((opt) => (
-              <option key={opt} value={opt}>
-                {opt}
-              </option>
-            ))}
-          </select>
+          <SelectWrap>
+            <select
+              id="preferredFor"
+              value={form.preferredFor}
+              onChange={(e) => update("preferredFor", e.target.value)}
+              className={`${selectClass} rounded-sm pr-10`}
+            >
+              <option value="">Select</option>
+              {PREFERRED_FOR_OPTIONS.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
+              ))}
+            </select>
+          </SelectWrap>
         </FormField>
       </Section>
 
@@ -697,16 +714,15 @@ export default function PostPropertyForm({ editId }) {
           <input
             id="fullName"
             type="text"
-            placeholder="John Doe"
             value={form.fullName}
             onChange={(e) => update("fullName", e.target.value)}
-            className={errClass(inputClass, "fullName")}
+            className={errClass(`${inputClass} rounded-sm`, "fullName")}
           />
         </FormField>
         <FormField label="Mobile Number" htmlFor="mobile" required>
           <div
             className={errClass(
-              "flex items-center border border-navy-700/60 bg-navy-950 px-4 transition focus-within:border-gold-400",
+              "flex items-center rounded-sm border border-navy-700/60 bg-navy-950 pl-4 transition focus-within:border-gold-400",
               "mobile"
             )}
           >
@@ -715,7 +731,6 @@ export default function PostPropertyForm({ editId }) {
               id="mobile"
               type="tel"
               inputMode="numeric"
-              placeholder="0000 000 000"
               value={form.mobile}
               onChange={(e) => update("mobile", formatMobile(e.target.value))}
               className="h-14 w-full bg-transparent px-3 text-cream placeholder:text-muted focus:outline-none"
@@ -724,14 +739,19 @@ export default function PostPropertyForm({ editId }) {
         </FormField>
       </Section>
 
-      {error && <p className="text-center text-xs text-red-400">{error}</p>}
+      {error && (
+        <p className="rounded-sm border border-red-500/30 bg-red-500/5 px-4 py-3 text-center text-xs text-red-400">
+          {error}
+        </p>
+      )}
 
       <button
         type="submit"
         disabled={submitting}
-        className="tracked-label bg-gold-400 px-6 py-4 text-xs text-navy-950 transition hover:bg-gold-300 disabled:cursor-not-allowed disabled:opacity-60"
+        className="tracked-label flex items-center justify-center gap-2 rounded-sm bg-gold-400 px-6 py-4 text-xs text-navy-950 transition hover:bg-gold-300 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {submitting ? "Saving..." : editId ? "Save Changes" : "Submit Property"}
+        {!submitting && <MdArrowForward className="h-4 w-4" />}
       </button>
       <p className="text-center text-xs text-muted">
         By submitting, you agree to our{" "}
@@ -746,17 +766,26 @@ export default function PostPropertyForm({ editId }) {
 
 function Section({ icon, title, subtitle, children }) {
   return (
-    <div className="border border-navy-700/60 bg-navy-900">
-      <div className="flex items-center gap-4 border-b border-navy-700/60 px-5 py-4 sm:px-6">
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gold-400/10 text-gold-400">
+    <div className="overflow-hidden rounded-sm border border-navy-700/60 bg-navy-900 shadow-[0_16px_40px_-24px_rgba(0,0,0,0.8)]">
+      <div className="flex items-center gap-3 border-b border-navy-700/60 bg-navy-950/40 px-5 py-4 sm:gap-4 sm:px-6">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold-400/10 text-gold-400 sm:h-11 sm:w-11">
           {icon}
         </span>
-        <div>
+        <div className="min-w-0">
           <h2 className="text-sm font-semibold text-cream sm:text-base">{title}</h2>
           <p className="text-xs text-muted">{subtitle}</p>
         </div>
       </div>
       <div className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 sm:gap-6 sm:p-6">{children}</div>
+    </div>
+  );
+}
+
+function SelectWrap({ children, className = "" }) {
+  return (
+    <div className={`relative ${className}`}>
+      {children}
+      <MdKeyboardArrowDown className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted" />
     </div>
   );
 }
@@ -771,7 +800,7 @@ function ToggleTwo({ options, value, onChange }) {
           type="button"
           onClick={() => onChange(opt.value)}
           aria-pressed={value === opt.value}
-          className={`tracked-label flex h-14 items-center justify-center border text-xs transition ${
+          className={`tracked-label flex h-14 items-center justify-center rounded-sm border text-xs transition ${
             value === opt.value
               ? "border-gold-400 bg-gold-400 text-navy-950"
               : "border-navy-700/60 text-muted hover:border-gold-400 hover:text-cream"

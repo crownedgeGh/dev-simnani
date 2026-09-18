@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { MdCloudUpload, MdVideocam } from "react-icons/md";
 import { MAX_VIDEO_BYTES } from "@/lib/videoCompress";
 
 const ACCEPT = ".jpg,.jpeg,.png,.webp";
@@ -61,16 +62,17 @@ export function PhotosUpload({ id, label, hint, photos, onChange, optional, max 
         }}
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
-        className={`flex min-h-[7rem] cursor-pointer flex-col items-center justify-center gap-1 border border-dashed px-4 py-6 text-center transition sm:py-8 ${
+        className={`flex min-h-[7rem] cursor-pointer flex-col items-center justify-center gap-2 rounded-sm border border-dashed px-4 py-8 text-center transition sm:py-10 ${
           isDragging ? "border-gold-400 bg-navy-900" : "border-navy-700/60 bg-navy-950 hover:border-gold-400"
         }`}
       >
+        <MdCloudUpload className="h-7 w-7 text-gold-400" />
         <span className="text-sm text-cream">
           {photos.length
             ? `${photos.length} / ${max} photos added — click to add more`
             : "Click to upload or drag and drop"}
         </span>
-        {hint && <span className="text-xs text-muted">{hint}</span>}
+        {hint && <span className="max-w-sm text-xs text-muted">{hint}</span>}
       </label>
       <input
         id={id}
@@ -105,7 +107,7 @@ function PhotoThumb({ item, isCover, onSetCover, onRemove }) {
 
   return (
     <div
-      className={`relative aspect-square overflow-hidden border bg-navy-950 ${
+      className={`relative aspect-square overflow-hidden rounded-sm border bg-navy-950 ${
         isCover ? "border-gold-400" : "border-navy-700/60"
       }`}
     >
@@ -165,7 +167,7 @@ export function VideoUpload({ id, label, hint, file, existingUrl, onRemoveExisti
       </label>
 
       {previewUrl ? (
-        <div className="relative overflow-hidden border border-navy-700/60 bg-navy-950">
+        <div className="relative overflow-hidden rounded-sm border border-navy-700/60 bg-navy-950">
           <video src={previewUrl} controls className="h-48 w-full object-cover" />
           <div className="flex items-center justify-between border-t border-navy-700/60 bg-navy-950 px-4 py-2">
             <span className="truncate text-xs text-muted">
@@ -186,8 +188,9 @@ export function VideoUpload({ id, label, hint, file, existingUrl, onRemoveExisti
       ) : (
         <label
           htmlFor={id}
-          className="flex cursor-pointer flex-col items-center justify-center gap-1 border border-dashed border-navy-700/60 bg-navy-950 px-4 py-8 text-center transition hover:border-gold-400"
+          className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-sm border border-dashed border-navy-700/60 bg-navy-950 px-4 py-8 text-center transition hover:border-gold-400"
         >
+          <MdVideocam className="h-7 w-7 text-gold-400" />
           <span className="text-sm text-cream">Click to upload or drag and drop</span>
           {hint && <span className="text-xs text-muted">{hint}</span>}
         </label>
