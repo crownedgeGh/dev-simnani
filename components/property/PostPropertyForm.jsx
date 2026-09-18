@@ -767,6 +767,7 @@ export default function PostPropertyForm({ editId }) {
 function Section({ icon, title, subtitle, children }) {
   return (
     <div className="overflow-hidden rounded-sm border border-navy-700/60 bg-navy-900 shadow-[0_16px_40px_-24px_rgba(0,0,0,0.8)]">
+      <div className="h-[3px] bg-gold-400" />
       <div className="flex items-center gap-3 border-b border-navy-700/60 bg-navy-950/40 px-5 py-4 sm:gap-4 sm:px-6">
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold-400/10 text-gold-400 sm:h-11 sm:w-11">
           {icon}
