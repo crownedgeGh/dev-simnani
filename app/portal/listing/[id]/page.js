@@ -5,6 +5,7 @@ import { getPropertyById } from "@/lib/propertiesServer";
 import PropertyDetailContent from "@/components/property/PropertyDetailContent";
 import ListingOwnerActions from "@/components/portal/ListingOwnerActions";
 import BackButton from "@/components/layout/BackButton";
+import ForceBackRedirect from "@/components/layout/ForceBackRedirect";
 
 export const dynamic = "force-dynamic";
 
@@ -24,8 +25,9 @@ export default async function OwnerListingPage({ params }) {
   if (property.ownerId !== user.accountId) {
     return (
       <div className="mx-auto max-w-xl px-4 py-24 text-center sm:px-6 lg:px-8">
+        <ForceBackRedirect href="/portal/common-person" />
         <div className="flex items-center justify-center gap-3">
-          <BackButton />
+          <BackButton href="/portal/common-person" />
           <h1 className="font-display text-2xl text-cream sm:text-3xl">Access Denied</h1>
         </div>
         <p className="mt-4 text-sm text-muted">
@@ -37,10 +39,14 @@ export default async function OwnerListingPage({ params }) {
   }
 
   return (
-    <PropertyDetailContent
-      property={property}
-      eyebrow="Private Listing View"
-      sidebar={<ListingOwnerActions property={property} />}
-    />
+    <>
+      <ForceBackRedirect href="/portal/common-person" />
+      <PropertyDetailContent
+        property={property}
+        eyebrow="Private Listing View"
+        sidebar={<ListingOwnerActions property={property} />}
+        backHref="/portal/common-person"
+      />
+    </>
   );
 }

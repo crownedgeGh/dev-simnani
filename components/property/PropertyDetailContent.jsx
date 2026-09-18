@@ -27,7 +27,7 @@ import {
   MdWeekend,
 } from "react-icons/md";
 
-export default function PropertyDetailContent({ property, eyebrow, sidebar }) {
+export default function PropertyDetailContent({ property, eyebrow, sidebar, backHref }) {
   const isInvest = property.type === "invest";
 
   const infoRows = [
@@ -77,7 +77,7 @@ export default function PropertyDetailContent({ property, eyebrow, sidebar }) {
             {eyebrow || (isInvest ? "Investment Opportunity" : "Verified Property")}
           </p>
           <div className="mt-2 flex items-center gap-3">
-            <BackButton />
+            <BackButton href={backHref} />
             <h1 className="font-display text-3xl text-cream sm:text-4xl">{property.title}</h1>
           </div>
           <p className="mt-2 text-sm text-muted">{property.location}</p>

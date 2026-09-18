@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/session";
 import { getOwnerPortalData } from "@/lib/ownerPortalData";
 import PortalHeader from "@/components/portal/PortalHeader";
 import OwnerDashboard from "@/components/portal/OwnerDashboard";
+import ForceBackRedirect from "@/components/layout/ForceBackRedirect";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,7 @@ export default async function CommonPersonPortalPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
+      <ForceBackRedirect href="/" />
       <PortalHeader
         eyebrow="My Portal"
         title={`Welcome, ${user.fullName || "there"}`}

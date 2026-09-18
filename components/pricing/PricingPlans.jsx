@@ -132,22 +132,15 @@ export default function PricingPlans() {
         subtitle="Create a free account or sign in to choose a membership plan and start posting properties."
       />
 
-      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
         {/* Hero */}
         <div className="mx-auto max-w-2xl text-center">
-          <span className="tracked-label text-xs text-gold-400">Membership Plans</span>
-          <h1 className="mt-3 font-display text-3xl text-cream sm:text-4xl lg:text-5xl">
-            Pricing built for every kind of seller
-          </h1>
-          <p className="mt-4 text-sm leading-relaxed text-muted sm:text-base">
-            Whether you&apos;re listing your first property or running a full-scale brokerage,
-            pick a plan that matches your pace. Upgrade anytime — no hidden fees, no fine print.
-          </p>
+          <span className="tracked-label font-display text-2xl text-gold-400 sm:text-3xl">Membership Plans</span>
         </div>
 
         {/* Current membership status */}
         {currentPlan && currentStatus && (
-          <div className="mx-auto mt-8 flex max-w-xl flex-col items-center gap-2 rounded-sm border border-navy-700/60 bg-navy-900 px-5 py-4 text-center sm:flex-row sm:justify-between sm:text-left">
+          <div className="mx-auto mt-6 flex max-w-xl flex-col items-center gap-2 rounded-sm border border-navy-700/60 bg-navy-900 px-5 py-4 text-center sm:flex-row sm:justify-between sm:text-left">
             <div>
               <p className="tracked-label text-[11px] text-muted">Your Current Plan</p>
               <p className="font-display text-lg text-cream">{currentPlan.name} Member</p>
@@ -240,11 +233,7 @@ export default function PricingPlans() {
         {/* Testing-period note */}
         <div className="mx-auto mt-14 max-w-3xl rounded-sm border border-navy-700/60 bg-navy-900 px-5 py-5 text-center sm:px-8">
           <p className="tracked-label text-[11px] text-gold-400">Please Note</p>
-          <p className="mt-2 text-sm leading-relaxed text-muted">
-            We&apos;re currently in a testing phase, so no payment is collected right now — simply choose a
-            plan and it&apos;s instantly reflected on your account. Standard and Premium requests are reviewed
-            by our team before final activation; you&apos;ll see the status update above once approved.
-          </p>
+          
         </div>
       </div>
     </>
