@@ -11,6 +11,7 @@ import { VISIT_STATUS_TONE } from "./channel-partner/tones";
 import FormField from "@/components/auth/FormField";
 import { inputClass, selectClass, textareaClass } from "@/components/auth/inputStyles";
 import { generateAccountId } from "@/lib/auth";
+import { addCpLead } from "@/lib/adminStorage";
 import RefreshButton from "./RefreshButton";
 
 const TABS = [
@@ -23,7 +24,7 @@ const TABS = [
 
 const INITIAL_DIRECT_FORM = { customer: "", phone: "", project: "", notes: "" };
 
-export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisits: initialSiteVisits, projects }) {
+export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisits: initialSiteVisits, projects, partner }) {
   const [tab, setTab] = useState("overview");
   const [leads] = useState(initialLeads);
   const [siteVisits, setSiteVisits] = useState(initialSiteVisits);
@@ -125,7 +126,21 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
   }
 
   function handleForwardDirectLead(id) {
-    setDirectLeads((prev) => prev.map((lead) => (lead.id === id ? { ...lead, forwarded: true } : lead)));
+    const lead = directLeads.find((l) => l.id === id);
+    if (!lead || lead.forwarded) return;
+    setDirectLeads((prev) => prev.map((l) => (l.id === id ? { ...l, forwarded: true } : l)));
+    addCpLead({
+      id: generateAccountId("CPL"),
+      customer: lead.customer,
+      project: lead.project,
+      source: "Field CP Direct Lead",
+      submittedBy: { cpType: "field", name: partner?.fullName || "Field CP" },
+      status: "Pending Verification",
+      assignedTo: "",
+      notes: lead.notes,
+      phone: lead.phone,
+      date: lead.date,
+    });
   }
 
   return (
@@ -419,7 +434,7 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
             </form>
 
             {directLeads.length === 0 ? (
-              <EmptyState title="No direct leads yet" message="Add a lead's name, phone, project and notes, then forward it to the Company CP." />
+              <EmptyState title="No direct leads yet" message="Add a lead's name, phone, project and notes, then forward it to the Head CP." />
             ) : (
               <div className="flex flex-col gap-3">
                 {directLeads.map((lead) => (
@@ -437,7 +452,7 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
                     {lead.forwarded ? (
                       <span className="tracked-label flex w-fit shrink-0 items-center gap-2 border border-gold-500/70 px-4 py-2 text-xs text-gold-400">
                         <FiCheck className="h-3.5 w-3.5" />
-                        Forwarded to Company CP
+                        Forwarded to Head CP
                       </span>
                     ) : (
                       <button
@@ -446,7 +461,7 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
                         className="tracked-label flex shrink-0 items-center justify-center gap-2 bg-gold-400 px-4 py-2 text-xs text-navy-950 transition hover:bg-gold-300"
                       >
                         <FiSend className="h-3.5 w-3.5" />
-                        Forward to Company CP
+                        Forward to Head CP
                       </button>
                     )}
                   </div>

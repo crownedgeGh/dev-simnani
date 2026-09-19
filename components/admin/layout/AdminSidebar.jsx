@@ -38,6 +38,7 @@ const NAV_ITEMS = [
     children: [
       { href: "/admin/freelancer-cp", label: "Overview" },
       { href: "/admin/freelancer-cp/company", label: "Company CP" },
+      { href: "/admin/freelancer-cp/head-cp", label: "Head CP" },
       { href: "/admin/freelancer-cp/digital", label: "Digital CP" },
       { href: "/admin/freelancer-cp/field", label: "Field CP" },
     ],

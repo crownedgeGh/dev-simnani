@@ -12,6 +12,7 @@ import ChipGroup from "@/components/auth/ChipGroup";
 import FormField from "@/components/auth/FormField";
 import { inputClass, selectClass, textareaClass } from "@/components/auth/inputStyles";
 import { generateAccountId } from "@/lib/auth";
+import { addCpLead } from "@/lib/adminStorage";
 import RefreshButton from "./RefreshButton";
 
 const TABS = [
@@ -43,7 +44,7 @@ function slugify(name) {
   return name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 }
 
-export default function DigitalCPDashboard({ stats, projects, assets, initialJoinedCampaigns = [] }) {
+export default function DigitalCPDashboard({ stats, projects, assets, initialJoinedCampaigns = [], partner }) {
   const [tab, setTab] = useState("overview");
 
   const [linkForm, setLinkForm] = useState(INITIAL_LINK_FORM);
@@ -143,7 +144,21 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
   }
 
   function handleForwardLead(id) {
-    setMyLeads((prev) => prev.map((lead) => (lead.id === id ? { ...lead, forwarded: true } : lead)));
+    const lead = myLeads.find((l) => l.id === id);
+    if (!lead || lead.forwarded) return;
+    setMyLeads((prev) => prev.map((l) => (l.id === id ? { ...l, forwarded: true } : l)));
+    addCpLead({
+      id: generateAccountId("CPL"),
+      customer: lead.name,
+      project: "—",
+      source: "Digital CP",
+      submittedBy: { cpType: "digital", name: partner?.fullName || "Digital CP" },
+      status: "Pending Verification",
+      assignedTo: "",
+      notes: lead.notes,
+      contact: lead.contact,
+      date: lead.date,
+    });
   }
 
   function updateLinkForm(field, value) {
@@ -293,7 +308,7 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
             </form>
 
             {myLeads.length === 0 ? (
-              <EmptyState title="No leads yet" message="Add a lead's name, contact and notes, then forward it to the Company CP." />
+              <EmptyState title="No leads yet" message="Add a lead's name, contact and notes, then forward it to the Head CP." />
             ) : (
               <div className="flex flex-col gap-3">
                 {myLeads.map((lead) => (
@@ -309,7 +324,7 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
                     {lead.forwarded ? (
                       <span className="tracked-label flex w-fit shrink-0 items-center gap-2 border border-gold-500/70 px-4 py-2 text-xs text-gold-400">
                         <FiCheck className="h-3.5 w-3.5" />
-                        Forwarded to Company CP
+                        Forwarded to Head CP
                       </span>
                     ) : (
                       <button
@@ -318,7 +333,7 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
                         className="tracked-label flex shrink-0 items-center justify-center gap-2 bg-gold-400 px-4 py-2 text-xs text-navy-950 transition hover:bg-gold-300"
                       >
                         <FiSend className="h-3.5 w-3.5" />
-                        Forward to Company CP
+                        Forward to Head CP
                       </button>
                     )}
                   </div>

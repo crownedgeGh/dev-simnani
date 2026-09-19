@@ -31,8 +31,25 @@ const COMM_STATUSES = ["Pending", "Approved", "On Hold"];
 const VIDEO_STATUSES = ["Pending Review", "Approved", "Suggested Edit"];
 const ACTIVE_LEAD_STATUSES = ["Assigned", "Site Visit Scheduled", "Site Visit Completed"];
 
-export default function CPTypeWorkspace({ cpType, title, description, icon: Icon, accentClasses, showCampaignVideos = true }) {
-  const [tab, setTab] = useState("network");
+export default function CPTypeWorkspace({
+  cpType,
+  leadCpTypes,
+  title,
+  description,
+  icon: Icon,
+  accentClasses,
+  showCampaignVideos = true,
+  showNetworkTab = true,
+  showAddPartner = true,
+  showInvitationCodes = true,
+  showCommissions = true,
+  emptyMessage = "No records found",
+}) {
+  const effectiveLeadCpTypes = useMemo(
+    () => leadCpTypes || (cpType ? [cpType] : []),
+    [leadCpTypes, cpType]
+  );
+  const [tab, setTab] = useState(showNetworkTab ? "network" : "leads");
   const [data, setData] = useState({ cpNetwork: [], cpLeads: [], campaignVideos: [], commissions: [], invitationCodes: [] });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -80,9 +97,18 @@ export default function CPTypeWorkspace({ cpType, title, description, icon: Icon
   // ---------------------------------------------------------------------
   // Scoped-to-this-CP-type collections
   // ---------------------------------------------------------------------
-  const network = useMemo(() => data.cpNetwork.filter((n) => n.cpType === cpType), [data.cpNetwork, cpType]);
-  const leads = useMemo(() => data.cpLeads.filter((l) => l.submittedBy?.cpType === cpType), [data.cpLeads, cpType]);
-  const invitationCodes = useMemo(() => data.invitationCodes.filter((c) => c.cpType === cpType), [data.invitationCodes, cpType]);
+  const network = useMemo(
+    () => (cpType ? data.cpNetwork.filter((n) => n.cpType === cpType) : []),
+    [data.cpNetwork, cpType]
+  );
+  const leads = useMemo(
+    () => data.cpLeads.filter((l) => effectiveLeadCpTypes.includes(l.submittedBy?.cpType)),
+    [data.cpLeads, effectiveLeadCpTypes]
+  );
+  const invitationCodes = useMemo(
+    () => (cpType ? data.invitationCodes.filter((c) => c.cpType === cpType) : []),
+    [data.invitationCodes, cpType]
+  );
 
   const leadCpTypeById = useMemo(() => {
     const map = {};
@@ -96,11 +122,11 @@ export default function CPTypeWorkspace({ cpType, title, description, icon: Icon
   }, [data.cpNetwork]);
 
   const commissions = useMemo(
-    () => data.commissions.filter((c) => c.source === "CP" && leadCpTypeById[c.leadId] === cpType),
-    [data.commissions, cpType, leadCpTypeById]
+    () => data.commissions.filter((c) => c.source === "CP" && effectiveLeadCpTypes.includes(leadCpTypeById[c.leadId])),
+    [data.commissions, effectiveLeadCpTypes, leadCpTypeById]
   );
   const campaignVideos = useMemo(
-    () => data.campaignVideos.filter((v) => partnerCpTypeByName[v.partnerName] === cpType),
+    () => (cpType ? data.campaignVideos.filter((v) => partnerCpTypeByName[v.partnerName] === cpType) : []),
     [data.campaignVideos, cpType, partnerCpTypeByName]
   );
 
@@ -123,9 +149,13 @@ export default function CPTypeWorkspace({ cpType, title, description, icon: Icon
   const kpiCards = [
     { title: "CP Leads", value: kpis.totalLeads, subtitle: `${kpis.pendingVerification} pending verification`, icon: MdLeaderboard, color: "gold" },
     { title: "Active Assignments", value: kpis.activeAssignments, subtitle: "Assigned or in site-visit stage", icon: MdAssignmentInd, color: "blue" },
-    { title: "Network Partners", value: kpis.networkPartners, subtitle: `${kpis.activePartners} active`, icon: MdGroups, color: "purple" },
-    { title: "Deals Closed", value: kpis.dealsClosed, subtitle: `${kpis.siteVisits} site visits logged`, icon: MdCheckCircle, color: "green" },
-    { title: "Pending Commissions", value: kpis.pendingCommissions, subtitle: `${kpis.approvedCommissions} approved`, icon: MdAttachMoney, color: "orange" },
+    ...(showNetworkTab
+      ? [{ title: "Network Partners", value: kpis.networkPartners, subtitle: `${kpis.activePartners} active`, icon: MdGroups, color: "purple" },
+         { title: "Deals Closed", value: kpis.dealsClosed, subtitle: `${kpis.siteVisits} site visits logged`, icon: MdCheckCircle, color: "green" }]
+      : []),
+    ...(showCommissions
+      ? [{ title: "Pending Commissions", value: kpis.pendingCommissions, subtitle: `${kpis.approvedCommissions} approved`, icon: MdAttachMoney, color: "orange" }]
+      : []),
   ];
 
   // ---------------------------------------------------------------------
@@ -220,7 +250,7 @@ export default function CPTypeWorkspace({ cpType, title, description, icon: Icon
           >
             {CP_LEAD_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
-          {cpType === "company" && fieldCPs.length > 0 && (
+          {(cpType === "company" || effectiveLeadCpTypes.length > 1) && fieldCPs.length > 0 && (
             <select
               value={row.assignedTo || ""}
               onChange={async (e) => {
@@ -340,11 +370,11 @@ export default function CPTypeWorkspace({ cpType, title, description, icon: Icon
   ];
 
   const TABS = [
-    { key: "network", label: "Network", count: network.length },
+    ...(showNetworkTab ? [{ key: "network", label: "Network", count: network.length }] : []),
     { key: "leads", label: "Leads", count: leads.length },
     ...(showCampaignVideos ? [{ key: "campaignVideos", label: "Campaign Videos", count: campaignVideos.length }] : []),
-    { key: "commissions", label: "Commissions", count: commissions.length },
-    { key: "invitationCodes", label: "Invitation Codes", count: invitationCodes.length },
+    ...(showCommissions ? [{ key: "commissions", label: "Commissions", count: commissions.length }] : []),
+    ...(showInvitationCodes ? [{ key: "invitationCodes", label: "Invitation Codes", count: invitationCodes.length }] : []),
   ];
 
   const tabContent = {
@@ -354,7 +384,7 @@ export default function CPTypeWorkspace({ cpType, title, description, icon: Icon
     commissions: { columns: COMM_COLUMNS, data: commissions },
     invitationCodes: { columns: INVITATION_COLUMNS, data: invitationCodes },
   };
-  const current = tabContent[tab] || tabContent.network;
+  const current = tabContent[tab] || tabContent.leads;
 
   return (
     <div>
@@ -365,17 +395,19 @@ export default function CPTypeWorkspace({ cpType, title, description, icon: Icon
       <AdminPageHeader
         title={title}
         description={description}
-        badge={`${network.length} partners`}
+        badge={showNetworkTab ? `${network.length} partners` : `${leads.length} leads`}
         onRefresh={handleRefresh}
         isRefreshing={refreshing}
         actions={
-          <button
-            onClick={() => setPartnerFormTarget(null)}
-            className="flex h-9 items-center gap-1.5 rounded-xl bg-[#f0b429] px-3.5 text-xs font-semibold text-white shadow-sm transition hover:bg-[#d97706]"
-          >
-            <MdAdd size={16} />
-            <span>Add Partner</span>
-          </button>
+          showAddPartner ? (
+            <button
+              onClick={() => setPartnerFormTarget(null)}
+              className="flex h-9 items-center gap-1.5 rounded-xl bg-[#f0b429] px-3.5 text-xs font-semibold text-white shadow-sm transition hover:bg-[#d97706]"
+            >
+              <MdAdd size={16} />
+              <span>Add Partner</span>
+            </button>
+          ) : undefined
         }
       />
 
@@ -426,7 +458,7 @@ export default function CPTypeWorkspace({ cpType, title, description, icon: Icon
         columns={current.columns}
         data={current.data}
         loading={loading}
-        emptyMessage="No records found"
+        emptyMessage={emptyMessage}
         pageSize={10}
       />
 

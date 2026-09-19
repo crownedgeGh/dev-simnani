@@ -9,6 +9,8 @@ import WhyChooseUs from "@/components/home/WhyChooseUs";
 import InsightsSection from "@/components/home/InsightsSection";
 import CtaBanner from "@/components/home/CtaBanner";
 
+export const revalidate = 60;
+
 export default function Home() {
   return (
     <>

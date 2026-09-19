@@ -7,6 +7,7 @@ import {
   MdBusiness,
   MdCampaign,
   MdDirectionsWalk,
+  MdSupervisorAccount,
   MdArrowForward,
   MdGroups,
   MdLeaderboard,
@@ -31,6 +32,16 @@ const CP_SEGMENTS = [
     description: "Verifies leads, assigns Field CPs and manages the wider network.",
     classes: "border-blue-200 bg-blue-50 text-blue-700",
     iconBg: "bg-white/70",
+  },
+  {
+    key: "headcp",
+    href: "/admin/freelancer-cp/head-cp",
+    label: "Head CP",
+    icon: MdSupervisorAccount,
+    description: "Receives leads forwarded directly by Digital CP and Field CP — bypasses Company CP.",
+    classes: "border-amber-200 bg-amber-50 text-amber-700",
+    iconBg: "bg-white/70",
+    leadCpTypes: ["digital", "field"],
   },
   {
     key: "digital",
@@ -140,9 +151,10 @@ export default function FreelancerCPPage() {
   const segmentCounts = useMemo(() => {
     const counts = {};
     CP_SEGMENTS.forEach((seg) => {
+      const leadCpTypes = seg.leadCpTypes || [seg.key];
       counts[seg.key] = {
-        partners: cpCounts.cpNetwork.filter((n) => n.cpType === seg.key).length,
-        leads: cpCounts.cpLeads.filter((l) => l.submittedBy?.cpType === seg.key).length,
+        partners: seg.leadCpTypes ? null : cpCounts.cpNetwork.filter((n) => n.cpType === seg.key).length,
+        leads: cpCounts.cpLeads.filter((l) => leadCpTypes.includes(l.submittedBy?.cpType)).length,
       };
     });
     return counts;
@@ -225,7 +237,7 @@ export default function FreelancerCPPage() {
       {/* CP Type — dedicated management pages */}
       <div className="mb-6">
         <h3 className="mb-3 text-sm font-semibold text-[#1a1a2e]">Channel Partner Networks</h3>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {CP_SEGMENTS.map((seg) => {
             const SegIcon = seg.icon;
             const counts = segmentCounts[seg.key] || { partners: 0, leads: 0 };
@@ -246,7 +258,9 @@ export default function FreelancerCPPage() {
                   <p className="mt-1 text-xs opacity-80">{seg.description}</p>
                 </div>
                 <div className="mt-1 flex items-center gap-4 border-t border-current/15 pt-3 text-xs font-semibold">
-                  <span className="flex items-center gap-1.5"><MdGroups size={14} /> {counts.partners} partners</span>
+                  {counts.partners !== null && (
+                    <span className="flex items-center gap-1.5"><MdGroups size={14} /> {counts.partners} partners</span>
+                  )}
                   <span className="flex items-center gap-1.5"><MdLeaderboard size={14} /> {counts.leads} leads</span>
                 </div>
               </Link>

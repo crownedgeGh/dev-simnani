@@ -166,11 +166,12 @@ export default function FreelancerPortalClient({
                 projects={projects}
                 assets={promotionAssets}
                 initialJoinedCampaigns={initialJoinedCampaigns}
+                partner={partner}
               />
             );
           })()}
           {cpType === "field" && (
-            <FieldCPDashboard stats={fieldStats} leads={leads} siteVisits={siteVisits} projects={projects} />
+            <FieldCPDashboard stats={fieldStats} leads={leads} siteVisits={siteVisits} projects={projects} partner={partner} />
           )}
         </div>
       </div>

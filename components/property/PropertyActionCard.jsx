@@ -13,7 +13,6 @@ export default function PropertyActionCard({
   propertyTitle,
   propertyPrice,
   contactName,
-  contactRole,
   contactMobile,
 }) {
   const [shareUrl, setShareUrl] = useState("");
@@ -272,8 +271,7 @@ export default function PropertyActionCard({
         </div>
         <div>
           <p className="tracked-label text-xs text-gold-400">Contact Person</p>
-          <p className="text-sm text-cream">{contactName || "Alexander Vance"}</p>
-          <p className="tracked-label text-xs text-muted">{contactRole || "Senior Advisor"}</p>
+          <p className="text-sm text-cream">{contactName || "Simnani Estate"}</p>
         </div>
       </div>
 
