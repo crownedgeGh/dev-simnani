@@ -6,11 +6,64 @@ import { useRouter } from "next/navigation";
 import { MdHome, MdTrendingUp, MdDomain, MdWork, MdPerson, MdBadge, MdScience } from "react-icons/md";
 import { FiMapPin, FiSmartphone, FiBriefcase } from "react-icons/fi";
 import BackButton from "@/components/layout/BackButton";
+import { useAuth } from "@/context/AuthContext";
 
 const TEST_MODE_CP_OPTIONS = [
   { cpType: "field", label: "Field CP", description: "Field Channel Partner demo dashboard.", Icon: FiMapPin },
   { cpType: "digital", label: "Digital CP", description: "Digital Channel Partner demo dashboard.", Icon: FiSmartphone },
   { cpType: "company", label: "Company CP", description: "Company Channel Partner demo dashboard.", Icon: FiBriefcase },
+];
+
+const TEST_MODE_DIRECT_OPTIONS = [
+  {
+    key: "common-person",
+    label: "Common Person",
+    description: "Skip the form — go straight to the Common Person dashboard.",
+    Icon: MdPerson,
+    href: "/portal/common-person",
+    profile: {
+      fullName: "Test Common Person",
+      mobile: "90000 00001",
+      email: "test.commonperson@simnaniestate.com",
+      accountType: "common-person",
+      accountId: "SG-IND-TEST-COMMON",
+      city: "Mumbai",
+      registeredAt: new Date(0).toISOString(),
+    },
+  },
+  {
+    key: "broker",
+    label: "Broker",
+    description: "Skip the form — go straight to the Broker dashboard.",
+    Icon: MdDomain,
+    href: "/portal/broker",
+    profile: {
+      fullName: "Test Broker",
+      mobile: "90000 00002",
+      email: "test.broker@simnaniestate.com",
+      accountType: "broker",
+      accountId: "SG-BRK-TEST",
+      city: "Mumbai",
+      reraRegistered: false,
+      registeredAt: new Date(0).toISOString(),
+    },
+  },
+  {
+    key: "buyer",
+    label: "Buyer",
+    description: "Skip the form — go straight to the Buyer dashboard.",
+    Icon: MdHome,
+    href: "/portal/buyer",
+    profile: {
+      fullName: "Test Buyer",
+      mobile: "90000 00003",
+      email: "test.buyer@simnaniestate.com",
+      accountType: "buyer",
+      accountId: "SG-BUY-TEST",
+      city: "Mumbai",
+      registeredAt: new Date(0).toISOString(),
+    },
+  },
 ];
 
 const ACCOUNT_TYPES = [
@@ -54,7 +107,23 @@ const ACCOUNT_TYPES = [
 
 export default function AccountTypeSelect() {
   const router = useRouter();
+  const { login } = useAuth();
   const [testModeOpen, setTestModeOpen] = useState(false);
+  const [bypassLoading, setBypassLoading] = useState(null);
+  const [bypassError, setBypassError] = useState("");
+
+  async function handleDirectBypass(option) {
+    if (bypassLoading) return;
+    setBypassLoading(option.key);
+    setBypassError("");
+    try {
+      await login(null, option.profile);
+      router.push(option.href);
+    } catch (err) {
+      setBypassLoading(null);
+      setBypassError(err.message || "Bypass login failed. Please try again.");
+    }
+  }
 
   return (
     <div className="w-full max-w-4xl border border-navy-700/60 bg-navy-900 p-8 shadow-2xl sm:p-10">
@@ -103,7 +172,27 @@ export default function AccountTypeSelect() {
 
       {testModeOpen && (
         <div className="mt-6 border border-navy-700/60 bg-navy-950 p-6">
-          <p className="tracked-label text-xs text-gold-400">Test Mode — Choose a Channel Partner Dashboard</p>
+          <p className="tracked-label text-xs text-gold-400">Test Mode — Bypass Registration</p>
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+            {TEST_MODE_DIRECT_OPTIONS.map((option) => (
+              <button
+                key={option.key}
+                type="button"
+                disabled={bypassLoading !== null}
+                onClick={() => handleDirectBypass(option)}
+                className="flex flex-col items-center gap-3 border border-navy-700/60 p-6 text-center transition hover:border-gold-500 disabled:opacity-60"
+              >
+                <option.Icon className="h-8 w-8 text-gold-400" />
+                <span className="tracked-label text-xs text-cream">
+                  {bypassLoading === option.key ? "Loading…" : option.label}
+                </span>
+                <p className="text-xs text-muted">{option.description}</p>
+              </button>
+            ))}
+          </div>
+          {bypassError && <p className="mt-3 text-xs text-gold-500">{bypassError}</p>}
+
+          <p className="mt-6 tracked-label text-xs text-gold-400">Test Mode — Choose a Channel Partner Dashboard</p>
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
             {TEST_MODE_CP_OPTIONS.map(({ cpType, label, description, Icon }) => (
               <Link

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import AdminDialog from "@/components/admin/ui/AdminDialog";
 import AdminFormField, { adminInputClass, adminSelectClass, adminTextareaClass } from "@/components/admin/ui/AdminFormField";
-import { getLocationCity, CATEGORIES_BY_TYPE } from "@/lib/properties";
+import { getLocationCity, CATEGORIES_BY_TYPE, isStructureCategory, categoryHasBedrooms } from "@/lib/properties";
 
 const PROPERTY_TYPES = ["buy", "sell", "rent", "invest", "commercial", "farming", "industrial", "lease", "seized-property"];
 const STATUSES = ["Active", "Pending Review", "Rejected"];
@@ -16,6 +16,7 @@ const EMPTY_FORM = {
   price: "",
   location: "",
   beds: "",
+  halls: "",
   baths: "",
   area: "",
   image: "",
@@ -38,6 +39,9 @@ export default function PropertyFormDialog({ isOpen, onClose, property, onSave }
 
   const set = (key, val) => setForm((prev) => ({ ...prev, [key]: val }));
 
+  const needsStructureFields = isStructureCategory(form.type, form.category);
+  const needsBedrooms = categoryHasBedrooms(form.type, form.category);
+
   const validate = () => {
     const errs = {};
     if (!form.title.trim()) errs.title = "Title is required";
@@ -45,7 +49,10 @@ export default function PropertyFormDialog({ isOpen, onClose, property, onSave }
     if (!form.location.trim()) errs.location = "Location is required";
     if (!form.type) errs.type = "Type is required";
     if (CATEGORIES_BY_TYPE[form.type] && !form.category) errs.category = "Category is required";
-    if (!form.baths || Number(form.baths) < 1) errs.baths = "Number of bathrooms is required";
+    if (needsStructureFields && (!form.baths || Number(form.baths) < 1))
+      errs.baths = "Number of bathrooms is required";
+    if (needsBedrooms && (!form.halls || Number(form.halls) < 1))
+      errs.halls = "Number of halls is required";
     return errs;
   };
 
@@ -58,8 +65,9 @@ export default function PropertyFormDialog({ isOpen, onClose, property, onSave }
       await onSave({
         ...form,
         city: form.city || (form.location ? getLocationCity(form.location) : "") || "Other",
-        beds: Number(form.beds) || 0,
-        baths: Number(form.baths),
+        beds: needsBedrooms ? Number(form.beds) || 0 : 0,
+        halls: needsBedrooms ? Number(form.halls) || 0 : 0,
+        baths: needsStructureFields ? Number(form.baths) || 0 : 0,
       });
       toast.success(isEdit ? "Property updated successfully" : "Property created successfully");
       onClose();
@@ -140,13 +148,23 @@ export default function PropertyFormDialog({ isOpen, onClose, property, onSave }
           <input id="prop-location" value={form.location} onChange={(e) => set("location", e.target.value)} placeholder="e.g. Indiranagar, Bangalore" className={adminInputClass} />
         </AdminFormField>
 
-        <AdminFormField label="Beds" id="prop-beds">
-          <input id="prop-beds" type="number" min="0" value={form.beds} onChange={(e) => set("beds", e.target.value)} placeholder="e.g. 3" className={adminInputClass} />
-        </AdminFormField>
+        {needsBedrooms && (
+          <AdminFormField label="Beds" id="prop-beds" required error={errors.beds}>
+            <input id="prop-beds" type="number" min="1" value={form.beds} onChange={(e) => set("beds", e.target.value)} placeholder="e.g. 3" className={adminInputClass} />
+          </AdminFormField>
+        )}
 
-        <AdminFormField label="Baths" id="prop-baths" required error={errors.baths}>
-          <input id="prop-baths" type="number" min="1" value={form.baths} onChange={(e) => set("baths", e.target.value)} placeholder="e.g. 2" className={adminInputClass} />
-        </AdminFormField>
+        {needsBedrooms && (
+          <AdminFormField label="Halls" id="prop-halls" required error={errors.halls}>
+            <input id="prop-halls" type="number" min="1" value={form.halls} onChange={(e) => set("halls", e.target.value)} placeholder="e.g. 1" className={adminInputClass} />
+          </AdminFormField>
+        )}
+
+        {needsStructureFields && (
+          <AdminFormField label="Baths" id="prop-baths" required error={errors.baths}>
+            <input id="prop-baths" type="number" min="1" value={form.baths} onChange={(e) => set("baths", e.target.value)} placeholder="e.g. 2" className={adminInputClass} />
+          </AdminFormField>
+        )}
 
         <AdminFormField label="Area" id="prop-area">
           <input id="prop-area" value={form.area} onChange={(e) => set("area", e.target.value)} placeholder="e.g. 1,850 sq.ft." className={adminInputClass} />

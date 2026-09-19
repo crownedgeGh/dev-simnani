@@ -58,10 +58,13 @@ const PropertySchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    halls: {
+      type: Number,
+      default: 0,
+    },
     baths: {
       type: Number,
-      required: [true, "Number of bathrooms is required"],
-      min: [1, "Number of bathrooms must be at least 1"],
+      default: 0,
     },
     area: {
       type: String,

@@ -18,7 +18,7 @@ import {
   MdArrowForward,
   MdKeyboardArrowDown,
 } from "react-icons/md";
-import { CATEGORIES_BY_TYPE } from "@/lib/properties";
+import { CATEGORIES_BY_TYPE, isStructureCategory, categoryHasBedrooms } from "@/lib/properties";
 import { uploadFileToR2, uploadFilesToR2 } from "@/lib/uploadToR2";
 import { STATES, getCitiesForState } from "@/lib/cityState";
 import SearchableSelect from "@/components/property/SearchableSelect";
@@ -100,6 +100,7 @@ const INITIAL_FORM = {
   areaSize: "",
   areaUnit: "sq ft",
   beds: "",
+  halls: "",
   baths: "",
   floorNo: "",
   totalFloors: "",
@@ -171,6 +172,7 @@ export default function PostPropertyForm({ editId }) {
                 ? "5+"
                 : String(p.beds)
               : "",
+          halls: p.halls !== undefined && p.halls !== null && p.halls !== "" ? String(p.halls) : "",
           baths: p.baths !== undefined && p.baths !== null ? String(p.baths) : "",
           floorNo: p.floorNo || "",
           totalFloors: p.totalFloors ? String(p.totalFloors) : "",
@@ -209,6 +211,11 @@ export default function PostPropertyForm({ editId }) {
         next.category = "";
         next.propertyType = "";
         next.beds = "";
+        next.halls = "";
+      }
+      if (field === "category") {
+        next.beds = "";
+        next.halls = "";
       }
       if (field === "propertyType") {
         next.beds = "";
@@ -233,6 +240,12 @@ export default function PostPropertyForm({ editId }) {
 
   const isResidential = form.section === "residential";
   const showBhkSelect = form.propertyType === "Flat" || form.propertyType === "House";
+  // Land/plot categories (e.g. Agricultural Land, Industrial Land) have no
+  // built structure, so bedrooms/bathrooms/halls/floors/furnishing/parking
+  // don't apply. Farmhouse/Apartments categories keep the residential fields
+  // even though they're listed outside the Residential section.
+  const showStructureFields = isStructureCategory(form.section, form.category);
+  const showBedsHallsFields = isResidential || categoryHasBedrooms(form.section, form.category);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -248,8 +261,9 @@ export default function PostPropertyForm({ editId }) {
       { id: "price", invalid: !form.price },
       { id: "areaSize", invalid: !form.areaSize },
       { id: "photos", invalid: !form.photos.length },
-      ...(isResidential ? [{ id: "beds", invalid: !form.beds || Number(form.beds) < 1 }] : []),
-      { id: "baths", invalid: !form.baths || Number(form.baths) < 1 },
+      ...(showBedsHallsFields ? [{ id: "beds", invalid: !form.beds || Number(form.beds) < 1 }] : []),
+      ...(showBedsHallsFields ? [{ id: "halls", invalid: !form.halls || Number(form.halls) < 1 }] : []),
+      ...(showStructureFields ? [{ id: "baths", invalid: !form.baths || Number(form.baths) < 1 }] : []),
       { id: "fullName", invalid: !form.fullName.trim() },
       { id: "mobile", invalid: !isMobileValid(form.mobile) },
     ];
@@ -336,16 +350,17 @@ export default function PostPropertyForm({ editId }) {
         area: `${form.areaSize || 0} ${form.areaUnit || "sq ft"}`,
         areaSize: Number(form.areaSize) || 0,
         areaUnit: form.areaUnit || "sq ft",
-        beds: isResidential ? numericBeds : 0,
-        bedsPlus: isResidential ? isBedsPlus : false,
-        baths: Number(form.baths),
-        floorNo: form.floorNo || "",
-        totalFloors: form.totalFloors ? Number(form.totalFloors) : null,
-        furnishing: form.furnishing || "",
-        parking: form.parking || "",
+        beds: showBedsHallsFields ? numericBeds : 0,
+        bedsPlus: showBedsHallsFields ? isBedsPlus : false,
+        halls: showBedsHallsFields ? Number(form.halls) || 0 : 0,
+        baths: showStructureFields ? Number(form.baths) || 0 : 0,
+        floorNo: showStructureFields ? form.floorNo || "" : "",
+        totalFloors: showStructureFields && form.totalFloors ? Number(form.totalFloors) : null,
+        furnishing: showStructureFields ? form.furnishing || "" : "",
+        parking: showStructureFields ? form.parking || "" : "",
         facing: form.facing || "",
         availableFrom: form.availableFrom || "",
-        preferredFor: form.preferredFor || "",
+        preferredFor: isResidential ? form.preferredFor || "" : "",
         contact: {
           fullName: (form.fullName || "").trim(),
           mobile: `+91 ${(form.mobile || "").trim()}`,
@@ -606,8 +621,8 @@ export default function PostPropertyForm({ editId }) {
             </SelectWrap>
           </div>
         </FormField>
-        {isResidential && !showBhkSelect && (
-          <FormField label="No. of Bedrooms (BHK)" htmlFor="beds" required>
+        {showBedsHallsFields && !showBhkSelect && (
+          <FormField label="No. of Bedrooms " htmlFor="beds" required>
             <input
               id="beds"
               type="number"
@@ -619,62 +634,79 @@ export default function PostPropertyForm({ editId }) {
             />
           </FormField>
         )}
-        <FormField label="No. of Bathrooms" htmlFor="baths" required>
-          <input
-            id="baths"
-            type="number"
-            min="1"
-            autoComplete="off"
-            value={form.baths}
-            onChange={(e) => update("baths", e.target.value)}
-            className={errClass(`${inputClass} rounded-sm`, "baths")}
-          />
-        </FormField>
-        <FormField label="Floor No." htmlFor="floorNo" optional>
-          <input
-            id="floorNo"
-            type="text"
-            placeholder="e.g. 3rd, Ground"
-            value={form.floorNo}
-            onChange={(e) => update("floorNo", e.target.value)}
-            className={`${inputClass} rounded-sm`}
-          />
-        </FormField>
-        <FormField label="Total Floors in Building" htmlFor="totalFloors" optional>
-          <input
-            id="totalFloors"
-            type="number"
-            min="0"
-            autoComplete="off"
-            value={form.totalFloors}
-            onChange={(e) => update("totalFloors", e.target.value)}
-            className={`${inputClass} rounded-sm`}
-          />
-        </FormField>
-        <FormField label="Furnishing Status" htmlFor="furnishing" optional>
-          <SelectWrap>
-            <select
-              id="furnishing"
-              value={form.furnishing}
-              onChange={(e) => update("furnishing", e.target.value)}
-              className={`${selectClass} rounded-sm pr-10`}
-            >
-              <option value="">Select</option>
-              {FURNISHING_OPTIONS.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt}
-                </option>
-              ))}
-            </select>
-          </SelectWrap>
-        </FormField>
-        <FormField label="Parking Available" optional>
-          <ToggleTwo
-            options={YES_NO_OPTIONS}
-            value={form.parking}
-            onChange={(value) => update("parking", value)}
-          />
-        </FormField>
+        {showBedsHallsFields && (
+          <FormField label="No. of Halls" htmlFor="halls" required>
+            <input
+              id="halls"
+              type="number"
+              min="1"
+              autoComplete="off"
+              value={form.halls}
+              onChange={(e) => update("halls", e.target.value)}
+              className={errClass(`${inputClass} rounded-sm`, "halls")}
+            />
+          </FormField>
+        )}
+        {showStructureFields && (
+          <>
+            <FormField label="No. of Bathrooms" htmlFor="baths" required>
+              <input
+                id="baths"
+                type="number"
+                min="1"
+                autoComplete="off"
+                value={form.baths}
+                onChange={(e) => update("baths", e.target.value)}
+                className={errClass(`${inputClass} rounded-sm`, "baths")}
+              />
+            </FormField>
+            <FormField label="Floor No." htmlFor="floorNo" optional>
+              <input
+                id="floorNo"
+                type="text"
+                placeholder="e.g. 3rd, Ground"
+                value={form.floorNo}
+                onChange={(e) => update("floorNo", e.target.value)}
+                className={`${inputClass} rounded-sm`}
+              />
+            </FormField>
+            <FormField label="Total Floors in Building" htmlFor="totalFloors" optional>
+              <input
+                id="totalFloors"
+                type="number"
+                min="0"
+                autoComplete="off"
+                value={form.totalFloors}
+                onChange={(e) => update("totalFloors", e.target.value)}
+                className={`${inputClass} rounded-sm`}
+              />
+            </FormField>
+            <FormField label="Furnishing Status" htmlFor="furnishing" optional>
+              <SelectWrap>
+                <select
+                  id="furnishing"
+                  value={form.furnishing}
+                  onChange={(e) => update("furnishing", e.target.value)}
+                  className={`${selectClass} rounded-sm pr-10`}
+                >
+                  <option value="">Select</option>
+                  {FURNISHING_OPTIONS.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
+                  ))}
+                </select>
+              </SelectWrap>
+            </FormField>
+            <FormField label="Parking Available" optional>
+              <ToggleTwo
+                options={YES_NO_OPTIONS}
+                value={form.parking}
+                onChange={(value) => update("parking", value)}
+              />
+            </FormField>
+          </>
+        )}
         <FormField label="Facing Direction" htmlFor="facing" optional>
           <SelectWrap>
             <select
@@ -701,6 +733,7 @@ export default function PostPropertyForm({ editId }) {
             className={`${inputClass} rounded-sm`}
           />
         </FormField>
+        {isResidential && (
         <FormField label="Preferred For" htmlFor="preferredFor" optional>
           <SelectWrap>
             <select
@@ -718,6 +751,7 @@ export default function PostPropertyForm({ editId }) {
             </select>
           </SelectWrap>
         </FormField>
+        )}
       </Section>
 
       <Section icon={<MdCameraAlt className="h-5 w-5" />} title="Photos & Video" subtitle="Add photos to attract more buyers — video is optional">

@@ -32,6 +32,8 @@ export async function POST(request) {
         email: body.email || "",
         city: body.city || "",
         accountType: body.accountType || "common-person",
+        reraRegistered: body.reraRegistered,
+        reraNumber: body.reraNumber || "",
       });
       user = created.toObject();
     }

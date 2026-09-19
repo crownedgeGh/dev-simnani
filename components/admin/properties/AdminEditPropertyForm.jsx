@@ -25,7 +25,7 @@ import AdminFormField, {
 } from "@/components/admin/ui/AdminFormField";
 import adminAxios from "@/lib/adminAxios";
 import { ADMIN_KEYS, readCollection } from "@/lib/adminStorage";
-import { CATEGORIES_BY_TYPE } from "@/lib/properties";
+import { CATEGORIES_BY_TYPE, isStructureCategory, categoryHasBedrooms } from "@/lib/properties";
 import { uploadFileToR2 } from "@/lib/uploadToR2";
 import BlurredImageFrame from "@/components/property/BlurredImageFrame";
 
@@ -210,6 +210,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
     areaSize: "",
     areaUnit: "sq ft",
     beds: "",
+    halls: "",
     baths: "",
     floorNo: "",
     totalFloors: "",
@@ -224,6 +225,10 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
     featured: false,
     badge: "",
   });
+
+  const needsStructureFields = isStructureCategory(form.type, form.category);
+  const needsBedrooms = categoryHasBedrooms(form.type, form.category);
+  const isResidentialType = !CATEGORIES_BY_TYPE[form.type];
 
   // Populate form with existing property data
   const populateFormData = (prop) => {
@@ -267,6 +272,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
             ? "5+"
             : String(prop.beds)
           : "",
+      halls: prop.halls !== undefined && prop.halls !== null && prop.halls !== "" ? String(prop.halls) : "",
       baths: prop.baths !== undefined && prop.baths !== null ? String(prop.baths) : "",
       floorNo: prop.floorNo || "",
       totalFloors: prop.totalFloors ? String(prop.totalFloors) : "",
@@ -357,6 +363,12 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
       }
       if (field === "type" && val !== prev.type) {
         next.category = "";
+        next.beds = "";
+        next.halls = "";
+      }
+      if (field === "category" && val !== prev.category) {
+        next.beds = "";
+        next.halls = "";
       }
       return next;
     });
@@ -473,9 +485,12 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
     if (!form.locality.trim()) errs.locality = "Area / Locality is required";
     if (!form.price || Number(form.price) <= 0) errs.price = "Valid price is required";
     if (!form.areaSize || Number(form.areaSize) <= 0) errs.areaSize = "Area size is required";
-    if (!form.baths || Number(form.baths) < 1) errs.baths = "Number of bathrooms is required";
-    if (!CATEGORIES_BY_TYPE[form.type] && (!form.beds || Number(form.beds) < 1))
+    if (needsStructureFields && (!form.baths || Number(form.baths) < 1))
+      errs.baths = "Number of bathrooms is required";
+    if (needsBedrooms && (!form.beds || Number(form.beds) < 1))
       errs.beds = "Number of bedrooms (BHK) is required";
+    if (needsBedrooms && (!form.halls || Number(form.halls) < 1))
+      errs.halls = "Number of halls is required";
     if (!form.fullName.trim()) errs.fullName = "Contact name is required";
     const cleanMobile = form.mobile.replace(/\s+/g, "");
     if (!cleanMobile || cleanMobile.length !== 10) {
@@ -554,16 +569,17 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
         area: `${form.areaSize} ${form.areaUnit}`,
         areaSize: Number(form.areaSize),
         areaUnit: form.areaUnit,
-        beds: CATEGORIES_BY_TYPE[form.type] ? 0 : form.beds === "5+" ? 5 : Number(form.beds),
-        bedsPlus: CATEGORIES_BY_TYPE[form.type] ? false : form.beds === "5+",
-        baths: Number(form.baths),
-        floorNo: form.floorNo,
-        totalFloors: form.totalFloors ? Number(form.totalFloors) : null,
-        furnishing: form.furnishing,
-        parking: form.parking,
+        beds: needsBedrooms ? (form.beds === "5+" ? 5 : Number(form.beds)) : 0,
+        bedsPlus: needsBedrooms ? form.beds === "5+" : false,
+        halls: needsBedrooms ? Number(form.halls) : 0,
+        baths: needsStructureFields ? Number(form.baths) : 0,
+        floorNo: needsStructureFields ? form.floorNo : "",
+        totalFloors: needsStructureFields && form.totalFloors ? Number(form.totalFloors) : null,
+        furnishing: needsStructureFields ? form.furnishing : "",
+        parking: needsStructureFields ? form.parking : "",
         facing: form.facing,
         availableFrom: form.availableFrom,
-        preferredFor: form.preferredFor,
+        preferredFor: isResidentialType ? form.preferredFor : "",
         image: finalImage,
         galleryImages: finalGalleryImages.length ? finalGalleryImages : [finalImage],
         video: finalVideo || "",
@@ -980,10 +996,11 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
             </div>
 
             {/* Bedrooms */}
+            {needsBedrooms && (
             <div>
               <AdminFormField
                 label="Bedrooms (BHK)"
-                required={!CATEGORIES_BY_TYPE[form.type]}
+                required
                 error={errors.beds}
               >
                 <select
@@ -1001,7 +1018,26 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
                 </select>
               </AdminFormField>
             </div>
+            )}
 
+            {/* Halls */}
+            {needsBedrooms && (
+            <div>
+              <AdminFormField label="No. of Halls" required error={errors.halls}>
+                <input
+                  type="number"
+                  min="1"
+                  value={form.halls}
+                  onChange={(e) => update("halls", e.target.value)}
+                  placeholder="e.g. 1"
+                  className={adminInputClass}
+                />
+              </AdminFormField>
+            </div>
+            )}
+
+            {needsStructureFields && (
+            <>
             {/* Bathrooms */}
             <div>
               <AdminFormField label="Bathrooms (Baths)" required error={errors.baths}>
@@ -1083,6 +1119,8 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
                 </div>
               </AdminFormField>
             </div>
+            </>
+            )}
 
             {/* Facing */}
             <div>
@@ -1115,6 +1153,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
             </div>
 
             {/* Preferred For (Rent) */}
+            {isResidentialType && (
             <div>
               <AdminFormField label="Preferred Tenant / Buyer">
                 <select
@@ -1131,6 +1170,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
                 </select>
               </AdminFormField>
             </div>
+            )}
           </div>
         </FormSection>
 

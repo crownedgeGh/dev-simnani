@@ -11,7 +11,7 @@ import { PROPERTY_CATEGORIES } from "@/lib/propertyCategories";
 import FileUpload from "./FileUpload";
 import PasswordFields from "./PasswordFields";
 import SearchableSelect from "./SearchableSelect";
-import { inputClass, selectClass } from "./inputStyles";
+import { inputClass } from "./inputStyles";
 import { formatMobile, isMobileValid, isPasswordValid, generateAccountId } from "@/lib/auth";
 import { RTO_STATES, getCitiesForState } from "@/lib/cityRto";
 import { useAuth } from "@/context/AuthContext";
@@ -27,8 +27,6 @@ const STEP_LABELS = [
   "Professional Verification",
   "Review & Submit",
 ];
-
-const EXPERIENCE_OPTIONS = ["0 - 2 Years", "3 - 5 Years", "6 - 10 Years", "10+ Years"];
 
 const APPLICANT_TYPES = [
   { value: "individual", label: "Individual" },
@@ -92,6 +90,7 @@ export default function BrokerRegistrationWizard() {
       state: authUser.state || prev.state,
       city: authUser.city || prev.city,
       dealsClosed: authUser.dealsClosed !== undefined && authUser.dealsClosed !== null ? String(authUser.dealsClosed) : prev.dealsClosed,
+      experience: authUser.experience !== undefined && authUser.experience !== null ? String(authUser.experience) : prev.experience,
     }));
     setStep(Math.min(Math.max(resumeStep, 1), TOTAL_STEPS));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -119,8 +118,12 @@ export default function BrokerRegistrationWizard() {
 
   async function goNext() {
     if (step === 1) {
-      if (!form.fullName.trim() || !isMobileValid(form.mobile) || !form.email.trim() || !form.state || !form.city) {
+      if (!form.fullName.trim() || !isMobileValid(form.mobile) || !form.email.trim() || !form.state || !form.city || !form.experience) {
         setError("Please fill in all required fields.");
+        return;
+      }
+      if (isNaN(Number(form.experience)) || Number(form.experience) < 0) {
+        setError("Please enter a valid non-negative number of years of experience.");
         return;
       }
       if (form.dealsClosed !== "" && (isNaN(Number(form.dealsClosed)) || Number(form.dealsClosed) < 0)) {
@@ -150,6 +153,7 @@ export default function BrokerRegistrationWizard() {
             state: form.state,
             city: form.city,
             dealsClosed: dealsClosedNum,
+            experience: Number(form.experience),
             password: form.password,
             accountType: ACCOUNT_TYPE,
             accountId: id,
@@ -174,6 +178,7 @@ export default function BrokerRegistrationWizard() {
             state: form.state,
             city: form.city,
             dealsClosed: dealsClosedNum,
+            experience: Number(form.experience),
             registrationStep: 2,
           });
           if (!result?.success) throw new Error(result?.error || "Something went wrong. Please try again.");
@@ -193,7 +198,6 @@ export default function BrokerRegistrationWizard() {
       if (form.applicantType === "company") {
         if (
           !form.agencyName.trim() ||
-          !form.experience ||
           !form.officeAddress.trim() ||
           !form.operatingAreas.trim() ||
           form.specialties.length === 0
@@ -201,9 +205,6 @@ export default function BrokerRegistrationWizard() {
           setError("Please fill in all required fields.");
           return;
         }
-      } else if (!form.experience) {
-        setError("Please fill in all required fields.");
-        return;
       }
     }
     if (step === 3) {
@@ -253,7 +254,6 @@ export default function BrokerRegistrationWizard() {
       const result = await updateProfile({
         applicantType: form.applicantType,
         agencyName: form.agencyName,
-        experience: form.experience,
         officeAddress: form.officeAddress,
         operatingAreas: form.operatingAreas,
         specialties: form.specialties,
@@ -355,6 +355,18 @@ export default function BrokerRegistrationWizard() {
             </FormField>
           </div>
 
+          <FormField label="Years of Experience" htmlFor="experience" required>
+            <input
+              id="experience"
+              type="number"
+              min="0"
+              placeholder="e.g. 5"
+              value={form.experience}
+              onChange={(e) => update("experience", e.target.value)}
+              className={inputClass}
+            />
+          </FormField>
+
           <FormField label="Deals Closed" htmlFor="dealsClosed" optional hint="Number of deals successfully closed so far">
             <input
               id="dealsClosed"
@@ -402,22 +414,6 @@ export default function BrokerRegistrationWizard() {
                 />
               </FormField>
 
-              <FormField label="Years of Experience" htmlFor="experience" required>
-                <select
-                  id="experience"
-                  value={form.experience}
-                  onChange={(e) => update("experience", e.target.value)}
-                  className={selectClass}
-                >
-                  <option value="">Select experience range</option>
-                  {EXPERIENCE_OPTIONS.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
-                  ))}
-                </select>
-              </FormField>
-
               <FormField label="Primary Office Address" htmlFor="officeAddress" required>
                 <input
                   id="officeAddress"
@@ -454,24 +450,6 @@ export default function BrokerRegistrationWizard() {
                 />
               </FormField>
             </>
-          )}
-
-          {form.applicantType === "individual" && (
-            <FormField label="Years of Experience" htmlFor="experience" required>
-              <select
-                id="experience"
-                value={form.experience}
-                onChange={(e) => update("experience", e.target.value)}
-                className={selectClass}
-              >
-                <option value="">Select experience range</option>
-                {EXPERIENCE_OPTIONS.map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt}
-                  </option>
-                ))}
-              </select>
-            </FormField>
           )}
         </div>
       )}
@@ -560,6 +538,7 @@ export default function BrokerRegistrationWizard() {
               <ReviewItem label="Email" value={form.email} />
               <ReviewItem label="State" value={form.state} />
               <ReviewItem label="City" value={form.city} />
+              <ReviewItem label="Years of Experience" value={form.experience} />
               <ReviewItem label="Deals Closed" value={form.dealsClosed !== "" ? form.dealsClosed : "0"} />
             </div>
           </div>
@@ -586,7 +565,6 @@ export default function BrokerRegistrationWizard() {
                   />
                 </>
               )}
-              <ReviewItem label="Experience" value={form.experience} />
             </div>
           </div>
 

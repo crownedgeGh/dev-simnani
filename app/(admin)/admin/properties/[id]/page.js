@@ -44,7 +44,13 @@ import AdminConfirmModal from "@/components/admin/ui/AdminConfirmModal";
 import PropertyFormDialog from "@/components/admin/properties/PropertyFormDialog";
 import adminAxios from "@/lib/adminAxios";
 import { ADMIN_KEYS, readCollection } from "@/lib/adminStorage";
-import { formatPostedDate, formatBhkLabel } from "@/lib/properties";
+import {
+  formatPostedDate,
+  formatBhkLabel,
+  CATEGORIES_BY_TYPE,
+  isStructureCategory,
+  categoryHasBedrooms,
+} from "@/lib/properties";
 import { getPropertyDescription } from "@/lib/propertyContent";
 import BlurredImageFrame from "@/components/property/BlurredImageFrame";
 
@@ -186,16 +192,25 @@ export default function PropertyDetailPage() {
   }
 
   const isInvest = property.type === "invest";
+  // Category-aware: bare land (e.g. Agricultural Land, Plantation Farming)
+  // has no structure, so floor/furnishing/parking/bathrooms don't apply,
+  // and only Farmhouse/Apartments-style categories have bedrooms & halls.
+  const isStructural = isStructureCategory(property.type, property.category);
+  const hasBedrooms = categoryHasBedrooms(property.type, property.category);
+  const isResidentialListing = !CATEGORIES_BY_TYPE[property.type];
 
   const features = [
-    property.parking?.toLowerCase() === "yes" && {
-      icon: <MdLocalParking />,
-      label: "Parking Available",
-    },
-    property.furnishing && property.furnishing !== "Unfurnished" && {
-      icon: <MdWeekend />,
-      label: property.furnishing,
-    },
+    isStructural &&
+      property.parking?.toLowerCase() === "yes" && {
+        icon: <MdLocalParking />,
+        label: "Parking Available",
+      },
+    isStructural &&
+      property.furnishing &&
+      property.furnishing !== "Unfurnished" && {
+        icon: <MdWeekend />,
+        label: property.furnishing,
+      },
   ].filter(Boolean);
 
   return (
@@ -237,10 +252,15 @@ export default function PropertyDetailPage() {
               <Stat icon={<MdTrendingUp />} label="Est. Return" value={property.roi} />
             ) : (
               <>
-                {property.beds > 0 && (
+                {hasBedrooms && property.beds > 0 && (
                   <Stat icon={<MdBed />} label="BHK" value={formatBhkLabel(property.beds, property.bedsPlus)} />
                 )}
-                {property.baths > 0 && <Stat icon={<MdBathtub />} label="Bathrooms" value={property.baths} />}
+                {hasBedrooms && property.halls > 0 && (
+                  <Stat icon={<MdWeekend />} label="Halls" value={property.halls} />
+                )}
+                {isStructural && property.baths > 0 && (
+                  <Stat icon={<MdBathtub />} label="Bathrooms" value={property.baths} />
+                )}
                 {property.area && <Stat icon={<MdSquareFoot />} label="Area" value={property.area} />}
                 <Stat icon={<MdCategory />} label="Type" value={property.type} />
               </>
@@ -286,17 +306,33 @@ export default function PropertyDetailPage() {
                 { icon: <MdMap />, label: "Locality", value: property.locality },
                 { icon: <MdPlace />, label: "Landmark", value: property.landmark },
                 { icon: <MdHome />, label: "Address", value: property.address },
-                { icon: <MdLayers />, label: "Floor No.", value: property.floorNo },
-                { icon: <MdStairs />, label: "Total Floors", value: property.totalFloors },
-                { icon: <MdChair />, label: "Furnishing", value: property.furnishing },
-                { icon: <MdLocalParking />, label: "Parking", value: capitalize(property.parking) },
+                hasBedrooms && {
+                  icon: <MdBed />,
+                  label: "No. of Bedrooms",
+                  value: property.beds > 0 ? formatBhkLabel(property.beds, property.bedsPlus) : "",
+                },
+                hasBedrooms && {
+                  icon: <MdWeekend />,
+                  label: "No. of Halls",
+                  value: property.halls > 0 ? property.halls : "",
+                },
+                isStructural && {
+                  icon: <MdBathtub />,
+                  label: "No. of Bathrooms",
+                  value: property.baths > 0 ? property.baths : "",
+                },
+                isStructural && { icon: <MdLayers />, label: "Floor No.", value: property.floorNo },
+                isStructural && { icon: <MdStairs />, label: "Total Floors", value: property.totalFloors },
+                isStructural && { icon: <MdChair />, label: "Furnishing", value: property.furnishing },
+                isStructural && { icon: <MdLocalParking />, label: "Parking", value: capitalize(property.parking) },
                 { icon: <MdExplore />, label: "Facing", value: property.facing },
                 { icon: <MdEvent />, label: "Available From", value: property.availableFrom },
-                { icon: <MdGroup />, label: "Preferred For", value: property.preferredFor },
+                isResidentialListing && { icon: <MdGroup />, label: "Preferred For", value: property.preferredFor },
                 { icon: <MdAccessTime />, label: "Posted", value: formatPostedDate(property) || property.addedDate },
                 { icon: <MdPerson />, label: "Contact Person", value: property.contact?.fullName },
                 { icon: <MdPhone />, label: "Contact Number", value: property.contact?.mobile },
               ]
+                .filter(Boolean)
                 .filter((row) => row.value !== undefined && row.value !== null && row.value !== "")
                 .map(({ icon, label, value }) => (
                   <div

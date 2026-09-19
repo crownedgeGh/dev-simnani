@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Property from "@/models/Property";
-import { getLocationCity } from "@/lib/properties";
+import { getLocationCity, isStructureCategory, categoryHasBedrooms } from "@/lib/properties";
 import { getSessionUser } from "@/lib/session";
-
-const NO_BHK_TYPES = ["commercial", "farming", "industrial", "invest"];
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -89,8 +87,11 @@ export async function POST(request) {
 
     const body = await request.json();
 
-    const baths = Number(body.baths);
-    if (!baths || baths < 1) {
+    const needsStructureFields = isStructureCategory(body.type, body.category);
+    const needsBedrooms = categoryHasBedrooms(body.type, body.category);
+
+    const baths = Number(body.baths) || 0;
+    if (needsStructureFields && baths < 1) {
       return NextResponse.json(
         { success: false, error: "Number of bathrooms is required" },
         { status: 400 }
@@ -98,9 +99,17 @@ export async function POST(request) {
     }
 
     const beds = Number(body.beds) || 0;
-    if (!NO_BHK_TYPES.includes(body.type) && beds < 1) {
+    if (needsBedrooms && beds < 1) {
       return NextResponse.json(
         { success: false, error: "Number of bedrooms (BHK) is required" },
+        { status: 400 }
+      );
+    }
+
+    const halls = Number(body.halls) || 0;
+    if (needsBedrooms && halls < 1) {
+      return NextResponse.json(
+        { success: false, error: "Number of halls is required" },
         { status: 400 }
       );
     }
@@ -114,6 +123,7 @@ export async function POST(request) {
       city,
       beds,
       bedsPlus: Boolean(body.bedsPlus),
+      halls,
       baths,
       ownerId: sessionUser.accountId,
       addedDate:
