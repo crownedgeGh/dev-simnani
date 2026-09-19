@@ -7,9 +7,7 @@ const COLUMNS = [
     title: "Company",
     links: [
       { label: "About Us", href: "/about" },
-      { label: "Contact Us", href: "#" },
-      { label: "Careers", href: "#" },
-      { label: "Partner With Us", href: "#" },
+      { label: "Contact Us", href: "/request-callback" },
     ],
   },
   {
@@ -19,16 +17,8 @@ const COLUMNS = [
       { label: "Rent", href: "/rent" },
       { label: "Sell", href: "/sell" },
       { label: "Invest", href: "/invest" },
-      { label: "Project Management", href: "/" },
-    ],
-  },
-  {
-    title: "Resources",
-    links: [
-      { label: "Property Guides", href: "#" },
-      { label: "Market Trends", href: "#" },
-      { label: "Real Estate News", href: "#" },
-      { label: "Investment Insights", href: "#" },
+      { label: "Projects", href: "/projects" },
+      { label: "Services", href: "/services" },
     ],
   },
   {
@@ -65,7 +55,7 @@ export default function Footer() {
   return (
     <footer className="border-t border-navy-700/60 bg-navy-950">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div className="lg:col-span-1">
             <span className="relative block h-12 w-[206px]">
               <Image
