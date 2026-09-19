@@ -142,7 +142,6 @@ async function getBuyerSnapshot(accountId, user) {
 // values on lib/properties.js listings, so they're mapped to the closest
 // browsable equivalent.
 const PROPERTY_TYPE_ALIASES = {
-  "seized-property": "seized",
   "company-project": "invest",
 };
 

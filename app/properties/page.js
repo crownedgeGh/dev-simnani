@@ -38,7 +38,7 @@ const CATEGORIES = [
   {
     label: "Seized Property",
     href: "/seized-property",
-    type: "seized",
+    type: "seized-property",
     icon: MdGavel,
     description: "Bank-auctioned & SARFAESI listings",
   },

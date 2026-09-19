@@ -7,7 +7,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { getAccountPermissions } from "@/lib/accountPermissions";
 import AuthGateModal from "@/components/auth/AuthGateModal";
-import { MdTrendingUp, MdPersonAdd, MdAgriculture, MdFactory, MdScience, MdWorkspacePremium, MdStar } from "react-icons/md";
+import { MdHome, MdTrendingUp, MdPersonAdd, MdAgriculture, MdFactory, MdScience, MdWorkspacePremium, MdStar } from "react-icons/md";
 import {
   FiUser, FiPlus, FiMenu, FiX,
   FiList, FiBookmark, FiSettings, FiLogOut, FiHelpCircle, FiInfo,
@@ -22,6 +22,7 @@ const TEST_MODE_CP_OPTIONS = [
 ];
 
 const NAV_LINKS = [
+  { label: "Home", href: "/", icon: MdHome },
   { label: "Properties", href: "/properties", icon: BiBuildingHouse, matchPaths: ["/properties", "/buy", "/rent", "/sell", "/lease", "/seized-property", "/property"] },
   { label: "Invest", href: "/invest", icon: MdTrendingUp },
   { label: "Commercial", href: "/commercial", icon: BiBuildings },

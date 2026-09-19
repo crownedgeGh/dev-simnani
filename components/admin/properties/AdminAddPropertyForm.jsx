@@ -577,7 +577,10 @@ export default function AdminAddPropertyForm() {
                 >
                   {PLATFORM_TYPES.map((t) => (
                     <option key={t} value={t}>
-                      {t.charAt(0).toUpperCase() + t.slice(1)}
+                      {t
+                        .split("-")
+                        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                        .join(" ")}
                     </option>
                   ))}
                 </select>

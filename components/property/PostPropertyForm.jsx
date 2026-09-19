@@ -40,6 +40,7 @@ const SECTION_OPTIONS = [
   { value: "farming", label: "Farming Land" },
   { value: "industrial", label: "Industrial" },
   { value: "invest", label: "Investment Property" },
+  { value: "seized-property", label: "Seized Property" },
 ];
 
 const PROPERTY_TYPES = ["Flat", "House", "Shop", "Plot", "Office", "Warehouse"];

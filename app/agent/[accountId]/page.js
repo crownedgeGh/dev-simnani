@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { MdVerified } from "react-icons/md";
+import { MdVerified, MdLocationOn } from "react-icons/md";
 import { BiBuildingHouse } from "react-icons/bi";
 import { getBrokerByAccountId } from "@/lib/brokersServer";
 import { getPropertiesByOwnerId } from "@/lib/propertiesServer";
@@ -46,11 +46,11 @@ export default async function AgentProfilePage({ params }) {
         </h1>
       </div>
 
-      <div className="mt-8 rounded-sm border border-navy-700/60 bg-navy-900 p-6 sm:p-8">
-        <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-4">
+      <div className="mt-8 rounded-sm border border-navy-700/60 bg-navy-900 p-6 sm:p-8 lg:p-10">
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between sm:gap-8">
+          <div className="flex items-center gap-4 sm:items-start">
             <div
-              className="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-full font-display text-xl text-gold-400"
+              className="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-full font-display text-xl text-gold-400 sm:h-20 sm:w-20 sm:text-2xl"
               style={{
                 background: "radial-gradient(circle, rgba(255,198,51,0.15) 0%, rgba(255,198,51,0.04) 100%)",
                 border: "1.5px solid rgba(255,198,51,0.5)",
@@ -61,7 +61,7 @@ export default async function AgentProfilePage({ params }) {
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
-                <p className="font-display text-xl text-cream">{broker.fullName}</p>
+                <p className="font-display text-xl text-cream sm:text-2xl">{broker.fullName}</p>
                 <MdVerified className="shrink-0 text-gold-400" size={18} />
               </div>
               <p className="text-sm text-muted">
@@ -73,11 +73,17 @@ export default async function AgentProfilePage({ params }) {
                   {broker.agencyName}
                 </p>
               )}
+              {broker.officeAddress && (
+                <p className="mt-1 hidden max-w-sm items-start gap-1.5 text-sm text-muted sm:flex">
+                  <MdLocationOn className="mt-0.5 shrink-0 text-gold-400" size={15} />
+                  <span>{broker.officeAddress}</span>
+                </p>
+              )}
             </div>
           </div>
 
-          <div className="flex items-center gap-6 sm:gap-8">
-            <div>
+          <div className="flex items-center gap-6 sm:shrink-0 sm:gap-0 sm:divide-x sm:divide-navy-700/60 sm:rounded-sm sm:border sm:border-navy-700/60 sm:bg-navy-950/40">
+            <div className="sm:px-6 sm:py-3 sm:text-center">
               <p className="font-display text-lg text-gold-400">
                 {broker.experience
                   ? `${broker.experience} ${Number(broker.experience) === 1 ? "Year" : "Years"}`
@@ -85,18 +91,18 @@ export default async function AgentProfilePage({ params }) {
               </p>
               <p className="text-[11px] text-muted">Experience</p>
             </div>
-            <div>
+            <div className="sm:px-6 sm:py-3 sm:text-center">
               <p className="font-display text-lg text-gold-400">{broker.dealsClosed ?? 0}</p>
               <p className="text-[11px] text-muted">Deals Closed</p>
             </div>
-            <div>
+            <div className="sm:px-6 sm:py-3 sm:text-center">
               <p className="font-display text-lg text-gold-400">{broker.propertiesListed ?? 0}</p>
               <p className="text-[11px] text-muted">Properties Listed</p>
             </div>
           </div>
         </div>
 
-        <div className="mt-2 sm:max-w-xs">
+        <div className="mt-2 sm:mt-8 sm:max-w-xs">
           <CallNowButton mobile={broker.mobile} />
         </div>
       </div>

@@ -119,7 +119,14 @@ export default function PropertyFormDialog({ isOpen, onClose, property, onSave }
             onChange={(e) => setForm((prev) => ({ ...prev, type: e.target.value, category: "" }))}
             className={adminSelectClass}
           >
-            {PROPERTY_TYPES.map((t) => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
+            {PROPERTY_TYPES.map((t) => (
+              <option key={t} value={t}>
+                {t
+                  .split("-")
+                  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                  .join(" ")}
+              </option>
+            ))}
           </select>
         </AdminFormField>
 

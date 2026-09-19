@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { FiEdit3, FiAlertCircle, FiZap } from "react-icons/fi";
+import { FiEdit3, FiAlertCircle, FiZap, FiArrowUpCircle } from "react-icons/fi";
 import { MdStar, MdWorkspacePremium } from "react-icons/md";
 import Badge from "./Badge";
 import SectionCard from "./SectionCard";
@@ -105,6 +105,15 @@ export default function AccountProfile({ user }) {
             <div className="flex flex-wrap items-center gap-2">
               <Badge tone="gold">{displayRole}</Badge>
               {authUser?.accountType === "broker" && <PlanBadge user={authUser} />}
+              {authUser?.accountType === "broker" && authUser?.plan !== "premium" && (
+                <Link
+                  href="/pricing"
+                  className="tracked-label ml-1 flex items-center gap-1.5 bg-gold-400 px-3 py-1.5 text-[11px] text-navy-950 transition hover:bg-gold-300"
+                >
+                  <FiArrowUpCircle className="h-3.5 w-3.5" />
+                  Upgrade Plan
+                </Link>
+              )}
             </div>
           </div>
           {!editing && (
