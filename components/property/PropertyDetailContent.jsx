@@ -1,6 +1,5 @@
 import {
   formatPostedDate,
-  formatBhkLabel,
   CATEGORIES_BY_TYPE,
   isStructureCategory,
   categoryHasBedrooms,
@@ -55,7 +54,7 @@ export default function PropertyDetailContent({ property, eyebrow, sidebar, back
     hasBedrooms && {
       icon: <MdBed />,
       label: "No. of Bedrooms",
-      value: property.beds > 0 ? formatBhkLabel(property.beds, property.bedsPlus) : "",
+      value: property.beds > 0 ? property.beds : "",
     },
     hasBedrooms && {
       icon: <MdWeekend />,
@@ -122,7 +121,7 @@ export default function PropertyDetailContent({ property, eyebrow, sidebar, back
             ) : (
               <>
                 {hasBedrooms && property.beds > 0 && (
-                  <Stat icon={<MdBed />} label="BHK" value={formatBhkLabel(property.beds, property.bedsPlus)} />
+                  <Stat icon={<MdBed />} label="No. of Bedrooms" value={property.beds} />
                 )}
                 {hasBedrooms && property.halls > 0 && (
                   <Stat icon={<MdWeekend />} label="Halls" value={property.halls} />
