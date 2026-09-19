@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { BiBuildingHouse } from "react-icons/bi";
 import { MdVerified } from "react-icons/md";
 import { getFeaturedBrokers } from "@/lib/brokersServer";
@@ -117,6 +118,7 @@ export default async function FeaturedBrokers() {
                 }}
               />
 
+              <Link href={`/agent/${broker.accountId}`} className="flex flex-col">
               {/* Broker info */}
               <div className="flex items-center gap-3">
                 <BrokerAvatar name={broker.fullName} />
@@ -151,7 +153,9 @@ export default async function FeaturedBrokers() {
               >
                 <div>
                   <p className="font-display text-base sm:text-lg text-gold-400">
-                    {broker.experience || "—"}
+                    {broker.experience
+                      ? `${broker.experience} ${Number(broker.experience) === 1 ? "Year" : "Years"}`
+                      : "—"}
                   </p>
                   <p className="text-[11px] text-muted">Experience</p>
                 </div>
@@ -165,9 +169,10 @@ export default async function FeaturedBrokers() {
                   <p className="font-display text-base sm:text-lg text-gold-400">
                     {broker.propertiesListed ?? 0}
                   </p>
-                  <p className="text-[11px] text-muted">Properties</p>
+                  <p className="text-[11px] text-muted">Properties Listed</p>
                 </div>
               </div>
+              </Link>
 
               <CallNowButton mobile={broker.mobile} />
             </div>
