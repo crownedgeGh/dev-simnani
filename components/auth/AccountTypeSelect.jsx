@@ -51,9 +51,9 @@ const TEST_MODE_DIRECT_OPTIONS = [
   {
     key: "buyer",
     label: "Buyer",
-    description: "Skip the form — go straight to the Buyer dashboard.",
+    description: "Skip the form — go straight to the home page.",
     Icon: MdHome,
-    href: "/portal/buyer",
+    href: "/",
     profile: {
       fullName: "Test Buyer",
       mobile: "90000 00003",

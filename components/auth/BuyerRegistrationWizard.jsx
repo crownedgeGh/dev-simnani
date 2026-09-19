@@ -160,7 +160,7 @@ export default function BuyerRegistrationWizard() {
       await updateProfile({ registrationStep: step });
     }
     clearDraft();
-    router.push("/account");
+    router.push("/");
   }
 
   async function handleSubmit() {
@@ -180,7 +180,7 @@ export default function BuyerRegistrationWizard() {
       });
       if (!result?.success) throw new Error(result?.error || "Something went wrong. Please try again.");
       clearDraft();
-      router.push("/buy");
+      router.push("/");
     } catch (err) {
       setError(err.message || "Something went wrong. Please try again.");
     } finally {
