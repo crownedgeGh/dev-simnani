@@ -29,7 +29,7 @@ export default function AboutPage() {
       <div className="flex items-center gap-3">
         <BackButton />
         <h1 className="font-display text-3xl text-cream sm:text-4xl">
-          About
+          About Us
         </h1>
       </div>
 
