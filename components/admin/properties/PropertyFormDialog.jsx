@@ -4,7 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import AdminDialog from "@/components/admin/ui/AdminDialog";
 import AdminFormField, { adminInputClass, adminSelectClass, adminTextareaClass } from "@/components/admin/ui/AdminFormField";
-import { getLocationCity, CATEGORIES_BY_TYPE, isStructureCategory, categoryHasBedrooms } from "@/lib/properties";
+import { getLocationCity, CATEGORIES_BY_TYPE, isStructureCategory, categoryHasBedrooms, isPgOrHostel } from "@/lib/properties";
 
 const PROPERTY_TYPES = ["buy", "sell", "rent", "invest", "commercial", "farming", "industrial", "lease", "seized-property"];
 const STATUSES = ["Active", "Pending Review", "Rejected"];
@@ -18,6 +18,7 @@ const EMPTY_FORM = {
   beds: "",
   halls: "",
   baths: "",
+  bathroomType: "",
   area: "",
   image: "",
   status: "Active",
@@ -39,8 +40,9 @@ export default function PropertyFormDialog({ isOpen, onClose, property, onSave }
 
   const set = (key, val) => setForm((prev) => ({ ...prev, [key]: val }));
 
-  const needsStructureFields = isStructureCategory(form.type, form.category);
-  const needsBedrooms = categoryHasBedrooms(form.type, form.category);
+  const isPgHostel = isPgOrHostel(form.propertyType);
+  const needsStructureFields = isStructureCategory(form.type, form.category) && !isPgHostel;
+  const needsBedrooms = categoryHasBedrooms(form.type, form.category, form.propertyType);
 
   const validate = () => {
     const errs = {};

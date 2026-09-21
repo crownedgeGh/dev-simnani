@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Property from "@/models/Property";
-import { getLocationCity, isStructureCategory, categoryHasBedrooms } from "@/lib/properties";
+import { getLocationCity, isStructureCategory, categoryHasBedrooms, isPgOrHostel } from "@/lib/properties";
 import { getPropertyById } from "@/lib/propertiesServer";
 import { getSessionUser } from "@/lib/session";
 
@@ -68,7 +68,8 @@ export async function PUT(request, { params }) {
     const effectiveType = updateData.type ?? existing.type;
     const effectiveCategory = updateData.category ?? existing.category;
     const effectivePropertyType = updateData.propertyType ?? existing.propertyType;
-    const needsStructureFields = isStructureCategory(effectiveType, effectiveCategory);
+    const isPgHostel = isPgOrHostel(effectivePropertyType);
+    const needsStructureFields = isStructureCategory(effectiveType, effectiveCategory) && !isPgHostel;
     const needsBedrooms = categoryHasBedrooms(effectiveType, effectiveCategory, effectivePropertyType);
 
     if (updateData.beds !== undefined) {

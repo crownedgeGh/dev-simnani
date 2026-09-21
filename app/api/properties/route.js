@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Property from "@/models/Property";
-import { getLocationCity, isStructureCategory, categoryHasBedrooms } from "@/lib/properties";
+import { getLocationCity, isStructureCategory, categoryHasBedrooms, isPgOrHostel } from "@/lib/properties";
 import { getSessionUser } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
@@ -87,13 +87,21 @@ export async function POST(request) {
 
     const body = await request.json();
 
-    const needsStructureFields = isStructureCategory(body.type, body.category);
+    const isPgHostel = isPgOrHostel(body.propertyType);
+    const needsStructureFields = isStructureCategory(body.type, body.category) && !isPgHostel;
     const needsBedrooms = categoryHasBedrooms(body.type, body.category, body.propertyType);
 
     const baths = Number(body.baths) || 0;
     if (needsStructureFields && baths < 1) {
       return NextResponse.json(
         { success: false, error: "Number of bathrooms is required" },
+        { status: 400 }
+      );
+    }
+
+    if (isPgHostel && !body.bathroomType) {
+      return NextResponse.json(
+        { success: false, error: "Bathroom type is required for PG / Hostel" },
         { status: 400 }
       );
     }

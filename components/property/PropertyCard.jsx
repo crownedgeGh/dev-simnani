@@ -172,11 +172,18 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
                   {emphasizeDetails ? formatBhkLabel(beds, bedsPlus) : `${beds} Beds`}
                 </span>
               )}
-              {!emphasizeDetails && baths > 0 && (
-                <span className="flex items-center gap-1">
-                  <MdBathtub className="h-3.5 w-3.5 shrink-0" />
-                  {baths} Baths
-                </span>
+              {!emphasizeDetails && (
+                property.bathroomType ? (
+                  <span className="flex items-center gap-1">
+                    <MdBathtub className="h-3.5 w-3.5 shrink-0" />
+                    {property.bathroomType.includes("Attach") ? "Attached Bath" : "Common Bath"}
+                  </span>
+                ) : baths > 0 ? (
+                  <span className="flex items-center gap-1">
+                    <MdBathtub className="h-3.5 w-3.5 shrink-0" />
+                    {baths} Baths
+                  </span>
+                ) : null
               )}
               <span
                 className={`flex items-center gap-1 ${

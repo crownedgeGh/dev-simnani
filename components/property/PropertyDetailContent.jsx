@@ -4,6 +4,8 @@ import {
   isStructureCategory,
   categoryHasBedrooms,
   getGenderPreferenceLabel,
+  getBathroomTypeLabel,
+  isPgOrHostel,
 } from "@/lib/properties";
 import { getPropertyDescription } from "@/lib/propertyContent";
 import PropertyMediaCarousel from "@/components/property/PropertyMediaCarousel";
@@ -63,7 +65,12 @@ export default function PropertyDetailContent({ property, eyebrow, sidebar, back
       label: "No. of Halls",
       value: property.halls > 0 ? property.halls : "",
     },
-    isStructural && {
+    property.bathroomType && {
+      icon: <MdBathtub />,
+      label: "Bathroom",
+      value: getBathroomTypeLabel(property.bathroomType),
+    },
+    isStructural && !isPgOrHostel(property.propertyType) && {
       icon: <MdBathtub />,
       label: "No. of Bathrooms",
       value: property.baths > 0 ? property.baths : "",
@@ -134,9 +141,11 @@ export default function PropertyDetailContent({ property, eyebrow, sidebar, back
                 {hasBedrooms && property.halls > 0 && (
                   <Stat icon={<MdWeekend />} label="Halls" value={property.halls} />
                 )}
-                {isStructural && property.baths > 0 && (
+                {property.bathroomType ? (
+                  <Stat icon={<MdBathtub />} label="Bathroom" value={getBathroomTypeLabel(property.bathroomType)} />
+                ) : isStructural && property.baths > 0 ? (
                   <Stat icon={<MdBathtub />} label="Bathrooms" value={property.baths} />
-                )}
+                ) : null}
                 <Stat icon={<MdSquareFoot />} label="Area" value={property.area} />
                 <Stat icon={<MdCategory />} label="Type" value={property.type} />
               </>

@@ -23,6 +23,7 @@ import {
   CATEGORIES_BY_TYPE,
   isPgOrHostel,
   GENDER_PREFERENCE_OPTIONS,
+  PG_HOSTEL_BATHROOM_OPTIONS,
   getFieldProfile,
 } from "@/lib/properties";
 import { uploadFileToR2, uploadFilesToR2 } from "@/lib/uploadToR2";
@@ -129,6 +130,7 @@ const INITIAL_FORM = {
   availableFrom: "",
   preferredFor: "",
   genderPreference: "",
+  bathroomType: "",
   description: "",
   photos: [],
   video: null,
@@ -203,6 +205,7 @@ export default function PostPropertyForm({ editId }) {
           availableFrom: p.availableFrom || "",
           preferredFor: p.preferredFor || "",
           genderPreference: p.genderPreference || "",
+          bathroomType: p.bathroomType || "",
           description: p.description || "",
           photos: [
             ...(p.image ? [{ type: "existing", url: p.image }] : []),
@@ -258,6 +261,7 @@ export default function PostPropertyForm({ editId }) {
       if (field === "propertyType") {
         if (!isPgOrHostel(value)) {
           next.genderPreference = "";
+          next.bathroomType = "";
         }
       }
       if (field === "state") {
@@ -317,6 +321,7 @@ export default function PostPropertyForm({ editId }) {
       { id: "areaSize", invalid: !form.areaSize },
       { id: "photos", invalid: !form.photos.length },
       ...(isPgHostelType ? [{ id: "genderPreference", invalid: !form.genderPreference }] : []),
+      ...(isPgHostelType ? [{ id: "bathroomType", invalid: !form.bathroomType }] : []),
       ...(showBedsHallsFields ? [{ id: "beds", invalid: !form.beds || Number(form.beds) < 1 }] : []),
       ...(showBedsHallsFields ? [{ id: "halls", invalid: !form.halls || Number(form.halls) < 1 }] : []),
       ...(showBathsField ? [{ id: "baths", invalid: !form.baths || Number(form.baths) < 1 }] : []),
@@ -418,6 +423,7 @@ export default function PostPropertyForm({ editId }) {
         availableFrom: form.availableFrom || "",
         preferredFor: showPreferredForField ? form.preferredFor || "" : "",
         genderPreference: isPgHostelType ? form.genderPreference || "" : "",
+        bathroomType: isPgHostelType ? form.bathroomType || "" : "",
         description: (form.description || "").trim(),
         contact: {
           fullName: (form.fullName || "").trim(),
@@ -737,6 +743,25 @@ export default function PostPropertyForm({ editId }) {
               onChange={(e) => update("baths", e.target.value)}
               className={errClass(`${inputClass} rounded-sm`, "baths")}
             />
+          </FormField>
+        )}
+        {isPgHostelType && (
+          <FormField label="Bathroom" htmlFor="bathroomType" required>
+            <SelectWrap>
+              <select
+                id="bathroomType"
+                value={form.bathroomType}
+                onChange={(e) => update("bathroomType", e.target.value)}
+                className={errClass(`${selectClass} rounded-sm pr-10`, "bathroomType")}
+              >
+                <option value="">Select Bathroom</option>
+                {PG_HOSTEL_BATHROOM_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </SelectWrap>
           </FormField>
         )}
         {showFloorsField && (

@@ -33,6 +33,7 @@ import {
   categoryHasBedrooms,
   isPgOrHostel,
   GENDER_PREFERENCE_OPTIONS,
+  PG_HOSTEL_BATHROOM_OPTIONS,
 } from "@/lib/properties";
 import { uploadFileToR2 } from "@/lib/uploadToR2";
 import BlurredImageFrame from "@/components/property/BlurredImageFrame";
@@ -242,6 +243,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
     availableFrom: "",
     preferredFor: "",
     genderPreference: "",
+    bathroomType: "",
     description: "",
     fullName: "",
     mobile: "",
@@ -307,6 +309,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
       availableFrom: prop.availableFrom || "",
       preferredFor: prop.preferredFor || "",
       genderPreference: prop.genderPreference || "",
+      bathroomType: prop.bathroomType || "",
       description: prop.description || "",
       fullName: prop.contact?.fullName || "Admin Lister",
       mobile: cleanMobile,
@@ -399,6 +402,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
       }
       if (field === "propertyType" && !isPgOrHostel(val)) {
         next.genderPreference = "";
+        next.bathroomType = "";
       }
       return next;
     });
@@ -515,7 +519,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
     if (!form.locality.trim()) errs.locality = "Area / Locality is required";
     if (!form.price || Number(form.price) <= 0) errs.price = "Valid price is required";
     if (!form.areaSize || Number(form.areaSize) <= 0) errs.areaSize = "Area size is required";
-    if (needsStructureFields && (!form.baths || Number(form.baths) < 1))
+    if (needsStructureFields && !isPgHostelType && (!form.baths || Number(form.baths) < 1))
       errs.baths = "Number of bathrooms is required";
     if (needsBedrooms && (!form.beds || Number(form.beds) < 1))
       errs.beds = "Number of bedrooms (BHK) is required";
@@ -523,6 +527,8 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
       errs.halls = "Number of halls is required";
     if (isPgHostelType && !form.genderPreference)
       errs.genderPreference = "Suitable for is required";
+    if (isPgHostelType && !form.bathroomType)
+      errs.bathroomType = "Bathroom type is required";
     if (!form.fullName.trim()) errs.fullName = "Contact name is required";
     const cleanMobile = form.mobile.replace(/\s+/g, "");
     if (!cleanMobile || cleanMobile.length !== 10) {
@@ -604,7 +610,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
         beds: needsBedrooms ? (form.beds === "5+" ? 5 : Number(form.beds)) : 0,
         bedsPlus: needsBedrooms ? form.beds === "5+" : false,
         halls: needsBedrooms ? Number(form.halls) : 0,
-        baths: needsStructureFields ? Number(form.baths) : 0,
+        baths: needsStructureFields && !isPgHostelType ? Number(form.baths) : 0,
         floorNo: needsStructureFields ? form.floorNo : "",
         totalFloors: needsStructureFields && form.totalFloors ? Number(form.totalFloors) : null,
         furnishing: needsStructureFields ? form.furnishing : "",
@@ -613,6 +619,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
         availableFrom: form.availableFrom,
         preferredFor: isResidentialType ? form.preferredFor : "",
         genderPreference: isPgHostelType ? form.genderPreference : "",
+        bathroomType: isPgHostelType ? form.bathroomType : "",
         description: form.description.trim(),
         image: finalImage,
         galleryImages: finalGalleryImages.length ? finalGalleryImages : [finalImage],
@@ -1090,9 +1097,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
             </div>
             )}
 
-            {needsStructureFields && (
-            <>
-            {/* Bathrooms */}
+            {needsStructureFields && !isPgHostelType && (
             <div>
               <AdminFormField label="Bathrooms (Baths)" required error={errors.baths}>
                 <select
@@ -1109,6 +1114,33 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
                 </select>
               </AdminFormField>
             </div>
+            )}
+
+            {isPgHostelType && (
+            <div>
+              <AdminFormField
+                label="Bathroom"
+                required
+                error={errors.bathroomType}
+              >
+                <select
+                  value={form.bathroomType}
+                  onChange={(e) => update("bathroomType", e.target.value)}
+                  className={adminSelectClass}
+                >
+                  <option value="">Select Bathroom</option>
+                  {PG_HOSTEL_BATHROOM_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </AdminFormField>
+            </div>
+            )}
+
+            {needsStructureFields && (
+            <>
 
             {/* Floor Details */}
             <div>

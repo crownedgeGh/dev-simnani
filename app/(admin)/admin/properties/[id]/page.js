@@ -52,6 +52,8 @@ import {
   isStructureCategory,
   categoryHasBedrooms,
   getGenderPreferenceLabel,
+  getBathroomTypeLabel,
+  isPgOrHostel,
 } from "@/lib/properties";
 import { getPropertyDescription } from "@/lib/propertyContent";
 import BlurredImageFrame from "@/components/property/BlurredImageFrame";
@@ -318,7 +320,12 @@ export default function PropertyDetailPage() {
                   label: "No. of Halls",
                   value: property.halls > 0 ? property.halls : "",
                 },
-                isStructural && {
+                property.bathroomType && {
+                  icon: <MdBathtub />,
+                  label: "Bathroom",
+                  value: getBathroomTypeLabel(property.bathroomType),
+                },
+                isStructural && !isPgOrHostel(property.propertyType) && {
                   icon: <MdBathtub />,
                   label: "No. of Bathrooms",
                   value: property.baths > 0 ? property.baths : "",

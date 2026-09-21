@@ -120,6 +120,7 @@ const PropertySchema = new mongoose.Schema(
     availableFrom: { type: String, default: "" },
     preferredFor: { type: String, default: "Anyone" },
     genderPreference: { type: String, default: "" },
+    bathroomType: { type: String, default: "" },
     description: { type: String, default: "", trim: true, maxlength: 800 },
     galleryImages: { type: [String], default: [] },
     video: { type: String, default: "" },
