@@ -549,7 +549,7 @@ export default function Navbar() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileTestModeOpen, setMobileTestModeOpen] = useState(false);
   const [showAuthGate, setShowAuthGate] = useState(false);
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, isLoading, user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const dropdownRef = useRef(null);
@@ -662,7 +662,9 @@ export default function Navbar() {
               </button>
             )}
 
-            {isAuthenticated ? (
+            {isLoading && !isAuthenticated ? (
+              <div className="h-8 w-24 animate-pulse rounded-full bg-navy-900 border border-navy-700/60" />
+            ) : isAuthenticated ? (
               /* ── Authenticated: avatar chip + dropdown ── */
               <div ref={dropdownRef} style={{ position: "relative" }}>
                 <button
@@ -796,7 +798,12 @@ export default function Navbar() {
           >
             {/* Panel header — avatar/name/badge (authenticated) or logo (guest) + close */}
             <div className="flex items-center justify-between border-b border-navy-700/60 px-4 py-3.5">
-              {isAuthenticated ? (
+              {isLoading && !isAuthenticated ? (
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 animate-pulse rounded-full bg-navy-900 border border-navy-700/60" />
+                  <div className="h-4 w-20 animate-pulse rounded bg-navy-900" />
+                </div>
+              ) : isAuthenticated ? (
                 <div className="flex min-w-0 items-center gap-3">
                   <span style={{
                     flexShrink: 0, width: 42, height: 42, borderRadius: "50%",
@@ -934,7 +941,7 @@ export default function Navbar() {
                   />
                 ))}
 
-                {isAuthenticated ? (
+                {isLoading && !isAuthenticated ? null : isAuthenticated ? (
                   <MobileNavRow icon={FiLogOut} label="Sign Out" tone="danger" onClick={handleLogout} />
                 ) : (
                   <>

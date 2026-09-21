@@ -13,18 +13,44 @@ export function AuthProvider({ children }) {
     try {
       const res = await fetch("/api/auth/me");
       const data = res.ok ? await res.json() : null;
-      if (data?.success) {
+      if (data?.success && data.data) {
         setUser(data.data);
         setIsAuthenticated(true);
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.setItem("se_auth_user", JSON.stringify(data.data));
+          } catch {}
+        }
         return data.data;
+      } else if (res?.status === 401 || data?.success === false) {
+        setUser(null);
+        setIsAuthenticated(false);
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.removeItem("se_auth_user");
+          } catch {}
+        }
       }
     } catch {
-      // ignore — leave existing auth state as-is
+      // network/server error — keep cached session if present
     }
     return null;
   }, []);
 
   useEffect(() => {
+    // 1. Immediately hydrate from cached localStorage on client mount (safe from SSR mismatch)
+    try {
+      const saved = localStorage.getItem("se_auth_user");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.accountId) {
+          setUser(parsed);
+          setIsAuthenticated(true);
+        }
+      }
+    } catch {}
+
+    // 2. Validate against server session in background
     let active = true;
     Promise.resolve()
       .then(() => fetchMe())
@@ -60,6 +86,11 @@ export function AuthProvider({ children }) {
     if (!data.success) throw new Error(data.error || "Login failed");
     setUser(data.data);
     setIsAuthenticated(true);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("se_auth_user", JSON.stringify(data.data));
+      } catch {}
+    }
     return data.data;
   }, []);
 
@@ -77,6 +108,11 @@ export function AuthProvider({ children }) {
     if (!data.success) throw new Error(data.error || "Login failed");
     setUser(data.data);
     setIsAuthenticated(true);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("se_auth_user", JSON.stringify(data.data));
+      } catch {}
+    }
     return data.data;
   }, []);
 
@@ -95,6 +131,11 @@ export function AuthProvider({ children }) {
     if (!data.success) throw new Error(data.error || "Login failed");
     setUser(data.data);
     setIsAuthenticated(true);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("se_auth_user", JSON.stringify(data.data));
+      } catch {}
+    }
     return data.data;
   }, []);
 
@@ -106,6 +147,11 @@ export function AuthProvider({ children }) {
     }
     setUser(null);
     setIsAuthenticated(false);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.removeItem("se_auth_user");
+      } catch {}
+    }
   }, []);
 
   /**
@@ -122,7 +168,14 @@ export function AuthProvider({ children }) {
           body: JSON.stringify(patch),
         });
         const data = await res.json();
-        if (data.success) setUser(data.data);
+        if (data.success) {
+          setUser(data.data);
+          if (typeof window !== "undefined") {
+            try {
+              localStorage.setItem("se_auth_user", JSON.stringify(data.data));
+            } catch {}
+          }
+        }
         return data;
       } catch (err) {
         return { success: false, error: err.message || "Failed to update profile" };
@@ -145,6 +198,11 @@ export function AuthProvider({ children }) {
     if (!data.success) throw new Error(data.error || "Failed to reset password");
     setUser(data.data);
     setIsAuthenticated(true);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("se_auth_user", JSON.stringify(data.data));
+      } catch {}
+    }
     return data.data;
   }, []);
 
