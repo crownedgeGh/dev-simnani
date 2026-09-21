@@ -88,15 +88,12 @@ export default function PricingPlans() {
 
         await refreshUser();
 
-        if (plan.id === "free") {
-          toast.success(`You are now a ${plan.name} Member!`, {
-            description: "Start posting properties right away — up to 10 listings, no expiry.",
-          });
-        } else {
-          toast.success(`You are now a ${plan.name} Member!`, {
-            description: "Your purchase request is pending admin approval. We'll activate your plan shortly.",
-          });
-        }
+        toast.success(`You are now a ${plan.name} Member!`, {
+          description:
+            plan.id === "free"
+              ? "Start posting properties right away — up to 10 listings, no expiry."
+              : "Your plan is active — start posting properties right away.",
+        });
       } catch (err) {
         toast.error(err.message || "Something went wrong. Please try again.");
       } finally {

@@ -39,10 +39,9 @@ export async function GET(request) {
 }
 
 // POST /api/subscriptions — purchase a plan. No payment is collected yet
-// (testing period): Free activates immediately, Standard/Premium are
-// created as "Pending" for an admin to approve/hold/reject from
-// /admin/plans. The user's membership badge flips to "pending" right away
-// so the UI can say "You are now a Standard Member" per product ask.
+// (testing period): every plan purchase is auto-approved immediately so
+// the broker gets full access right away. An admin can still Hold or
+// Reject an existing subscription from /admin/plans.
 export async function POST(request) {
   try {
     const sessionUser = await getSessionUser(request);
@@ -77,10 +76,8 @@ export async function POST(request) {
 
     await dbConnect();
 
-    const isFree = plan.id === "free";
-    const status = isFree ? "Approved" : "Pending";
-    const expiresAt =
-      isFree || !plan.validityMonths ? null : addMonths(new Date(), plan.validityMonths);
+    const status = "Approved";
+    const expiresAt = !plan.validityMonths ? null : addMonths(new Date(), plan.validityMonths);
 
     const subscription = await Subscription.create({
       accountId: sessionUser.accountId,
@@ -92,8 +89,8 @@ export async function POST(request) {
       propertyLimit: plan.propertyLimit,
       validityMonths: plan.validityMonths,
       status,
-      expiresAt: isFree ? expiresAt : null,
-      decidedAt: isFree ? new Date() : null,
+      expiresAt,
+      decidedAt: new Date(),
     });
 
     const updatedUser = await User.findOneAndUpdate(
@@ -101,9 +98,9 @@ export async function POST(request) {
       {
         $set: {
           plan: plan.id,
-          planStatus: isFree ? "active" : "pending",
+          planStatus: "active",
           planPropertyLimit: plan.propertyLimit,
-          planExpiresAt: isFree ? expiresAt : null,
+          planExpiresAt: expiresAt,
           planSubscriptionId: String(subscription._id),
         },
       },

@@ -1,8 +1,9 @@
 import mongoose from "mongoose";
 
-// A single plan-purchase request. Since payments are not wired up yet
-// (testing period — see /pricing), every non-free purchase is created as
-// "Pending" and an admin approves/holds/rejects it from /admin/plans.
+// A single plan purchase. Since payments are not wired up yet
+// (testing period — see /pricing), every purchase is auto-created as
+// "Approved" and active immediately. An admin can still put a purchase
+// on "Hold" or "Reject" it from /admin/plans.
 const SubscriptionSchema = new mongoose.Schema(
   {
     accountId: {
