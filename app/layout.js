@@ -1,7 +1,9 @@
-import { Inter, Open_Sans } from "next/font/google";
+import { Inter, Open_Sans, Noto_Sans_Devanagari } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
+import { LanguageProvider } from "@/context/LanguageContext";
+import LanguageToggle from "@/components/layout/LanguageToggle";
 import PublicShell from "@/components/layout/PublicShell";
 
 const inter = Inter({
@@ -13,6 +15,13 @@ const openSans = Open_Sans({
   variable: "--font-open-sans",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
+});
+
+const devanagari = Noto_Sans_Devanagari({
+  variable: "--font-devanagari",
+  subsets: ["devanagari"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
 export const metadata = {
@@ -30,12 +39,15 @@ export default function RootLayout({ children }) {
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${openSans.variable} h-full antialiased`}
+      className={`${inter.variable} ${openSans.variable} ${devanagari.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-navy-950 text-cream">
-        <AuthProvider>
-          <PublicShell>{children}</PublicShell>
-        </AuthProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <PublicShell>{children}</PublicShell>
+            <LanguageToggle />
+          </AuthProvider>
+        </LanguageProvider>
         <Toaster
           position="top-right"
           richColors

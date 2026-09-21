@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { getAccountPermissions } from "@/lib/accountPermissions";
 import AuthGateModal from "@/components/auth/AuthGateModal";
 import { MdHome, MdTrendingUp, MdPersonAdd, MdAgriculture, MdFactory, MdScience, MdWorkspacePremium, MdStar } from "react-icons/md";
@@ -21,16 +22,17 @@ const TEST_MODE_CP_OPTIONS = [
   { cpType: "company", label: "Company CP", icon: FiBriefcase },
 ];
 
+// NAV_LINKS uses i18n keys — labels are resolved via t() at render time
 const NAV_LINKS = [
-  { label: "Home", href: "/", icon: MdHome },
-  { label: "Properties", href: "/properties", icon: BiBuildingHouse, matchPaths: ["/properties", "/buy", "/rent", "/sell", "/lease", "/seized-property", "/property"] },
-  { label: "Invest", href: "/invest", icon: MdTrendingUp },
-  { label: "Commercial", href: "/commercial", icon: BiBuildings },
-  { label: "Farming Land Projects", href: "/farming", icon: MdAgriculture },
-  { label: "Industrial", href: "/industrial", icon: MdFactory },
-  { label: "Services", href: "/services", icon: FiSettings },
-  { label: "Pricing", href: "/pricing", icon: MdWorkspacePremium },
-  { label: "About Us", href: "/about", icon: FiInfo },
+  { i18nKey: "nav.home", label: "Home", href: "/", icon: MdHome },
+  { i18nKey: "nav.properties", label: "Properties", href: "/properties", icon: BiBuildingHouse, matchPaths: ["/properties", "/buy", "/rent", "/sell", "/lease", "/seized-property", "/property"] },
+  { i18nKey: "nav.invest", label: "Invest", href: "/invest", icon: MdTrendingUp },
+  { i18nKey: "nav.commercial", label: "Commercial", href: "/commercial", icon: BiBuildings },
+  { i18nKey: "nav.farming", label: "Farming Land Projects", href: "/farming", icon: MdAgriculture },
+  { i18nKey: "nav.industrial", label: "Industrial", href: "/industrial", icon: MdFactory },
+  { i18nKey: "nav.services", label: "Services", href: "/services", icon: FiSettings },
+  { i18nKey: "nav.pricing", label: "Pricing", href: "/pricing", icon: MdWorkspacePremium },
+  { i18nKey: "nav.about", label: "About Us", href: "/about", icon: FiInfo },
 ];
 
 /** Whether a nav link should be shown as active for the current pathname. */
@@ -550,6 +552,7 @@ export default function Navbar() {
   const [mobileTestModeOpen, setMobileTestModeOpen] = useState(false);
   const [showAuthGate, setShowAuthGate] = useState(false);
   const { isAuthenticated, user, logout } = useAuth();
+  const { t } = useLanguage();
   const router = useRouter();
   const pathname = usePathname();
   const dropdownRef = useRef(null);
@@ -636,7 +639,7 @@ export default function Navbar() {
                     active ? "text-gold-400" : "text-cream/80"
                   }`}
                 >
-                  {link.label}
+                  {t(link.i18nKey) || link.label}
                   {active && (
                     <span className="absolute inset-x-0 -bottom-1 h-[2px] rounded-full bg-gold-400" />
                   )}
@@ -655,7 +658,7 @@ export default function Navbar() {
                 id="navbar-post-property-btn"
                 className="tracked-label flex shrink-0 items-center gap-2 whitespace-nowrap rounded-md bg-gold-400 px-3.5 py-2 text-xs text-navy-950 transition hover:bg-gold-300"
               >
-                Post Property
+                {t("nav.postProperty")}
                 <span className="flex h-5 w-5 items-center justify-center rounded-full bg-navy-950/15 text-navy-950">
                   <FiPlus className="h-3 w-3" />
                 </span>
@@ -927,7 +930,7 @@ export default function Navbar() {
                   <MobileNavRow
                     key={link.label}
                     icon={link.icon}
-                    label={link.label}
+                    label={t(link.i18nKey) || link.label}
                     href={link.href}
                     tone={isNavLinkActive(link, pathname) ? "accent" : "default"}
                     onClick={() => setMobileOpen(false)}
@@ -935,11 +938,11 @@ export default function Navbar() {
                 ))}
 
                 {isAuthenticated ? (
-                  <MobileNavRow icon={FiLogOut} label="Sign Out" tone="danger" onClick={handleLogout} />
+                  <MobileNavRow icon={FiLogOut} label={t("nav.signOut")} tone="danger" onClick={handleLogout} />
                 ) : (
                   <>
-                    <MobileNavRow icon={FiUser} label="Login" href="/auth" onClick={() => setMobileOpen(false)} />
-                    <MobileNavRow icon={MdPersonAdd} label="Sign Up" href="/auth/register" tone="accent" onClick={() => setMobileOpen(false)} />
+                    <MobileNavRow icon={FiUser} label={t("auth.signIn")} href="/auth" onClick={() => setMobileOpen(false)} />
+                    <MobileNavRow icon={MdPersonAdd} label={t("auth.signUp")} href="/auth/register" tone="accent" onClick={() => setMobileOpen(false)} />
                     <MobileTestModeAccordion
                       isOpen={mobileTestModeOpen}
                       onToggle={() => setMobileTestModeOpen((open) => !open)}

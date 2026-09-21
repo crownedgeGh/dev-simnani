@@ -1,36 +1,9 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { FaFacebookF, FaInstagram, FaXTwitter, FaLinkedinIn } from "react-icons/fa6";
-
-const COLUMNS = [
-  {
-    title: "Company",
-    links: [
-      { label: "About Us", href: "/about" },
-      { label: "Contact Us", href: "/request-callback" },
-    ],
-  },
-  {
-    title: "Properties",
-    links: [
-      { label: "Buy", href: "/buy" },
-      { label: "Rent", href: "/rent" },
-      { label: "Sell", href: "/sell" },
-      { label: "Invest", href: "/invest" },
-      { label: "Projects", href: "/projects" },
-      { label: "Services", href: "/services" },
-    ],
-  },
-  {
-    title: "Support",
-    links: [
-      { label: "Help Center", href: "/help" },
-      { label: "Privacy Policy", href: "/legal/privacy-policy" },
-      { label: "Terms & Conditions", href: "/legal/terms-conditions" },
-      { label: "Contact Support", href: "/help" },
-    ],
-  },
-];
+import { useLanguage } from "@/context/LanguageContext";
 
 const SOCIALS = [
   {
@@ -52,6 +25,41 @@ const SOCIALS = [
 ];
 
 export default function Footer() {
+  const { t } = useLanguage();
+
+  const COLUMNS = [
+    {
+      titleKey: "footer.col.company",
+      title: "Company",
+      links: [
+        { labelKey: "footer.link.about", label: "About Us", href: "/about" },
+        { labelKey: "footer.link.contact", label: "Contact Us", href: "/request-callback" },
+      ],
+    },
+    {
+      titleKey: "footer.col.properties",
+      title: "Properties",
+      links: [
+        { labelKey: "footer.link.buy", label: "Buy", href: "/buy" },
+        { labelKey: "footer.link.rent", label: "Rent", href: "/rent" },
+        { labelKey: "footer.link.sell", label: "Sell", href: "/sell" },
+        { labelKey: "footer.link.invest", label: "Invest", href: "/invest" },
+        { labelKey: "footer.link.projects", label: "Projects", href: "/projects" },
+        { labelKey: "footer.link.services", label: "Services", href: "/services" },
+      ],
+    },
+    {
+      titleKey: "footer.col.support",
+      title: "Support",
+      links: [
+        { labelKey: "footer.link.help", label: "Help Center", href: "/help" },
+        { labelKey: "footer.link.privacy", label: "Privacy Policy", href: "/legal/privacy-policy" },
+        { labelKey: "footer.link.terms", label: "Terms & Conditions", href: "/legal/terms-conditions" },
+        { labelKey: "footer.link.support", label: "Contact Support", href: "/help" },
+      ],
+    },
+  ];
+
   return (
     <footer className="border-t border-navy-700/60 bg-navy-950">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
@@ -67,8 +75,7 @@ export default function Footer() {
               />
             </span>
             <p className="mt-4 text-sm text-muted">
-              Elevating real estate excellence across India&apos;s most
-              sought-after cities.
+              {t("footer.tagline")}
             </p>
             <div className="mt-6 flex items-center gap-4">
               {SOCIALS.map(({ label, Icon, href }) => (
@@ -89,7 +96,7 @@ export default function Footer() {
           {COLUMNS.map((column) => (
             <div key={column.title}>
               <p className="tracked-label text-xs text-cream">
-                {column.title}
+                {t(column.titleKey)}
               </p>
               <ul className="mt-4 space-y-3">
                 {column.links.map((link) => (
@@ -98,7 +105,7 @@ export default function Footer() {
                       href={link.href}
                       className="text-sm text-muted transition hover:text-gold-400"
                     >
-                      {link.label}
+                      {t(link.labelKey)}
                     </Link>
                   </li>
                 ))}
@@ -108,7 +115,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-14 border-t border-navy-700/60 pt-6 text-xs text-muted">
-          © {new Date().getFullYear()} Simnani Estate. All Rights Reserved.
+          © {new Date().getFullYear()} Simnani Estate. {t("footer.rights")}
         </div>
       </div>
     </footer>

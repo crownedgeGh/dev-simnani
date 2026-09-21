@@ -513,3 +513,101 @@ body {
 .admin-theme-celestial button {
   transition: all 0.15s ease-in-out;
 }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Hindi / Devanagari language overrides
+   Active when <html lang="hi"> — set by LanguageContext
+   ───────────────────────────────────────────────────────────────────────── */
+
+:lang(hi) body {
+  /* Noto Sans Devanagari — best Devanagari rendering */
+  font-family:
+    var(--font-devanagari),
+    "Noto Sans Devanagari",
+    "Mangal",
+    system-ui,
+    sans-serif;
+  /* 15% larger — Devanagari glyphs are denser and need more room to breathe */
+  font-size: 1.15em;
+  /* Devanagari matras (vowel marks) need ample vertical space */
+  line-height: 2;
+}
+
+/* Headings — full size, tight line-height */
+:lang(hi) h1,
+:lang(hi) h2,
+:lang(hi) h3,
+:lang(hi) h4,
+:lang(hi) h5 {
+  font-family:
+    var(--font-devanagari),
+    "Noto Sans Devanagari",
+    system-ui,
+    sans-serif;
+  line-height: 1.55;
+  letter-spacing: 0;
+}
+
+/* tracked-label — navbar links are 11px in English, bump to 15px for Hindi */
+:lang(hi) .tracked-label {
+  font-size: 15px !important;
+  letter-spacing: 0.04em;
+  font-family:
+    var(--font-devanagari),
+    "Noto Sans Devanagari",
+    system-ui,
+    sans-serif;
+}
+
+/* Small text utilities — enforce a readable floor for Devanagari */
+:lang(hi) .text-xs  { font-size: 14px !important; }
+:lang(hi) .text-sm  { font-size: 15.5px !important; }
+:lang(hi) .text-\[11px\] { font-size: 15px !important; }
+:lang(hi) .text-\[10px\] { font-size: 13.5px !important; }
+:lang(hi) .text-\[9px\]  { font-size: 13px !important; }
+
+/* Buttons */
+:lang(hi) button,
+:lang(hi) a[role="button"] {
+  white-space: normal;
+  min-height: 2.75rem;
+  font-size: 1.05em;
+  font-family:
+    var(--font-devanagari),
+    "Noto Sans Devanagari",
+    system-ui,
+    sans-serif;
+}
+
+/* Nav links — no wrapping on desktop, keep readable */
+:lang(hi) nav a {
+  white-space: nowrap;
+  font-size: 15px !important;
+}
+
+/* Cards — prevent overflow on longer Hindi labels */
+:lang(hi) [class*="truncate"] {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Input / form fields */
+:lang(hi) label,
+:lang(hi) input,
+:lang(hi) select,
+:lang(hi) textarea,
+:lang(hi) option {
+  font-family:
+    var(--font-devanagari),
+    "Noto Sans Devanagari",
+    system-ui,
+    sans-serif;
+  font-size: 1.05em;
+}
+
+/* Muted / secondary text — don't let it go below readable size */
+:lang(hi) .text-muted,
+:lang(hi) [class*="text-muted"] {
+  font-size: 1.05em;
+}
