@@ -22,7 +22,7 @@ export default function CallNowButton({ mobile }) {
       {/* Mobile: tel: link → opens dialpad */}
       <a
         href={`tel:${mobile}`}
-        className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gold-500/50 bg-gold-400/10 py-2.5 text-sm font-semibold text-gold-400 transition hover:bg-gold-400/20 active:scale-95 sm:hidden"
+        className="flex w-full items-center justify-center gap-2 rounded-lg border border-gold-500/50 bg-gold-400/10 py-2.5 text-sm font-semibold text-gold-400 transition hover:bg-gold-400/20 active:scale-95 sm:hidden"
         aria-label={`Call ${mobile}`}
       >
         <MdPhone size={17} />
@@ -30,7 +30,7 @@ export default function CallNowButton({ mobile }) {
       </a>
 
       {/* Desktop: reveal number → call link + copy button */}
-      <div className="mt-4 hidden sm:block">
+      <div className="hidden sm:block">
         {revealed ? (
           <div className="flex items-center gap-2">
             <a

@@ -1,35 +1,14 @@
-import Link from "next/link";
-import { BiBuildingHouse } from "react-icons/bi";
-import { MdVerified } from "react-icons/md";
 import { getFeaturedBrokers } from "@/lib/brokersServer";
-import CallNowButton from "@/components/home/CallNowButton";
+import BrokersScroller from "@/components/home/BrokersScroller";
 
-function getInitials(name) {
-  if (!name) return "?";
-  const parts = name.trim().split(" ");
-  if (parts.length === 1) return parts[0][0]?.toUpperCase() ?? "?";
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
-
-function BrokerAvatar({ name }) {
-  return (
-    <div
-      className="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-full font-display text-xl text-gold-400"
-      style={{
-        background: "radial-gradient(circle, rgba(255,198,51,0.15) 0%, rgba(255,198,51,0.04) 100%)",
-        border: "1.5px solid rgba(255,198,51,0.5)",
-        boxShadow: "0 0 18px rgba(255,198,51,0.2), inset 0 0 12px rgba(255,198,51,0.06)",
-      }}
-    >
-      {getInitials(name)}
-    </div>
-  );
-}
+const MAX_VISIBLE_BROKERS = 10;
 
 export default async function FeaturedBrokers() {
   const brokers = await getFeaturedBrokers();
 
   if (!brokers.length) return null;
+
+  const visibleBrokers = brokers.slice(0, MAX_VISIBLE_BROKERS);
 
   return (
     <section
@@ -90,94 +69,7 @@ export default async function FeaturedBrokers() {
           </p>
         </div>
 
-      <style>{`
-        .broker-card:hover {
-          border-color: rgba(255,198,51,0.35) !important;
-          box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 20px rgba(255,198,51,0.08) !important;
-          transform: translateY(-4px);
-        }
-      `}</style>
-
-        {/* Cards grid */}
-        <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {brokers.map((broker) => (
-            <div
-              key={broker.accountId}
-              className="broker-card relative flex flex-col rounded-xl p-5 transition-all duration-300"
-              style={{
-                background: "linear-gradient(145deg, #0f1628 0%, #0a0e1a 100%)",
-                border: "1px solid rgba(27,39,64,0.8)",
-                boxShadow: "0 4px 24px rgba(0,0,0,0.3)",
-              }}
-            >
-              {/* Gold top accent bar */}
-              <div
-                className="absolute inset-x-0 top-0 h-0.5 rounded-t-xl"
-                style={{
-                  background: "linear-gradient(90deg, transparent, rgba(255,198,51,0.6), transparent)",
-                }}
-              />
-
-              <Link href={`/agent/${broker.accountId}`} className="flex flex-col">
-              {/* Broker info */}
-              <div className="flex items-center gap-3">
-                <BrokerAvatar name={broker.fullName} />
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <p className="truncate font-display text-base text-cream">
-                      {broker.fullName}
-                    </p>
-                    <MdVerified className="shrink-0 text-gold-400" size={15} />
-                  </div>
-                  <p className="truncate text-xs text-muted">
-                    {[broker.city, broker.state].filter(Boolean).join(", ") || "—"}
-                  </p>
-                </div>
-              </div>
-
-              {/* Agency */}
-              {broker.agencyName && (
-                <div
-                  className="mt-4 flex items-center gap-2 pt-4 text-sm text-muted"
-                  style={{ borderTop: "1px solid rgba(17,26,44,0.8)" }}
-                >
-                  <BiBuildingHouse className="shrink-0 text-gold-400" size={15} />
-                  <span className="truncate">{broker.agencyName}</span>
-                </div>
-              )}
-
-              {/* Stats */}
-              <div
-                className="mt-4 grid grid-cols-3 gap-2 pt-4"
-                style={{ borderTop: "1px solid rgba(17,26,44,0.8)" }}
-              >
-                <div>
-                  <p className="font-display text-base sm:text-lg text-gold-400">
-                    {broker.experience
-                      ? `${broker.experience} ${Number(broker.experience) === 1 ? "Year" : "Years"}`
-                      : "—"}
-                  </p>
-                  <p className="text-[11px] text-muted">Experience</p>
-                </div>
-                <div>
-                  <p className="font-display text-base sm:text-lg text-gold-400">
-                    {broker.dealsClosed ?? 0}
-                  </p>
-                  <p className="text-[11px] text-muted">Deals Closed</p>
-                </div>
-                <div>
-                  <p className="font-display text-base sm:text-lg text-gold-400">
-                    {broker.propertiesListed ?? 0}
-                  </p>
-                  <p className="text-[11px] text-muted">Properties Listed</p>
-                </div>
-              </div>
-              </Link>
-
-              <CallNowButton mobile={broker.mobile} />
-            </div>
-          ))}
-        </div>
+        <BrokersScroller brokers={visibleBrokers} />
       </div>
     </section>
   );
