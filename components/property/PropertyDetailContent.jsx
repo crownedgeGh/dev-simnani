@@ -3,6 +3,7 @@ import {
   CATEGORIES_BY_TYPE,
   isStructureCategory,
   categoryHasBedrooms,
+  getGenderPreferenceLabel,
 } from "@/lib/properties";
 import { getPropertyDescription } from "@/lib/propertyContent";
 import PropertyMediaCarousel from "@/components/property/PropertyMediaCarousel";
@@ -30,6 +31,7 @@ import {
   MdAccessTime,
   MdPerson,
   MdWeekend,
+  MdWc,
 } from "react-icons/md";
 
 export default function PropertyDetailContent({ property, eyebrow, sidebar, backHref }) {
@@ -39,7 +41,7 @@ export default function PropertyDetailContent({ property, eyebrow, sidebar, back
   // structure, so floor/furnishing/parking/bathrooms don't apply, and only
   // Farmhouse/Apartments-style categories have bedrooms & halls.
   const isStructural = isStructureCategory(property.type, property.category);
-  const hasBedrooms = categoryHasBedrooms(property.type, property.category);
+  const hasBedrooms = categoryHasBedrooms(property.type, property.category, property.propertyType);
   const isResidentialListing = !CATEGORIES_BY_TYPE[property.type];
 
   const infoRows = [
@@ -73,6 +75,12 @@ export default function PropertyDetailContent({ property, eyebrow, sidebar, back
     { icon: <MdExplore />, label: "Facing", value: property.facing },
     { icon: <MdEvent />, label: "Available From", value: property.availableFrom },
     isResidentialListing && { icon: <MdGroup />, label: "Preferred For", value: property.preferredFor },
+    isResidentialListing &&
+      property.genderPreference && {
+        icon: <MdWc />,
+        label: "Suitable For",
+        value: getGenderPreferenceLabel(property.genderPreference),
+      },
     { icon: <MdAccessTime />, label: "Posted", value: formatPostedDate(property) || property.addedDate },
     { icon: <MdPerson />, label: "Contact Person", value: property.contact?.fullName },
   ]

@@ -119,6 +119,8 @@ const PropertySchema = new mongoose.Schema(
     facing: { type: String, default: "" },
     availableFrom: { type: String, default: "" },
     preferredFor: { type: String, default: "Anyone" },
+    genderPreference: { type: String, default: "" },
+    description: { type: String, default: "", trim: true, maxlength: 800 },
     galleryImages: { type: [String], default: [] },
     video: { type: String, default: "" },
     contact: {

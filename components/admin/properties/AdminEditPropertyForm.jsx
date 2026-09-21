@@ -18,14 +18,22 @@ import {
   MdLink,
   MdImage,
   MdRefresh,
+  MdDescription,
 } from "react-icons/md";
 import AdminFormField, {
   adminInputClass,
   adminSelectClass,
+  adminTextareaClass,
 } from "@/components/admin/ui/AdminFormField";
 import adminAxios from "@/lib/adminAxios";
 import { ADMIN_KEYS, readCollection } from "@/lib/adminStorage";
-import { CATEGORIES_BY_TYPE, isStructureCategory, categoryHasBedrooms } from "@/lib/properties";
+import {
+  CATEGORIES_BY_TYPE,
+  isStructureCategory,
+  categoryHasBedrooms,
+  isPgOrHostel,
+  GENDER_PREFERENCE_OPTIONS,
+} from "@/lib/properties";
 import { uploadFileToR2 } from "@/lib/uploadToR2";
 import BlurredImageFrame from "@/components/property/BlurredImageFrame";
 
@@ -51,7 +59,21 @@ const PROPERTY_TYPES = [
   "Commercial Space",
   "Penthouse",
   "Agricultural Land",
+  "PG",
+  "Hostel",
 ];
+
+const MAX_DESCRIPTION_WORDS = 100;
+
+function limitToWords(text, maxWords) {
+  const words = text.split(/\s+/).filter(Boolean);
+  if (words.length <= maxWords) return text;
+  return words.slice(0, maxWords).join(" ");
+}
+
+function countWords(text) {
+  return text.trim() ? text.trim().split(/\s+/).filter(Boolean).length : 0;
+}
 
 const PLATFORM_TYPES = [
   "buy",
@@ -219,6 +241,8 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
     facing: "",
     availableFrom: "",
     preferredFor: "",
+    genderPreference: "",
+    description: "",
     fullName: "",
     mobile: "",
     status: "Active",
@@ -226,9 +250,10 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
     badge: "",
   });
 
-  const needsStructureFields = isStructureCategory(form.type, form.category);
-  const needsBedrooms = categoryHasBedrooms(form.type, form.category);
   const isResidentialType = !CATEGORIES_BY_TYPE[form.type];
+  const isPgHostelType = isResidentialType && isPgOrHostel(form.propertyType);
+  const needsStructureFields = isStructureCategory(form.type, form.category);
+  const needsBedrooms = categoryHasBedrooms(form.type, form.category, form.propertyType);
 
   // Populate form with existing property data
   const populateFormData = (prop) => {
@@ -281,6 +306,8 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
       facing: prop.facing || "",
       availableFrom: prop.availableFrom || "",
       preferredFor: prop.preferredFor || "",
+      genderPreference: prop.genderPreference || "",
+      description: prop.description || "",
       fullName: prop.contact?.fullName || "Admin Lister",
       mobile: cleanMobile,
       status: prop.status || "Active",
@@ -369,6 +396,9 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
       if (field === "category" && val !== prev.category) {
         next.beds = "";
         next.halls = "";
+      }
+      if (field === "propertyType" && !isPgOrHostel(val)) {
+        next.genderPreference = "";
       }
       return next;
     });
@@ -491,6 +521,8 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
       errs.beds = "Number of bedrooms (BHK) is required";
     if (needsBedrooms && (!form.halls || Number(form.halls) < 1))
       errs.halls = "Number of halls is required";
+    if (isPgHostelType && !form.genderPreference)
+      errs.genderPreference = "Suitable for is required";
     if (!form.fullName.trim()) errs.fullName = "Contact name is required";
     const cleanMobile = form.mobile.replace(/\s+/g, "");
     if (!cleanMobile || cleanMobile.length !== 10) {
@@ -580,6 +612,8 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
         facing: form.facing,
         availableFrom: form.availableFrom,
         preferredFor: isResidentialType ? form.preferredFor : "",
+        genderPreference: isPgHostelType ? form.genderPreference : "",
+        description: form.description.trim(),
         image: finalImage,
         galleryImages: finalGalleryImages.length ? finalGalleryImages : [finalImage],
         video: finalVideo || "",
@@ -846,6 +880,26 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
                 </select>
               </AdminFormField>
             </div>
+
+            {/* Gender Preference — only for residential PG / Hostel listings */}
+            {isPgHostelType && (
+              <div>
+                <AdminFormField label="Suitable For" required error={errors.genderPreference}>
+                  <select
+                    value={form.genderPreference}
+                    onChange={(e) => update("genderPreference", e.target.value)}
+                    className={adminSelectClass}
+                  >
+                    <option value="">Select</option>
+                    {GENDER_PREFERENCE_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </AdminFormField>
+              </div>
+            )}
           </div>
         </FormSection>
 
@@ -1415,6 +1469,28 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
             {uploadStatus && (
               <p className="text-xs font-semibold text-[#d97706]">{uploadStatus}</p>
             )}
+          </div>
+        </FormSection>
+
+        {/* Section 4.5: Description */}
+        <FormSection
+          icon={<MdDescription size={20} className="text-[#f0b429]" />}
+          title="Property Description"
+          subtitle="Optional — shown in the About This Property section on the listing"
+        >
+          <div>
+            <AdminFormField
+              label="Description"
+              hint={`${countWords(form.description)}/${MAX_DESCRIPTION_WORDS} words`}
+            >
+              <textarea
+                rows={4}
+                value={form.description}
+                onChange={(e) => update("description", limitToWords(e.target.value, MAX_DESCRIPTION_WORDS))}
+                placeholder="Share key highlights — layout, nearby landmarks, amenities, condition…"
+                className={adminTextareaClass}
+              />
+            </AdminFormField>
           </div>
         </FormSection>
 

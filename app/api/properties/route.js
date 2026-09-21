@@ -88,7 +88,7 @@ export async function POST(request) {
     const body = await request.json();
 
     const needsStructureFields = isStructureCategory(body.type, body.category);
-    const needsBedrooms = categoryHasBedrooms(body.type, body.category);
+    const needsBedrooms = categoryHasBedrooms(body.type, body.category, body.propertyType);
 
     const baths = Number(body.baths) || 0;
     if (needsStructureFields && baths < 1) {

@@ -67,8 +67,9 @@ export async function PUT(request, { params }) {
 
     const effectiveType = updateData.type ?? existing.type;
     const effectiveCategory = updateData.category ?? existing.category;
+    const effectivePropertyType = updateData.propertyType ?? existing.propertyType;
     const needsStructureFields = isStructureCategory(effectiveType, effectiveCategory);
-    const needsBedrooms = categoryHasBedrooms(effectiveType, effectiveCategory);
+    const needsBedrooms = categoryHasBedrooms(effectiveType, effectiveCategory, effectivePropertyType);
 
     if (updateData.beds !== undefined) {
       const beds = Number(updateData.beds) || 0;

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
-import { inputClass, selectClass } from "@/components/auth/inputStyles";
+import { inputClass, selectClass, textareaClass } from "@/components/auth/inputStyles";
 import FormField from "@/components/auth/FormField";
 import { PhotosUpload, VideoUpload } from "@/components/property/PropertyImageUpload";
 import {
@@ -17,8 +17,15 @@ import {
   MdPerson,
   MdArrowForward,
   MdKeyboardArrowDown,
+  MdDescription,
 } from "react-icons/md";
-import { CATEGORIES_BY_TYPE, isStructureCategory, categoryHasBedrooms } from "@/lib/properties";
+import {
+  CATEGORIES_BY_TYPE,
+  isStructureCategory,
+  categoryHasBedrooms,
+  isPgOrHostel,
+  GENDER_PREFERENCE_OPTIONS,
+} from "@/lib/properties";
 import { uploadFileToR2, uploadFilesToR2 } from "@/lib/uploadToR2";
 import { STATES, getCitiesForState } from "@/lib/cityState";
 import SearchableSelect from "@/components/property/SearchableSelect";
@@ -43,7 +50,19 @@ const SECTION_OPTIONS = [
   { value: "seized-property", label: "Seized Property" },
 ];
 
-const PROPERTY_TYPES = ["Flat", "House", "Shop", "Plot", "Office", "Warehouse"];
+const PROPERTY_TYPES = ["Flat", "House", "Shop", "Plot", "Office", "Warehouse", "PG", "Hostel"];
+
+const MAX_DESCRIPTION_WORDS = 100;
+
+function limitToWords(text, maxWords) {
+  const words = text.split(/\s+/).filter(Boolean);
+  if (words.length <= maxWords) return text;
+  return words.slice(0, maxWords).join(" ");
+}
+
+function countWords(text) {
+  return text.trim() ? text.trim().split(/\s+/).filter(Boolean).length : 0;
+}
 
 const BHK_OPTIONS = [
   { value: "1", label: "1 BHK" },
@@ -110,6 +129,8 @@ const INITIAL_FORM = {
   facing: "",
   availableFrom: "",
   preferredFor: "",
+  genderPreference: "",
+  description: "",
   photos: [],
   video: null,
   existingVideoUrl: "",
@@ -182,6 +203,8 @@ export default function PostPropertyForm({ editId }) {
           facing: p.facing || "",
           availableFrom: p.availableFrom || "",
           preferredFor: p.preferredFor || "",
+          genderPreference: p.genderPreference || "",
+          description: p.description || "",
           photos: [
             ...(p.image ? [{ type: "existing", url: p.image }] : []),
             ...(p.galleryImages || []).map((url) => ({ type: "existing", url })),
@@ -220,6 +243,13 @@ export default function PostPropertyForm({ editId }) {
       }
       if (field === "propertyType") {
         next.beds = "";
+        if (!isPgOrHostel(value)) {
+          next.genderPreference = "";
+        } else {
+          next.baths = "";
+          next.facing = "";
+          next.preferredFor = "";
+        }
       }
       if (field === "state") {
         next.city = "";
@@ -240,13 +270,19 @@ export default function PostPropertyForm({ editId }) {
   }
 
   const isResidential = form.section === "residential";
+  const isPgHostelType = isResidential && isPgOrHostel(form.propertyType);
   const showBhkSelect = form.propertyType === "Flat" || form.propertyType === "House";
   // Land/plot categories (e.g. Agricultural Land, Industrial Land) have no
   // built structure, so bedrooms/bathrooms/halls/floors/furnishing/parking
   // don't apply. Farmhouse/Apartments categories keep the residential fields
   // even though they're listed outside the Residential section.
   const showStructureFields = isStructureCategory(form.section, form.category);
-  const showBedsHallsFields = isResidential || categoryHasBedrooms(form.section, form.category);
+  // PG/Hostel listings have no BHK concept — bedrooms/halls aren't asked;
+  // Gender Preference is asked instead.
+  const showBedsHallsFields =
+    isResidential
+      ? !isPgHostelType
+      : categoryHasBedrooms(form.section, form.category, form.propertyType);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -262,9 +298,10 @@ export default function PostPropertyForm({ editId }) {
       { id: "price", invalid: !form.price },
       { id: "areaSize", invalid: !form.areaSize },
       { id: "photos", invalid: !form.photos.length },
+      ...(isPgHostelType ? [{ id: "genderPreference", invalid: !form.genderPreference }] : []),
       ...(showBedsHallsFields ? [{ id: "beds", invalid: !form.beds || Number(form.beds) < 1 }] : []),
       ...(showBedsHallsFields ? [{ id: "halls", invalid: !form.halls || Number(form.halls) < 1 }] : []),
-      ...(showStructureFields ? [{ id: "baths", invalid: !form.baths || Number(form.baths) < 1 }] : []),
+      ...(showStructureFields && !isPgHostelType ? [{ id: "baths", invalid: !form.baths || Number(form.baths) < 1 }] : []),
       { id: "fullName", invalid: !form.fullName.trim() },
       { id: "mobile", invalid: !isMobileValid(form.mobile) },
     ];
@@ -354,14 +391,16 @@ export default function PostPropertyForm({ editId }) {
         beds: showBedsHallsFields ? numericBeds : 0,
         bedsPlus: showBedsHallsFields ? isBedsPlus : false,
         halls: showBedsHallsFields ? Number(form.halls) || 0 : 0,
-        baths: showStructureFields ? Number(form.baths) || 0 : 0,
+        baths: showStructureFields && !isPgHostelType ? Number(form.baths) || 0 : 0,
         floorNo: showStructureFields ? form.floorNo || "" : "",
         totalFloors: showStructureFields && form.totalFloors ? Number(form.totalFloors) : null,
         furnishing: showStructureFields ? form.furnishing || "" : "",
         parking: showStructureFields ? form.parking || "" : "",
-        facing: form.facing || "",
+        facing: isPgHostelType ? "" : form.facing || "",
         availableFrom: form.availableFrom || "",
-        preferredFor: isResidential ? form.preferredFor || "" : "",
+        preferredFor: isResidential && !isPgHostelType ? form.preferredFor || "" : "",
+        genderPreference: isPgHostelType ? form.genderPreference || "" : "",
+        description: (form.description || "").trim(),
         contact: {
           fullName: (form.fullName || "").trim(),
           mobile: `+91 ${(form.mobile || "").trim()}`,
@@ -413,14 +452,15 @@ export default function PostPropertyForm({ editId }) {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
       <Section icon={<MdContentPaste className="h-5 w-5" />} title="Property Identity" subtitle="Basic info about your listing">
-        <FormField label="Property ID" htmlFor="propertyId">
-          <div className="flex h-14 items-center justify-between rounded-sm border border-navy-700/60 bg-navy-950 px-4">
-            <span className="font-display text-sm tracking-widest text-gold-400">
-              {propertyId ? `#${propertyId}` : "#SG-PROP-......"}
-            </span>
-            <span className="tracked-label text-[10px] text-muted">Auto-generated</span>
-          </div>
-        </FormField>
+        {isResidential && (
+          <FormField label="Purpose" required>
+            <ToggleTwo
+              options={PURPOSE_OPTIONS}
+              value={form.purpose}
+              onChange={(value) => update("purpose", value)}
+            />
+          </FormField>
+        )}
         <FormField label="Listing Section" htmlFor="section" required hint="Where this property will be listed">
           <SelectWrap>
             <select
@@ -436,26 +476,6 @@ export default function PostPropertyForm({ editId }) {
               ))}
             </select>
           </SelectWrap>
-        </FormField>
-        {isResidential && (
-          <FormField label="Purpose" required>
-            <ToggleTwo
-              options={PURPOSE_OPTIONS}
-              value={form.purpose}
-              onChange={(value) => update("purpose", value)}
-            />
-          </FormField>
-        )}
-        <FormField label="Property Title" htmlFor="title" required hint={`${form.title.length}/80`}>
-          <input
-            id="title"
-            type="text"
-            maxLength={80}
-            placeholder="Spacious 2BHK near City Center"
-            value={form.title}
-            onChange={(e) => update("title", e.target.value)}
-            className={errClass(`${inputClass} rounded-sm`, "title")}
-          />
         </FormField>
         {isResidential ? (
           <>
@@ -495,6 +515,25 @@ export default function PostPropertyForm({ editId }) {
                 </SelectWrap>
               </FormField>
             )}
+            {isPgHostelType && (
+              <FormField label="Suitable For" htmlFor="genderPreference" required>
+                <SelectWrap>
+                  <select
+                    id="genderPreference"
+                    value={form.genderPreference}
+                    onChange={(e) => update("genderPreference", e.target.value)}
+                    className={errClass(`${selectClass} rounded-sm pr-10`, "genderPreference")}
+                  >
+                    <option value="">Select</option>
+                    {GENDER_PREFERENCE_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </SelectWrap>
+              </FormField>
+            )}
           </>
         ) : (
           <FormField label="Category" htmlFor="category" required>
@@ -515,6 +554,17 @@ export default function PostPropertyForm({ editId }) {
             </SelectWrap>
           </FormField>
         )}
+        <FormField label="Property Title" htmlFor="title" required hint={`${form.title.length}/80`}>
+          <input
+            id="title"
+            type="text"
+            maxLength={80}
+            placeholder="Spacious 2BHK near City Center"
+            value={form.title}
+            onChange={(e) => update("title", e.target.value)}
+            className={errClass(`${inputClass} rounded-sm`, "title")}
+          />
+        </FormField>
       </Section>
 
       <Section icon={<MdLocationOn className="h-5 w-5" />} title="Location" subtitle="City and area — no full address required">
@@ -648,19 +698,21 @@ export default function PostPropertyForm({ editId }) {
             />
           </FormField>
         )}
+        {showStructureFields && !isPgHostelType && (
+          <FormField label="No. of Bathrooms" htmlFor="baths" required>
+            <input
+              id="baths"
+              type="number"
+              min="1"
+              autoComplete="off"
+              value={form.baths}
+              onChange={(e) => update("baths", e.target.value)}
+              className={errClass(`${inputClass} rounded-sm`, "baths")}
+            />
+          </FormField>
+        )}
         {showStructureFields && (
           <>
-            <FormField label="No. of Bathrooms" htmlFor="baths" required>
-              <input
-                id="baths"
-                type="number"
-                min="1"
-                autoComplete="off"
-                value={form.baths}
-                onChange={(e) => update("baths", e.target.value)}
-                className={errClass(`${inputClass} rounded-sm`, "baths")}
-              />
-            </FormField>
             <FormField label="Floor No." htmlFor="floorNo" optional>
               <input
                 id="floorNo"
@@ -708,23 +760,25 @@ export default function PostPropertyForm({ editId }) {
             </FormField>
           </>
         )}
-        <FormField label="Facing Direction" htmlFor="facing" optional>
-          <SelectWrap>
-            <select
-              id="facing"
-              value={form.facing}
-              onChange={(e) => update("facing", e.target.value)}
-              className={`${selectClass} rounded-sm pr-10`}
-            >
-              <option value="">Select</option>
-              {FACING_OPTIONS.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt}
-                </option>
-              ))}
-            </select>
-          </SelectWrap>
-        </FormField>
+        {!isPgHostelType && (
+          <FormField label="Facing Direction" htmlFor="facing" optional>
+            <SelectWrap>
+              <select
+                id="facing"
+                value={form.facing}
+                onChange={(e) => update("facing", e.target.value)}
+                className={`${selectClass} rounded-sm pr-10`}
+              >
+                <option value="">Select</option>
+                {FACING_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))}
+              </select>
+            </SelectWrap>
+          </FormField>
+        )}
         <FormField label="Available From" htmlFor="availableFrom" optional>
           <input
             id="availableFrom"
@@ -734,7 +788,7 @@ export default function PostPropertyForm({ editId }) {
             className={`${inputClass} rounded-sm`}
           />
         </FormField>
-        {isResidential && (
+        {isResidential && !isPgHostelType && (
         <FormField label="Preferred For" htmlFor="preferredFor" optional>
           <SelectWrap>
             <select
@@ -816,6 +870,30 @@ export default function PostPropertyForm({ editId }) {
             />
           </div>
         </FormField>
+      </Section>
+
+      <Section
+        icon={<MdDescription className="h-5 w-5" />}
+        title="Description"
+        subtitle="Tell buyers more about the property — optional"
+      >
+        <div className="sm:col-span-2">
+          <FormField
+            label="Property Description"
+            htmlFor="description"
+            optional
+            hint={`${countWords(form.description)}/${MAX_DESCRIPTION_WORDS} words`}
+          >
+            <textarea
+              id="description"
+              rows={4}
+              placeholder="Share key highlights — layout, nearby landmarks, amenities, condition…"
+              value={form.description}
+              onChange={(e) => update("description", limitToWords(e.target.value, MAX_DESCRIPTION_WORDS))}
+              className={`${textareaClass} rounded-sm`}
+            />
+          </FormField>
+        </div>
       </Section>
 
       {error && (

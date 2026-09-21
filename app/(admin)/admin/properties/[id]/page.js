@@ -38,6 +38,7 @@ import {
   MdPhone,
   MdLocalOffer,
   MdWeekend,
+  MdWc,
 } from "react-icons/md";
 import AdminStatusBadge from "@/components/admin/ui/AdminStatusBadge";
 import AdminConfirmModal from "@/components/admin/ui/AdminConfirmModal";
@@ -50,6 +51,7 @@ import {
   CATEGORIES_BY_TYPE,
   isStructureCategory,
   categoryHasBedrooms,
+  getGenderPreferenceLabel,
 } from "@/lib/properties";
 import { getPropertyDescription } from "@/lib/propertyContent";
 import BlurredImageFrame from "@/components/property/BlurredImageFrame";
@@ -196,7 +198,7 @@ export default function PropertyDetailPage() {
   // has no structure, so floor/furnishing/parking/bathrooms don't apply,
   // and only Farmhouse/Apartments-style categories have bedrooms & halls.
   const isStructural = isStructureCategory(property.type, property.category);
-  const hasBedrooms = categoryHasBedrooms(property.type, property.category);
+  const hasBedrooms = categoryHasBedrooms(property.type, property.category, property.propertyType);
   const isResidentialListing = !CATEGORIES_BY_TYPE[property.type];
 
   const features = [
@@ -328,6 +330,12 @@ export default function PropertyDetailPage() {
                 { icon: <MdExplore />, label: "Facing", value: property.facing },
                 { icon: <MdEvent />, label: "Available From", value: property.availableFrom },
                 isResidentialListing && { icon: <MdGroup />, label: "Preferred For", value: property.preferredFor },
+                isResidentialListing &&
+                  property.genderPreference && {
+                    icon: <MdWc />,
+                    label: "Suitable For",
+                    value: getGenderPreferenceLabel(property.genderPreference),
+                  },
                 { icon: <MdAccessTime />, label: "Posted", value: formatPostedDate(property) || property.addedDate },
                 { icon: <MdPerson />, label: "Contact Person", value: property.contact?.fullName },
                 { icon: <MdPhone />, label: "Contact Number", value: property.contact?.mobile },
