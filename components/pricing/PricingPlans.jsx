@@ -10,7 +10,6 @@ import {
   MdPauseCircle,
   MdCancel,
   MdVerified,
-  MdLock,
 } from "react-icons/md";
 import { FiZap } from "react-icons/fi";
 import { useAuth } from "@/context/AuthContext";
@@ -33,30 +32,6 @@ const STATUS_META = {
   hold: { label: "On Hold", icon: MdPauseCircle, className: "border-muted/30 bg-navy-800 text-muted" },
   rejected: { label: "Rejected", icon: MdCancel, className: "border-red-500/30 bg-red-500/10 text-red-400" },
 };
-
-// Membership plans are a Broker-only feature — brokers are the account
-// type that lists properties at volume and needs a posting-limit upgrade.
-function BrokerOnlyNotice({ isAuthenticated }) {
-  return (
-    <div className="mx-auto flex max-w-xl flex-col items-center gap-4 px-4 py-24 text-center sm:px-6">
-      <div className="flex h-14 w-14 items-center justify-center rounded-sm border border-gold-400/20 bg-gold-400/10 text-gold-400">
-        <MdLock className="h-6 w-6" />
-      </div>
-      <span className="tracked-label text-xs text-gold-400">Broker Accounts Only</span>
-      <h1 className="font-display text-2xl text-cream sm:text-3xl">Pricing isn&apos;t available for your account</h1>
-      <p className="text-sm leading-relaxed text-muted">
-        Membership plans are exclusively for Broker accounts. Sign in with a Broker account — or register
-        as one — to view plans and start posting properties at scale.
-      </p>
-      <a
-        href={isAuthenticated ? "/" : "/auth/register"}
-        className="tracked-label mt-2 flex min-h-[44px] items-center justify-center rounded-sm bg-gold-400 px-6 py-3 text-xs text-navy-950 transition hover:bg-gold-300"
-      >
-        {isAuthenticated ? "Back to Home" : "Register as a Broker"}
-      </a>
-    </div>
-  );
-}
 
 export default function PricingPlans() {
   const { isAuthenticated, isLoading, user, refreshUser } = useAuth();
@@ -116,10 +91,6 @@ export default function PricingPlans() {
 
   if (isLoading) return null;
 
-  if (!isAuthenticated || user?.accountType !== "broker") {
-    return <BrokerOnlyNotice isAuthenticated={isAuthenticated} />;
-  }
-
   return (
     <>
       <AuthGateModal
@@ -132,7 +103,9 @@ export default function PricingPlans() {
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
         {/* Hero */}
         <div className="mx-auto max-w-2xl text-center">
-          <span className="tracked-label font-display text-2xl text-gold-400 sm:text-3xl">Membership Plans</span>
+          <span className="tracked-label font-display text-2xl text-gold-400 sm:text-3xl">
+            Membership Plans <span className="text-cream">— Only For Brokers</span>
+          </span>
         </div>
 
         {/* Current membership status */}

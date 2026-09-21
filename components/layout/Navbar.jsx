@@ -601,10 +601,7 @@ export default function Navbar() {
   const initials = getInitials(user?.fullName);
   const perms = getAccountPermissions(user?.accountType);
   const canPostProperty = !isAuthenticated || perms.canPostProperty;
-  // Pricing/membership plans are a Broker-only feature.
-  const visibleNavLinks = NAV_LINKS.filter(
-    (link) => link.href !== "/pricing" || user?.accountType === "broker"
-  );
+  const visibleNavLinks = NAV_LINKS;
 
   return (
     <>
@@ -628,14 +625,14 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop nav links */}
-          <nav className="hidden min-w-0 flex-1 items-center justify-center gap-3.5 xl:flex xl:gap-5 2xl:gap-7">
+          <nav className="hidden min-w-0 flex-1 items-center justify-center gap-2.5 xl:flex xl:gap-4 2xl:gap-6">
             {visibleNavLinks.map((link) => {
               const active = isNavLinkActive(link, pathname);
               return (
                 <Link
                   key={link.label}
                   href={link.href}
-                  className={`tracked-label relative whitespace-nowrap pb-1 text-xs transition hover:text-gold-400 ${
+                  className={`tracked-label relative whitespace-nowrap pb-1 text-[11px] transition hover:text-gold-400 xl:text-xs ${
                     active ? "text-gold-400" : "text-cream/80"
                   }`}
                 >
