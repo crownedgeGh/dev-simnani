@@ -122,8 +122,8 @@ export default function BrokerRegistrationWizard() {
         setError("Please fill in all required fields.");
         return;
       }
-      if (isNaN(Number(form.experience)) || Number(form.experience) < 0) {
-        setError("Please enter a valid non-negative number of years of experience.");
+      if (!/^\d{1,2}$/.test(form.experience) || Number(form.experience) < 0 || Number(form.experience) > 60) {
+        setError("Please enter a valid number of years of experience (0-60).");
         return;
       }
       if (form.dealsClosed !== "" && (isNaN(Number(form.dealsClosed)) || Number(form.dealsClosed) < 0)) {
@@ -360,9 +360,16 @@ export default function BrokerRegistrationWizard() {
               id="experience"
               type="number"
               min="0"
+              max="60"
+              maxLength={2}
+              inputMode="numeric"
               placeholder="e.g. 5"
               value={form.experience}
-              onChange={(e) => update("experience", e.target.value)}
+              onChange={(e) => {
+                const digits = e.target.value.replace(/\D/g, "").slice(0, 2);
+                const clamped = digits && Number(digits) > 60 ? "60" : digits;
+                update("experience", clamped);
+              }}
               className={inputClass}
             />
           </FormField>
