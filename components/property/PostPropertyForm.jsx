@@ -21,10 +21,9 @@ import {
 } from "react-icons/md";
 import {
   CATEGORIES_BY_TYPE,
-  isStructureCategory,
-  categoryHasBedrooms,
   isPgOrHostel,
   GENDER_PREFERENCE_OPTIONS,
+  getFieldProfile,
 } from "@/lib/properties";
 import { uploadFileToR2, uploadFilesToR2 } from "@/lib/uploadToR2";
 import { STATES, getCitiesForState } from "@/lib/cityState";
@@ -106,7 +105,7 @@ const PREFERRED_FOR_OPTIONS = [
 
 const INITIAL_FORM = {
   section: "residential",
-  purpose: "sale",
+  purpose: "",
   title: "",
   propertyType: "",
   category: "",
@@ -237,18 +236,28 @@ export default function PostPropertyForm({ editId }) {
         next.beds = "";
         next.halls = "";
       }
-      if (field === "category") {
-        next.beds = "";
-        next.halls = "";
+      if (field === "category" || field === "propertyType") {
+        const profile =
+          field === "propertyType"
+            ? getFieldProfile(next.section, next.category, value)
+            : getFieldProfile(next.section, value, next.propertyType);
+        if (!profile.beds) {
+          next.beds = "";
+          next.halls = "";
+        }
+        if (!profile.baths) next.baths = "";
+        if (!profile.floors) {
+          next.floorNo = "";
+          next.totalFloors = "";
+        }
+        if (!profile.furnishing) next.furnishing = "";
+        if (!profile.parking) next.parking = "";
+        if (!profile.facing) next.facing = "";
+        if (!profile.preferredFor) next.preferredFor = "";
       }
       if (field === "propertyType") {
-        next.beds = "";
         if (!isPgOrHostel(value)) {
           next.genderPreference = "";
-        } else {
-          next.baths = "";
-          next.facing = "";
-          next.preferredFor = "";
         }
       }
       if (field === "state") {
@@ -271,23 +280,32 @@ export default function PostPropertyForm({ editId }) {
 
   const isResidential = form.section === "residential";
   const isPgHostelType = isResidential && isPgOrHostel(form.propertyType);
-  const showBhkSelect = form.propertyType === "Flat" || form.propertyType === "House";
-  // Land/plot categories (e.g. Agricultural Land, Industrial Land) have no
-  // built structure, so bedrooms/bathrooms/halls/floors/furnishing/parking
-  // don't apply. Farmhouse/Apartments categories keep the residential fields
-  // even though they're listed outside the Residential section.
-  const showStructureFields = isStructureCategory(form.section, form.category);
-  // PG/Hostel listings have no BHK concept — bedrooms/halls aren't asked;
-  // Gender Preference is asked instead.
-  const showBedsHallsFields =
-    isResidential
-      ? !isPgHostelType
-      : categoryHasBedrooms(form.section, form.category, form.propertyType);
+  // Real-world spec sheets differ by what's actually selected — a warehouse
+  // has no bedrooms/bathrooms/furnishing, a bare plot has no structure
+  // fields at all, an office has washrooms but no bedrooms, etc. This one
+  // profile lookup (keyed by propertyType for Residential, or by category
+  // for every other section) decides which fields below are shown.
+  const hasSelection = isResidential ? !!form.propertyType : !!form.category;
+  const fieldProfile = hasSelection
+    ? getFieldProfile(form.section, form.category, form.propertyType)
+    : null;
+  const showBhkSelect = !!fieldProfile?.bhk;
+  const showBedsHallsFields = !!fieldProfile?.beds;
+  const showBathsField = !!fieldProfile?.baths;
+  const showFloorsField = !!fieldProfile?.floors;
+  const showFurnishingField = !!fieldProfile?.furnishing;
+  const showParkingField = !!fieldProfile?.parking;
+  const showFacingField = !!fieldProfile?.facing;
+  const showPreferredForField = isResidential && !!fieldProfile?.preferredFor;
+  // Every listing (any section) must pick a Purpose (Sale/Rent/Lease) before
+  // anything else in the form becomes usable.
+  const purposeSelected = !!form.purpose;
 
   async function handleSubmit(event) {
     event.preventDefault();
 
     const fieldChecks = [
+      { id: "purpose", invalid: !form.purpose },
       { id: "title", invalid: !form.title.trim() },
       isResidential
         ? { id: "propertyType", invalid: !form.propertyType }
@@ -301,7 +319,7 @@ export default function PostPropertyForm({ editId }) {
       ...(isPgHostelType ? [{ id: "genderPreference", invalid: !form.genderPreference }] : []),
       ...(showBedsHallsFields ? [{ id: "beds", invalid: !form.beds || Number(form.beds) < 1 }] : []),
       ...(showBedsHallsFields ? [{ id: "halls", invalid: !form.halls || Number(form.halls) < 1 }] : []),
-      ...(showStructureFields && !isPgHostelType ? [{ id: "baths", invalid: !form.baths || Number(form.baths) < 1 }] : []),
+      ...(showBathsField ? [{ id: "baths", invalid: !form.baths || Number(form.baths) < 1 }] : []),
       { id: "fullName", invalid: !form.fullName.trim() },
       { id: "mobile", invalid: !isMobileValid(form.mobile) },
     ];
@@ -391,14 +409,14 @@ export default function PostPropertyForm({ editId }) {
         beds: showBedsHallsFields ? numericBeds : 0,
         bedsPlus: showBedsHallsFields ? isBedsPlus : false,
         halls: showBedsHallsFields ? Number(form.halls) || 0 : 0,
-        baths: showStructureFields && !isPgHostelType ? Number(form.baths) || 0 : 0,
-        floorNo: showStructureFields ? form.floorNo || "" : "",
-        totalFloors: showStructureFields && form.totalFloors ? Number(form.totalFloors) : null,
-        furnishing: showStructureFields ? form.furnishing || "" : "",
-        parking: showStructureFields ? form.parking || "" : "",
-        facing: isPgHostelType ? "" : form.facing || "",
+        baths: showBathsField ? Number(form.baths) || 0 : 0,
+        floorNo: showFloorsField ? form.floorNo || "" : "",
+        totalFloors: showFloorsField && form.totalFloors ? Number(form.totalFloors) : null,
+        furnishing: showFurnishingField ? form.furnishing || "" : "",
+        parking: showParkingField ? form.parking || "" : "",
+        facing: showFacingField ? form.facing || "" : "",
         availableFrom: form.availableFrom || "",
-        preferredFor: isResidential && !isPgHostelType ? form.preferredFor || "" : "",
+        preferredFor: showPreferredForField ? form.preferredFor || "" : "",
         genderPreference: isPgHostelType ? form.genderPreference || "" : "",
         description: (form.description || "").trim(),
         contact: {
@@ -452,15 +470,20 @@ export default function PostPropertyForm({ editId }) {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
       <Section icon={<MdContentPaste className="h-5 w-5" />} title="Property Identity" subtitle="Basic info about your listing">
-        {isResidential && (
-          <FormField label="Purpose" required>
+        <FormField
+          label="Purpose"
+          required
+          hint={!purposeSelected ? "Select a purpose to unlock the rest of the form" : undefined}
+        >
+          <div id="purpose">
             <ToggleTwo
               options={PURPOSE_OPTIONS}
               value={form.purpose}
               onChange={(value) => update("purpose", value)}
             />
-          </FormField>
-        )}
+          </div>
+        </FormField>
+        <fieldset disabled={!purposeSelected} className="contents">
         <FormField label="Listing Section" htmlFor="section" required hint="Where this property will be listed">
           <SelectWrap>
             <select
@@ -565,8 +588,13 @@ export default function PostPropertyForm({ editId }) {
             className={errClass(`${inputClass} rounded-sm`, "title")}
           />
         </FormField>
+        </fieldset>
       </Section>
 
+      <fieldset
+        disabled={!purposeSelected}
+        className={`flex flex-col gap-6 transition ${!purposeSelected ? "pointer-events-none opacity-40" : ""}`}
+      >
       <Section icon={<MdLocationOn className="h-5 w-5" />} title="Location" subtitle="City and area — no full address required">
         <FormField label="State" htmlFor="state" required>
           <SearchableSelect
@@ -698,7 +726,7 @@ export default function PostPropertyForm({ editId }) {
             />
           </FormField>
         )}
-        {showStructureFields && !isPgHostelType && (
+        {showBathsField && (
           <FormField label="No. of Bathrooms" htmlFor="baths" required>
             <input
               id="baths"
@@ -711,7 +739,7 @@ export default function PostPropertyForm({ editId }) {
             />
           </FormField>
         )}
-        {showStructureFields && (
+        {showFloorsField && (
           <>
             <FormField label="Floor No." htmlFor="floorNo" optional>
               <input
@@ -734,33 +762,37 @@ export default function PostPropertyForm({ editId }) {
                 className={`${inputClass} rounded-sm`}
               />
             </FormField>
-            <FormField label="Furnishing Status" htmlFor="furnishing" optional>
-              <SelectWrap>
-                <select
-                  id="furnishing"
-                  value={form.furnishing}
-                  onChange={(e) => update("furnishing", e.target.value)}
-                  className={`${selectClass} rounded-sm pr-10`}
-                >
-                  <option value="">Select</option>
-                  {FURNISHING_OPTIONS.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
-                  ))}
-                </select>
-              </SelectWrap>
-            </FormField>
-            <FormField label="Parking Available" optional>
-              <ToggleTwo
-                options={YES_NO_OPTIONS}
-                value={form.parking}
-                onChange={(value) => update("parking", value)}
-              />
-            </FormField>
           </>
         )}
-        {!isPgHostelType && (
+        {showFurnishingField && (
+          <FormField label="Furnishing Status" htmlFor="furnishing" optional>
+            <SelectWrap>
+              <select
+                id="furnishing"
+                value={form.furnishing}
+                onChange={(e) => update("furnishing", e.target.value)}
+                className={`${selectClass} rounded-sm pr-10`}
+              >
+                <option value="">Select</option>
+                {FURNISHING_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))}
+              </select>
+            </SelectWrap>
+          </FormField>
+        )}
+        {showParkingField && (
+          <FormField label="Parking Available" optional>
+            <ToggleTwo
+              options={YES_NO_OPTIONS}
+              value={form.parking}
+              onChange={(value) => update("parking", value)}
+            />
+          </FormField>
+        )}
+        {showFacingField && (
           <FormField label="Facing Direction" htmlFor="facing" optional>
             <SelectWrap>
               <select
@@ -788,7 +820,7 @@ export default function PostPropertyForm({ editId }) {
             className={`${inputClass} rounded-sm`}
           />
         </FormField>
-        {isResidential && !isPgHostelType && (
+        {showPreferredForField && (
         <FormField label="Preferred For" htmlFor="preferredFor" optional>
           <SelectWrap>
             <select
@@ -895,6 +927,7 @@ export default function PostPropertyForm({ editId }) {
           </FormField>
         </div>
       </Section>
+      </fieldset>
 
       {error && (
         <p className="rounded-sm border border-red-500/30 bg-red-500/5 px-4 py-3 text-center text-xs text-red-400">
@@ -958,7 +991,7 @@ function ToggleTwo({ options, value, onChange }) {
           type="button"
           onClick={() => onChange(opt.value)}
           aria-pressed={value === opt.value}
-          className={`tracked-label flex h-14 items-center justify-center rounded-sm border text-xs transition ${
+          className={`tracked-label flex h-14 items-center justify-center rounded-sm border text-xs transition disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-navy-700/60 disabled:hover:text-muted ${
             value === opt.value
               ? "border-gold-400 bg-gold-400 text-navy-950"
               : "border-navy-700/60 text-muted hover:border-gold-400 hover:text-cream"
