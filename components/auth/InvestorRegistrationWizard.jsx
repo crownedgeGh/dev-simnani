@@ -50,6 +50,7 @@ export default function InvestorRegistrationWizard() {
   const { step, setStep, form, setForm, clearDraft } = useWizardDraft("se_draft_investor", INITIAL_FORM);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [invalidFields, setInvalidFields] = useState(new Set());
 
   useEffect(() => {
     if (!authUser || authUser.accountType !== ACCOUNT_TYPE || form.accountId) return;
@@ -81,24 +82,52 @@ export default function InvestorRegistrationWizard() {
 
   function update(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
+    setInvalidFields((prev) => {
+      if (!prev.has(field)) return prev;
+      const next = new Set(prev);
+      next.delete(field);
+      return next;
+    });
+  }
+
+  function errClass(base, field) {
+    if (!invalidFields.has(field)) return base;
+    return base.replace(/border-navy-700\/60/g, "border-red-500").replace(/gold-400/g, "red-400");
+  }
+
+  function focusFirstInvalid(fieldId) {
+    const target = document.getElementById(fieldId);
+    target?.scrollIntoView({ behavior: "smooth", block: "center" });
+    target?.focus({ preventScroll: true });
   }
 
   async function goNext() {
     if (step === 1) {
-      if (!form.fullName.trim() || !isMobileValid(form.mobile) || !form.city.trim()) {
-        setError("Please fill in all required fields.");
+      const fieldChecks = [
+        { id: "fullName", invalid: !form.fullName.trim() },
+        { id: "mobile", invalid: !isMobileValid(form.mobile) },
+        { id: "city", invalid: !form.city.trim() },
+        ...(!form.accountId
+          ? [
+              { id: "password", invalid: !isPasswordValid(form.password) },
+              { id: "confirmPassword", invalid: form.password !== form.confirmPassword },
+            ]
+          : []),
+      ];
+      const missing = fieldChecks.filter((f) => f.invalid);
+      if (missing.length) {
+        setInvalidFields(new Set(missing.map((f) => f.id)));
+        if (!form.accountId && !isPasswordValid(form.password)) {
+          setError("Password must be at least 8 characters.");
+        } else if (!form.accountId && form.password !== form.confirmPassword) {
+          setError("Passwords do not match.");
+        } else {
+          setError("Please fill in all required fields.");
+        }
+        focusFirstInvalid(missing[0].id);
         return;
       }
-      if (!form.accountId) {
-        if (!isPasswordValid(form.password)) {
-          setError("Password must be at least 8 characters.");
-          return;
-        }
-        if (form.password !== form.confirmPassword) {
-          setError("Passwords do not match.");
-          return;
-        }
-      }
+      setInvalidFields(new Set());
       setError("");
       setSubmitting(true);
       try {
@@ -143,9 +172,12 @@ export default function InvestorRegistrationWizard() {
     }
     if (step === 2) {
       if (form.propertyTypes.length === 0) {
+        setInvalidFields(new Set(["propertyTypes"]));
         setError("Please select at least one property type.");
+        focusFirstInvalid("propertyTypes");
         return;
       }
+      setInvalidFields(new Set());
     }
     setError("");
     setStep((s) => Math.min(s + 1, TOTAL_STEPS));
@@ -153,23 +185,28 @@ export default function InvestorRegistrationWizard() {
 
   function goBack() {
     setError("");
+    setInvalidFields(new Set());
     setStep((s) => Math.max(s - 1, 1));
   }
 
   async function handleSkip() {
     setError("");
+    setInvalidFields(new Set());
     if (form.accountId) {
       await updateProfile({ registrationStep: step });
     }
     clearDraft();
-    router.push("/account");
+    router.replace("/account");
   }
 
   async function handleSubmit() {
     if (!form.agree) {
+      setInvalidFields(new Set(["agree"]));
       setError("Please accept the Terms & Conditions to continue.");
+      focusFirstInvalid("agree");
       return;
     }
+    setInvalidFields(new Set());
     setError("");
     setSubmitting(true);
     try {
@@ -222,12 +259,17 @@ export default function InvestorRegistrationWizard() {
               placeholder="e.g. Jane Doe"
               value={form.fullName}
               onChange={(e) => update("fullName", e.target.value)}
-              className={inputClass}
+              className={errClass(inputClass, "fullName")}
             />
           </FormField>
 
           <FormField label="Mobile Number" htmlFor="mobile" required>
-            <div className="flex items-center border border-navy-700/60 bg-navy-950 px-4 transition focus-within:border-gold-400">
+            <div
+              className={errClass(
+                "flex items-center border border-navy-700/60 bg-navy-950 px-4 transition focus-within:border-gold-400",
+                "mobile"
+              )}
+            >
               <span className="text-sm text-muted">+91</span>
               <input
                 id="mobile"
@@ -259,7 +301,7 @@ export default function InvestorRegistrationWizard() {
               placeholder="e.g. Mumbai, Delhi"
               value={form.city}
               onChange={(e) => update("city", e.target.value)}
-              className={inputClass}
+              className={errClass(inputClass, "city")}
             />
           </FormField>
 
@@ -269,6 +311,8 @@ export default function InvestorRegistrationWizard() {
               confirmPassword={form.confirmPassword}
               onPasswordChange={(value) => update("password", value)}
               onConfirmPasswordChange={(value) => update("confirmPassword", value)}
+              passwordInvalid={invalidFields.has("password")}
+              confirmInvalid={invalidFields.has("confirmPassword")}
             />
           )}
         </div>
@@ -277,12 +321,22 @@ export default function InvestorRegistrationWizard() {
       {step === 2 && (
         <div className="flex flex-col gap-6">
           <FormField label="Property Type" required>
-            <ChipGroup
-              options={PROPERTY_TYPES}
-              value={form.propertyTypes}
-              onChange={(value) => update("propertyTypes", value)}
-              multi
-            />
+            <div
+              id="propertyTypes"
+              tabIndex={-1}
+              className={
+                invalidFields.has("propertyTypes")
+                  ? "border border-red-500 p-2"
+                  : "border border-transparent p-2"
+              }
+            >
+              <ChipGroup
+                options={PROPERTY_TYPES}
+                value={form.propertyTypes}
+                onChange={(value) => update("propertyTypes", value)}
+                multi
+              />
+            </div>
           </FormField>
 
           <FormField label="Budget Range" optional>
@@ -351,7 +405,13 @@ export default function InvestorRegistrationWizard() {
             <ReviewItem label="Preferred City" value={form.preferredCity || "Not provided"} />
           </div>
 
-          <label className="flex items-start gap-3 text-xs text-muted">
+          <label
+            id="agree"
+            tabIndex={-1}
+            className={`flex items-start gap-3 text-xs text-muted ${
+              invalidFields.has("agree") ? "border border-red-500 p-2" : ""
+            }`}
+          >
             <input
               type="checkbox"
               checked={form.agree}

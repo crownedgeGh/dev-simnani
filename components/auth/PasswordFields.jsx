@@ -5,7 +5,14 @@ import { FiEye, FiEyeOff } from "react-icons/fi";
 import FormField from "./FormField";
 import { inputClass } from "./inputStyles";
 
-export default function PasswordFields({ password, confirmPassword, onPasswordChange, onConfirmPasswordChange }) {
+export default function PasswordFields({
+  password,
+  confirmPassword,
+  onPasswordChange,
+  onConfirmPasswordChange,
+  passwordInvalid,
+  confirmInvalid,
+}) {
   const [show, setShow] = useState(false);
 
   return (
@@ -19,7 +26,7 @@ export default function PasswordFields({ password, confirmPassword, onPasswordCh
             placeholder="Create a password"
             value={password}
             onChange={(e) => onPasswordChange(e.target.value)}
-            className={`${inputClass} pr-12`}
+            className={`${inputClass} pr-12 ${passwordInvalid ? "border-red-500 focus:border-red-400" : ""}`}
           />
           <button
             type="button"
@@ -40,7 +47,7 @@ export default function PasswordFields({ password, confirmPassword, onPasswordCh
           placeholder="Re-enter your password"
           value={confirmPassword}
           onChange={(e) => onConfirmPasswordChange(e.target.value)}
-          className={inputClass}
+          className={`${inputClass} ${confirmInvalid ? "border-red-500 focus:border-red-400" : ""}`}
         />
       </FormField>
     </>
