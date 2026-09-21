@@ -1,17 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import AuthShell from "./AuthShell";
 import Stepper from "./Stepper";
 import FormField from "./FormField";
 import PasswordFields from "./PasswordFields";
+import SearchableSelect from "./SearchableSelect";
 import { inputClass, selectClass } from "./inputStyles";
 import { formatMobile, isMobileValid, isPasswordValid, generateAccountId } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
 import { LOCATIONS } from "@/lib/locations";
 import { useWizardDraft } from "@/lib/useWizardDraft";
+import { RTO_STATES, getCitiesForState } from "@/lib/cityRto";
 
 const ACCOUNT_TYPE = "employee";
 const ACCOUNT_PREFIX = "EMP";
@@ -24,6 +26,8 @@ const INITIAL_FORM = {
   fullName: "",
   mobile: "",
   email: "",
+  state: "",
+  city: "",
   password: "",
   confirmPassword: "",
   employeeCode: "",
@@ -39,6 +43,15 @@ export default function EmployeeRegistrationWizard() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  const cityOptions = useMemo(() => {
+    if (!form.state) return [];
+    return getCitiesForState(form.state).map((c) => c.city);
+  }, [form.state]);
+
+  function handleStateChange(state) {
+    setForm((prev) => ({ ...prev, state, city: "" }));
+  }
+
   useEffect(() => {
     if (!authUser || authUser.accountType !== ACCOUNT_TYPE || form.accountId) return;
     const params = new URLSearchParams(window.location.search);
@@ -49,6 +62,8 @@ export default function EmployeeRegistrationWizard() {
       fullName: authUser.fullName || prev.fullName,
       mobile: authUser.mobile || prev.mobile,
       email: authUser.email || prev.email,
+      state: authUser.state || prev.state,
+      city: authUser.city || prev.city,
     }));
     setStep(Math.min(Math.max(resumeStep, 1), TOTAL_STEPS));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -72,7 +87,7 @@ export default function EmployeeRegistrationWizard() {
 
   async function goNext() {
     if (step === 1) {
-      if (!form.fullName.trim() || !isMobileValid(form.mobile) || !form.email.trim()) {
+      if (!form.fullName.trim() || !isMobileValid(form.mobile) || !form.email.trim() || !form.state || !form.city.trim()) {
         setError("Please fill in all required fields.");
         return;
       }
@@ -95,6 +110,8 @@ export default function EmployeeRegistrationWizard() {
             fullName: form.fullName,
             mobile: form.mobile,
             email: form.email,
+            state: form.state,
+            city: form.city,
             password: form.password,
             accountType: ACCOUNT_TYPE,
             accountId: id,
@@ -115,6 +132,8 @@ export default function EmployeeRegistrationWizard() {
           const result = await updateProfile({
             fullName: form.fullName,
             email: form.email,
+            state: form.state,
+            city: form.city,
             registrationStep: 2,
           });
           if (!result?.success) throw new Error(result?.error || "Something went wrong. Please try again.");
@@ -228,6 +247,32 @@ export default function EmployeeRegistrationWizard() {
             />
           </FormField>
 
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <FormField label="State" htmlFor="state" required>
+              <SearchableSelect
+                id="state"
+                value={form.state}
+                onChange={handleStateChange}
+                options={RTO_STATES}
+                placeholder="Select your state"
+                searchPlaceholder="Search states…"
+              />
+            </FormField>
+
+            <FormField label="City" htmlFor="city" required>
+              <SearchableSelect
+                id="city"
+                value={form.city}
+                onChange={(city) => update("city", city)}
+                options={cityOptions}
+                placeholder={form.state ? "Select your city" : "Select a state first"}
+                searchPlaceholder="Search cities…"
+                disabled={!form.state}
+                emptyMessage="No cities found for this state"
+              />
+            </FormField>
+          </div>
+
           {!form.accountId && (
             <PasswordFields
               password={form.password}
@@ -294,6 +339,8 @@ export default function EmployeeRegistrationWizard() {
               <ReviewItem label="Full Name" value={form.fullName} />
               <ReviewItem label="Mobile" value={`+91 ${form.mobile}`} />
               <ReviewItem label="Email" value={form.email} />
+              <ReviewItem label="State" value={form.state} />
+              <ReviewItem label="City" value={form.city} />
             </div>
           </div>
 

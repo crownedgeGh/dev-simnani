@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import AuthShell from "./AuthShell";
@@ -8,11 +8,13 @@ import Stepper from "./Stepper";
 import FormField from "./FormField";
 import ChipGroup from "./ChipGroup";
 import PasswordFields from "./PasswordFields";
+import SearchableSelect from "./SearchableSelect";
 import { inputClass } from "./inputStyles";
 import { formatMobile, isMobileValid, isPasswordValid, generateAccountId } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
 import { PROPERTY_CATEGORIES } from "@/lib/propertyCategories";
 import { useWizardDraft } from "@/lib/useWizardDraft";
+import { RTO_STATES, getCitiesForState } from "@/lib/cityRto";
 
 const ACCOUNT_TYPE = "buyer";
 const ACCOUNT_PREFIX = "BYR";
@@ -33,6 +35,7 @@ const INITIAL_FORM = {
   fullName: "",
   mobile: "",
   email: "",
+  state: "",
   city: "",
   password: "",
   confirmPassword: "",
@@ -49,6 +52,15 @@ export default function BuyerRegistrationWizard() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  const cityOptions = useMemo(() => {
+    if (!form.state) return [];
+    return getCitiesForState(form.state).map((c) => c.city);
+  }, [form.state]);
+
+  function handleStateChange(state) {
+    setForm((prev) => ({ ...prev, state, city: "" }));
+  }
+
   useEffect(() => {
     if (!authUser || authUser.accountType !== ACCOUNT_TYPE || form.accountId) return;
     const params = new URLSearchParams(window.location.search);
@@ -59,6 +71,7 @@ export default function BuyerRegistrationWizard() {
       fullName: authUser.fullName || prev.fullName,
       mobile: authUser.mobile || prev.mobile,
       email: authUser.email || prev.email,
+      state: authUser.state || prev.state,
       city: authUser.city || prev.city,
     }));
     setStep(Math.min(Math.max(resumeStep, 1), TOTAL_STEPS));
@@ -83,7 +96,7 @@ export default function BuyerRegistrationWizard() {
 
   async function goNext() {
     if (step === 1) {
-      if (!form.fullName.trim() || !isMobileValid(form.mobile) || !form.city.trim()) {
+      if (!form.fullName.trim() || !isMobileValid(form.mobile) || !form.state || !form.city.trim()) {
         setError("Please fill in all required fields.");
         return;
       }
@@ -106,6 +119,7 @@ export default function BuyerRegistrationWizard() {
             fullName: form.fullName,
             mobile: form.mobile,
             email: form.email,
+            state: form.state,
             city: form.city,
             password: form.password,
             accountType: ACCOUNT_TYPE,
@@ -127,6 +141,7 @@ export default function BuyerRegistrationWizard() {
           const result = await updateProfile({
             fullName: form.fullName,
             email: form.email,
+            state: form.state,
             city: form.city,
             registrationStep: 2,
           });
@@ -249,16 +264,31 @@ export default function BuyerRegistrationWizard() {
             />
           </FormField>
 
-          <FormField label="City" htmlFor="city" required>
-            <input
-              id="city"
-              type="text"
-              placeholder="e.g. Bangalore, Mumbai, Pune"
-              value={form.city}
-              onChange={(e) => update("city", e.target.value)}
-              className={inputClass}
-            />
-          </FormField>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <FormField label="State" htmlFor="state" required>
+              <SearchableSelect
+                id="state"
+                value={form.state}
+                onChange={handleStateChange}
+                options={RTO_STATES}
+                placeholder="Select your state"
+                searchPlaceholder="Search states…"
+              />
+            </FormField>
+
+            <FormField label="City" htmlFor="city" required>
+              <SearchableSelect
+                id="city"
+                value={form.city}
+                onChange={(city) => update("city", city)}
+                options={cityOptions}
+                placeholder={form.state ? "Select your city" : "Select a state first"}
+                searchPlaceholder="Search cities…"
+                disabled={!form.state}
+                emptyMessage="No cities found for this state"
+              />
+            </FormField>
+          </div>
 
           {!form.accountId && (
             <PasswordFields
@@ -310,6 +340,7 @@ export default function BuyerRegistrationWizard() {
             <ReviewItem label="Full Name" value={form.fullName} />
             <ReviewItem label="Mobile" value={`+91 ${form.mobile}`} />
             <ReviewItem label="Email" value={form.email || "Not provided"} />
+            <ReviewItem label="State" value={form.state} />
             <ReviewItem label="City" value={form.city} />
             <ReviewItem
               label="Property Type"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import AuthShell from "./AuthShell";
@@ -8,12 +8,14 @@ import Stepper from "./Stepper";
 import FormField from "./FormField";
 import ChipGroup from "./ChipGroup";
 import PasswordFields from "./PasswordFields";
+import SearchableSelect from "./SearchableSelect";
 import { PROPERTY_CATEGORIES } from "@/lib/propertyCategories";
 import { inputClass } from "./inputStyles";
 import { formatMobile, isMobileValid, isPasswordValid, generateAccountId } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
 import { MdPercent } from "react-icons/md";
 import { useWizardDraft } from "@/lib/useWizardDraft";
+import { RTO_STATES, getCitiesForState } from "@/lib/cityRto";
 
 const ACCOUNT_TYPE = "investor";
 const ACCOUNT_PREFIX = "INV";
@@ -34,6 +36,7 @@ const INITIAL_FORM = {
   fullName: "",
   mobile: "",
   email: "",
+  state: "",
   city: "",
   password: "",
   confirmPassword: "",
@@ -52,6 +55,22 @@ export default function InvestorRegistrationWizard() {
   const [submitting, setSubmitting] = useState(false);
   const [invalidFields, setInvalidFields] = useState(new Set());
 
+  const cityOptions = useMemo(() => {
+    if (!form.state) return [];
+    return getCitiesForState(form.state).map((c) => c.city);
+  }, [form.state]);
+
+  function handleStateChange(state) {
+    setForm((prev) => ({ ...prev, state, city: "" }));
+    setInvalidFields((prev) => {
+      if (!prev.has("state") && !prev.has("city")) return prev;
+      const next = new Set(prev);
+      next.delete("state");
+      next.delete("city");
+      return next;
+    });
+  }
+
   useEffect(() => {
     if (!authUser || authUser.accountType !== ACCOUNT_TYPE || form.accountId) return;
     const params = new URLSearchParams(window.location.search);
@@ -62,6 +81,7 @@ export default function InvestorRegistrationWizard() {
       fullName: authUser.fullName || prev.fullName,
       mobile: authUser.mobile || prev.mobile,
       email: authUser.email || prev.email,
+      state: authUser.state || prev.state,
       city: authUser.city || prev.city,
     }));
     setStep(Math.min(Math.max(resumeStep, 1), TOTAL_STEPS));
@@ -106,6 +126,7 @@ export default function InvestorRegistrationWizard() {
       const fieldChecks = [
         { id: "fullName", invalid: !form.fullName.trim() },
         { id: "mobile", invalid: !isMobileValid(form.mobile) },
+        { id: "state", invalid: !form.state },
         { id: "city", invalid: !form.city.trim() },
         ...(!form.accountId
           ? [
@@ -137,6 +158,7 @@ export default function InvestorRegistrationWizard() {
             fullName: form.fullName,
             mobile: form.mobile,
             email: form.email,
+            state: form.state,
             city: form.city,
             password: form.password,
             accountType: ACCOUNT_TYPE,
@@ -158,6 +180,7 @@ export default function InvestorRegistrationWizard() {
           const result = await updateProfile({
             fullName: form.fullName,
             email: form.email,
+            state: form.state,
             city: form.city,
             registrationStep: 2,
           });
@@ -294,16 +317,31 @@ export default function InvestorRegistrationWizard() {
             />
           </FormField>
 
-          <FormField label="City" htmlFor="city" required>
-            <input
-              id="city"
-              type="text"
-              placeholder="e.g. Mumbai, Delhi"
-              value={form.city}
-              onChange={(e) => update("city", e.target.value)}
-              className={errClass(inputClass, "city")}
-            />
-          </FormField>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <FormField label="State" htmlFor="state" required>
+              <SearchableSelect
+                id="state"
+                value={form.state}
+                onChange={handleStateChange}
+                options={RTO_STATES}
+                placeholder="Select your state"
+                searchPlaceholder="Search states…"
+              />
+            </FormField>
+
+            <FormField label="City" htmlFor="city" required>
+              <SearchableSelect
+                id="city"
+                value={form.city}
+                onChange={(city) => update("city", city)}
+                options={cityOptions}
+                placeholder={form.state ? "Select your city" : "Select a state first"}
+                searchPlaceholder="Search cities…"
+                disabled={!form.state}
+                emptyMessage="No cities found for this state"
+              />
+            </FormField>
+          </div>
 
           {!form.accountId && (
             <PasswordFields
@@ -385,6 +423,7 @@ export default function InvestorRegistrationWizard() {
             <ReviewItem label="Full Name" value={form.fullName} />
             <ReviewItem label="Mobile" value={`+91 ${form.mobile}`} />
             <ReviewItem label="Email" value={form.email || "Not provided"} />
+            <ReviewItem label="State" value={form.state} />
             <ReviewItem label="City" value={form.city} />
             <ReviewItem
               label="Property Type"
