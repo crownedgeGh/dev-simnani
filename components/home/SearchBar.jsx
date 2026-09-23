@@ -20,6 +20,10 @@ const SIMPLE_TYPES = ["Flat", "House", "Shop", "Plot", "Office", "Warehouse"].ma
   (label) => ({ key: label, label })
 );
 
+const BHK_TYPES = ["House", "Flat"];
+
+const BHK_OPTIONS = ["1 BHK", "2 BHK", "3 BHK", "4 BHK", "4 BHK+"];
+
 const PROPERTY_TYPE_OPTIONS = {
   buy: SIMPLE_TYPES,
   rent: SIMPLE_TYPES,
@@ -52,6 +56,7 @@ export default function SearchBar() {
   const [mode, setMode] = useState(MODES[0].slug);
   const [location, setLocation] = useState("");
   const [propertyType, setPropertyType] = useState("");
+  const [bhk, setBhk] = useState("");
   const [citySuggestions, setCitySuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showErrors, setShowErrors] = useState(false);
@@ -62,6 +67,7 @@ export default function SearchBar() {
 
   const typeOptions = PROPERTY_TYPE_OPTIONS[mode] ?? [];
   const hasCategoryRoutes = mode === "invest";
+  const showBhk = BHK_TYPES.includes(propertyType);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -92,11 +98,13 @@ export default function SearchBar() {
   function handleModeChange(slug) {
     setMode(slug);
     setPropertyType("");
+    setBhk("");
   }
 
   function handleTypeChange(event) {
     const value = event.target.value;
     setPropertyType(value);
+    if (!BHK_TYPES.includes(value)) setBhk("");
 
     if (!value) return;
 
@@ -104,6 +112,10 @@ export default function SearchBar() {
       const category = typeOptions.find((option) => option.label === value);
       router.push(category?.href ?? `/${mode}/${category?.key}`);
     }
+  }
+
+  function handleBhkChange(event) {
+    setBhk(event.target.value);
   }
 
   function handleSubmit(event) {
@@ -121,9 +133,14 @@ export default function SearchBar() {
       params.set("type", propertyType);
     }
 
+    if (showBhk && bhk) {
+      params.set("bhk", bhk);
+    }
+
     const modeLabel = MODES.find((m) => m.slug === mode)?.label || mode;
     const queryParts = [];
     if (!hasCategoryRoutes) queryParts.push(propertyType);
+    if (showBhk && bhk) queryParts.push(bhk);
     queryParts.push(modeLabel);
     queryParts.push(location.trim());
 
@@ -131,6 +148,7 @@ export default function SearchBar() {
       search_term: queryParts.join(" • "),
       mode,
       property_type: propertyType,
+      bhk: showBhk ? bhk : undefined,
       location: location.trim(),
     });
 
@@ -189,6 +207,29 @@ export default function SearchBar() {
           />
           {propertyTypeInvalid && <ValidationBubble message="Please select a property type." />}
         </div>
+
+        {showBhk && (
+          <div className="relative lg:w-40">
+            <select
+              value={bhk}
+              onChange={handleBhkChange}
+              className={`${SELECT_CLASS} border-navy-700/70`}
+            >
+              <option value="" className="bg-navy-900">
+                BHK
+              </option>
+              {BHK_OPTIONS.map((option) => (
+                <option key={option} value={option} className="bg-navy-900">
+                  {option}
+                </option>
+              ))}
+            </select>
+            <FiChevronDown
+              aria-hidden="true"
+              className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-cream/70"
+            />
+          </div>
+        )}
 
         <div ref={locationFieldRef} className="relative flex-1">
           <div

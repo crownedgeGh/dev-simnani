@@ -6,6 +6,7 @@ import { FiSearch, FiX } from "react-icons/fi";
 import PropertyGrid from "./PropertyGrid";
 import {
   getLocationCity,
+  getPropertyCategoryLabels,
   parsePriceToNumber,
   SALE_BUDGET_RANGES,
   RENT_BUDGET_RANGES,
@@ -13,42 +14,79 @@ import {
 } from "@/lib/properties";
 import { trackEvent } from "@/lib/gtag";
 
+// Accepts either a plain dropdown value ("1".."5") or a free-form label
+// like "4 BHK+" (as sent by the homepage search bar) and normalizes it to
+// a { num, plus } match rule. "5" is treated as "5+" to match the existing
+// dropdown's "5 BHK+" option.
+function parseBhkValue(raw) {
+  if (!raw) return null;
+  const str = String(raw);
+  const match = str.match(/(\d+)/);
+  if (!match) return null;
+  const num = parseInt(match[1], 10);
+  const plus = str.includes("+") || num >= 5;
+  return { num, plus };
+}
+
 const filterFieldClass =
   "h-11 w-full rounded-sm border border-navy-700/60 bg-navy-950 px-3 text-sm text-cream outline-none transition focus:border-gold-400 sm:h-12";
 
 export default function PropertyFilterBar({ properties, pricingMode = "sale", emptyMessage, emphasizeDetails }) {
   const searchParams = useSearchParams();
-  const locationParam = searchParams.get("location");
+  const searchParamsKey = searchParams.toString();
 
   const cityOptions = useMemo(() => {
     const cities = new Set(properties.map((p) => getLocationCity(p.location)));
     return Array.from(cities).sort();
   }, [properties]);
 
-  const initialCity = useMemo(() => {
-    if (!locationParam) return "";
-    const requestedCity = getLocationCity(locationParam);
-    return cityOptions.includes(requestedCity) ? requestedCity : "";
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const propertyTypeOptions = useMemo(() => {
+    const types = new Set(
+      properties.map((p) => getPropertyCategoryLabels(p).categoryLabel).filter(Boolean)
+    );
+    return Array.from(types).sort();
+  }, [properties]);
 
   const [search, setSearch] = useState("");
-  const [city, setCity] = useState(initialCity);
+  const [city, setCity] = useState("");
+  const [propertyType, setPropertyType] = useState("");
   const [budget, setBudget] = useState("");
   const [bhk, setBhk] = useState("");
+
+  // Sync filters from the URL (e.g. the homepage search bar's location/type/bhk
+  // params) whenever the query string changes, not just on first mount, so
+  // client-side navigations from an already-mounted filter bar also apply.
+  // Adjusted during render (React's recommended pattern for syncing state to
+  // a changing key) rather than in an effect, to avoid an extra render pass.
+  const [syncedParamsKey, setSyncedParamsKey] = useState(null);
+  if (searchParamsKey !== syncedParamsKey) {
+    setSyncedParamsKey(searchParamsKey);
+
+    const locationParam = searchParams.get("location");
+    const typeParam = searchParams.get("type");
+    const bhkParam = searchParams.get("bhk");
+
+    const requestedCity = locationParam ? getLocationCity(locationParam) : "";
+    setCity(requestedCity && cityOptions.includes(requestedCity) ? requestedCity : "");
+    setPropertyType(typeParam || "");
+    setBhk(bhkParam || "");
+  }
 
   const hasBeds = useMemo(() => properties.some((p) => p.beds), [properties]);
   const budgetRanges = pricingMode === "rent" ? RENT_BUDGET_RANGES : SALE_BUDGET_RANGES;
 
   const selectedRange = budgetRanges.find((range) => range.label === budget);
+  const bhkFilter = parseBhkValue(bhk);
+  const bhkSelectValue = BHK_OPTIONS.map(String).includes(bhk) ? bhk : "";
 
   // Debounce so one combined, human-readable query (e.g. "2 BHK • Rent •
   // Pune • Under 50L") fires per pause in filtering, not a fragment per field.
   useEffect(() => {
-    if (!search.trim() && !city && !budget && !bhk) return;
+    if (!search.trim() && !city && !propertyType && !budget && !bhk) return;
     const timer = setTimeout(() => {
       const parts = [];
-      if (bhk) parts.push(bhk === "5" ? "5+ BHK" : `${bhk} BHK`);
+      if (bhk) parts.push(bhkFilter ? `${bhkFilter.num}${bhkFilter.plus ? "+" : ""} BHK` : bhk);
+      if (propertyType) parts.push(propertyType);
       if (search.trim()) parts.push(`"${search.trim()}"`);
       parts.push(pricingMode === "rent" ? "Rent" : "Sale");
       if (city) parts.push(city);
@@ -58,6 +96,7 @@ export default function PropertyFilterBar({ properties, pricingMode = "sale", em
         search_term: parts.join(" • "),
         pricing_mode: pricingMode,
         city: city || undefined,
+        property_type: propertyType || undefined,
         budget: budget || undefined,
         bhk: bhk || undefined,
         free_text: search.trim() || undefined,
@@ -65,7 +104,7 @@ export default function PropertyFilterBar({ properties, pricingMode = "sale", em
     }, 700);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, city, budget, bhk]);
+  }, [search, city, propertyType, budget, bhk]);
 
   const filtered = useMemo(() => {
     return properties.filter((property) => {
@@ -79,6 +118,10 @@ export default function PropertyFilterBar({ properties, pricingMode = "sale", em
 
       if (city && getLocationCity(property.location) !== city) return false;
 
+      if (propertyType && getPropertyCategoryLabels(property).categoryLabel !== propertyType) {
+        return false;
+      }
+
       if (selectedRange) {
         const value = parsePriceToNumber(property.price);
         if (value == null) return false;
@@ -86,22 +129,24 @@ export default function PropertyFilterBar({ properties, pricingMode = "sale", em
         if (selectedRange.max != null && value >= selectedRange.max) return false;
       }
 
-      if (bhk) {
-        const wantsFivePlus = bhk === "5";
+      if (bhkFilter) {
         if (!property.beds) return false;
-        if (wantsFivePlus ? property.beds < 5 : property.beds !== Number(bhk)) return false;
+        if (bhkFilter.plus ? property.beds < bhkFilter.num : property.beds !== bhkFilter.num) {
+          return false;
+        }
       }
 
       return true;
     });
-  }, [properties, search, city, selectedRange, bhk]);
+  }, [properties, search, city, propertyType, selectedRange, bhkFilter]);
 
   const activeFilters = [
     city && { key: "city", label: city, clear: () => setCity("") },
+    propertyType && { key: "propertyType", label: propertyType, clear: () => setPropertyType("") },
     budget && { key: "budget", label: budget, clear: () => setBudget("") },
-    bhk && {
+    bhkFilter && {
       key: "bhk",
-      label: bhk === "5" ? "5+ BHK" : `${bhk} BHK`,
+      label: `${bhkFilter.num}${bhkFilter.plus ? "+" : ""} BHK`,
       clear: () => setBhk(""),
     },
   ].filter(Boolean);
@@ -109,6 +154,7 @@ export default function PropertyFilterBar({ properties, pricingMode = "sale", em
   function clearAll() {
     setSearch("");
     setCity("");
+    setPropertyType("");
     setBudget("");
     setBhk("");
   }
@@ -116,7 +162,7 @@ export default function PropertyFilterBar({ properties, pricingMode = "sale", em
   return (
     <div>
       <div className="border border-navy-700/60 bg-navy-900 p-3 sm:p-4">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr]">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr_1fr]">
           <div className="relative sm:col-span-2 lg:col-span-1">
             <FiSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
             <input
@@ -127,6 +173,20 @@ export default function PropertyFilterBar({ properties, pricingMode = "sale", em
               className={`${filterFieldClass} pl-9`}
             />
           </div>
+
+          <select
+            value={propertyType}
+            onChange={(e) => setPropertyType(e.target.value)}
+            className={`${filterFieldClass} appearance-none`}
+            aria-label="Filter by property type"
+          >
+            <option value="">All Types</option>
+            {propertyTypeOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
 
           <select
             value={city}
@@ -158,7 +218,7 @@ export default function PropertyFilterBar({ properties, pricingMode = "sale", em
 
           {hasBeds ? (
             <select
-              value={bhk}
+              value={bhkSelectValue}
               onChange={(e) => setBhk(e.target.value)}
               className={`${filterFieldClass} appearance-none`}
               aria-label="Filter by BHK"
