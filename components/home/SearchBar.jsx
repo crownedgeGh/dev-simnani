@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { MdLocationOn, MdSearch } from "react-icons/md";
-import { FiChevronDown } from "react-icons/fi";
+import { FiChevronDown, FiAlertCircle } from "react-icons/fi";
 import { INVEST_CATEGORIES } from "@/lib/properties";
 import { searchIndianCities } from "@/lib/indianCities";
 import { trackEvent } from "@/lib/gtag";
@@ -30,16 +30,35 @@ const PROPERTY_TYPE_OPTIONS = {
 };
 
 const SELECT_CLASS =
-  "w-full appearance-none rounded-md border border-navy-700/70 bg-navy-900/80 px-4 py-3.5 text-sm text-cream transition focus:border-gold-500 focus:outline-none";
+  "w-full appearance-none rounded-md border bg-navy-900/80 px-4 py-3.5 text-sm text-cream transition focus:border-gold-500 focus:outline-none";
+
+function ValidationBubble({ message }) {
+  return (
+    <div className="absolute left-0 top-full z-30 mt-2 flex items-center gap-2 rounded-md border border-gold-500/60 bg-navy-900 px-3 py-2 text-xs text-cream shadow-[0_20px_50px_-16px_rgba(0,0,0,0.9)]">
+      <span
+        aria-hidden="true"
+        className="absolute -top-[5px] left-4 h-2.5 w-2.5 rotate-45 border-l border-t border-gold-500/60 bg-navy-900"
+      />
+      <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-sm bg-gold-500 text-navy-950">
+        <FiAlertCircle className="h-3 w-3" />
+      </span>
+      <span className="whitespace-nowrap font-medium text-cream">{message}</span>
+    </div>
+  );
+}
 
 export default function SearchBar() {
   const router = useRouter();
   const [mode, setMode] = useState(MODES[0].slug);
   const [location, setLocation] = useState("");
-  const [propertyType, setPropertyType] = useState(PLACEHOLDER);
+  const [propertyType, setPropertyType] = useState("");
   const [citySuggestions, setCitySuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showErrors, setShowErrors] = useState(false);
   const locationFieldRef = useRef(null);
+
+  const locationInvalid = showErrors && !location.trim();
+  const propertyTypeInvalid = showErrors && !propertyType;
 
   const typeOptions = PROPERTY_TYPE_OPTIONS[mode] ?? [];
   const hasCategoryRoutes = mode === "invest";
@@ -72,14 +91,14 @@ export default function SearchBar() {
 
   function handleModeChange(slug) {
     setMode(slug);
-    setPropertyType(PLACEHOLDER);
+    setPropertyType("");
   }
 
   function handleTypeChange(event) {
     const value = event.target.value;
     setPropertyType(value);
 
-    if (value === PLACEHOLDER) return;
+    if (!value) return;
 
     if (hasCategoryRoutes) {
       const category = typeOptions.find((option) => option.label === value);
@@ -89,24 +108,30 @@ export default function SearchBar() {
 
   function handleSubmit(event) {
     event.preventDefault();
-    const params = new URLSearchParams();
-    if (location.trim()) params.set("location", location.trim());
 
-    if (propertyType !== PLACEHOLDER && !hasCategoryRoutes) {
+    if (!location.trim() || !propertyType) {
+      setShowErrors(true);
+      return;
+    }
+
+    const params = new URLSearchParams();
+    params.set("location", location.trim());
+
+    if (!hasCategoryRoutes) {
       params.set("type", propertyType);
     }
 
     const modeLabel = MODES.find((m) => m.slug === mode)?.label || mode;
     const queryParts = [];
-    if (propertyType !== PLACEHOLDER && !hasCategoryRoutes) queryParts.push(propertyType);
+    if (!hasCategoryRoutes) queryParts.push(propertyType);
     queryParts.push(modeLabel);
-    if (location.trim()) queryParts.push(location.trim());
+    queryParts.push(location.trim());
 
     trackEvent("search", {
       search_term: queryParts.join(" • "),
       mode,
-      property_type: propertyType !== PLACEHOLDER ? propertyType : undefined,
-      location: location.trim() || undefined,
+      property_type: propertyType,
+      location: location.trim(),
     });
 
     const query = params.toString();
@@ -136,9 +161,41 @@ export default function SearchBar() {
         ))}
       </div>
 
-      <form onSubmit={handleSubmit} className="mt-5 flex flex-col gap-3 lg:flex-row">
+      <form
+        onSubmit={handleSubmit}
+        noValidate
+        className="mt-5 flex flex-col gap-3 lg:flex-row"
+      >
+        <div className="relative lg:w-52">
+          <select
+            value={propertyType}
+            onChange={handleTypeChange}
+            className={`${SELECT_CLASS} ${
+              propertyTypeInvalid ? "border-gold-500" : "border-navy-700/70"
+            }`}
+          >
+            <option value="" disabled hidden className="bg-navy-900">
+              {PLACEHOLDER}
+            </option>
+            {typeOptions.map((option) => (
+              <option key={option.key} value={option.label} className="bg-navy-900">
+                {option.label}
+              </option>
+            ))}
+          </select>
+          <FiChevronDown
+            aria-hidden="true"
+            className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-cream/70"
+          />
+          {propertyTypeInvalid && <ValidationBubble message="Please select a property type." />}
+        </div>
+
         <div ref={locationFieldRef} className="relative flex-1">
-          <div className="flex items-center gap-2.5 rounded-md border border-navy-700/70 bg-navy-900/80 px-4 transition focus-within:border-gold-500">
+          <div
+            className={`flex items-center gap-2.5 rounded-md border bg-navy-900/80 px-4 transition focus-within:border-gold-500 ${
+              locationInvalid ? "border-gold-500" : "border-navy-700/70"
+            }`}
+          >
             <span className="shrink-0 text-cream/70">
               <MdLocationOn className="h-4 w-4" />
             </span>
@@ -156,6 +213,8 @@ export default function SearchBar() {
               className="w-full bg-transparent py-3.5 text-sm text-cream placeholder:text-muted focus:outline-none"
             />
           </div>
+
+          {locationInvalid && <ValidationBubble message="Please fill in this field." />}
 
           {showSuggestions && citySuggestions.length > 0 && (
             <ul
@@ -179,27 +238,6 @@ export default function SearchBar() {
               ))}
             </ul>
           )}
-        </div>
-
-        <div className="relative lg:w-52">
-          <select
-            value={propertyType}
-            onChange={handleTypeChange}
-            className={SELECT_CLASS}
-          >
-            <option value={PLACEHOLDER} className="bg-navy-900">
-              {PLACEHOLDER}
-            </option>
-            {typeOptions.map((option) => (
-              <option key={option.key} value={option.label} className="bg-navy-900">
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <FiChevronDown
-            aria-hidden="true"
-            className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-cream/70"
-          />
         </div>
 
         <button
