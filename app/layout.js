@@ -3,6 +3,7 @@ import { Toaster } from "sonner";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import PublicShell from "@/components/layout/PublicShell";
+import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -33,6 +34,7 @@ export default function RootLayout({ children }) {
       className={`${inter.variable} ${openSans.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-navy-950 text-cream">
+        <GoogleAnalytics />
         <AuthProvider>
           <PublicShell>{children}</PublicShell>
         </AuthProvider>

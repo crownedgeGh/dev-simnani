@@ -19,6 +19,7 @@ import { formatPostedDate, getPropertyCategoryLabels, formatBhkLabel } from "@/l
 import { useSavedPropertyIds } from "@/lib/savedProperties";
 import { useAuth } from "@/context/AuthContext";
 import AuthGateModal from "@/components/auth/AuthGateModal";
+import { trackEvent } from "@/lib/gtag";
 
 const FALLBACK_MOBILE = "+91 98765 43210";
 
@@ -57,6 +58,7 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
     } catch {
       // best-effort — still show the callback confirmation
     }
+    trackEvent("generate_lead", { form_name: "contact_person_card", item_id: id });
     setShowToast(true);
     setTimeout(() => setShowToast(false), 2500);
   }
@@ -68,6 +70,7 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
       setShowAuthGate(true);
       return;
     }
+    trackEvent("contact_click", { method: "call", item_id: id });
     window.location.href = `tel:${phone.replace(/\s+/g, "")}`;
   }
 
@@ -78,6 +81,7 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
       setShowAuthGate(true);
       return;
     }
+    trackEvent("contact_click", { method: "show_number", item_id: id });
     setNumberRevealed(true);
     requestAnimationFrame(() => setNumberEntered(true));
   }
@@ -97,13 +101,19 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
   function handleSaveClick(e) {
     e.preventDefault();
     e.stopPropagation();
+    if (!saved) trackEvent("add_to_wishlist", { item_id: id, item_name: title });
     toggle(id);
+  }
+
+  function handleCardClick() {
+    trackEvent("select_content", { content_type: "property", item_id: id, item_name: title });
   }
 
   return (
     <>
     <Link
       href={ownerView ? `/portal/listing/${id}` : `/property/${id}`}
+      onClick={handleCardClick}
       className="group flex h-full flex-col overflow-hidden rounded-sm border border-navy-700/60 bg-navy-900 transition active:border-gold-500/50 active:shadow-[0_0_0_1px_var(--color-gold-500)] hover:border-gold-500/50 hover:shadow-[0_0_0_1px_var(--color-gold-500)]"
     >
       <div className="relative aspect-[4/3] w-full overflow-hidden">

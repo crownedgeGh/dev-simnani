@@ -6,6 +6,7 @@ import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
 import { inputClass, textareaClass } from "@/components/auth/inputStyles";
 import ChipGroup from "@/components/auth/ChipGroup";
 import BackButton from "@/components/layout/BackButton";
+import { trackEvent } from "@/lib/gtag";
 
 const TIME_SLOTS = [
   { value: "10:00 AM", label: "10:00 AM" },
@@ -36,6 +37,7 @@ export default function ScheduleVisitForm({ title: propertyTitle, backHref }) {
     setTimeout(() => {
       setSubmitting(false);
       setVisitId(generateAccountId("VIS"));
+      trackEvent("generate_lead", { form_name: "schedule_visit", item_name: propertyTitle });
     }, 900);
   }
 

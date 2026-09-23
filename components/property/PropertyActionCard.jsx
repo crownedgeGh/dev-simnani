@@ -5,6 +5,7 @@ import { MdCall, MdContentCopy, MdCheck, MdShare } from "react-icons/md";
 import { FaWhatsapp } from "react-icons/fa6";
 import { useAuth } from "@/context/AuthContext";
 import AuthGateModal from "@/components/auth/AuthGateModal";
+import { trackEvent } from "@/lib/gtag";
 
 const FALLBACK_MOBILE = "+91 98765 43210";
 
@@ -82,7 +83,11 @@ export default function PropertyActionCard({
           rel="noopener noreferrer"
           aria-disabled={!shareUrl}
           onClick={(e) => {
-            if (!shareUrl) e.preventDefault();
+            if (!shareUrl) {
+              e.preventDefault();
+              return;
+            }
+            trackEvent("share", { method: "whatsapp", item_id: propertyId });
           }}
           className="tracked-label mt-3 flex min-h-[44px] w-full items-center justify-center gap-2 border border-navy-700/60 px-6 py-3 text-center text-xs text-cream transition hover:border-gold-400 hover:text-gold-400"
         >
@@ -108,6 +113,7 @@ export default function PropertyActionCard({
     } catch {
       // best-effort — still show the callback confirmation
     }
+    trackEvent("generate_lead", { form_name: "interested_button", item_id: propertyId, item_name: propertyTitle });
     setAlreadyInterested(true);
     try {
       const interestedIds = JSON.parse(localStorage.getItem("se_interested_properties") || "[]");
@@ -128,7 +134,9 @@ export default function PropertyActionCard({
     if (!isAuthenticated) {
       e.preventDefault();
       setShowAuthGate(true);
+      return;
     }
+    trackEvent("contact_click", { method: "call", item_id: propertyId });
   }
 
   function handleShowNumber() {
@@ -136,6 +144,7 @@ export default function PropertyActionCard({
       setShowAuthGate(true);
       return;
     }
+    trackEvent("contact_click", { method: "show_number", item_id: propertyId });
     setNumberRevealed(true);
     requestAnimationFrame(() => setNumberEntered(true));
   }
@@ -256,7 +265,11 @@ export default function PropertyActionCard({
           rel="noopener noreferrer"
           aria-disabled={!shareUrl}
           onClick={(e) => {
-            if (!shareUrl) e.preventDefault();
+            if (!shareUrl) {
+              e.preventDefault();
+              return;
+            }
+            trackEvent("share", { method: "whatsapp", item_id: propertyId });
           }}
           className="tracked-label mt-3 flex min-h-[44px] w-full items-center justify-center gap-2 border border-navy-700/60 px-6 py-3 text-center text-xs text-cream transition hover:border-gold-400 hover:text-gold-400"
         >

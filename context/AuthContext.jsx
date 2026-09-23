@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { trackEvent } from "@/lib/gtag";
 
 const AuthContext = createContext(null);
 
@@ -91,6 +92,7 @@ export function AuthProvider({ children }) {
         localStorage.setItem("se_auth_user", JSON.stringify(data.data));
       } catch {}
     }
+    trackEvent("login", { method: "session", account_type: data.data?.accountType });
     return data.data;
   }, []);
 
@@ -113,6 +115,7 @@ export function AuthProvider({ children }) {
         localStorage.setItem("se_auth_user", JSON.stringify(data.data));
       } catch {}
     }
+    trackEvent("login", { method: "otp_mobile", account_type: data.data?.accountType });
     return data.data;
   }, []);
 
@@ -136,6 +139,7 @@ export function AuthProvider({ children }) {
         localStorage.setItem("se_auth_user", JSON.stringify(data.data));
       } catch {}
     }
+    trackEvent("login", { method: "password", account_type: data.data?.accountType });
     return data.data;
   }, []);
 

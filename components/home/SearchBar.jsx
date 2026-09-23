@@ -6,6 +6,7 @@ import { MdLocationOn, MdSearch } from "react-icons/md";
 import { FiChevronDown } from "react-icons/fi";
 import { INVEST_CATEGORIES } from "@/lib/properties";
 import { searchIndianCities } from "@/lib/indianCities";
+import { trackEvent } from "@/lib/gtag";
 
 const MODES = [
   { label: "Buy", slug: "buy" },
@@ -94,6 +95,19 @@ export default function SearchBar() {
     if (propertyType !== PLACEHOLDER && !hasCategoryRoutes) {
       params.set("type", propertyType);
     }
+
+    const modeLabel = MODES.find((m) => m.slug === mode)?.label || mode;
+    const queryParts = [];
+    if (propertyType !== PLACEHOLDER && !hasCategoryRoutes) queryParts.push(propertyType);
+    queryParts.push(modeLabel);
+    if (location.trim()) queryParts.push(location.trim());
+
+    trackEvent("search", {
+      search_term: queryParts.join(" • "),
+      mode,
+      property_type: propertyType !== PLACEHOLDER ? propertyType : undefined,
+      location: location.trim() || undefined,
+    });
 
     const query = params.toString();
     router.push(`/${mode}${query ? `?${query}` : ""}`);

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
 import { inputClass, textareaClass } from "@/components/auth/inputStyles";
 import BackButton from "@/components/layout/BackButton";
+import { trackEvent } from "@/lib/gtag";
 
 export default function EnquiryForm({ title: propertyTitle, backHref }) {
   const [fullName, setFullName] = useState("");
@@ -25,6 +26,7 @@ export default function EnquiryForm({ title: propertyTitle, backHref }) {
     setTimeout(() => {
       setSubmitting(false);
       setEnquiryId(generateAccountId("ENQ"));
+      trackEvent("generate_lead", { form_name: "enquiry", item_name: propertyTitle });
     }, 900);
   }
 

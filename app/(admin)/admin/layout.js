@@ -25,6 +25,7 @@ function AdminShell({ children }) {
     "/admin/properties": "Properties",
     "/admin/users": "Users",
     "/admin/leads": "Leads",
+    "/admin/analytics": "Analytics",
     "/admin/plans": "Plans & Subscriptions",
     "/admin/brokers/featured": "Featured Brokers",
     "/admin/brokers": "Brokers",

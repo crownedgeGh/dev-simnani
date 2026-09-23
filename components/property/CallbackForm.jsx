@@ -5,6 +5,7 @@ import Link from "next/link";
 import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
 import { inputClass, selectClass } from "@/components/auth/inputStyles";
 import BackButton from "@/components/layout/BackButton";
+import { trackEvent } from "@/lib/gtag";
 
 const TIME_OPTIONS = [
   { value: "morning", label: "Morning (9AM - 12PM)" },
@@ -31,6 +32,7 @@ export default function CallbackForm() {
     setTimeout(() => {
       setSubmitting(false);
       setRequestId(generateAccountId("CB"));
+      trackEvent("generate_lead", { form_name: "request_callback", best_time: bestTime || undefined });
     }, 900);
   }
 

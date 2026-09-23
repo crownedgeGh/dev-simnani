@@ -27,6 +27,7 @@ import {
   getFieldProfile,
 } from "@/lib/properties";
 import { uploadFileToR2, uploadFilesToR2 } from "@/lib/uploadToR2";
+import { trackEvent } from "@/lib/gtag";
 import { STATES, getCitiesForState } from "@/lib/cityState";
 import SearchableSelect from "@/components/property/SearchableSelect";
 
@@ -455,6 +456,10 @@ export default function PostPropertyForm({ editId }) {
         throw new Error(data.error || "Submission failed");
       }
       toast.success(editId ? "Property updated successfully." : "Property submitted successfully.");
+      trackEvent(editId ? "post_property_update" : "post_property_submit", {
+        property_type: payload.type,
+        city: payload.city,
+      });
       router.push("/portal/common-person");
     } catch (err) {
       console.error("PostPropertyForm submit error:", err);

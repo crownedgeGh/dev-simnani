@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { FiSearch, FiX } from "react-icons/fi";
 import PropertyGrid from "./PropertyGrid";
@@ -11,6 +11,7 @@ import {
   RENT_BUDGET_RANGES,
   BHK_OPTIONS,
 } from "@/lib/properties";
+import { trackEvent } from "@/lib/gtag";
 
 const filterFieldClass =
   "h-11 w-full rounded-sm border border-navy-700/60 bg-navy-950 px-3 text-sm text-cream outline-none transition focus:border-gold-400 sm:h-12";
@@ -40,6 +41,31 @@ export default function PropertyFilterBar({ properties, pricingMode = "sale", em
   const budgetRanges = pricingMode === "rent" ? RENT_BUDGET_RANGES : SALE_BUDGET_RANGES;
 
   const selectedRange = budgetRanges.find((range) => range.label === budget);
+
+  // Debounce so one combined, human-readable query (e.g. "2 BHK • Rent •
+  // Pune • Under 50L") fires per pause in filtering, not a fragment per field.
+  useEffect(() => {
+    if (!search.trim() && !city && !budget && !bhk) return;
+    const timer = setTimeout(() => {
+      const parts = [];
+      if (bhk) parts.push(bhk === "5" ? "5+ BHK" : `${bhk} BHK`);
+      if (search.trim()) parts.push(`"${search.trim()}"`);
+      parts.push(pricingMode === "rent" ? "Rent" : "Sale");
+      if (city) parts.push(city);
+      if (budget) parts.push(budget);
+
+      trackEvent("search", {
+        search_term: parts.join(" • "),
+        pricing_mode: pricingMode,
+        city: city || undefined,
+        budget: budget || undefined,
+        bhk: bhk || undefined,
+        free_text: search.trim() || undefined,
+      });
+    }, 700);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, city, budget, bhk]);
 
   const filtered = useMemo(() => {
     return properties.filter((property) => {

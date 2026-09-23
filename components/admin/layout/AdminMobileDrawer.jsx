@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MdClose, MdDashboard, MdApartment, MdPeople, MdLeaderboard, MdSupervisedUserCircle, MdPhone, MdSettings, MdLightMode, MdDarkMode, MdWorkspacePremium } from "react-icons/md";
+import { MdClose, MdDashboard, MdApartment, MdPeople, MdLeaderboard, MdSupervisedUserCircle, MdPhone, MdSettings, MdLightMode, MdDarkMode, MdWorkspacePremium, MdInsights } from "react-icons/md";
 import { BiBuildingHouse } from "react-icons/bi";
 import { useAdminTheme } from "@/context/AdminThemeContext";
 
@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { href: "/admin/properties", label: "Properties", icon: MdApartment },
   { href: "/admin/users", label: "Users", icon: MdPeople },
   { href: "/admin/leads", label: "Leads", icon: MdLeaderboard },
+  { href: "/admin/analytics", label: "Analytics", icon: MdInsights },
   { href: "/admin/plans", label: "Plans", icon: MdWorkspacePremium },
   {
     href: "/admin/brokers",
