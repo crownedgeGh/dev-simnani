@@ -262,8 +262,8 @@ export default function PropertyFilterBar({
         <div
           className={`grid grid-cols-1 gap-3 sm:grid-cols-2 ${
             showPropertyType
-              ? "lg:grid-cols-[2fr_1fr_1fr_1fr_1fr]"
-              : "lg:grid-cols-[2fr_1fr_1fr_1fr]"
+              ? "lg:grid-cols-[2fr_1fr_1.3fr_1fr_1fr]"
+              : "lg:grid-cols-[2fr_1.3fr_1fr_1fr]"
           }`}
         >
           <div className="relative sm:col-span-2 lg:col-span-1">
@@ -307,7 +307,7 @@ export default function PropertyFilterBar({
               aria-controls="filter-city-suggestions"
               aria-autocomplete="list"
               aria-label="Filter by city"
-              className={`${filterFieldClass} pl-9`}
+              className={`${filterFieldClass} pl-9 ${cityInput ? "pr-9" : ""}`}
             />
             {cityInput && (
               <button

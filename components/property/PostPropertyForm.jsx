@@ -8,6 +8,7 @@ import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
 import { inputClass, selectClass, textareaClass } from "@/components/auth/inputStyles";
 import FormField from "@/components/auth/FormField";
+import CompleteProfileModal from "@/components/auth/CompleteProfileModal";
 import { PhotosUpload, VideoUpload } from "@/components/property/PropertyImageUpload";
 import {
   MdContentPaste,
@@ -142,7 +143,8 @@ const INITIAL_FORM = {
 
 export default function PostPropertyForm({ editId }) {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
+  const profileIncomplete = user?.profileComplete === false;
   const [propertyId, setPropertyId] = useState("");
   const [form, setForm] = useState(INITIAL_FORM);
   const [error, setError] = useState("");
@@ -475,6 +477,21 @@ export default function PostPropertyForm({ editId }) {
       <div className="border border-navy-700/60 bg-navy-900 px-6 py-16 text-center">
         <p className="text-muted">Loading property details…</p>
       </div>
+    );
+  }
+
+  if (!isLoading && profileIncomplete) {
+    return (
+      <>
+        <div className="border border-navy-700/60 bg-navy-900 px-6 py-16 text-center">
+          <p className="text-muted">Complete your profile to post a property.</p>
+        </div>
+        <CompleteProfileModal
+          isOpen
+          onClose={() => router.push("/")}
+          resumeHref={`/auth/register/${user.accountType}?step=${user.registrationStep || 1}`}
+        />
+      </>
     );
   }
 

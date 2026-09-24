@@ -7,6 +7,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { getAccountPermissions } from "@/lib/accountPermissions";
 import AuthGateModal from "@/components/auth/AuthGateModal";
+import CompleteProfileModal from "@/components/auth/CompleteProfileModal";
 import { MdHome, MdTrendingUp, MdPersonAdd, MdAgriculture, MdFactory, MdScience, MdWorkspacePremium, MdStar } from "react-icons/md";
 import {
   FiUser, FiPlus, FiMenu, FiX,
@@ -549,6 +550,7 @@ export default function Navbar() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileTestModeOpen, setMobileTestModeOpen] = useState(false);
   const [showAuthGate, setShowAuthGate] = useState(false);
+  const [showCompleteProfile, setShowCompleteProfile] = useState(false);
   const { isAuthenticated, isLoading, user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -590,10 +592,12 @@ export default function Navbar() {
   function handlePostProperty(e) {
     e.preventDefault();
     setMobileOpen(false);
-    if (isAuthenticated) {
-      router.push("/post-property");
-    } else {
+    if (!isAuthenticated) {
       setShowAuthGate(true);
+    } else if (user?.profileComplete === false) {
+      setShowCompleteProfile(true);
+    } else {
+      router.push("/post-property");
     }
   }
 
@@ -606,6 +610,13 @@ export default function Navbar() {
   return (
     <>
       <AuthGateModal isOpen={showAuthGate} onClose={() => setShowAuthGate(false)} />
+      <CompleteProfileModal
+        isOpen={showCompleteProfile}
+        onClose={() => setShowCompleteProfile(false)}
+        resumeHref={
+          user ? `/auth/register/${user.accountType}?step=${user.registrationStep || 1}` : "/auth/register"
+        }
+      />
 
       <header className="sticky top-0 z-50 border-b border-navy-700/60 bg-navy-950/95 backdrop-blur">
         <div className="flex w-full items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-14">

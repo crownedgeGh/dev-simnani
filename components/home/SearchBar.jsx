@@ -20,7 +20,7 @@ const SIMPLE_TYPES = RESIDENTIAL_TYPE_OPTIONS.map((label) => ({ key: label, labe
 
 const BHK_TYPES = ["House", "Flat"];
 
-const BHK_OPTIONS = ["1 BHK", "2 BHK", "3 BHK", "4 BHK", "4 BHK+"];
+const BHK_OPTIONS = ["1 BHK", "2 BHK", "3 BHK", "4 BHK", "5+ BHK"];
 
 const PROPERTY_TYPE_OPTIONS = {
   buy: SIMPLE_TYPES,
