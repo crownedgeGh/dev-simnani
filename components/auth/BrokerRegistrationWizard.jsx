@@ -206,6 +206,23 @@ export default function BrokerRegistrationWizard() {
           return;
         }
       }
+      setSubmitting(true);
+      try {
+        const result = await updateProfile({
+          applicantType: form.applicantType,
+          agencyName: form.agencyName,
+          officeAddress: form.officeAddress,
+          operatingAreas: form.operatingAreas,
+          specialties: form.specialties,
+          registrationStep: 3,
+        });
+        if (!result?.success) throw new Error(result?.error || "Something went wrong. Please try again.");
+      } catch (err) {
+        setError(err.message || "Something went wrong. Please try again.");
+        setSubmitting(false);
+        return;
+      }
+      setSubmitting(false);
     }
     if (step === 3) {
       if (!form.reraRegistered) {
@@ -216,15 +233,42 @@ export default function BrokerRegistrationWizard() {
         setError("RERA registration is mandatory. Please provide your RERA number.");
         return;
       }
+      const stepThreeError = await persistReraStep(form.reraRegistered);
+      if (stepThreeError) {
+        setError(stepThreeError);
+        return;
+      }
     }
     setError("");
     setStep((s) => Math.min(s + 1, TOTAL_STEPS));
   }
 
-  function selectReraStatus(value) {
+  async function persistReraStep(reraRegisteredValue) {
+    setSubmitting(true);
+    try {
+      const result = await updateProfile({
+        reraRegistered: reraRegisteredValue === "yes",
+        reraNumber: form.reraNumber,
+        registrationStep: 4,
+      });
+      if (!result?.success) return result?.error || "Something went wrong. Please try again.";
+      return "";
+    } catch (err) {
+      return err.message || "Something went wrong. Please try again.";
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function selectReraStatus(value) {
     update("reraRegistered", value);
     if (value === "no") {
       setError("");
+      const errMsg = await persistReraStep(value);
+      if (errMsg) {
+        setError(errMsg);
+        return;
+      }
       setStep((s) => Math.min(s + 1, TOTAL_STEPS));
     }
   }
@@ -650,7 +694,7 @@ export default function BrokerRegistrationWizard() {
                 disabled={submitting}
                 className="tracked-label bg-gold-400 px-6 py-4 text-xs text-navy-950 transition hover:bg-gold-300 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {submitting && step === 1 ? "Please wait..." : "Continue"}
+                {submitting ? "Please wait..." : "Continue"}
               </button>
             )
           ) : (
