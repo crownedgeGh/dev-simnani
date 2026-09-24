@@ -14,6 +14,11 @@ import {
 import AdminPageHeader from "@/components/admin/layout/AdminPageHeader";
 import AdminKpiCard from "@/components/admin/ui/AdminKpiCard";
 import RankedBarList from "@/components/admin/analytics/RankedBarList";
+import AdminSearchableSelect from "@/components/admin/ui/AdminSearchableSelect";
+import AdminFormField from "@/components/admin/ui/AdminFormField";
+
+const ALL_STATES = "All States";
+const ALL_CITIES = "All Cities";
 
 const SETUP_STEPS = [
   "Create a GA4 property and add the Measurement ID to NEXT_PUBLIC_GA_MEASUREMENT_ID.",
@@ -37,6 +42,7 @@ function formatDate(yyyymmdd) {
 export default function AdminAnalyticsPage() {
   const [state, setState] = useState({ loading: true, configured: null, reports: null, error: null });
   const [refreshing, setRefreshing] = useState(false);
+  const [locationFilter, setLocationFilter] = useState({ state: "", city: "" });
 
   const load = useCallback(async () => {
     try {
@@ -49,6 +55,25 @@ export default function AdminAnalyticsPage() {
     }
   }, []);
 
+  // Re-fetches only the Top Search Queries panel, filtered by state/city —
+  // the rest of the dashboard (KPIs, trend, realtime) doesn't need to reload.
+  const loadSearchTerms = useCallback(async (stateName, cityName) => {
+    const params = new URLSearchParams({ searchTermsOnly: "1" });
+    if (stateName) params.set("state", stateName);
+    if (cityName) params.set("city", cityName);
+    try {
+      const res = await fetch(`/api/admin/analytics?${params.toString()}`);
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || "Failed to load search queries");
+      setState((prev) => ({
+        ...prev,
+        reports: { ...prev.reports, topSearchTerms: data.reports.topSearchTerms },
+      }));
+    } catch (err) {
+      console.error("Failed to load filtered search queries:", err);
+    }
+  }, []);
+
   useEffect(() => {
     load();
   }, [load]);
@@ -56,7 +81,22 @@ export default function AdminAnalyticsPage() {
   async function handleRefresh() {
     setRefreshing(true);
     await load();
+    if (locationFilter.state || locationFilter.city) {
+      await loadSearchTerms(locationFilter.state, locationFilter.city);
+    }
     setRefreshing(false);
+  }
+
+  function handleStateChange(value) {
+    const nextState = value === ALL_STATES ? "" : value;
+    setLocationFilter({ state: nextState, city: "" });
+    loadSearchTerms(nextState, "");
+  }
+
+  function handleCityChange(value) {
+    const nextCity = value === ALL_CITIES ? "" : value;
+    setLocationFilter((prev) => ({ ...prev, city: nextCity }));
+    loadSearchTerms(locationFilter.state, nextCity);
   }
 
   const overview = state.reports?.overview?.data?.[0] || {};
@@ -215,6 +255,29 @@ export default function AdminAnalyticsPage() {
             <p className="mt-1 text-xs text-[#9ca3af]">
               Exactly what visitors searched for — property type, buy/rent, city & budget combined.
             </p>
+            {!state.reports.topSearchTerms.error && (
+              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <AdminFormField label="State" id="search-terms-state">
+                  <AdminSearchableSelect
+                    id="search-terms-state"
+                    value={locationFilter.state || ALL_STATES}
+                    onChange={handleStateChange}
+                    options={[ALL_STATES, ...(state.reports.topSearchTerms.availableStates || [])]}
+                    placeholder={ALL_STATES}
+                  />
+                </AdminFormField>
+                <AdminFormField label="City" id="search-terms-city">
+                  <AdminSearchableSelect
+                    id="search-terms-city"
+                    value={locationFilter.city || ALL_CITIES}
+                    onChange={handleCityChange}
+                    options={[ALL_CITIES, ...(state.reports.topSearchTerms.availableCities || [])]}
+                    placeholder={ALL_CITIES}
+                    disabled={!(state.reports.topSearchTerms.availableCities || []).length}
+                  />
+                </AdminFormField>
+              </div>
+            )}
             <div className="mt-4">
               {state.reports.topSearchTerms.error ? (
                 <p className="py-6 text-center text-xs text-[#9ca3af]">
@@ -227,7 +290,11 @@ export default function AdminAnalyticsPage() {
                   rows={state.reports.topSearchTerms.data}
                   labelKey="customEvent:search_term"
                   valueKey="eventCount"
-                  emptyMessage="No searches recorded yet — try searching on the site, then check the Right Now panel above first."
+                  emptyMessage={
+                    locationFilter.state || locationFilter.city
+                      ? "No searches recorded yet for this state/city."
+                      : "No searches recorded yet — try searching on the site, then check the Right Now panel above first."
+                  }
                 />
               )}
             </div>

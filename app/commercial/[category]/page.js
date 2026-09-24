@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import PropertyGrid from "@/components/property/PropertyGrid";
+import PropertyFilterBar from "@/components/property/PropertyFilterBar";
 import { COMMERCIAL_CATEGORIES } from "@/lib/properties";
 import { getPropertiesByTypeAndCategory } from "@/lib/propertiesServer";
 import BackButton from "@/components/layout/BackButton";
@@ -37,8 +37,10 @@ export default async function CommercialCategoryPage({ params }) {
       </div>
 
       <div className="mt-10">
-        <PropertyGrid
+        <PropertyFilterBar
           properties={properties}
+          pricingMode="sale"
+          showPropertyType={false}
           emptyMessage="No listings available in this category right now."
         />
       </div>

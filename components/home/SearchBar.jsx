@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { MdLocationOn, MdSearch } from "react-icons/md";
 import { FiChevronDown, FiAlertCircle } from "react-icons/fi";
-import { INVEST_CATEGORIES } from "@/lib/properties";
+import { INVEST_CATEGORIES, RESIDENTIAL_TYPE_OPTIONS } from "@/lib/properties";
 import { searchIndianCities } from "@/lib/indianCities";
 import { trackEvent } from "@/lib/gtag";
 
@@ -16,9 +16,7 @@ const MODES = [
 
 const PLACEHOLDER = "Property Type";
 
-const SIMPLE_TYPES = ["Flat", "House", "Shop", "Plot", "Office", "Warehouse"].map(
-  (label) => ({ key: label, label })
-);
+const SIMPLE_TYPES = RESIDENTIAL_TYPE_OPTIONS.map((label) => ({ key: label, label }));
 
 const BHK_TYPES = ["House", "Flat"];
 

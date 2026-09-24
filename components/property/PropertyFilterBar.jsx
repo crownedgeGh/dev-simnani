@@ -1,17 +1,21 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { FiSearch, FiX } from "react-icons/fi";
+import { FiSearch, FiX, FiMapPin } from "react-icons/fi";
 import PropertyGrid from "./PropertyGrid";
 import {
   getLocationCity,
+  getLocationCityState,
+  getCityStateLabel,
   getPropertyCategoryLabels,
   parsePriceToNumber,
   SALE_BUDGET_RANGES,
   RENT_BUDGET_RANGES,
   BHK_OPTIONS,
+  RESIDENTIAL_TYPE_OPTIONS,
 } from "@/lib/properties";
+import { searchIndianCities } from "@/lib/indianCities";
 import { trackEvent } from "@/lib/gtag";
 
 // Accepts either a plain dropdown value ("1".."5") or a free-form label
@@ -31,27 +35,104 @@ function parseBhkValue(raw) {
 const filterFieldClass =
   "h-11 w-full rounded-sm border border-navy-700/60 bg-navy-950 px-3 text-sm text-cream outline-none transition focus:border-gold-400 sm:h-12";
 
-export default function PropertyFilterBar({ properties, pricingMode = "sale", emptyMessage, emphasizeDetails }) {
+export default function PropertyFilterBar({
+  properties,
+  pricingMode = "sale",
+  emptyMessage,
+  emphasizeDetails,
+  showPropertyType = true,
+}) {
   const searchParams = useSearchParams();
   const searchParamsKey = searchParams.toString();
 
   const cityOptions = useMemo(() => {
-    const cities = new Set(properties.map((p) => getLocationCity(p.location)));
-    return Array.from(cities).sort();
+    const byCity = new Map();
+    properties.forEach((p) => {
+      const cityValue = getLocationCity(p.location);
+      if (cityValue && !byCity.has(cityValue)) {
+        byCity.set(cityValue, getLocationCityState(p.location));
+      }
+    });
+    return Array.from(byCity, ([value, label]) => ({ value, label })).sort((a, b) =>
+      a.label.localeCompare(b.label)
+    );
   }, [properties]);
 
   const propertyTypeOptions = useMemo(() => {
-    const types = new Set(
-      properties.map((p) => getPropertyCategoryLabels(p).categoryLabel).filter(Boolean)
-    );
-    return Array.from(types).sort();
-  }, [properties]);
+    if (!showPropertyType) return [];
+    const dataTypes = properties
+      .map((p) => getPropertyCategoryLabels(p).categoryLabel)
+      .filter(Boolean);
+    // Union the homepage search bar's canonical type list with whatever
+    // types actually appear in this page's data, so every known type is
+    // always selectable — not just the ones with a listing right now.
+    const types = new Set([...RESIDENTIAL_TYPE_OPTIONS, ...dataTypes]);
+    const extras = Array.from(types)
+      .filter((t) => !RESIDENTIAL_TYPE_OPTIONS.includes(t))
+      .sort();
+    return [...RESIDENTIAL_TYPE_OPTIONS, ...extras];
+  }, [properties, showPropertyType]);
 
   const [search, setSearch] = useState("");
   const [city, setCity] = useState("");
+  const [cityInput, setCityInput] = useState("");
+  const [citySuggestions, setCitySuggestions] = useState([]);
+  const [showCitySuggestions, setShowCitySuggestions] = useState(false);
   const [propertyType, setPropertyType] = useState("");
   const [budget, setBudget] = useState("");
   const [bhk, setBhk] = useState("");
+  const cityFieldRef = useRef(null);
+
+  // Cities that actually have listings on this page — shown as quick picks
+  // when the search box is focused but empty, before the user types anything.
+  const quickCitySuggestions = useMemo(
+    () => cityOptions.map((option) => ({ city: option.value, label: option.label })),
+    [cityOptions]
+  );
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (cityFieldRef.current && !cityFieldRef.current.contains(event.target)) {
+        setShowCitySuggestions(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  function handleCityInputChange(event) {
+    const value = event.target.value;
+    setCityInput(value);
+    setShowCitySuggestions(true);
+    if (!value.trim()) {
+      setCity("");
+      setCitySuggestions(quickCitySuggestions);
+      return;
+    }
+    // Search the full India cities/states dataset, not just cities that
+    // happen to have listings, so this is a real city search.
+    setCitySuggestions(
+      searchIndianCities(value, 8).map((entry) => ({ city: entry.city, label: entry.label }))
+    );
+  }
+
+  function handleCityFocus() {
+    setCitySuggestions(cityInput.trim() ? searchIndianCities(cityInput, 8).map((entry) => ({ city: entry.city, label: entry.label })) : quickCitySuggestions);
+    setShowCitySuggestions(true);
+  }
+
+  function handleCitySelect(entry) {
+    setCity(entry.city);
+    setCityInput(entry.label);
+    setCitySuggestions([]);
+    setShowCitySuggestions(false);
+  }
+
+  function clearCity() {
+    setCity("");
+    setCityInput("");
+    setCitySuggestions([]);
+  }
 
   // Sync filters from the URL (e.g. the homepage search bar's location/type/bhk
   // params) whenever the query string changes, not just on first mount, so
@@ -67,7 +148,8 @@ export default function PropertyFilterBar({ properties, pricingMode = "sale", em
     const bhkParam = searchParams.get("bhk");
 
     const requestedCity = locationParam ? getLocationCity(locationParam) : "";
-    setCity(requestedCity && cityOptions.includes(requestedCity) ? requestedCity : "");
+    setCity(requestedCity);
+    setCityInput(requestedCity ? getCityStateLabel(requestedCity) : "");
     setPropertyType(typeParam || "");
     setBhk(bhkParam || "");
   }
@@ -151,8 +233,13 @@ export default function PropertyFilterBar({ properties, pricingMode = "sale", em
   }, [properties, search, city, propertyType, selectedRange, bhkFilter]);
 
   const activeFilters = [
-    city && { key: "city", label: city, clear: () => setCity("") },
-    propertyType && { key: "propertyType", label: propertyType, clear: () => setPropertyType("") },
+    city && {
+      key: "city",
+      label: cityInput || getCityStateLabel(city),
+      clear: clearCity,
+    },
+    showPropertyType &&
+      propertyType && { key: "propertyType", label: propertyType, clear: () => setPropertyType("") },
     budget && { key: "budget", label: budget, clear: () => setBudget("") },
     bhkFilter && {
       key: "bhk",
@@ -163,7 +250,7 @@ export default function PropertyFilterBar({ properties, pricingMode = "sale", em
 
   function clearAll() {
     setSearch("");
-    setCity("");
+    clearCity();
     setPropertyType("");
     setBudget("");
     setBhk("");
@@ -172,7 +259,13 @@ export default function PropertyFilterBar({ properties, pricingMode = "sale", em
   return (
     <div>
       <div className="border border-navy-700/60 bg-navy-900 p-3 sm:p-4">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr_1fr]">
+        <div
+          className={`grid grid-cols-1 gap-3 sm:grid-cols-2 ${
+            showPropertyType
+              ? "lg:grid-cols-[2fr_1fr_1fr_1fr_1fr]"
+              : "lg:grid-cols-[2fr_1fr_1fr_1fr]"
+          }`}
+        >
           <div className="relative sm:col-span-2 lg:col-span-1">
             <FiSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
             <input
@@ -184,33 +277,69 @@ export default function PropertyFilterBar({ properties, pricingMode = "sale", em
             />
           </div>
 
-          <select
-            value={propertyType}
-            onChange={(e) => setPropertyType(e.target.value)}
-            className={`${filterFieldClass} appearance-none`}
-            aria-label="Filter by property type"
-          >
-            <option value="">All Types</option>
-            {propertyTypeOptions.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
+          {showPropertyType && (
+            <select
+              value={propertyType}
+              onChange={(e) => setPropertyType(e.target.value)}
+              className={`${filterFieldClass} appearance-none`}
+              aria-label="Filter by property type"
+            >
+              <option value="">All Types</option>
+              {propertyTypeOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          )}
 
-          <select
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            className={`${filterFieldClass} appearance-none`}
-            aria-label="Filter by city"
-          >
-            <option value="">All Cities</option>
-            {cityOptions.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
+          <div ref={cityFieldRef} className="relative">
+            <FiMapPin className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+            <input
+              type="text"
+              value={cityInput}
+              onChange={handleCityInputChange}
+              onFocus={handleCityFocus}
+              placeholder="Search city or state"
+              autoComplete="off"
+              role="combobox"
+              aria-expanded={showCitySuggestions}
+              aria-controls="filter-city-suggestions"
+              aria-autocomplete="list"
+              aria-label="Filter by city"
+              className={`${filterFieldClass} pl-9`}
+            />
+            {cityInput && (
+              <button
+                type="button"
+                onClick={clearCity}
+                aria-label="Clear city"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted transition hover:text-cream"
+              >
+                <FiX className="h-4 w-4" />
+              </button>
+            )}
+
+            {showCitySuggestions && citySuggestions.length > 0 && (
+              <ul
+                id="filter-city-suggestions"
+                className="gold-scrollbar absolute left-0 right-0 top-full z-20 mt-2 max-h-64 overflow-y-auto rounded-sm border border-navy-700/70 bg-navy-900 shadow-[0_20px_50px_-16px_rgba(0,0,0,0.9)]"
+              >
+                {citySuggestions.map((entry) => (
+                  <li key={entry.city}>
+                    <button
+                      type="button"
+                      onClick={() => handleCitySelect(entry)}
+                      className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm text-cream transition hover:bg-navy-800"
+                    >
+                      <FiMapPin className="h-3.5 w-3.5 shrink-0 text-gold-400" />
+                      <span>{entry.label}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
 
           <select
             value={budget}
