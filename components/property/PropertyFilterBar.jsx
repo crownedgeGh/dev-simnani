@@ -77,7 +77,17 @@ export default function PropertyFilterBar({ properties, pricingMode = "sale", em
 
   const selectedRange = budgetRanges.find((range) => range.label === budget);
   const bhkFilter = parseBhkValue(bhk);
-  const bhkSelectValue = BHK_OPTIONS.map(String).includes(bhk) ? bhk : "";
+  // Reflect the parsed filter in the dropdown when it maps cleanly onto one
+  // of the fixed BHK_OPTIONS (e.g. URL "2 BHK" -> option "2"). A "+" filter
+  // below the top tier (e.g. "4 BHK+") has no exact matching option, so the
+  // dropdown is left on "Any BHK" rather than mislabeling it.
+  const bhkSelectValue = bhkFilter
+    ? bhkFilter.plus
+      ? "5"
+      : BHK_OPTIONS.includes(bhkFilter.num)
+        ? String(bhkFilter.num)
+        : ""
+    : "";
 
   // Debounce so one combined, human-readable query (e.g. "2 BHK • Rent •
   // Pune • Under 50L") fires per pause in filtering, not a fragment per field.
