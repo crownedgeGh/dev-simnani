@@ -159,8 +159,13 @@ export default function AccountProfile({ user }) {
                 <input
                   type="number"
                   min="0"
+                  maxLength={4}
+                  inputMode="numeric"
                   value={form.dealsClosed ?? ""}
-                  onChange={(e) => update("dealsClosed", e.target.value)}
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, "").slice(0, 4);
+                    update("dealsClosed", digits);
+                  }}
                   className={inputClass}
                 />
               </Field>

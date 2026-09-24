@@ -379,9 +379,14 @@ export default function BrokerRegistrationWizard() {
               id="dealsClosed"
               type="number"
               min="0"
+              maxLength={4}
+              inputMode="numeric"
               placeholder="e.g. 0"
               value={form.dealsClosed}
-              onChange={(e) => update("dealsClosed", e.target.value)}
+              onChange={(e) => {
+                const digits = e.target.value.replace(/\D/g, "").slice(0, 4);
+                update("dealsClosed", digits);
+              }}
               className={inputClass}
             />
           </FormField>
