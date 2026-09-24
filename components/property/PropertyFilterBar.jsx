@@ -268,6 +268,42 @@ export default function PropertyFilterBar({
     setBhk("");
   }
 
+  // When the active city/type/BHK filters return nothing, surface a warmer,
+  // specific "coming soon" message instead of a generic empty state — named
+  // after exactly what the visitor asked for, so it reads as a promise, not
+  // a dead end.
+  const dynamicEmptyState = useMemo(() => {
+    if (filtered.length > 0 || activeFilters.length === 0) return null;
+
+    const descriptor = [
+      bhkFilter && `${bhkFilter.num}${bhkFilter.plus ? "+" : ""} BHK`,
+      showPropertyType && propertyType,
+    ]
+      .filter(Boolean)
+      .join(" ");
+    const cityLabel = city ? cityInput || getCityStateLabel(city) : "";
+
+    if (cityLabel && descriptor) {
+      return {
+        title: `${descriptor} in ${cityLabel} is coming soon`,
+        message: `We're actively sourcing ${descriptor} properties in ${cityLabel}. Check back shortly, or explore another city or type in the meantime.`,
+      };
+    }
+    if (cityLabel) {
+      return {
+        title: `${cityLabel} is coming soon`,
+        message: `We don't have live listings in ${cityLabel} just yet — our team is actively sourcing properties there. Check back shortly.`,
+      };
+    }
+    if (descriptor) {
+      return {
+        title: `${descriptor} is coming soon`,
+        message: `We don't have live ${descriptor} listings just yet — new inventory is added regularly. Check back shortly.`,
+      };
+    }
+    return null;
+  }, [filtered.length, activeFilters.length, bhkFilter, showPropertyType, propertyType, city, cityInput]);
+
   return (
     <div>
       <div className="border border-navy-700/60 bg-navy-900 p-3 sm:p-4">
@@ -416,7 +452,12 @@ export default function PropertyFilterBar({
       </p>
 
       <div className="mt-4">
-        <PropertyGrid properties={filtered} emptyMessage={emptyMessage} emphasizeDetails={emphasizeDetails} />
+        <PropertyGrid
+          properties={filtered}
+          emptyTitle={dynamicEmptyState?.title}
+          emptyMessage={dynamicEmptyState?.message || emptyMessage}
+          emphasizeDetails={emphasizeDetails}
+        />
       </div>
     </div>
   );

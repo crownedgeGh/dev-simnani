@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { MdLocationOn, MdSearch } from "react-icons/md";
-import { FiChevronDown, FiAlertCircle } from "react-icons/fi";
+import { FiChevronDown, FiAlertCircle, FiClock, FiX } from "react-icons/fi";
 import { INVEST_CATEGORIES, RESIDENTIAL_TYPE_OPTIONS } from "@/lib/properties";
 import { searchIndianCities } from "@/lib/indianCities";
 import { trackEvent } from "@/lib/gtag";
@@ -15,6 +15,9 @@ const MODES = [
 ];
 
 const PLACEHOLDER = "Property Type";
+
+const RECENT_SEARCHES_KEY = "se_recent_city_searches";
+const MAX_RECENT_SEARCHES = 5;
 
 const SIMPLE_TYPES = RESIDENTIAL_TYPE_OPTIONS.map((label) => ({ key: label, label }));
 
@@ -58,6 +61,7 @@ export default function SearchBar() {
   const [citySuggestions, setCitySuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showErrors, setShowErrors] = useState(false);
+  const [recentSearches, setRecentSearches] = useState([]);
   const locationFieldRef = useRef(null);
 
   const locationInvalid = showErrors && !location.trim();
@@ -66,6 +70,18 @@ export default function SearchBar() {
   const typeOptions = PROPERTY_TYPE_OPTIONS[mode] ?? [];
   const hasCategoryRoutes = mode === "invest";
   const showBhk = BHK_TYPES.includes(propertyType);
+
+  const showingRecent = citySuggestions.length === 0 && recentSearches.length > 0;
+  const dropdownEntries = showingRecent ? recentSearches : citySuggestions;
+
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(RECENT_SEARCHES_KEY);
+      if (raw) setRecentSearches(JSON.parse(raw));
+    } catch {
+      /* localStorage unavailable */
+    }
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -80,6 +96,21 @@ export default function SearchBar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  function saveRecentSearch(entry) {
+    setRecentSearches((prev) => {
+      const next = [entry, ...prev.filter((item) => item.label !== entry.label)].slice(
+        0,
+        MAX_RECENT_SEARCHES
+      );
+      try {
+        window.localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(next));
+      } catch {
+        /* localStorage unavailable */
+      }
+      return next;
+    });
+  }
+
   function handleLocationChange(event) {
     const value = event.target.value;
     setLocation(value);
@@ -91,6 +122,7 @@ export default function SearchBar() {
     setLocation(entry.label);
     setCitySuggestions([]);
     setShowSuggestions(false);
+    saveRecentSearch({ city: entry.city, state: entry.state, label: entry.label });
   }
 
   function handleModeChange(slug) {
@@ -116,6 +148,8 @@ export default function SearchBar() {
       setShowErrors(true);
       return;
     }
+
+    saveRecentSearch({ label: location.trim() });
 
     const params = new URLSearchParams();
     params.set("location", location.trim());
@@ -243,7 +277,9 @@ export default function SearchBar() {
               type="text"
               value={location}
               onChange={handleLocationChange}
-              onFocus={() => citySuggestions.length > 0 && setShowSuggestions(true)}
+              onFocus={() =>
+                (citySuggestions.length > 0 || showingRecent) && setShowSuggestions(true)
+              }
               placeholder="Search city, locality or project"
               autoComplete="off"
               role="combobox"
@@ -252,26 +288,55 @@ export default function SearchBar() {
               aria-autocomplete="list"
               className="w-full bg-transparent py-3.5 text-sm text-cream placeholder:text-muted focus:outline-none"
             />
+            {location && (
+              <button
+                type="button"
+                aria-label="Clear location"
+                onClick={() => {
+                  setLocation("");
+                  setCitySuggestions([]);
+                  locationFieldRef.current?.querySelector("input")?.focus();
+                }}
+                className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-muted transition hover:bg-navy-800 hover:text-cream"
+              >
+                <FiX className="h-4 w-4" />
+              </button>
+            )}
           </div>
 
           {locationInvalid && <ValidationBubble message="Please fill in this field." />}
 
-          {showSuggestions && citySuggestions.length > 0 && (
+          {showSuggestions && dropdownEntries.length > 0 && (
             <ul
               id="city-suggestions-list"
-              className="gold-scrollbar absolute left-0 right-0 top-full z-20 mt-2 max-h-64 overflow-y-auto rounded-md border border-navy-700/70 bg-navy-900 shadow-[0_20px_50px_-16px_rgba(0,0,0,0.9)]"
+              className="gold-scrollbar absolute left-0 right-0 top-full z-30 mt-2 max-h-64 overflow-y-auto rounded-md border border-navy-700/70 bg-navy-900 shadow-[0_20px_50px_-16px_rgba(0,0,0,0.9)] sm:max-h-72"
             >
-              {citySuggestions.map((entry) => (
+              {showingRecent && (
+                <li className="sticky top-0 bg-navy-900 px-4 py-2">
+                  <span className="tracked-label text-[10px] text-muted">Recent Searches</span>
+                </li>
+              )}
+              {dropdownEntries.map((entry) => (
                 <li key={entry.label}>
                   <button
                     type="button"
                     onClick={() => handleCitySelect(entry)}
                     className="flex w-full items-center gap-2.5 px-4 py-3 text-left text-sm text-cream transition hover:bg-navy-800"
                   >
-                    <MdLocationOn className="h-4 w-4 shrink-0 text-gold-400" />
-                    <span>
-                      {entry.city}
-                      <span className="text-muted">, {entry.state}</span>
+                    {showingRecent ? (
+                      <FiClock className="h-4 w-4 shrink-0 text-gold-400" />
+                    ) : (
+                      <MdLocationOn className="h-4 w-4 shrink-0 text-gold-400" />
+                    )}
+                    <span className="truncate">
+                      {entry.city ? (
+                        <>
+                          {entry.city}
+                          {entry.state && <span className="text-muted">, {entry.state}</span>}
+                        </>
+                      ) : (
+                        entry.label
+                      )}
                     </span>
                   </button>
                 </li>
