@@ -28,7 +28,8 @@ export default async function BrokerPortalPage() {
         title={`Welcome, ${user.fullName || "Broker"}`}
         subtitle="Manage your listings, leads and client relationships."
       />
-      <UpgradePlanBanner planName={currentPlan.name} isPremium={isPremium} />
+      {/* UpgradePlanBanner temporarily disabled — pricing not in use yet */}
+      {/* <UpgradePlanBanner planName={currentPlan.name} isPremium={isPremium} /> */}
       <div className="mt-8">
         <OwnerDashboard
           stats={stats}

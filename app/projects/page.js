@@ -3,7 +3,7 @@ import { PROJECTS } from "@/lib/projects";
 import BackButton from "@/components/layout/BackButton";
 
 export const metadata = {
-  title: "Featured Developments | Simnani Estate",
+  title: "Company Projects | Simnani Estate",
   description:
     "Discover an exclusive portfolio of off-plan and newly completed luxury projects.",
 };
