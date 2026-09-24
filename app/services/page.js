@@ -1,4 +1,3 @@
-import Link from "next/link";
 import {
   MdHomeWork,
   MdSell,
@@ -107,23 +106,6 @@ export default function ServicesPage() {
             <p className="mt-2 text-sm text-muted">{desc}</p>
           </div>
         ))}
-      </div>
-
-      <div className="mt-16 flex flex-col items-start gap-4 border border-navy-700/60 bg-navy-900 rounded-sm p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
-        <div>
-          <h2 className="font-display text-xl text-cream sm:text-2xl">
-            Need help with something specific?
-          </h2>
-          <p className="mt-2 text-sm text-muted">
-            Talk to our concierge team and we'll match you with the right service.
-          </p>
-        </div>
-        <Link
-          href="/request-callback"
-          className="tracked-label shrink-0 bg-gold-400 px-6 py-3 text-xs text-navy-950 transition hover:bg-gold-300"
-        >
-          Request a Callback
-        </Link>
       </div>
     </div>
   );
