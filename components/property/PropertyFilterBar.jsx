@@ -154,8 +154,20 @@ export default function PropertyFilterBar({
     setBhk(bhkParam || "");
   }
 
-  const hasBeds = useMemo(() => properties.some((p) => p.beds), [properties]);
+  // BHK is only meaningful for houses/flats, so keep it hidden until the
+  // user narrows the property type to one of those — not shown by default.
+  const showBhk = propertyType === "House" || propertyType === "Flat";
   const budgetRanges = pricingMode === "rent" ? RENT_BUDGET_RANGES : SALE_BUDGET_RANGES;
+
+  // Clear any selected BHK once the property type moves away from
+  // House/Flat, so a hidden filter can't silently keep excluding results.
+  // Adjusted during render, matching the URL-sync pattern above, rather
+  // than in an effect.
+  const [lastPropertyType, setLastPropertyType] = useState(propertyType);
+  if (propertyType !== lastPropertyType) {
+    setLastPropertyType(propertyType);
+    if (!showBhk && bhk) setBhk("");
+  }
 
   const selectedRange = budgetRanges.find((range) => range.label === budget);
   const bhkFilter = parseBhkValue(bhk);
@@ -262,8 +274,10 @@ export default function PropertyFilterBar({
         <div
           className={`grid grid-cols-1 gap-3 sm:grid-cols-2 ${
             showPropertyType
-              ? "lg:grid-cols-[2fr_1fr_1.3fr_1fr_1fr]"
-              : "lg:grid-cols-[2fr_1.3fr_1fr_1fr]"
+              ? showBhk
+                ? "lg:grid-cols-[2fr_1fr_1fr_1.3fr_1fr]"
+                : "lg:grid-cols-[2fr_1fr_1.3fr_1fr]"
+              : "lg:grid-cols-[2fr_1.3fr_1fr]"
           }`}
         >
           <div className="relative sm:col-span-2 lg:col-span-1">
@@ -288,6 +302,22 @@ export default function PropertyFilterBar({
               {propertyTypeOptions.map((option) => (
                 <option key={option} value={option}>
                   {option}
+                </option>
+              ))}
+            </select>
+          )}
+
+          {showBhk && (
+            <select
+              value={bhkSelectValue}
+              onChange={(e) => setBhk(e.target.value)}
+              className={`${filterFieldClass} appearance-none`}
+              aria-label="Filter by BHK"
+            >
+              <option value="">Any BHK</option>
+              {BHK_OPTIONS.map((n) => (
+                <option key={n} value={n}>
+                  {n === 5 ? "5+ BHK" : `${n} BHK`}
                 </option>
               ))}
             </select>
@@ -354,24 +384,6 @@ export default function PropertyFilterBar({
               </option>
             ))}
           </select>
-
-          {hasBeds ? (
-            <select
-              value={bhkSelectValue}
-              onChange={(e) => setBhk(e.target.value)}
-              className={`${filterFieldClass} appearance-none`}
-              aria-label="Filter by BHK"
-            >
-              <option value="">Any BHK</option>
-              {BHK_OPTIONS.map((n) => (
-                <option key={n} value={n}>
-                  {n === 5 ? "5+ BHK" : `${n} BHK`}
-                </option>
-              ))}
-            </select>
-          ) : (
-            <div className="hidden lg:block" aria-hidden="true" />
-          )}
         </div>
 
         {activeFilters.length > 0 && (
