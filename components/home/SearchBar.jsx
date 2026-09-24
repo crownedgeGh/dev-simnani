@@ -103,13 +103,6 @@ export default function SearchBar() {
     const value = event.target.value;
     setPropertyType(value);
     if (!BHK_TYPES.includes(value)) setBhk("");
-
-    if (!value) return;
-
-    if (hasCategoryRoutes) {
-      const category = typeOptions.find((option) => option.label === value);
-      router.push(category?.href ?? `/${mode}/${category?.key}`);
-    }
   }
 
   function handleBhkChange(event) {
@@ -151,6 +144,14 @@ export default function SearchBar() {
     });
 
     const query = params.toString();
+
+    if (hasCategoryRoutes) {
+      const category = typeOptions.find((option) => option.label === propertyType);
+      const basePath = category?.href ?? `/${mode}/${category?.key}`;
+      router.push(`${basePath}?${query}`);
+      return;
+    }
+
     router.push(`/${mode}${query ? `?${query}` : ""}`);
   }
 
