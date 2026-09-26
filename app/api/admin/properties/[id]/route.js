@@ -42,6 +42,19 @@ export async function PATCH(request, { params }) {
       updateData.city = getLocationCity(updateData.location) || "Other";
     }
 
+    if (updateData.featured === true && !existing.featured) {
+      const featuredCount = await Property.countDocuments({ featured: true });
+      if (featuredCount >= 6) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Only 6 properties can be featured at a time. Unfeature another property first.",
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     const updated = await Property.findOneAndUpdate(
       { id },
       { $set: updateData },

@@ -206,7 +206,15 @@ export default function AdminPropertiesPage() {
   };
 
   // Featured toggle
+  const MAX_FEATURED = 6;
   const handleFeaturedToggle = async (row, val) => {
+    if (val) {
+      const featuredCount = properties.filter((p) => p.featured && p.id !== row.id).length;
+      if (featuredCount >= MAX_FEATURED) {
+        toast.error(`Only ${MAX_FEATURED} properties can be featured at a time. Unfeature one first.`);
+        return;
+      }
+    }
     try {
       const res = await fetch(`/api/admin/properties/${row.id}`, {
         method: "PATCH",
