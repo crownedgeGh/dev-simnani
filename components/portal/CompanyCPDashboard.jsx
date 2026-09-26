@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import {
   FiCheck,
   FiX,
@@ -11,11 +12,13 @@ import {
   FiPhoneCall,
   FiLink,
   FiUserCheck,
+  FiPlus,
 } from "react-icons/fi";
 import Tabs from "./Tabs";
 import StatCard from "./StatCard";
 import Badge from "./Badge";
 import EmptyState from "./EmptyState";
+import PropertyGrid from "@/components/property/PropertyGrid";
 import { CP_TYPE_LABEL, VIDEO_STATUS_TONE } from "./channel-partner/tones";
 import { selectClass } from "@/components/auth/inputStyles";
 import RefreshButton from "./RefreshButton";
@@ -27,6 +30,7 @@ const TABS = [
   { key: "trackField", label: "Track Field CP" },
   { key: "trackDigital", label: "Track Digital CP" },
   { key: "freelancerLeads", label: "Freelancer Leads" },
+  { key: "listings", label: "My Listings" },
 ];
 
 const ACTIVITY_ICON = {
@@ -43,6 +47,7 @@ export default function CompanyCPDashboard({
   digitalCampaigns,
   campaignVideos: initialCampaignVideos,
   partner,
+  myListings = [],
 }) {
   const [tab, setTab] = useState("overview");
   const [assignments, setAssignments] = useState([]);
@@ -466,6 +471,22 @@ export default function CompanyCPDashboard({
               </tbody>
             </table>
             </div>
+          </div>
+        )}
+
+        {tab === "listings" && (
+          <div>
+            <div className="mb-4 flex items-center justify-between">
+              <p className="tracked-label text-xs text-gold-400">My Listings</p>
+              <Link
+                href="/post-property"
+                className="tracked-label flex items-center gap-2 bg-gold-400 px-4 py-2 text-xs text-navy-950 transition hover:bg-gold-300"
+              >
+                <FiPlus className="h-3.5 w-3.5" />
+                Post Property
+              </Link>
+            </div>
+            <PropertyGrid properties={myListings} emptyMessage="You haven't posted any properties yet." ownerView />
           </div>
         )}
       </div>

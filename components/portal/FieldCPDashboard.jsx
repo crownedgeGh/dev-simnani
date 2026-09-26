@@ -2,11 +2,13 @@
 
 import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { FiPlus, FiCheck, FiSend, FiNavigation, FiCamera, FiUser, FiPhone } from "react-icons/fi";
 import Tabs from "./Tabs";
 import StatCard from "./StatCard";
 import Badge from "./Badge";
 import EmptyState from "./EmptyState";
+import PropertyGrid from "@/components/property/PropertyGrid";
 import { VISIT_STATUS_TONE } from "./channel-partner/tones";
 import FormField from "@/components/auth/FormField";
 import { inputClass, selectClass, textareaClass } from "@/components/auth/inputStyles";
@@ -20,11 +22,12 @@ const TABS = [
   { key: "visits", label: "Site Visits" },
   { key: "direct", label: "Add Direct Lead" },
   { key: "earnings", label: "Earnings" },
+  { key: "listings", label: "My Listings" },
 ];
 
 const INITIAL_DIRECT_FORM = { customer: "", phone: "", project: "", notes: "" };
 
-export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisits: initialSiteVisits, projects, partner }) {
+export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisits: initialSiteVisits, projects, partner, myListings = [] }) {
   const [tab, setTab] = useState("overview");
   const [leads] = useState(initialLeads);
   const [siteVisits, setSiteVisits] = useState(initialSiteVisits);
@@ -509,6 +512,22 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
               <StatCard label="Deals Closed" value={stats.dealsClosed} />
               <StatCard label="Site Visits Scheduled" value={stats.siteVisitsScheduled} />
             </div>
+          </div>
+        )}
+
+        {tab === "listings" && (
+          <div>
+            <div className="mb-4 flex items-center justify-between">
+              <p className="tracked-label text-xs text-gold-400">My Listings</p>
+              <Link
+                href="/post-property"
+                className="tracked-label flex items-center gap-2 bg-gold-400 px-4 py-2 text-xs text-navy-950 transition hover:bg-gold-300"
+              >
+                <FiPlus className="h-3.5 w-3.5" />
+                Post Property
+              </Link>
+            </div>
+            <PropertyGrid properties={myListings} emptyMessage="You haven't posted any properties yet." ownerView />
           </div>
         )}
       </div>

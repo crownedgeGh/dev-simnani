@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { getAccountPermissions } from "@/lib/accountPermissions";
+import { TEST_MODE_CP_PROFILES } from "@/lib/testModeCp";
 import AuthGateModal from "@/components/auth/AuthGateModal";
 import CompleteProfileModal from "@/components/auth/CompleteProfileModal";
 import { MdHome, MdTrendingUp, MdPersonAdd, MdAgriculture, MdFactory, MdScience, MdWorkspacePremium, MdStar } from "react-icons/md";
@@ -49,6 +50,14 @@ const ACCOUNT_TYPE_LABEL = {
   "common-person": "Common Person",
   employee: "Employee",
 };
+
+/** Freelancer accounts show their specific CP tier (Field/Digital/Company CP) instead of the generic "Freelancer" label. */
+function getAccountTypeLabel(user) {
+  if (user?.accountType === "freelancer") {
+    return TEST_MODE_CP_OPTIONS.find((o) => o.cpType === user.cpType)?.label ?? ACCOUNT_TYPE_LABEL.freelancer;
+  }
+  return ACCOUNT_TYPE_LABEL[user?.accountType] ?? user?.accountType ?? "Member";
+}
 
 // Membership plan badge — /pricing is Broker-only, so this only ever
 // renders for broker accounts (see PLAN_BADGE usage below).
@@ -151,7 +160,7 @@ function MobileNavRow({ icon: Icon, label, href, onClick, tone = "default" }) {
 }
 
 /** Mobile collapsible Test Mode accordion with Channel Partner dashboard links */
-function MobileTestModeAccordion({ isOpen, onToggle, onSelect, tone = "accent" }) {
+function MobileTestModeAccordion({ isOpen, onToggle, onSelect, onSelectCp, tone = "accent" }) {
   const palette = {
     default: { bg: "rgba(255,255,255,0.05)", border: "rgba(255,255,255,0.08)", icon: "#9aa3b8", text: "#e8e3d9" },
     accent: { bg: "rgba(255,198,51,0.1)", border: "rgba(255,198,51,0.22)", icon: "#ffc633", text: "#e8e3d9" },
@@ -233,19 +242,24 @@ function MobileTestModeAccordion({ isOpen, onToggle, onSelect, tone = "accent" }
       {isOpen && (
         <div style={{ padding: "4px 0 6px 10px", display: "flex", flexDirection: "column", gap: 3 }}>
           {TEST_MODE_CP_OPTIONS.map(({ cpType, label, icon: Icon }) => (
-            <Link
+            <button
               key={cpType}
-              href={`/portal/freelancer?cpType=${cpType}`}
-              onClick={onSelect}
+              type="button"
+              onClick={() => {
+                onSelect();
+                onSelectCp(cpType);
+              }}
               style={{
+                width: "100%",
                 display: "flex",
                 alignItems: "center",
                 gap: 11,
                 padding: "8px 10px",
                 borderRadius: 9,
-                textDecoration: "none",
-                background: "rgba(255,198,51,0.05)",
                 border: "1px solid rgba(255,198,51,0.15)",
+                background: "rgba(255,198,51,0.05)",
+                cursor: "pointer",
+                textAlign: "left",
                 transition: "background 0.15s",
               }}
             >
@@ -279,7 +293,7 @@ function MobileTestModeAccordion({ isOpen, onToggle, onSelect, tone = "accent" }
                 </span>
                 <span style={{ fontSize: 10, color: "#6b7280" }}>Demo Dashboard</span>
               </div>
-            </Link>
+            </button>
           ))}
         </div>
       )}
@@ -288,9 +302,10 @@ function MobileTestModeAccordion({ isOpen, onToggle, onSelect, tone = "accent" }
 }
 
 /** User dropdown panel (desktop) */
-function UserDropdown({ user, onClose, onLogout }) {
+function UserDropdown({ user, onSelectCp, onClose, onLogout }) {
   const [testModeOpen, setTestModeOpen] = useState(false);
-  const typeLabel = ACCOUNT_TYPE_LABEL[user?.accountType] ?? user?.accountType ?? "Member";
+  const fullName = user?.fullName;
+  const typeLabel = getAccountTypeLabel(user);
   const perms = getAccountPermissions(user?.accountType);
 
   const MENU_ITEMS = [
@@ -350,12 +365,12 @@ function UserDropdown({ user, onClose, onLogout }) {
             fontSize: 18, fontWeight: 700, color: "#ffc633",
             letterSpacing: "0.02em",
           }}>
-            {getInitials(user?.fullName)}
+            {getInitials(fullName)}
           </div>
 
           <div style={{ minWidth: 0 }}>
             <p style={{ fontSize: 15, fontWeight: 600, color: "#f5f1e8", marginBottom: 5, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-              {user?.fullName || "My Account"}
+              {fullName || "My Account"}
             </p>
             {/* Account type tag */}
             <span style={{
@@ -476,16 +491,23 @@ function UserDropdown({ user, onClose, onLogout }) {
         {testModeOpen && (
           <div style={{ padding: "2px 0 4px 10px", display: "flex", flexDirection: "column", gap: 2 }}>
             {TEST_MODE_CP_OPTIONS.map(({ cpType, label, icon: Icon }) => (
-              <Link
+              <button
                 key={cpType}
-                href={`/portal/freelancer?cpType=${cpType}`}
-                onClick={onClose}
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onSelectCp(cpType);
+                }}
                 className="dd-item"
                 style={{
+                  width: "100%",
                   display: "flex", alignItems: "center", gap: 11,
                   padding: "9px 10px",
                   borderRadius: 9,
-                  textDecoration: "none",
+                  border: "none",
+                  background: "transparent",
+                  cursor: "pointer",
+                  textAlign: "left",
                   transition: "background 0.15s",
                 }}
               >
@@ -504,7 +526,7 @@ function UserDropdown({ user, onClose, onLogout }) {
                   <Icon style={{ width: 13, height: 13 }} />
                 </span>
                 <p style={{ fontSize: 12.5, fontWeight: 600, color: "#e8e3d9" }}>{label}</p>
-              </Link>
+              </button>
             ))}
           </div>
         )}
@@ -550,7 +572,7 @@ export default function Navbar() {
   const [mobileTestModeOpen, setMobileTestModeOpen] = useState(false);
   const [showAuthGate, setShowAuthGate] = useState(false);
   const [showCompleteProfile, setShowCompleteProfile] = useState(false);
-  const { isAuthenticated, isLoading, user, logout } = useAuth();
+  const { isAuthenticated, isLoading, user, login, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const dropdownRef = useRef(null);
@@ -600,7 +622,21 @@ export default function Navbar() {
     }
   }
 
-  const typeLabel = ACCOUNT_TYPE_LABEL[user?.accountType] ?? user?.accountType ?? "Member";
+  // Test Mode — switches the real session to a dedicated demo CP account so
+  // anything done while previewing (posting a property, etc.) belongs to
+  // that CP, not whichever account was signed in before.
+  async function handleTestModeSelectCp(cpType) {
+    const profile = TEST_MODE_CP_PROFILES[cpType];
+    if (!profile) return;
+    try {
+      await login(null, profile);
+      router.push("/portal/freelancer");
+    } catch {
+      // best-effort — if the session switch fails, stay on the current page
+    }
+  }
+
+  const typeLabel = getAccountTypeLabel(user);
   const initials = getInitials(user?.fullName);
   const perms = getAccountPermissions(user?.accountType);
   const canPostProperty = !isAuthenticated || perms.canPostProperty;
@@ -724,6 +760,7 @@ export default function Navbar() {
                 {dropdownOpen && (
                   <UserDropdown
                     user={user}
+                    onSelectCp={handleTestModeSelectCp}
                     onClose={() => setDropdownOpen(false)}
                     onLogout={handleLogout}
                   />
@@ -930,6 +967,7 @@ export default function Navbar() {
                       setMobileTestModeOpen(false);
                       setMobileOpen(false);
                     }}
+                    onSelectCp={handleTestModeSelectCp}
                     tone="accent"
                   />
                 </div>
@@ -964,6 +1002,7 @@ export default function Navbar() {
                         setMobileTestModeOpen(false);
                         setMobileOpen(false);
                       }}
+                      onSelectCp={handleTestModeSelectCp}
                       tone="accent"
                     />
                   </>

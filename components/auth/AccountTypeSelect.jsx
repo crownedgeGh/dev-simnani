@@ -7,6 +7,7 @@ import { MdHome, MdTrendingUp, MdDomain, MdWork, MdPerson, MdBadge, MdScience } 
 import { FiMapPin, FiSmartphone, FiBriefcase } from "react-icons/fi";
 import BackButton from "@/components/layout/BackButton";
 import { useAuth } from "@/context/AuthContext";
+import { TEST_MODE_CP_PROFILES } from "@/lib/testModeCp";
 
 const TEST_MODE_CP_OPTIONS = [
   { cpType: "field", label: "Field CP", description: "Field Channel Partner demo dashboard.", Icon: FiMapPin },
@@ -112,13 +113,13 @@ export default function AccountTypeSelect() {
   const [bypassLoading, setBypassLoading] = useState(null);
   const [bypassError, setBypassError] = useState("");
 
-  async function handleDirectBypass(option) {
+  async function handleDirectBypass(key, profile, href) {
     if (bypassLoading) return;
-    setBypassLoading(option.key);
+    setBypassLoading(key);
     setBypassError("");
     try {
-      await login(null, option.profile);
-      router.push(option.href);
+      await login(null, profile);
+      router.push(href);
     } catch (err) {
       setBypassLoading(null);
       setBypassError(err.message || "Bypass login failed. Please try again.");
@@ -179,7 +180,7 @@ export default function AccountTypeSelect() {
                 key={option.key}
                 type="button"
                 disabled={bypassLoading !== null}
-                onClick={() => handleDirectBypass(option)}
+                onClick={() => handleDirectBypass(option.key, option.profile, option.href)}
                 className="flex flex-col items-center gap-3 border border-navy-700/60 p-6 text-center transition hover:border-gold-500 disabled:opacity-60"
               >
                 <option.Icon className="h-8 w-8 text-gold-400" />
@@ -195,15 +196,19 @@ export default function AccountTypeSelect() {
           <p className="mt-6 tracked-label text-xs text-gold-400">Test Mode — Choose a Channel Partner Dashboard</p>
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
             {TEST_MODE_CP_OPTIONS.map(({ cpType, label, description, Icon }) => (
-              <Link
+              <button
                 key={cpType}
-                href={`/portal/freelancer?cpType=${cpType}`}
-                className="flex flex-col items-center gap-3 border border-navy-700/60 p-6 text-center transition hover:border-gold-500"
+                type="button"
+                disabled={bypassLoading !== null}
+                onClick={() => handleDirectBypass(cpType, TEST_MODE_CP_PROFILES[cpType], "/portal/freelancer")}
+                className="flex flex-col items-center gap-3 border border-navy-700/60 p-6 text-center transition hover:border-gold-500 disabled:opacity-60"
               >
                 <Icon className="h-8 w-8 text-gold-400" />
-                <span className="tracked-label text-xs text-cream">{label}</span>
+                <span className="tracked-label text-xs text-cream">
+                  {bypassLoading === cpType ? "Loading…" : label}
+                </span>
                 <p className="text-xs text-muted">{description}</p>
-              </Link>
+              </button>
             ))}
           </div>
         </div>

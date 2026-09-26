@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
+import { getAccountPermissions } from "@/lib/accountPermissions";
+import { POSTED_BY_ROLES } from "@/lib/postedByRoles";
 import { inputClass, selectClass, textareaClass } from "@/components/auth/inputStyles";
 import FormField from "@/components/auth/FormField";
 import CompleteProfileModal from "@/components/auth/CompleteProfileModal";
@@ -32,6 +34,12 @@ import { uploadFileToR2, uploadFilesToR2 } from "@/lib/uploadToR2";
 import { trackEvent } from "@/lib/gtag";
 import { STATES, getCitiesForState } from "@/lib/cityState";
 import SearchableSelect from "@/components/property/SearchableSelect";
+
+const CP_TYPE_TO_POSTED_BY_ROLE = {
+  field: POSTED_BY_ROLES.FIELD_CP,
+  digital: POSTED_BY_ROLES.DIGITAL_CP,
+  company: POSTED_BY_ROLES.COMPANY_CP,
+};
 
 const PURPOSE_OPTIONS = [
   { value: "sale", label: "Sale" },
@@ -145,6 +153,14 @@ const INITIAL_FORM = {
 const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
   const router = useRouter();
   const { user, isLoading } = useAuth();
+  const portalHref = getAccountPermissions(user?.accountType).portalHref;
+  // Channel Partners posting through the public form get attributed to
+  // their CP tier (routes them to /admin/sg-properties) instead of the
+  // generic "public" bucket everyone else falls into.
+  const postedByRole =
+    user?.accountType === "freelancer"
+      ? CP_TYPE_TO_POSTED_BY_ROLE[user.cpType] || POSTED_BY_ROLES.PUBLIC
+      : POSTED_BY_ROLES.PUBLIC;
   const profileIncomplete = user?.profileComplete === false;
   const [propertyId, setPropertyId] = useState("");
   const [form, setForm] = useState(INITIAL_FORM);
@@ -264,7 +280,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
       .catch((err) => {
         if (cancelled) return;
         toast.error(err.message || "Failed to load property for editing.");
-        router.push("/portal/common-person");
+        router.push(portalHref);
       })
       .finally(() => {
         if (!cancelled) setLoadingProperty(false);
@@ -474,7 +490,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
           mobile: `+91 ${(form.mobile || "").trim()}`,
         },
         ownerId: user?.accountId || "",
-        postedByRole: "public",
+        postedByRole,
         status: "Pending Review",
         featured: false,
         image: coverImageUrl,
@@ -515,7 +531,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
         property_type: payload.type,
         city: payload.city,
       });
-      router.push("/portal/common-person");
+      router.push(portalHref);
     } catch (err) {
       console.error("PostPropertyForm submit error:", err);
       setSubmitting(false);

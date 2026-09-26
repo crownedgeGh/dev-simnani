@@ -70,6 +70,7 @@ export default function FreelancerPortalClient({
   fieldActivity,
   digitalCampaigns,
   campaignVideos,
+  myListings,
 }) {
   const { user, isLoading } = useAuth();
   const searchParams = useSearchParams();
@@ -149,6 +150,7 @@ export default function FreelancerPortalClient({
               digitalCampaigns={digitalCampaigns}
               campaignVideos={campaignVideos}
               partner={partner}
+              myListings={myListings}
             />
           )}
           {cpType === "digital" && (() => {
@@ -168,11 +170,19 @@ export default function FreelancerPortalClient({
                 assets={promotionAssets}
                 initialJoinedCampaigns={initialJoinedCampaigns}
                 partner={partner}
+                myListings={myListings}
               />
             );
           })()}
           {cpType === "field" && (
-            <FieldCPDashboard stats={fieldStats} leads={leads} siteVisits={siteVisits} projects={projects} partner={partner} />
+            <FieldCPDashboard
+              stats={fieldStats}
+              leads={leads}
+              siteVisits={siteVisits}
+              projects={projects}
+              partner={partner}
+              myListings={myListings}
+            />
           )}
         </div>
       </div>
