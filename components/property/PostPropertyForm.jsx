@@ -178,6 +178,19 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
     },
   }));
 
+  // Browsers can't show a custom popup for a refresh/tab-close — this is
+  // the only hook they give us, and it always renders the browser's own
+  // native confirmation text, not ours.
+  useEffect(() => {
+    function handleBeforeUnload(e) {
+      if (!isFormDirty()) return;
+      e.preventDefault();
+      e.returnValue = "";
+    }
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [form]);
+
   useEffect(() => {
     if (editId) return;
     const timer = setTimeout(() => {

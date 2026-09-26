@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -34,6 +34,7 @@ import {
 } from "@/lib/properties";
 import { uploadFileToR2 } from "@/lib/uploadToR2";
 import BlurredImageFrame from "@/components/property/BlurredImageFrame";
+import ConfirmCloseModal from "@/components/property/ConfirmCloseModal";
 import { STATES, getCitiesForState } from "@/lib/cityState";
 
 const PURPOSE_OPTIONS = [
@@ -103,6 +104,41 @@ const PREFERRED_FOR_OPTIONS = [
 
 const STATUS_OPTIONS = ["Active", "Pending Review", "Rejected"];
 
+const INITIAL_FORM = {
+  purpose: "sale",
+  section: "residential",
+  category: "",
+  title: "",
+  propertyType: "",
+  state: "",
+  city: "",
+  locality: "",
+  landmark: "",
+  address: "",
+  price: "",
+  negotiable: "no",
+  areaSize: "",
+  areaUnit: "sq ft",
+  beds: "",
+  halls: "",
+  baths: "",
+  floorNo: "",
+  totalFloors: "",
+  furnishing: "",
+  parking: "yes",
+  facing: "",
+  availableFrom: "",
+  preferredFor: "",
+  genderPreference: "",
+  bathroomType: "",
+  description: "",
+  fullName: "",
+  mobile: "",
+  status: "Active",
+  featured: false,
+  badge: "",
+};
+
 export default function AdminAddPropertyForm() {
   const router = useRouter();
 
@@ -110,6 +146,9 @@ export default function AdminAddPropertyForm() {
   const [saving, setSaving] = useState(false);
   const [uploadStatus, setUploadStatus] = useState("");
   const [errors, setErrors] = useState({});
+  const [pendingLeave, setPendingLeave] = useState(null);
+  const submittedRef = useRef(false);
+  const initialSnapshotRef = useRef(INITIAL_FORM);
 
   // Cover image mode: "file" | "url"
   const [coverMode, setCoverMode] = useState("file");
@@ -127,40 +166,7 @@ export default function AdminAddPropertyForm() {
   const [videoFile, setVideoFile] = useState(null);
   const [videoPreview, setVideoPreview] = useState("");
 
-  const [form, setForm] = useState({
-    purpose: "sale",
-    section: "residential",
-    category: "",
-    title: "",
-    propertyType: "",
-    state: "",
-    city: "",
-    locality: "",
-    landmark: "",
-    address: "",
-    price: "",
-    negotiable: "no",
-    areaSize: "",
-    areaUnit: "sq ft",
-    beds: "",
-    halls: "",
-    baths: "",
-    floorNo: "",
-    totalFloors: "",
-    furnishing: "",
-    parking: "yes",
-    facing: "",
-    availableFrom: "",
-    preferredFor: "",
-    genderPreference: "",
-    bathroomType: "",
-    description: "",
-    fullName: "",
-    mobile: "",
-    status: "Active",
-    featured: false,
-    badge: "",
-  });
+  const [form, setForm] = useState(INITIAL_FORM);
 
   const isResidentialType = form.section === "residential";
   const isPgHostelType = isResidentialType && isPgOrHostel(form.propertyType);
@@ -174,6 +180,36 @@ export default function AdminAddPropertyForm() {
   const needsParking = !!fieldProfile?.parking;
   const needsFacing = !!fieldProfile?.facing;
   const needsPreferredFor = isResidentialType && !!fieldProfile?.preferredFor;
+
+  function isFormDirty() {
+    if (submittedRef.current) return false;
+    const snapshot = initialSnapshotRef.current;
+    const formChanged = Object.keys(INITIAL_FORM).some((key) => form[key] !== snapshot[key]);
+    const mediaChanged = !!coverFile || !!coverUrl || !!coverPreview || galleryImages.length > 0 || !!videoFile;
+    return formChanged || mediaChanged;
+  }
+
+  function guardedNavigate(href) {
+    const proceed = () => router.push(href);
+    if (isFormDirty()) {
+      setPendingLeave(() => proceed);
+    } else {
+      proceed();
+    }
+  }
+
+  // Browsers can't show a custom popup for a refresh/tab-close — this is
+  // the only hook they give us, and it always renders the browser's own
+  // native confirmation text, not ours.
+  useEffect(() => {
+    function handleBeforeUnload(e) {
+      if (!isFormDirty()) return;
+      e.preventDefault();
+      e.returnValue = "";
+    }
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [form, coverFile, coverUrl, coverPreview, galleryImages, videoFile]);
 
   // Client-side auto ID generation avoids hydration mismatch
   useEffect(() => {
@@ -456,6 +492,7 @@ export default function AdminAddPropertyForm() {
       }
 
       toast.success("Property added successfully to database!");
+      submittedRef.current = true;
       router.push("/admin/properties");
     } catch (err) {
       console.error("Add property error:", err);
@@ -468,39 +505,7 @@ export default function AdminAddPropertyForm() {
 
   const handleReset = () => {
     if (confirm("Are you sure you want to reset all fields in this form?")) {
-      setForm({
-        purpose: "sale",
-        section: "residential",
-        category: "",
-        title: "",
-        propertyType: "",
-        state: "",
-        city: "",
-        locality: "",
-        landmark: "",
-        address: "",
-        price: "",
-        negotiable: "no",
-        areaSize: "",
-        areaUnit: "sq ft",
-        beds: "",
-        halls: "",
-        baths: "",
-        floorNo: "",
-        totalFloors: "",
-        furnishing: "",
-        parking: "yes",
-        facing: "",
-        availableFrom: "",
-        preferredFor: "",
-        genderPreference: "",
-        description: "",
-        fullName: "",
-        mobile: "",
-        status: "Active",
-        featured: false,
-        badge: "",
-      });
+      setForm(INITIAL_FORM);
       setCoverPreview("");
       setCoverUrl("");
       setCoverFile(null);
@@ -520,7 +525,7 @@ export default function AdminAddPropertyForm() {
         <div>
           <button
             type="button"
-            onClick={() => router.push("/admin/properties")}
+            onClick={() => guardedNavigate("/admin/properties")}
             className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-[#9ca3af] transition hover:text-[#1a1a2e]"
           >
             <MdArrowBack size={16} /> Back to Properties
@@ -1480,7 +1485,7 @@ export default function AdminAddPropertyForm() {
         <div className="flex flex-col-reverse gap-3 rounded-2xl border border-[#e8e0d5] bg-white p-5 sm:flex-row sm:items-center sm:justify-end">
           <button
             type="button"
-            onClick={() => router.push("/admin/properties")}
+            onClick={() => guardedNavigate("/admin/properties")}
             disabled={saving}
             className="h-11 rounded-xl border border-[#e8e0d5] bg-white px-6 text-sm font-semibold text-[#6b7280] transition hover:bg-[#faf8f5] disabled:opacity-50"
           >
@@ -1505,6 +1510,15 @@ export default function AdminAddPropertyForm() {
           </button>
         </div>
       </form>
+
+      <ConfirmCloseModal
+        isOpen={!!pendingLeave}
+        onCancel={() => setPendingLeave(null)}
+        onConfirm={() => {
+          pendingLeave?.();
+          setPendingLeave(null);
+        }}
+      />
     </div>
   );
 }

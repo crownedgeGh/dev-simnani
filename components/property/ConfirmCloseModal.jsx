@@ -99,7 +99,7 @@ export default function ConfirmCloseModal({ isOpen, onCancel, onConfirm }) {
               onClick={onCancel}
               className="tracked-label flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg bg-gold-400 px-5 py-3.5 text-center text-xs font-bold text-navy-950 transition hover:bg-gold-300"
             >
-              Keep Editing
+              Continue filling form
             </button>
           </div>
         </div>
