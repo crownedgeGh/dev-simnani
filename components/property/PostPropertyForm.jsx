@@ -153,6 +153,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
   const [uploadStatus, setUploadStatus] = useState("");
   const [loadingProperty, setLoadingProperty] = useState(!!editId);
   const [originalAddedDate, setOriginalAddedDate] = useState("");
+  const [originalCorrectionRequest, setOriginalCorrectionRequest] = useState(null);
   const [invalidFields, setInvalidFields] = useState(new Set());
   const [pendingLeave, setPendingLeave] = useState(null);
   const submittedRef = useRef(false);
@@ -214,6 +215,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
         const isResidentialType = ["rent", "lease", "sell"].includes(p.type);
         setPropertyId(p.id);
         setOriginalAddedDate(p.addedDate || "");
+        setOriginalCorrectionRequest(p.correctionRequest || null);
         const loadedForm = {
           section: isResidentialType ? "residential" : p.type || "residential",
           purpose: p.type === "sell" ? "sale" : p.type === "rent" ? "rent" : p.type === "lease" ? "lease" : "sale",
@@ -485,6 +487,16 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
                 month: "short",
                 year: "numeric",
               }),
+        ...(editId && originalCorrectionRequest?.active
+          ? {
+              correctionRequest: {
+                ...originalCorrectionRequest,
+                active: false,
+                underReview: true,
+                submittedAt: new Date().toISOString(),
+              },
+            }
+          : {}),
       };
 
       const res = await fetch(editId ? `/api/properties/${editId}` : "/api/properties", {

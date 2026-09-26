@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { MdAdd, MdEdit, MdDelete, MdOpenInNew, MdLocationOn, MdSend } from "react-icons/md";
+import { MdAdd, MdEdit, MdDelete, MdOpenInNew, MdLocationOn, MdSend, MdReportProblem } from "react-icons/md";
 import AdminPageHeader from "@/components/admin/layout/AdminPageHeader";
 import AdminTable from "@/components/admin/ui/AdminTable";
 import AdminConfirmModal from "@/components/admin/ui/AdminConfirmModal";
@@ -234,6 +234,13 @@ export default function AdminPropertiesPage() {
     }
   };
 
+  // Listings the owner has resubmitted after a correction request — need an
+  // admin to go check the fix and clear the hold.
+  const reviewList = useMemo(
+    () => properties.filter((p) => p.correctionRequest?.underReview && !p.correctionRequest?.active),
+    [properties]
+  );
+
   // Dynamically extract all unique cities present in current properties
   const cityOptions = useMemo(() => {
     const set = new Set();
@@ -323,6 +330,21 @@ export default function AdminPropertiesPage() {
         filterOptions: ["Active", "Pending Review", "Rejected", "Closed"],
       },
       {
+        key: "correctionRequest",
+        label: "Review",
+        searchable: false,
+        render: (val) =>
+          val?.underReview && !val?.active ? (
+            <span className="inline-flex items-center gap-1 rounded-full border border-[#f0b429]/40 bg-[#fff8e1] px-2 py-0.5 text-xs font-medium text-[#d97706] whitespace-nowrap">
+              <MdReportProblem size={12} /> Awaiting Review
+            </span>
+          ) : val?.active ? (
+            <span className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-xs font-medium text-red-600 whitespace-nowrap">
+              On Hold
+            </span>
+          ) : null,
+      },
+      {
         key: "featured",
         label: "Featured",
         type: "toggle",
@@ -402,6 +424,36 @@ export default function AdminPropertiesPage() {
           </button>
         }
       />
+
+      {reviewList.length > 0 && (
+        <div className="mb-5 rounded-2xl border border-[#f0b429]/40 bg-[#fff8e1] p-4">
+          <div className="flex items-start gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f0b429]/20 text-[#d97706]">
+              <MdReportProblem size={18} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-[#1a1a2e]">
+                {reviewList.length} listing{reviewList.length === 1 ? "" : "s"} need your review
+              </p>
+              <p className="mt-0.5 text-sm text-[#6b7280]">
+                The owner made changes after your correction request — please check and clear the hold.
+              </p>
+              <div className="mt-3 flex flex-col gap-2">
+                {reviewList.map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => router.push(`/admin/properties/${p.id}`)}
+                    className="flex items-center justify-between gap-3 rounded-xl border border-[#f0b429]/30 bg-white px-3 py-2 text-left text-sm text-[#374151] transition hover:border-[#f0b429]/60"
+                  >
+                    <span className="truncate">{p.title}</span>
+                    <span className="tracked-label shrink-0 text-xs font-semibold text-[#d97706]">Check & Clear →</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <AdminTable
         columns={COLUMNS}

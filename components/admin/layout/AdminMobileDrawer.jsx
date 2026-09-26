@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { MdClose, MdDashboard, MdApartment, MdPeople, MdLeaderboard, MdSupervisedUserCircle, MdPhone, MdSettings, MdLightMode, MdDarkMode, MdWorkspacePremium, MdInsights } from "react-icons/md";
 import { BiBuildingHouse } from "react-icons/bi";
 import { useAdminTheme } from "@/context/AdminThemeContext";
+import { useCorrectionReviewCount } from "@/lib/useCorrectionReviewCount";
 
 const NAV_ITEMS = [
   { href: "/admin/dashboard", label: "Dashboard", icon: MdDashboard },
@@ -41,6 +42,7 @@ const NAV_ITEMS = [
 export default function AdminMobileDrawer({ isOpen, onClose }) {
   const pathname = usePathname();
   const { isDark, toggleTheme } = useAdminTheme();
+  const { count: reviewCount } = useCorrectionReviewCount();
 
   // Close on route change
   useEffect(() => {
@@ -116,6 +118,11 @@ export default function AdminMobileDrawer({ isOpen, onClose }) {
                 >
                   <Icon size={20} className={isActive ? "text-[#f0b429]" : "text-[#9ca3af]"} />
                   <span className="text-sm">{label}</span>
+                  {href === "/admin/properties" && reviewCount > 0 && (
+                    <span className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#f0b429] px-1 text-[10px] font-semibold text-white">
+                      {reviewCount}
+                    </span>
+                  )}
                 </Link>
                 {children && isActive && (
                   <div className="mb-1 ml-5 flex flex-col gap-0.5 border-l border-[#e8e0d5] pl-3">

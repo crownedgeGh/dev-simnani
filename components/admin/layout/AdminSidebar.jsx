@@ -17,6 +17,7 @@ import {
 } from "react-icons/md";
 import { BiBuildingHouse } from "react-icons/bi";
 import { useState } from "react";
+import { useCorrectionReviewCount } from "@/lib/useCorrectionReviewCount";
 
 const NAV_ITEMS = [
   { href: "/admin/dashboard", label: "Dashboard", icon: MdDashboard },
@@ -51,6 +52,7 @@ const NAV_ITEMS = [
 
 export default function AdminSidebar({ collapsed, onToggleCollapse }) {
   const pathname = usePathname();
+  const { count: reviewCount } = useCorrectionReviewCount();
 
   return (
     <aside
@@ -81,7 +83,7 @@ export default function AdminSidebar({ collapsed, onToggleCollapse }) {
               <Link
                 href={href}
                 title={collapsed ? label : undefined}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl mb-0.5 transition-all duration-150 group ${
+                className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl mb-0.5 transition-all duration-150 group ${
                   isActive
                     ? "bg-[#fff8e1] text-[#d97706] font-semibold"
                     : "text-[#6b7280] hover:bg-[#faf8f5] hover:text-[#1a1a2e]"
@@ -96,7 +98,17 @@ export default function AdminSidebar({ collapsed, onToggleCollapse }) {
                 {!collapsed && (
                   <span className="text-sm truncate">{label}</span>
                 )}
-                {isActive && !collapsed && (
+                {href === "/admin/properties" && reviewCount > 0 && (
+                  <span
+                    className={`flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#f0b429] px-1 text-[10px] font-semibold text-white ${
+                      collapsed ? "absolute right-1 top-1" : "ml-auto"
+                    }`}
+                    title={`${reviewCount} listing${reviewCount === 1 ? "" : "s"} awaiting review`}
+                  >
+                    {reviewCount}
+                  </span>
+                )}
+                {isActive && !collapsed && !(href === "/admin/properties" && reviewCount > 0) && (
                   <div className="ml-auto h-1.5 w-1.5 rounded-full bg-[#f0b429]" />
                 )}
               </Link>

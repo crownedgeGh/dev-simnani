@@ -330,6 +330,23 @@ export default function PropertyDetailPage() {
             </div>
           )}
 
+          {!property.correctionRequest?.active && property.correctionRequest?.underReview && (
+            <div className="mt-6 rounded-2xl border border-blue-200 bg-blue-50 p-4">
+              <div className="flex items-start gap-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                  <MdReportProblem size={18} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-[#1a1a2e]">User resubmitted — changes under review</p>
+                  <p className="mt-1 text-sm text-[#6b7280]">
+                    The owner has updated this listing to address the requested corrections. Review the
+                    changes and clear the hold, or request another correction if it still isn&apos;t right.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="mt-6 grid grid-cols-2 gap-4 border-y border-[#e8e0d5] py-6 sm:grid-cols-4">
             {isInvest ? (
               <Stat icon={<MdTrendingUp />} label="Est. Return" value={property.roi} />
@@ -470,22 +487,25 @@ export default function PropertyDetailPage() {
                   <MdCancel size={16} /> Reject
                 </button>
               </div>
-              {property.correctionRequest?.active ? (
+              {property.correctionRequest?.active || property.correctionRequest?.underReview ? (
                 <button
                   onClick={handleClearHold}
                   disabled={clearingHold}
                   className="flex h-12 items-center justify-center gap-1.5 rounded-xl border border-[#f0b429]/50 bg-[#fff8e1] text-sm font-medium text-[#d97706] transition hover:bg-[#fff2c2] disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <MdRemoveCircleOutline size={16} /> {clearingHold ? "Clearing…" : "Clear Hold"}
+                  <MdRemoveCircleOutline size={16} />{" "}
+                  {clearingHold ? "Clearing…" : property.correctionRequest?.underReview ? "Mark Reviewed" : "Clear Hold"}
                 </button>
-              ) : (
-                <button
-                  onClick={() => setCorrectionOpen(true)}
-                  className="flex h-12 items-center justify-center gap-1.5 rounded-xl border border-[#e8e0d5] bg-white text-sm font-medium text-[#374151] transition hover:bg-[#faf8f5]"
-                >
-                  <MdReportProblem size={16} /> Request Correction
-                </button>
-              )}
+              ) : null}
+              <button
+                onClick={() => setCorrectionOpen(true)}
+                className="flex h-12 items-center justify-center gap-1.5 rounded-xl border border-[#e8e0d5] bg-white text-sm font-medium text-[#374151] transition hover:bg-[#faf8f5]"
+              >
+                <MdReportProblem size={16} />{" "}
+                {property.correctionRequest?.active || property.correctionRequest?.underReview
+                  ? "Request Another Correction"
+                  : "Request Correction"}
+              </button>
               {property.status === "Closed" ? (
                 <button
                   onClick={() => handleStatusChange("Active")}

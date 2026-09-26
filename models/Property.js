@@ -130,9 +130,11 @@ const PropertySchema = new mongoose.Schema(
     },
     correctionRequest: {
       active: { type: Boolean, default: false },
+      underReview: { type: Boolean, default: false },
       reasons: { type: [String], default: [] },
       message: { type: String, default: "" },
       requestedAt: { type: Date },
+      submittedAt: { type: Date },
       resolvedAt: { type: Date },
     },
   },
