@@ -15,6 +15,9 @@ import {
   MdAttachMoney,
   MdArrowBack,
   MdContentCopy,
+  MdSend,
+  MdCalendarToday,
+  MdEventAvailable,
 } from "react-icons/md";
 import AdminPageHeader from "@/components/admin/layout/AdminPageHeader";
 import AdminTable from "@/components/admin/ui/AdminTable";
@@ -23,17 +26,21 @@ import AdminKpiCard from "@/components/admin/ui/AdminKpiCard";
 import AdminConfirmModal from "@/components/admin/ui/AdminConfirmModal";
 import CPPartnerFormDialog from "@/components/admin/freelancer-cp/CPPartnerFormDialog";
 import VideoModerationDialog from "@/components/admin/freelancer-cp/VideoModerationDialog";
+import AssignPropertyDialog from "@/components/admin/freelancer-cp/AssignPropertyDialog";
+import SiteVisitLogDialog from "@/components/admin/freelancer-cp/SiteVisitLogDialog";
 import adminAxios from "@/lib/adminAxios";
-import { ADMIN_KEYS, readCollection } from "@/lib/adminStorage";
+import { ADMIN_KEYS, readCollection, addCpAssignment, addCpSiteVisit, updateCpSiteVisit } from "@/lib/adminStorage";
 
 const CP_LEAD_STATUSES = ["Pending Verification", "Verified", "Assigned", "Site Visit Scheduled", "Site Visit Completed", "Converted", "Lost"];
 const COMM_STATUSES = ["Pending", "Approved", "On Hold"];
 const VIDEO_STATUSES = ["Pending Review", "Approved", "Suggested Edit"];
 const ACTIVE_LEAD_STATUSES = ["Assigned", "Site Visit Scheduled", "Site Visit Completed"];
+const CHILD_LEVEL_FOR_TYPE = { field: "company-to-field", digital: "company-to-digital" };
 
 export default function CPTypeWorkspace({
   cpType,
   leadCpTypes,
+  routingStage,
   title,
   description,
   icon: Icon,
@@ -43,6 +50,10 @@ export default function CPTypeWorkspace({
   showAddPartner = true,
   showInvitationCodes = true,
   showCommissions = true,
+  showAssignedProjects = false,
+  assignmentLevel,
+  delegateToTypes,
+  showSiteVisits = false,
   emptyMessage = "No records found",
 }) {
   const effectiveLeadCpTypes = useMemo(
@@ -50,7 +61,15 @@ export default function CPTypeWorkspace({
     [leadCpTypes, cpType]
   );
   const [tab, setTab] = useState(showNetworkTab ? "network" : "leads");
-  const [data, setData] = useState({ cpNetwork: [], cpLeads: [], campaignVideos: [], commissions: [], invitationCodes: [] });
+  const [data, setData] = useState({
+    cpNetwork: [],
+    cpLeads: [],
+    campaignVideos: [],
+    commissions: [],
+    invitationCodes: [],
+    cpAssignments: [],
+    cpSiteVisits: [],
+  });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [videoTarget, setVideoTarget] = useState(null);
@@ -58,6 +77,8 @@ export default function CPTypeWorkspace({
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [fieldCPs, setFieldCPs] = useState([]);
+  const [delegateTarget, setDelegateTarget] = useState(null); // assignment row being delegated onward
+  const [visitDialog, setVisitDialog] = useState(null); // { mode, context, visit }
 
   const load = useCallback(() => {
     const cpn = readCollection(ADMIN_KEYS.cpNetwork) || [];
@@ -65,7 +86,9 @@ export default function CPTypeWorkspace({
     const cv = readCollection(ADMIN_KEYS.campaignVideos) || [];
     const comm = readCollection(ADMIN_KEYS.commissions) || [];
     const inv = readCollection(ADMIN_KEYS.invitationCodes) || [];
-    setData({ cpNetwork: cpn, cpLeads: cpl, campaignVideos: cv, commissions: comm, invitationCodes: inv });
+    const asg = readCollection(ADMIN_KEYS.cpAssignments) || [];
+    const visits = readCollection(ADMIN_KEYS.cpSiteVisits) || [];
+    setData({ cpNetwork: cpn, cpLeads: cpl, campaignVideos: cv, commissions: comm, invitationCodes: inv, cpAssignments: asg, cpSiteVisits: visits });
     setFieldCPs(cpn.filter((c) => c.cpType === "field").map((c) => c.name));
   }, []);
 
@@ -101,9 +124,28 @@ export default function CPTypeWorkspace({
     () => (cpType ? data.cpNetwork.filter((n) => n.cpType === cpType) : []),
     [data.cpNetwork, cpType]
   );
+  // Every lead is owned by exactly one routing stage at a time — this is the
+  // single source of truth for lead visibility, decoupled from who originally
+  // submitted it. Leads missing the field (shouldn't happen post-migration,
+  // but defensively) default to the Head CP inbox rather than disappearing.
   const leads = useMemo(
-    () => data.cpLeads.filter((l) => effectiveLeadCpTypes.includes(l.submittedBy?.cpType)),
-    [data.cpLeads, effectiveLeadCpTypes]
+    () => (routingStage ? data.cpLeads.filter((l) => (l.routingStage || "head-cp") === routingStage) : []),
+    [data.cpLeads, routingStage]
+  );
+  const companyPartners = useMemo(
+    () => data.cpNetwork.filter((n) => n.cpType === "company" && n.status !== "Suspended").map((n) => ({ id: n.id, name: n.name, cpType: "company" })),
+    [data.cpNetwork]
+  );
+  const delegatePartners = useMemo(
+    () =>
+      (delegateToTypes || [])
+        .flatMap((t) => data.cpNetwork.filter((n) => n.cpType === t && n.status !== "Suspended"))
+        .map((n) => ({ id: n.id, name: n.name, cpType: n.cpType })),
+    [data.cpNetwork, delegateToTypes]
+  );
+  const assignedProjects = useMemo(
+    () => (assignmentLevel ? data.cpAssignments.filter((a) => a.level === assignmentLevel) : []),
+    [data.cpAssignments, assignmentLevel]
   );
   const invitationCodes = useMemo(
     () => (cpType ? data.invitationCodes.filter((c) => c.cpType === cpType) : []),
@@ -147,7 +189,9 @@ export default function CPTypeWorkspace({
   }, [leads, network, commissions]);
 
   const kpiCards = [
-    { title: "CP Leads", value: kpis.totalLeads, subtitle: `${kpis.pendingVerification} pending verification`, icon: MdLeaderboard, color: "gold" },
+    routingStage === "head-cp"
+      ? { title: "Pending Forward", value: kpis.totalLeads, subtitle: "Awaiting Forward to Company CP", icon: MdSend, color: "gold" }
+      : { title: "CP Leads", value: kpis.totalLeads, subtitle: `${kpis.pendingVerification} pending verification`, icon: MdLeaderboard, color: "gold" },
     { title: "Active Assignments", value: kpis.activeAssignments, subtitle: "Assigned or in site-visit stage", icon: MdAssignmentInd, color: "blue" },
     ...(showNetworkTab
       ? [{ title: "Network Partners", value: kpis.networkPartners, subtitle: `${kpis.activePartners} active`, icon: MdGroups, color: "purple" },
@@ -243,25 +287,97 @@ export default function CPTypeWorkspace({
           <select
             value={row.status}
             onChange={async (e) => {
-              const ok = await patchItem("cp-leads", row.id, { status: e.target.value }, "cpLeads");
-              if (ok) toast.success(`Lead status updated to ${e.target.value}`);
+              const nextStatus = e.target.value;
+              const ok = await patchItem("cp-leads", row.id, { status: nextStatus }, "cpLeads");
+              if (ok) {
+                toast.success(`Lead status updated to ${nextStatus}`);
+                if (nextStatus === "Converted") {
+                  const existing = data.commissions.find((c) => c.leadId === row.id);
+                  if (!existing) {
+                    const res = await adminAxios.post("/admin/commissions", {
+                      id: row.id,
+                      leadId: row.id,
+                      customer: row.customer,
+                      project: row.project,
+                      amount: "Pending",
+                      approvalStatus: "Pending",
+                      source: "CP",
+                      type: "channel-partner",
+                    });
+                    setData((prev) => ({ ...prev, commissions: res.data.data }));
+                    toast.success("Commission record created for this conversion");
+                  }
+                }
+              }
             }}
             className="h-8 rounded-lg border border-[#e8e0d5] bg-white px-1.5 text-xs outline-none focus:border-[#f0b429] cursor-pointer"
           >
             {CP_LEAD_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
-          {(cpType === "company" || effectiveLeadCpTypes.length > 1) && fieldCPs.length > 0 && (
+
+          {routingStage === "head-cp" && (
             <select
-              value={row.assignedTo || ""}
+              value=""
               onChange={async (e) => {
-                const ok = await patchItem("cp-leads", row.id, { assignedTo: e.target.value, status: e.target.value ? "Assigned" : row.status }, "cpLeads");
-                if (ok) toast.success(`Lead assigned to ${e.target.value}`);
+                if (!e.target.value) return;
+                const ok = await patchItem("cp-leads", row.id, { routingStage: "company-cp", assignedTo: e.target.value }, "cpLeads");
+                if (ok) toast.success(`Lead forwarded to ${e.target.value}`);
               }}
-              className="h-8 rounded-lg border border-[#e8e0d5] bg-white px-1.5 text-xs outline-none focus:border-[#f0b429] cursor-pointer"
+              disabled={companyPartners.length === 0}
+              className="h-8 rounded-lg border border-[#e8e0d5] bg-white px-1.5 text-xs outline-none focus:border-[#f0b429] cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <option value="">
+                {companyPartners.length === 0 ? "No Company CP yet" : "Forward to Company CP…"}
+              </option>
+              {companyPartners.map((p) => <option key={p.name} value={p.name}>{p.name}</option>)}
+            </select>
+          )}
+
+          {routingStage === "company-cp" && (
+            <select
+              value=""
+              onChange={async (e) => {
+                if (!e.target.value) return;
+                const [nextCpType, ...rest] = e.target.value.split("::");
+                const name = rest.join("::");
+                const ok = await patchItem(
+                  "cp-leads",
+                  row.id,
+                  { routingStage: `${nextCpType}-cp`, assignedTo: name, status: "Assigned" },
+                  "cpLeads"
+                );
+                if (ok) toast.success(`Lead delegated to ${name}`);
+              }}
+              disabled={fieldCPs.length === 0 && delegatePartners.filter((p) => p.cpType === "digital").length === 0}
+              className="h-8 rounded-lg border border-[#e8e0d5] bg-white px-1.5 text-xs outline-none focus:border-[#f0b429] cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
             >
               <option value="">Assign to…</option>
-              {fieldCPs.map((cp) => <option key={cp} value={cp}>{cp}</option>)}
+              {data.cpNetwork.filter((n) => n.cpType === "field").length > 0 && (
+                <optgroup label="Field CP">
+                  {data.cpNetwork.filter((n) => n.cpType === "field").map((p) => (
+                    <option key={`field::${p.name}`} value={`field::${p.name}`}>{p.name}</option>
+                  ))}
+                </optgroup>
+              )}
+              {data.cpNetwork.filter((n) => n.cpType === "digital").length > 0 && (
+                <optgroup label="Digital CP">
+                  {data.cpNetwork.filter((n) => n.cpType === "digital").map((p) => (
+                    <option key={`digital::${p.name}`} value={`digital::${p.name}`}>{p.name}</option>
+                  ))}
+                </optgroup>
+              )}
             </select>
+          )}
+
+          {routingStage === "field-cp" && showSiteVisits && !data.cpSiteVisits.some((v) => v.leadId === row.id && v.status === "Scheduled") && (
+            <button
+              type="button"
+              onClick={() => setVisitDialog({ mode: "schedule", context: { label: row.customer, leadId: row.id } })}
+              className="flex h-8 items-center gap-1 rounded-lg border border-[#e8e0d5] bg-white px-2 text-xs font-medium text-[#374151] transition hover:bg-[#faf8f5]"
+            >
+              <MdCalendarToday size={13} />
+              Schedule Visit
+            </button>
           )}
         </div>
       ),
@@ -326,6 +442,91 @@ export default function CPTypeWorkspace({
     },
   ];
 
+  const ASSIGNED_PROJECT_COLUMNS = [
+    {
+      key: "propertyTitle",
+      label: "Property",
+      primary: true,
+      sortable: true,
+      render: (v, row) => (
+        <div>
+          <p className="text-sm font-medium text-[#1a1a2e]">{v}</p>
+          <p className="mt-0.5 text-xs text-[#9ca3af]">{row.propertyLocation}</p>
+        </div>
+      ),
+    },
+    { key: "assignedByName", label: "Assigned By", render: (v) => <span className="text-sm text-[#374151]">{v || "—"}</span> },
+    { key: "assignedToName", label: "Assigned To", sortable: true, render: (v) => <span className="text-sm font-medium text-[#374151]">{v || "—"}</span> },
+    { key: "status", label: "Status", type: "status", filterOptions: ["Assigned", "In Progress", "Completed"] },
+    {
+      key: "actions",
+      label: "",
+      searchable: false,
+      render: (_, row) => {
+        const childLevels = (delegateToTypes || []).map((t) => CHILD_LEVEL_FOR_TYPE[t]);
+        const alreadyDelegated = data.cpAssignments.some(
+          (a) => a.parentAssignmentId === row.id && childLevels.includes(a.level)
+        );
+        return (
+          <div className="flex gap-1.5" onClick={(e) => e.stopPropagation()}>
+            {delegateToTypes && delegateToTypes.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setDelegateTarget(row)}
+                className="flex h-8 items-center gap-1 rounded-lg border border-[#e8e0d5] bg-white px-2.5 text-xs font-medium text-[#374151] transition hover:bg-[#faf8f5]"
+              >
+                <MdSend size={13} />
+                {alreadyDelegated ? "Re-delegate" : "Delegate"}
+              </button>
+            )}
+            {showSiteVisits && assignmentLevel === "company-to-field" && (
+              <button
+                type="button"
+                onClick={() => setVisitDialog({ mode: "schedule", context: { label: row.propertyTitle, assignmentId: row.id } })}
+                className="flex h-8 items-center gap-1 rounded-lg border border-[#e8e0d5] bg-white px-2.5 text-xs font-medium text-[#374151] transition hover:bg-[#faf8f5]"
+              >
+                <MdCalendarToday size={13} />
+                Schedule Visit
+              </button>
+            )}
+          </div>
+        );
+      },
+    },
+  ];
+
+  const SITE_VISIT_COLUMNS = [
+    { key: "customer", label: "Customer", primary: true, sortable: true },
+    { key: "phone", label: "Phone", render: (v) => <span className="text-sm text-[#374151]">{v || "—"}</span> },
+    { key: "propertyTitle", label: "Property", render: (v) => <span className="text-sm text-[#374151]">{v || "—"}</span> },
+    {
+      key: "scheduledAt",
+      label: "Scheduled",
+      sortable: true,
+      render: (v) => <span className="text-xs text-[#6b7280]">{v ? new Date(v).toLocaleString("en-IN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "—"}</span>,
+    },
+    { key: "status", label: "Status", type: "status", filterOptions: ["Scheduled", "Completed", "No-show"] },
+    { key: "notes", label: "Notes", render: (v) => <span className="max-w-[160px] block truncate text-xs text-[#6b7280]">{v || "—"}</span> },
+    {
+      key: "actions",
+      label: "",
+      searchable: false,
+      render: (_, row) =>
+        row.status === "Scheduled" ? (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); setVisitDialog({ mode: "outcome", visit: row, context: { label: row.customer } }); }}
+            className="flex h-8 items-center gap-1 rounded-lg border border-[#e8e0d5] bg-white px-2.5 text-xs font-medium text-[#374151] transition hover:bg-[#faf8f5]"
+          >
+            <MdEventAvailable size={13} />
+            Log Outcome
+          </button>
+        ) : (
+          <span className="text-xs text-[#9ca3af]">—</span>
+        ),
+    },
+  ];
+
   const handleCopyCode = async (code) => {
     try {
       await navigator.clipboard.writeText(code);
@@ -371,7 +572,9 @@ export default function CPTypeWorkspace({
 
   const TABS = [
     ...(showNetworkTab ? [{ key: "network", label: "Network", count: network.length }] : []),
+    ...(showAssignedProjects ? [{ key: "assignedProjects", label: "Assigned Projects", count: assignedProjects.length }] : []),
     { key: "leads", label: "Leads", count: leads.length },
+    ...(showSiteVisits ? [{ key: "siteVisits", label: "Site Visits", count: data.cpSiteVisits.length }] : []),
     ...(showCampaignVideos ? [{ key: "campaignVideos", label: "Campaign Videos", count: campaignVideos.length }] : []),
     ...(showCommissions ? [{ key: "commissions", label: "Commissions", count: commissions.length }] : []),
     ...(showInvitationCodes ? [{ key: "invitationCodes", label: "Invitation Codes", count: invitationCodes.length }] : []),
@@ -379,7 +582,9 @@ export default function CPTypeWorkspace({
 
   const tabContent = {
     network: { columns: NETWORK_COLUMNS, data: network },
+    assignedProjects: { columns: ASSIGNED_PROJECT_COLUMNS, data: assignedProjects },
     leads: { columns: LEAD_COLUMNS, data: leads },
+    siteVisits: { columns: SITE_VISIT_COLUMNS, data: data.cpSiteVisits },
     campaignVideos: { columns: VIDEO_COLUMNS, data: campaignVideos },
     commissions: { columns: COMM_COLUMNS, data: commissions },
     invitationCodes: { columns: INVITATION_COLUMNS, data: invitationCodes },
@@ -399,7 +604,15 @@ export default function CPTypeWorkspace({
         onRefresh={handleRefresh}
         isRefreshing={refreshing}
         actions={
-          showAddPartner ? (
+          tab === "siteVisits" && showSiteVisits ? (
+            <button
+              onClick={() => setVisitDialog({ mode: "schedule", context: null })}
+              className="flex h-9 items-center gap-1.5 rounded-xl bg-[#f0b429] px-3.5 text-xs font-semibold text-white shadow-sm transition hover:bg-[#d97706]"
+            >
+              <MdCalendarToday size={16} />
+              <span>Schedule Site Visit</span>
+            </button>
+          ) : showAddPartner ? (
             <button
               onClick={() => setPartnerFormTarget(null)}
               className="flex h-9 items-center gap-1.5 rounded-xl bg-[#f0b429] px-3.5 text-xs font-semibold text-white shadow-sm transition hover:bg-[#d97706]"
@@ -488,6 +701,61 @@ export default function CPTypeWorkspace({
         onSave={async (updated) => {
           const ok = await patchItem("campaign-videos", updated.id, { status: updated.status, note: updated.note }, "campaignVideos");
           if (ok) setVideoTarget(null);
+        }}
+      />
+
+      <AssignPropertyDialog
+        isOpen={!!delegateTarget}
+        onClose={() => setDelegateTarget(null)}
+        title="Delegate Project"
+        propertyTitle={delegateTarget?.propertyTitle}
+        partners={delegatePartners}
+        onAssign={async (partner) => {
+          const child = addCpAssignment({
+            propertyId: delegateTarget.propertyId,
+            propertyTitle: delegateTarget.propertyTitle,
+            propertyImage: delegateTarget.propertyImage,
+            propertyLocation: delegateTarget.propertyLocation,
+            level: CHILD_LEVEL_FOR_TYPE[partner.cpType],
+            assignedByCpType: delegateTarget.assignedToCpType,
+            assignedByName: delegateTarget.assignedToName,
+            assignedToCpType: partner.cpType,
+            assignedToName: partner.name,
+            parentAssignmentId: delegateTarget.id,
+          });
+          setData((prev) => ({ ...prev, cpAssignments: [child, ...prev.cpAssignments] }));
+          toast.success(`Delegated to ${partner.name}`);
+        }}
+      />
+
+      <SiteVisitLogDialog
+        isOpen={!!visitDialog}
+        onClose={() => setVisitDialog(null)}
+        mode={visitDialog?.mode}
+        context={visitDialog?.context}
+        visit={visitDialog?.visit}
+        onSave={async (payload) => {
+          if (payload.type === "schedule") {
+            const visit = addCpSiteVisit({
+              customer: payload.customer,
+              phone: payload.phone,
+              scheduledAt: payload.scheduledAt,
+              propertyTitle: visitDialog?.context?.label || "",
+              assignmentId: visitDialog?.context?.assignmentId || null,
+              leadId: visitDialog?.context?.leadId || null,
+            });
+            setData((prev) => ({ ...prev, cpSiteVisits: [visit, ...prev.cpSiteVisits] }));
+          } else {
+            const status = payload.outcome === "Attended" ? "Completed" : "No-show";
+            const updated = updateCpSiteVisit(payload.visitId, { status, notes: payload.notes });
+            setData((prev) => ({ ...prev, cpSiteVisits: updated }));
+            const visit = updated.find((v) => v.id === payload.visitId);
+            if (visit?.leadId) {
+              const nextStatus = payload.outcome === "Attended" ? "Site Visit Completed" : "Site Visit Scheduled";
+              const ok = await patchItem("cp-leads", visit.leadId, { status: nextStatus }, "cpLeads");
+              if (!ok) toast.error("Visit saved, but the linked lead status could not be updated");
+            }
+          }
         }}
       />
     </div>

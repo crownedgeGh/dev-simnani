@@ -27,41 +27,44 @@ import { ADMIN_KEYS, readCollection } from "@/lib/adminStorage";
 // /portal/freelancer?cpType=company|digital|field.
 const CP_SEGMENTS = [
   {
-    key: "company",
-    href: "/admin/freelancer-cp/company",
-    label: "Company CP",
-    icon: MdBusiness,
-    description: "Verifies leads, assigns Field CPs and manages the wider network.",
-    classes: "border-blue-200 bg-blue-50 text-blue-700",
-    iconBg: "bg-white/70",
-  },
-  {
     key: "headcp",
     href: "/admin/freelancer-cp/head-cp",
     label: "Head CP",
     icon: MdSupervisorAccount,
-    description: "Receives leads forwarded directly by Digital CP and Field CP — bypasses Company CP.",
+    description: "Every new lead lands here first — verify it, then forward it to a Company CP.",
     classes: "border-amber-200 bg-amber-50 text-amber-700",
     iconBg: "bg-white/70",
-    leadCpTypes: ["digital", "field"],
+    routingStage: "head-cp",
+  },
+  {
+    key: "company",
+    href: "/admin/freelancer-cp/company",
+    label: "Company CP",
+    icon: MdBusiness,
+    description: "Receives leads and projects from Head CP, delegates to Field or Digital CP.",
+    classes: "border-blue-200 bg-blue-50 text-blue-700",
+    iconBg: "bg-white/70",
+    routingStage: "company-cp",
   },
   {
     key: "digital",
     href: "/admin/freelancer-cp/digital",
     label: "Digital CP",
     icon: MdCampaign,
-    description: "Promotes approved projects, generates leads and earns commission.",
+    description: "Promotes projects delegated by Company CP, generates leads and earns commission.",
     classes: "border-purple-200 bg-purple-50 text-purple-700",
     iconBg: "bg-white/70",
+    routingStage: "digital-cp",
   },
   {
     key: "field",
     href: "/admin/freelancer-cp/field",
     label: "Field CP",
     icon: MdDirectionsWalk,
-    description: "Converts assigned leads through site visits and earns commission.",
+    description: "Converts leads delegated by Company CP through site visits and earns commission.",
     classes: "border-orange-200 bg-orange-50 text-orange-700",
     iconBg: "bg-white/70",
+    routingStage: "field-cp",
   },
 ];
 
@@ -154,10 +157,9 @@ export default function FreelancerCPPage() {
   const segmentCounts = useMemo(() => {
     const counts = {};
     CP_SEGMENTS.forEach((seg) => {
-      const leadCpTypes = seg.leadCpTypes || [seg.key];
       counts[seg.key] = {
-        partners: seg.leadCpTypes ? null : cpCounts.cpNetwork.filter((n) => n.cpType === seg.key).length,
-        leads: cpCounts.cpLeads.filter((l) => leadCpTypes.includes(l.submittedBy?.cpType)).length,
+        partners: seg.key === "headcp" ? null : cpCounts.cpNetwork.filter((n) => n.cpType === seg.key).length,
+        leads: cpCounts.cpLeads.filter((l) => (l.routingStage || "head-cp") === seg.routingStage).length,
       };
     });
     return counts;

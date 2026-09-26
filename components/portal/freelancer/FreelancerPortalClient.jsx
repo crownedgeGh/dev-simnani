@@ -148,6 +148,7 @@ export default function FreelancerPortalClient({
               fieldActivity={fieldActivity}
               digitalCampaigns={digitalCampaigns}
               campaignVideos={campaignVideos}
+              partner={partner}
             />
           )}
           {cpType === "digital" && (() => {

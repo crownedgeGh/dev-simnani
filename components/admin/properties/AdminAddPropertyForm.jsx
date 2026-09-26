@@ -35,6 +35,7 @@ import {
 } from "@/lib/properties";
 import { uploadFileToR2 } from "@/lib/uploadToR2";
 import BlurredImageFrame from "@/components/property/BlurredImageFrame";
+import { STATES, getCitiesForState } from "@/lib/cityState";
 
 const PURPOSE_OPTIONS = [
   { value: "sale", label: "For Sale" },
@@ -149,6 +150,7 @@ export default function AdminAddPropertyForm() {
     category: "",
     title: "",
     propertyType: "Flat",
+    state: "",
     city: "",
     locality: "",
     landmark: "",
@@ -211,6 +213,9 @@ export default function AdminAddPropertyForm() {
       if (field === "propertyType" && !isPgOrHostel(val)) {
         next.genderPreference = "";
         next.bathroomType = "";
+      }
+      if (field === "state") {
+        next.city = "";
       }
       return next;
     });
@@ -310,6 +315,7 @@ export default function AdminAddPropertyForm() {
     if (!form.title.trim()) errs.title = "Property title is required";
     if (!form.propertyType) errs.propertyType = "Property type is required";
     if (CATEGORIES_BY_TYPE[form.type] && !form.category) errs.category = "Category is required";
+    if (!form.state.trim()) errs.state = "State is required";
     if (!form.city.trim()) errs.city = "City is required";
     if (!form.locality.trim()) errs.locality = "Area / Locality is required";
     if (!form.price || Number(form.price) <= 0) errs.price = "Valid price is required";
@@ -391,6 +397,7 @@ export default function AdminAddPropertyForm() {
         rawPrice: numericPrice,
         negotiable: form.negotiable,
         location: `${form.locality.trim()}, ${form.city.trim()}`,
+        state: form.state.trim(),
         city: form.city.trim(),
         locality: form.locality.trim(),
         landmark: form.landmark.trim(),
@@ -398,7 +405,8 @@ export default function AdminAddPropertyForm() {
         area: `${form.areaSize} ${form.areaUnit}`,
         areaSize: Number(form.areaSize),
         areaUnit: form.areaUnit,
-        beds: needsBedrooms ? Number(form.beds) : 0,
+        beds: needsBedrooms ? (form.beds === "5+" ? 5 : Number(form.beds)) : 0,
+        bedsPlus: needsBedrooms ? form.beds === "5+" : false,
         halls: needsBedrooms ? Number(form.halls) : 0,
         baths: needsStructureFields && !isPgHostelType ? Number(form.baths) : 0,
         floorNo: needsStructureFields ? form.floorNo : "",
@@ -466,6 +474,7 @@ export default function AdminAddPropertyForm() {
         category: "",
         title: "",
         propertyType: "Flat",
+        state: "",
         city: "",
         locality: "",
         landmark: "",
@@ -734,15 +743,39 @@ export default function AdminAddPropertyForm() {
         >
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div>
+              <AdminFormField label="State" id="prop-state" required error={errors.state}>
+                <select
+                  id="prop-state"
+                  value={form.state}
+                  onChange={(e) => update("state", e.target.value)}
+                  className={adminSelectClass}
+                >
+                  <option value="">Select state</option>
+                  {STATES.map((state) => (
+                    <option key={state} value={state}>
+                      {state}
+                    </option>
+                  ))}
+                </select>
+              </AdminFormField>
+            </div>
+
+            <div>
               <AdminFormField label="City" id="prop-city" required error={errors.city}>
-                <input
+                <select
                   id="prop-city"
-                  type="text"
                   value={form.city}
                   onChange={(e) => update("city", e.target.value)}
-                  placeholder="e.g. Bangalore"
-                  className={adminInputClass}
-                />
+                  disabled={!form.state}
+                  className={`${adminSelectClass} disabled:cursor-not-allowed disabled:opacity-60`}
+                >
+                  <option value="">{form.state ? "Select city" : "Select state first"}</option>
+                  {getCitiesForState(form.state).map((city) => (
+                    <option key={city} value={city}>
+                      {city}
+                    </option>
+                  ))}
+                </select>
               </AdminFormField>
             </div>
 
@@ -886,15 +919,20 @@ export default function AdminAddPropertyForm() {
                 required
                 error={errors.beds}
               >
-                <input
+                <select
                   id="prop-beds"
-                  type="number"
-                  min="1"
                   value={form.beds}
                   onChange={(e) => update("beds", e.target.value)}
-                  placeholder="e.g. 3"
-                  className={adminInputClass}
-                />
+                  className={adminSelectClass}
+                >
+                  <option value="">Select Bedrooms</option>
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <option key={n} value={n}>
+                      {n} BHK
+                    </option>
+                  ))}
+                  <option value="5+">5 BHK+</option>
+                </select>
               </AdminFormField>
             </div>
             )}

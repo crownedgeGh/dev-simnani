@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
 import { FiPlus, FiCheck, FiSend, FiNavigation, FiCamera, FiUser, FiPhone } from "react-icons/fi";
 import Tabs from "./Tabs";
@@ -11,7 +11,7 @@ import { VISIT_STATUS_TONE } from "./channel-partner/tones";
 import FormField from "@/components/auth/FormField";
 import { inputClass, selectClass, textareaClass } from "@/components/auth/inputStyles";
 import { generateAccountId } from "@/lib/auth";
-import { addCpLead } from "@/lib/adminStorage";
+import { ADMIN_KEYS, readCollection, addCpLead } from "@/lib/adminStorage";
 import RefreshButton from "./RefreshButton";
 
 const TABS = [
@@ -30,6 +30,19 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
   const [siteVisits, setSiteVisits] = useState(initialSiteVisits);
   const [followUpDrafts, setFollowUpDrafts] = useState({});
   const [customerNotes, setCustomerNotes] = useState({});
+  const [delegatedProjects, setDelegatedProjects] = useState([]);
+
+  useEffect(() => {
+    let active = true;
+    Promise.resolve().then(() => {
+      if (!active) return;
+      const assignments = readCollection(ADMIN_KEYS.cpAssignments) || [];
+      setDelegatedProjects(
+        assignments.filter((a) => a.level === "company-to-field" && a.assignedToName === partner?.fullName)
+      );
+    });
+    return () => { active = false; };
+  }, [partner]);
 
   const [directForm, setDirectForm] = useState(INITIAL_DIRECT_FORM);
   const [directError, setDirectError] = useState("");
@@ -170,6 +183,20 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
               <RefreshButton onRefresh={() => refreshSection("assigned")} label="Refresh assigned projects" />
             </div>
             <div key={refreshKeys.assigned} className="flex flex-col gap-6">
+            {delegatedProjects.length > 0 && (
+              <div className="flex flex-col gap-3">
+                <p className="tracked-label text-xs text-gold-400">Properties Delegated by Company CP</p>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {delegatedProjects.map((a) => (
+                    <div key={a.id} className="border border-navy-700/60 bg-navy-900 p-4">
+                      <p className="text-sm text-cream">{a.propertyTitle}</p>
+                      <p className="mt-1 text-xs text-muted">{a.propertyLocation}</p>
+                      <Badge tone="gold">{a.status}</Badge>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             {assignedProjects.length === 0 ? (
               <EmptyState title="No projects assigned yet" message="Projects with leads assigned to you by a Company Channel Partner will appear here." />
             ) : (

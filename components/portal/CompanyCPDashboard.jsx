@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
 import {
   FiCheck,
@@ -19,10 +19,11 @@ import EmptyState from "./EmptyState";
 import { CP_TYPE_LABEL, VIDEO_STATUS_TONE } from "./channel-partner/tones";
 import { selectClass } from "@/components/auth/inputStyles";
 import RefreshButton from "./RefreshButton";
+import { ADMIN_KEYS, readCollection, addCpAssignment } from "@/lib/adminStorage";
 
 const TABS = [
   { key: "overview", label: "Overview" },
-  { key: "projects", label: "All Projects" },
+  { key: "projects", label: "Assigned Projects" },
   { key: "trackField", label: "Track Field CP" },
   { key: "trackDigital", label: "Track Digital CP" },
   { key: "freelancerLeads", label: "Freelancer Leads" },
@@ -38,13 +39,13 @@ export default function CompanyCPDashboard({
   stats,
   leads,
   network,
-  projects,
   fieldActivity,
   digitalCampaigns,
   campaignVideos: initialCampaignVideos,
+  partner,
 }) {
   const [tab, setTab] = useState("overview");
-  const [assignments, setAssignments] = useState({});
+  const [assignments, setAssignments] = useState([]);
   const [videos, setVideos] = useState(initialCampaignVideos);
   const [editingNoteId, setEditingNoteId] = useState(null);
   const [noteDraft, setNoteDraft] = useState("");
@@ -58,26 +59,57 @@ export default function CompanyCPDashboard({
     freelancerLeads: 0,
   });
 
+  const loadAssignments = useCallback(() => {
+    setAssignments(readCollection(ADMIN_KEYS.cpAssignments) || []);
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    Promise.resolve().then(() => {
+      if (active) loadAssignments();
+    });
+    return () => { active = false; };
+  }, [loadAssignments]);
+
   const refreshSection = useCallback(
     (section) => {
       setRefreshKeys((prev) => ({ ...prev, [section]: prev[section] + 1 }));
       // Reset section-specific local state
-      if (section === "projects") setAssignments({});
+      if (section === "projects") loadAssignments();
       if (section === "trackDigital") {
         setVideos(initialCampaignVideos);
         setEditingNoteId(null);
         setNoteDraft("");
       }
     },
-    [initialCampaignVideos]
+    [initialCampaignVideos, loadAssignments]
   );
 
   const fieldPartners = network.filter((p) => p.cpType === "field");
   const digitalPartners = network.filter((p) => p.cpType === "digital");
 
-  function handleAssign(projectId, partnerName) {
+  // Properties Head CP has handed down to this Company CP.
+  const assignedProjects = assignments.filter(
+    (a) => a.level === "head-to-company" && a.assignedToName === partner?.fullName
+  );
+
+  function handleDelegate(assignmentId, cpType, partnerName) {
     if (!partnerName) return;
-    setAssignments((prev) => ({ ...prev, [projectId]: partnerName }));
+    const parent = assignedProjects.find((a) => a.id === assignmentId);
+    if (!parent) return;
+    addCpAssignment({
+      propertyId: parent.propertyId,
+      propertyTitle: parent.propertyTitle,
+      propertyImage: parent.propertyImage,
+      propertyLocation: parent.propertyLocation,
+      level: cpType === "field" ? "company-to-field" : "company-to-digital",
+      assignedByCpType: "company",
+      assignedByName: partner?.fullName,
+      assignedToCpType: cpType,
+      assignedToName: partnerName,
+      parentAssignmentId: assignmentId,
+    });
+    loadAssignments();
   }
 
   function updateVideoStatus(id, status, note = "") {
@@ -119,55 +151,70 @@ export default function CompanyCPDashboard({
         {tab === "projects" && (
           <div className="flex flex-col gap-5">
             <div className="flex items-center justify-between">
-              <p className="tracked-label text-xs text-gold-400">All Projects</p>
+              <p className="tracked-label text-xs text-gold-400">Assigned Projects</p>
               <RefreshButton onRefresh={() => refreshSection("projects")} label="Refresh projects" />
             </div>
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3" key={refreshKeys.projects}>
-            {projects.map((project) => {
-              const assignedTo = assignments[project.id];
-              return (
-                <div key={project.id} className="flex flex-col border border-navy-700/60 bg-navy-900 p-4">
-                  <div className="relative h-40 w-full overflow-hidden rounded-sm">
-                    <Image
-                      src={project.image}
-                      alt={project.name}
-                      fill
-                      sizes="(max-width: 640px) 100vw, 33vw"
-                      className="object-cover"
-                    />
-                  </div>
-                  <h3 className="mt-3 font-display text-base text-cream">{project.name}</h3>
-                  <p className="mt-1 text-xs text-muted">{project.location}</p>
-                  <p className="mt-1 text-xs text-muted">
-                    {project.startingPrice} · {project.status}
-                  </p>
+            <div key={refreshKeys.projects}>
+            {assignedProjects.length === 0 ? (
+              <EmptyState title="No projects assigned yet" message="Properties assigned to you by Head CP will appear here — decide whether each goes to a Field CP or a Digital CP." />
+            ) : (
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {assignedProjects.map((project) => {
+                  const delegated = assignments.find((a) => a.parentAssignmentId === project.id);
+                  return (
+                    <div key={project.id} className="flex flex-col border border-navy-700/60 bg-navy-900 p-4">
+                      <div className="relative h-40 w-full overflow-hidden rounded-sm">
+                        <Image
+                          src={project.propertyImage}
+                          alt={project.propertyTitle}
+                          fill
+                          sizes="(max-width: 640px) 100vw, 33vw"
+                          className="object-cover"
+                        />
+                      </div>
+                      <h3 className="mt-3 font-display text-base text-cream">{project.propertyTitle}</h3>
+                      <p className="mt-1 text-xs text-muted">{project.propertyLocation}</p>
 
-                  <div className="mt-4 flex flex-col gap-2 border-t border-navy-700/60 pt-4">
-                    {assignedTo && (
-                      <span className="tracked-label flex w-fit items-center gap-1.5 border border-gold-500/70 px-3 py-1 text-[10px] text-gold-400">
-                        <FiUserCheck className="h-3 w-3" />
-                        Assigned: {assignedTo}
-                      </span>
-                    )}
-                    <select
-                      aria-label={`Assign ${project.name} to a Field Channel Partner`}
-                      value={assignedTo || ""}
-                      onChange={(e) => handleAssign(project.id, e.target.value)}
-                      className={`${selectClass} h-11 text-xs`}
-                    >
-                      <option value="" disabled>
-                        {assignedTo ? "Reassign to Field CP" : "Assign to Field CP"}
-                      </option>
-                      {fieldPartners.map((p) => (
-                        <option key={p.id} value={p.name}>
-                          {p.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              );
-            })}
+                      <div className="mt-4 flex flex-col gap-2 border-t border-navy-700/60 pt-4">
+                        {delegated && (
+                          <span className="tracked-label flex w-fit items-center gap-1.5 border border-gold-500/70 px-3 py-1 text-[10px] text-gold-400">
+                            <FiUserCheck className="h-3 w-3" />
+                            {CP_TYPE_LABEL[delegated.assignedToCpType]}: {delegated.assignedToName}
+                          </span>
+                        )}
+                        <select
+                          aria-label={`Delegate ${project.propertyTitle}`}
+                          value=""
+                          onChange={(e) => {
+                            const [cpType, ...rest] = e.target.value.split("::");
+                            handleDelegate(project.id, cpType, rest.join("::"));
+                          }}
+                          className={`${selectClass} h-11 text-xs`}
+                        >
+                          <option value="" disabled>
+                            {delegated ? "Re-delegate" : "Delegate to…"}
+                          </option>
+                          {fieldPartners.length > 0 && (
+                            <optgroup label="Field CP">
+                              {fieldPartners.map((p) => (
+                                <option key={`field::${p.name}`} value={`field::${p.name}`}>{p.name}</option>
+                              ))}
+                            </optgroup>
+                          )}
+                          {digitalPartners.length > 0 && (
+                            <optgroup label="Digital CP">
+                              {digitalPartners.map((p) => (
+                                <option key={`digital::${p.name}`} value={`digital::${p.name}`}>{p.name}</option>
+                              ))}
+                            </optgroup>
+                          )}
+                        </select>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
             </div>
           </div>
         )}

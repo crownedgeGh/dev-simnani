@@ -3,13 +3,14 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { MdAdd, MdEdit, MdDelete, MdOpenInNew, MdLocationOn } from "react-icons/md";
+import { MdAdd, MdEdit, MdDelete, MdOpenInNew, MdLocationOn, MdSend } from "react-icons/md";
 import AdminPageHeader from "@/components/admin/layout/AdminPageHeader";
 import AdminTable from "@/components/admin/ui/AdminTable";
 import AdminConfirmModal from "@/components/admin/ui/AdminConfirmModal";
 import PropertyFormDialog from "@/components/admin/properties/PropertyFormDialog";
+import AssignPropertyDialog from "@/components/admin/freelancer-cp/AssignPropertyDialog";
 import adminAxios from "@/lib/adminAxios";
-import { ADMIN_KEYS, readCollection, writeCollection } from "@/lib/adminStorage";
+import { ADMIN_KEYS, readCollection, writeCollection, addCpAssignment } from "@/lib/adminStorage";
 import { getLocationCity } from "@/lib/properties";
 
 const PROPERTY_TYPES = [
@@ -36,12 +37,31 @@ export default function AdminPropertiesPage() {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [companyPartners, setCompanyPartners] = useState([]);
+  const [assignments, setAssignments] = useState([]);
 
   // Dialog states
   const [formOpen, setFormOpen] = useState(false);
   const [editingProperty, setEditingProperty] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [assignTarget, setAssignTarget] = useState(null);
+
+  const loadCpData = useCallback(() => {
+    const network = readCollection(ADMIN_KEYS.cpNetwork) || [];
+    setCompanyPartners(
+      network.filter((n) => n.cpType === "company" && n.status !== "Suspended").map((n) => ({ id: n.id, name: n.name, cpType: "company" }))
+    );
+    setAssignments(readCollection(ADMIN_KEYS.cpAssignments) || []);
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    Promise.resolve().then(() => {
+      if (active) loadCpData();
+    });
+    return () => { active = false; };
+  }, [loadCpData]);
 
   const loadProperties = useCallback(async () => {
     try {
@@ -80,7 +100,24 @@ export default function AdminPropertiesPage() {
   const handleRefresh = async () => {
     setRefreshing(true);
     await loadProperties();
+    loadCpData();
     setRefreshing(false);
+  };
+
+  const handleAssignToCompanyCp = async (partner) => {
+    const record = addCpAssignment({
+      propertyId: assignTarget.id,
+      propertyTitle: assignTarget.title,
+      propertyImage: assignTarget.image,
+      propertyLocation: assignTarget.location,
+      level: "head-to-company",
+      assignedByCpType: "head-cp",
+      assignedByName: "Head CP",
+      assignedToCpType: "company",
+      assignedToName: partner.name,
+    });
+    setAssignments((prev) => [record, ...prev]);
+    toast.success(`Assigned to ${partner.name}`);
   };
 
   // Create
@@ -289,6 +326,23 @@ export default function AdminPropertiesPage() {
         render: null,
       },
       {
+        key: "cpAssignment",
+        label: "CP Assignment",
+        searchable: false,
+        render: (_, row) => {
+          const assignment = assignments.find((a) => a.propertyId === row.id && a.level === "head-to-company");
+          return assignment ? (
+            <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 whitespace-nowrap">
+              Assigned: {assignment.assignedToName}
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 rounded-full border border-[#e8e0d5] bg-[#faf8f5] px-2 py-0.5 text-xs font-medium text-[#9ca3af] whitespace-nowrap">
+              Unassigned
+            </span>
+          );
+        },
+      },
+      {
         key: "actions",
         label: "",
         type: "actions",
@@ -305,6 +359,11 @@ export default function AdminPropertiesPage() {
             onClick: () => router.push(`/admin/properties/${row.id}/edit`),
           },
           {
+            label: "Assign to Company CP",
+            icon: MdSend,
+            onClick: () => setAssignTarget(row),
+          },
+          {
             label: "Delete",
             icon: MdDelete,
             variant: "danger",
@@ -313,7 +372,7 @@ export default function AdminPropertiesPage() {
         ],
       },
     ],
-    [cityOptions, router]
+    [cityOptions, router, assignments]
   );
 
   return (
@@ -366,6 +425,16 @@ export default function AdminPropertiesPage() {
         confirmLabel="Delete"
         confirmVariant="danger"
         isLoading={deleting}
+      />
+
+      <AssignPropertyDialog
+        isOpen={!!assignTarget}
+        onClose={() => setAssignTarget(null)}
+        title="Assign to Company CP"
+        propertyTitle={assignTarget?.title}
+        partners={companyPartners}
+        currentAssigneeName={assignments.find((a) => a.propertyId === assignTarget?.id && a.level === "head-to-company")?.assignedToName}
+        onAssign={handleAssignToCompanyCp}
       />
     </div>
   );

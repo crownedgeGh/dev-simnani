@@ -1,22 +1,24 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { FiPlus, FiLink, FiCheck, FiSend, FiArrowRight } from "react-icons/fi";
+import { FiPlus, FiLink, FiCheck, FiSend, FiArrowRight, FiUpload } from "react-icons/fi";
 import { MdCampaign } from "react-icons/md";
 import Tabs from "./Tabs";
 import StatCard from "./StatCard";
+import Badge from "./Badge";
 import EmptyState from "./EmptyState";
 import ChipGroup from "@/components/auth/ChipGroup";
 import FormField from "@/components/auth/FormField";
 import { inputClass, selectClass, textareaClass } from "@/components/auth/inputStyles";
 import { generateAccountId } from "@/lib/auth";
-import { addCpLead } from "@/lib/adminStorage";
+import { ADMIN_KEYS, readCollection, addCpLead, addCampaignVideo } from "@/lib/adminStorage";
 import RefreshButton from "./RefreshButton";
 
 const TABS = [
   { key: "overview", label: "Overview" },
+  { key: "assigned", label: "Assigned Projects" },
   { key: "myLeads", label: "My Leads" },
   { key: "campaign", label: "Campaign" },
   { key: "earnings", label: "My Earnings" },
@@ -61,9 +63,49 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
   const [addCampaignError, setAddCampaignError] = useState("");
   const [addCampaignSuccess, setAddCampaignSuccess] = useState("");
 
+  const [delegatedProjects, setDelegatedProjects] = useState([]);
+  const [uploadForms, setUploadForms] = useState({});
+  const [uploadedVideos, setUploadedVideos] = useState([]);
+  const [cpLeadsCount, setCpLeadsCount] = useState({});
+
+  const loadAssignedData = useCallback(() => {
+    const assignments = readCollection(ADMIN_KEYS.cpAssignments) || [];
+    setDelegatedProjects(
+      assignments.filter((a) => a.level === "company-to-digital" && a.assignedToName === partner?.fullName)
+    );
+    setUploadedVideos((readCollection(ADMIN_KEYS.campaignVideos) || []).filter((v) => v.partnerName === partner?.fullName));
+    const leads = readCollection(ADMIN_KEYS.cpLeads) || [];
+    const counts = {};
+    leads
+      .filter((l) => l.submittedBy?.name === partner?.fullName)
+      .forEach((l) => { counts[l.project] = (counts[l.project] || 0) + 1; });
+    setCpLeadsCount(counts);
+  }, [partner]);
+
+  useEffect(() => {
+    let active = true;
+    Promise.resolve().then(() => {
+      if (active) loadAssignedData();
+    });
+    return () => { active = false; };
+  }, [loadAssignedData]);
+
+  function handleUploadVideo(assignment) {
+    const videoName = (uploadForms[assignment.id] || "").trim();
+    if (!videoName) return;
+    addCampaignVideo({
+      partnerName: partner?.fullName || "Digital CP",
+      project: assignment.propertyTitle,
+      videoName,
+    });
+    setUploadForms((prev) => ({ ...prev, [assignment.id]: "" }));
+    loadAssignedData();
+  }
+
   // Per-section refresh keys
   const [refreshKeys, setRefreshKeys] = useState({
     overview: 0,
+    assigned: 0,
     myLeads: 0,
     campaign: 0,
     earnings: 0,
@@ -73,6 +115,7 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
   const refreshSection = useCallback(
     (section) => {
       setRefreshKeys((prev) => ({ ...prev, [section]: prev[section] + 1 }));
+      if (section === "assigned") loadAssignedData();
       if (section === "myLeads") {
         setMyLeads([]);
         setLeadForm(INITIAL_LEAD_FORM);
@@ -90,7 +133,7 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
         setJoinedCampaigns(initialJoinedCampaigns);
       }
     },
-    [initialJoinedCampaigns]
+    [initialJoinedCampaigns, loadAssignedData]
   );
 
   function toggleJoinCampaign(projectId) {
@@ -246,6 +289,64 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
                 </div>
               )}
             </div>
+            </div>
+          </div>
+        )}
+
+        {tab === "assigned" && (
+          <div className="flex flex-col gap-6">
+            <div className="flex items-center justify-between">
+              <p className="tracked-label text-xs text-gold-400">Assigned Projects</p>
+              <RefreshButton onRefresh={() => refreshSection("assigned")} label="Refresh assigned projects" />
+            </div>
+            <div key={refreshKeys.assigned} className="flex flex-col gap-4">
+              {delegatedProjects.length === 0 ? (
+                <EmptyState title="No projects assigned yet" message="Properties delegated to you by a Company Channel Partner for promotion will appear here." />
+              ) : (
+                delegatedProjects.map((project) => {
+                  const projectVideos = uploadedVideos.filter((v) => v.project === project.propertyTitle);
+                  return (
+                    <div key={project.id} className="flex flex-col gap-4 border border-navy-700/60 bg-navy-900 p-4">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm text-cream">{project.propertyTitle}</p>
+                          <p className="mt-1 text-xs text-muted">{project.propertyLocation}</p>
+                        </div>
+                        <Badge tone="gold">{cpLeadsCount[project.propertyTitle] || 0} leads generated</Badge>
+                      </div>
+
+                      <div className="flex flex-col gap-2 border-t border-navy-700/60 pt-4 sm:flex-row">
+                        <input
+                          type="text"
+                          placeholder="Video file name, e.g. Walkthrough Reel.mp4"
+                          value={uploadForms[project.id] || ""}
+                          onChange={(e) => setUploadForms((prev) => ({ ...prev, [project.id]: e.target.value }))}
+                          className={`${inputClass} h-11`}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleUploadVideo(project)}
+                          className="tracked-label flex shrink-0 items-center justify-center gap-2 bg-gold-400 px-4 py-2 text-xs text-navy-950 transition hover:bg-gold-300"
+                        >
+                          <FiUpload className="h-3.5 w-3.5" />
+                          Upload for Review
+                        </button>
+                      </div>
+
+                      {projectVideos.length > 0 && (
+                        <div className="flex flex-col gap-2 border-t border-navy-700/60 pt-4">
+                          {projectVideos.map((v) => (
+                            <div key={v.id} className="flex items-center justify-between gap-3">
+                              <span className="truncate text-xs text-cream">{v.videoName}</span>
+                              <Badge tone={v.status === "Approved" ? "success" : v.status === "Suggested Edit" ? "gold" : "muted"}>{v.status}</Badge>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
         )}
