@@ -15,7 +15,6 @@ import {
   MdCloudUpload,
   MdDelete,
   MdCheckCircle,
-  MdLink,
   MdImage,
   MdDescription,
 } from "react-icons/md";
@@ -24,6 +23,7 @@ import AdminFormField, {
   adminSelectClass,
   adminTextareaClass,
 } from "@/components/admin/ui/AdminFormField";
+import AdminSearchableSelect from "@/components/admin/ui/AdminSearchableSelect";
 import adminAxios from "@/lib/adminAxios";
 import {
   CATEGORIES_BY_TYPE,
@@ -152,17 +152,13 @@ export default function AdminAddPropertyForm() {
   const submittedRef = useRef(false);
   const initialSnapshotRef = useRef(INITIAL_FORM);
 
-  // Cover image mode: "file" | "url"
-  const [coverMode, setCoverMode] = useState("file");
-  const [coverUrl, setCoverUrl] = useState("");
   const [coverPreview, setCoverPreview] = useState("");
   const [coverFile, setCoverFile] = useState(null);
 
-  // Gallery images (array of base64 preview or URL strings)
+  // Gallery images (array of base64 previews for on-screen thumbnails)
   const [galleryImages, setGalleryImages] = useState([]);
-  // Parallel array: File object if the entry at the same index is a pending upload, null if it's already a URL
+  // Parallel array of the actual File objects to upload, same order as galleryImages
   const [galleryMeta, setGalleryMeta] = useState([]);
-  const [galleryUrlInput, setGalleryUrlInput] = useState("");
 
   // Property video
   const [videoFile, setVideoFile] = useState(null);
@@ -187,7 +183,7 @@ export default function AdminAddPropertyForm() {
     if (submittedRef.current) return false;
     const snapshot = initialSnapshotRef.current;
     const formChanged = Object.keys(INITIAL_FORM).some((key) => form[key] !== snapshot[key]);
-    const mediaChanged = !!coverFile || !!coverUrl || !!coverPreview || galleryImages.length > 0 || !!videoFile;
+    const mediaChanged = !!coverFile || !!coverPreview || galleryImages.length > 0 || !!videoFile;
     return formChanged || mediaChanged;
   }
 
@@ -211,7 +207,7 @@ export default function AdminAddPropertyForm() {
     }
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [form, coverFile, coverUrl, coverPreview, galleryImages, videoFile]);
+  }, [form, coverFile, coverPreview, galleryImages, videoFile]);
 
   // Client-side auto ID generation avoids hydration mismatch
   useEffect(() => {
@@ -270,7 +266,6 @@ export default function AdminAddPropertyForm() {
     reader.onload = () => {
       setCoverPreview(reader.result);
       setCoverFile(file);
-      setCoverUrl("");
     };
     reader.readAsDataURL(file);
   };
@@ -303,17 +298,6 @@ export default function AdminAddPropertyForm() {
   const removeGalleryImage = (index) => {
     setGalleryImages((prev) => prev.filter((_, i) => i !== index));
     setGalleryMeta((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const addGalleryFromUrl = () => {
-    if (!galleryUrlInput.trim()) return;
-    if (galleryImages.length >= 10) {
-      toast.error("Maximum 10 gallery photos allowed");
-      return;
-    }
-    setGalleryImages((prev) => [...prev, galleryUrlInput.trim()]);
-    setGalleryMeta((prev) => [...prev, null]);
-    setGalleryUrlInput("");
   };
 
   // Video File selection
@@ -365,25 +349,54 @@ export default function AdminAddPropertyForm() {
     return errs;
   };
 
+  // Error key -> actual field element id, in form order, so the first
+  // invalid field (not just the first key in the errors object) is the one
+  // the admin gets scrolled to.
+  const FIELD_ID_MAP = {
+    title: "prop-title",
+    propertyType: "prop-property-type",
+    category: "prop-category",
+    state: "prop-state",
+    city: "prop-city",
+    locality: "prop-locality",
+    price: "prop-price",
+    areaSize: "prop-area",
+    beds: "prop-beds",
+    halls: "prop-halls",
+    baths: "prop-baths",
+    genderPreference: "prop-gender-preference",
+    bathroomType: "prop-bathroom-type",
+    fullName: "prop-fullname",
+    mobile: "prop-mobile",
+  };
+  const FIELD_ORDER = Object.keys(FIELD_ID_MAP);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length > 0) {
       setErrors(errs);
       toast.error("Please fill in all required fields marked with *");
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      const firstField = FIELD_ORDER.find((id) => errs[id]);
+      const target = firstField ? document.getElementById(FIELD_ID_MAP[firstField]) : null;
+      if (target) {
+        target.scrollIntoView({ behavior: "smooth", block: "center" });
+        target.focus({ preventScroll: true });
+      } else {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
       return;
     }
 
     setSaving(true);
     try {
-      let finalImage = coverMode === "url" ? coverUrl.trim() : "";
+      let finalImage = "";
 
-      if (coverMode === "file" || coverFile || galleryMeta.some(Boolean) || videoFile) {
+      if (coverFile || galleryMeta.length || videoFile) {
         setUploadStatus("Optimising & uploading photos and video… this can take a minute.");
       }
 
-      if (coverMode === "file" && coverFile) {
+      if (coverFile) {
         finalImage = await uploadFileToR2(coverFile, "properties/cover");
       }
       if (!finalImage) {
@@ -392,9 +405,7 @@ export default function AdminAddPropertyForm() {
       }
 
       const finalGalleryImages = await Promise.all(
-        galleryImages.map((img, idx) =>
-          galleryMeta[idx] ? uploadFileToR2(galleryMeta[idx], "properties/gallery") : Promise.resolve(img)
-        )
+        galleryMeta.map((file) => uploadFileToR2(file, "properties/gallery"))
       );
 
       const finalVideo = videoFile ? await uploadFileToR2(videoFile, "properties/video", setUploadStatus) : "";
@@ -510,7 +521,6 @@ export default function AdminAddPropertyForm() {
     if (confirm("Are you sure you want to reset all fields in this form?")) {
       setForm(INITIAL_FORM);
       setCoverPreview("");
-      setCoverUrl("");
       setCoverFile(null);
       setGalleryImages([]);
       setGalleryMeta([]);
@@ -773,38 +783,28 @@ export default function AdminAddPropertyForm() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div>
               <AdminFormField label="State" id="prop-state" required error={errors.state}>
-                <select
+                <AdminSearchableSelect
                   id="prop-state"
                   value={form.state}
-                  onChange={(e) => update("state", e.target.value)}
-                  className={adminSelectClass}
-                >
-                  <option value="">Select state</option>
-                  {STATES.map((state) => (
-                    <option key={state} value={state}>
-                      {state}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(state) => update("state", state)}
+                  options={STATES}
+                  placeholder="Select state"
+                  searchPlaceholder="Search state…"
+                />
               </AdminFormField>
             </div>
 
             <div>
               <AdminFormField label="City" id="prop-city" required error={errors.city}>
-                <select
+                <AdminSearchableSelect
                   id="prop-city"
                   value={form.city}
-                  onChange={(e) => update("city", e.target.value)}
+                  onChange={(city) => update("city", city)}
+                  options={getCitiesForState(form.state)}
                   disabled={!form.state}
-                  className={`${adminSelectClass} disabled:cursor-not-allowed disabled:opacity-60`}
-                >
-                  <option value="">{form.state ? "Select city" : "Select state first"}</option>
-                  {getCitiesForState(form.state).map((city) => (
-                    <option key={city} value={city}>
-                      {city}
-                    </option>
-                  ))}
-                </select>
+                  placeholder={form.state ? "Select city" : "Select state first"}
+                  searchPlaceholder="Search city…"
+                />
               </AdminFormField>
             </div>
 
@@ -1142,86 +1142,41 @@ export default function AdminAddPropertyForm() {
           <div className="space-y-6">
             {/* Cover Image */}
             <div className="rounded-xl border border-[#e8e0d5] bg-[#faf8f5]/60 p-4 sm:p-5">
-              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                <div>
-                  <h3 className="text-sm font-semibold text-[#1a1a2e]">Main Cover Image</h3>
-                  <p className="text-xs text-[#9ca3af]">
-                    Shown as the primary picture on cards and listing details
-                  </p>
-                </div>
-                <div className="flex items-center gap-1 rounded-lg border border-[#e8e0d5] bg-white p-0.5">
-                  <button
-                    type="button"
-                    onClick={() => setCoverMode("file")}
-                    className={`flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium transition ${
-                      coverMode === "file"
-                        ? "bg-[#f0b429] text-white"
-                        : "text-[#6b7280] hover:text-[#1a1a2e]"
-                    }`}
-                  >
-                    <MdCloudUpload size={14} /> Upload File
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setCoverMode("url")}
-                    className={`flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium transition ${
-                      coverMode === "url"
-                        ? "bg-[#f0b429] text-white"
-                        : "text-[#6b7280] hover:text-[#1a1a2e]"
-                    }`}
-                  >
-                    <MdLink size={14} /> Direct URL
-                  </button>
-                </div>
+              <div className="mb-3">
+                <h3 className="text-sm font-semibold text-[#1a1a2e]">Main Cover Image</h3>
+                <p className="text-xs text-[#9ca3af]">
+                  Shown as the primary picture on cards and listing details
+                </p>
               </div>
 
-              {coverMode === "url" ? (
-                <div className="space-y-3">
-                  <input
-                    type="url"
-                    value={coverUrl}
-                    onChange={(e) => setCoverUrl(e.target.value)}
-                    placeholder="https://images.unsplash.com/photo-..."
-                    className={adminInputClass}
-                  />
-                  {coverUrl && (
-                    <div className="relative aspect-video max-w-sm overflow-hidden rounded-xl border border-[#e8e0d5]">
-                      <BlurredImageFrame src={coverUrl} alt="Cover preview" className="h-full w-full" />
-                    </div>
-                  )}
+              {coverPreview ? (
+                <div className="relative aspect-video max-w-sm overflow-hidden rounded-xl border border-[#e8e0d5]">
+                  <BlurredImageFrame src={coverPreview} alt="Cover preview" className="h-full w-full" />
+                  <button
+                    type="button"
+                    onClick={() => setCoverPreview("")}
+                    className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-red-600/90 text-white transition hover:bg-red-700"
+                    title="Remove cover"
+                  >
+                    <MdDelete size={16} />
+                  </button>
                 </div>
               ) : (
-                <div>
-                  {coverPreview ? (
-                    <div className="relative aspect-video max-w-sm overflow-hidden rounded-xl border border-[#e8e0d5]">
-                      <BlurredImageFrame src={coverPreview} alt="Cover preview" className="h-full w-full" />
-                      <button
-                        type="button"
-                        onClick={() => setCoverPreview("")}
-                        className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-red-600/90 text-white transition hover:bg-red-700"
-                        title="Remove cover"
-                      >
-                        <MdDelete size={16} />
-                      </button>
-                    </div>
-                  ) : (
-                    <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#e8e0d5] bg-white px-4 py-8 text-center transition hover:border-[#f0b429]">
-                      <MdCloudUpload size={32} className="text-[#f0b429] mb-2" />
-                      <span className="text-sm font-semibold text-[#1a1a2e]">
-                        Click to upload cover photo
-                      </span>
-                      <span className="mt-1 text-xs text-[#9ca3af]">
-                        JPEG, PNG, or WEBP up to 5MB
-                      </span>
-                      <input
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp"
-                        className="hidden"
-                        onChange={handleCoverFile}
-                      />
-                    </label>
-                  )}
-                </div>
+                <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#e8e0d5] bg-white px-4 py-8 text-center transition hover:border-[#f0b429]">
+                  <MdCloudUpload size={32} className="text-[#f0b429] mb-2" />
+                  <span className="text-sm font-semibold text-[#1a1a2e]">
+                    Click to upload cover photo
+                  </span>
+                  <span className="mt-1 text-xs text-[#9ca3af]">
+                    JPEG, PNG, or WEBP up to 5MB
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={handleCoverFile}
+                  />
+                </label>
               )}
             </div>
 
@@ -1237,25 +1192,6 @@ export default function AdminAddPropertyForm() {
                 <span className="rounded-full bg-[#f0ebe3] px-2.5 py-0.5 text-xs font-medium text-[#6b7280]">
                   {galleryImages.length} / 10 photos
                 </span>
-              </div>
-
-              {/* URL add bar */}
-              <div className="mb-4 flex gap-2">
-                <input
-                  type="url"
-                  value={galleryUrlInput}
-                  onChange={(e) => setGalleryUrlInput(e.target.value)}
-                  placeholder="Or paste image URL and click Add"
-                  className={`${adminInputClass} flex-1`}
-                />
-                <button
-                  type="button"
-                  onClick={addGalleryFromUrl}
-                  disabled={!galleryUrlInput.trim() || galleryImages.length >= 10}
-                  className="rounded-xl border border-[#e8e0d5] bg-white px-4 text-xs font-semibold text-[#374151] transition hover:bg-[#faf8f5] disabled:opacity-50"
-                >
-                  Add URL
-                </button>
               </div>
 
               {/* Upload Drop area */}
