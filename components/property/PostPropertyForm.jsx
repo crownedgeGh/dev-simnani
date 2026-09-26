@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -9,6 +9,7 @@ import { useAuth } from "@/context/AuthContext";
 import { inputClass, selectClass, textareaClass } from "@/components/auth/inputStyles";
 import FormField from "@/components/auth/FormField";
 import CompleteProfileModal from "@/components/auth/CompleteProfileModal";
+import ConfirmCloseModal from "@/components/property/ConfirmCloseModal";
 import { PhotosUpload, VideoUpload } from "@/components/property/PropertyImageUpload";
 import {
   MdContentPaste,
@@ -141,7 +142,7 @@ const INITIAL_FORM = {
   mobile: "",
 };
 
-export default function PostPropertyForm({ editId }) {
+const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
   const router = useRouter();
   const { user, isLoading } = useAuth();
   const profileIncomplete = user?.profileComplete === false;
@@ -153,6 +154,29 @@ export default function PostPropertyForm({ editId }) {
   const [loadingProperty, setLoadingProperty] = useState(!!editId);
   const [originalAddedDate, setOriginalAddedDate] = useState("");
   const [invalidFields, setInvalidFields] = useState(new Set());
+  const [pendingLeave, setPendingLeave] = useState(null);
+  const submittedRef = useRef(false);
+  const initialSnapshotRef = useRef(INITIAL_FORM);
+
+  function isFormDirty() {
+    if (submittedRef.current) return false;
+    const snapshot = initialSnapshotRef.current;
+    return Object.keys(INITIAL_FORM).some((key) => {
+      if (key === "photos") return form.photos.length !== (snapshot.photos || []).length;
+      if (key === "video") return !!form.video !== !!snapshot.video;
+      return form[key] !== snapshot[key];
+    });
+  }
+
+  useImperativeHandle(ref, () => ({
+    guardClose(proceed) {
+      if (isFormDirty()) {
+        setPendingLeave(() => proceed);
+      } else {
+        proceed();
+      }
+    },
+  }));
 
   useEffect(() => {
     if (editId) return;
@@ -177,7 +201,7 @@ export default function PostPropertyForm({ editId }) {
         const isResidentialType = ["rent", "lease", "sell"].includes(p.type);
         setPropertyId(p.id);
         setOriginalAddedDate(p.addedDate || "");
-        setForm({
+        const loadedForm = {
           section: isResidentialType ? "residential" : p.type || "residential",
           purpose: p.type === "sell" ? "sale" : p.type === "rent" ? "rent" : p.type === "lease" ? "lease" : "sale",
           title: p.title || "",
@@ -218,7 +242,9 @@ export default function PostPropertyForm({ editId }) {
           existingVideoUrl: p.video || "",
           fullName: p.contact?.fullName || "",
           mobile: (p.contact?.mobile || "").replace(/^\+91\s*/, "").trim(),
-        });
+        };
+        setForm(loadedForm);
+        initialSnapshotRef.current = loadedForm;
       })
       .catch((err) => {
         if (cancelled) return;
@@ -457,6 +483,7 @@ export default function PostPropertyForm({ editId }) {
       if (!res.ok || !data.success) {
         throw new Error(data.error || "Submission failed");
       }
+      submittedRef.current = true;
       toast.success(editId ? "Property updated successfully." : "Property submitted successfully.");
       trackEvent(editId ? "post_property_update" : "post_property_submit", {
         property_type: payload.type,
@@ -496,6 +523,7 @@ export default function PostPropertyForm({ editId }) {
   }
 
   return (
+    <>
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
       <Section icon={<MdContentPaste className="h-5 w-5" />} title="Property Identity" subtitle="Basic info about your listing">
         <FormField
@@ -998,8 +1026,21 @@ export default function PostPropertyForm({ editId }) {
         .
       </p>
     </form>
+    <ConfirmCloseModal
+      isOpen={!!pendingLeave}
+      onCancel={() => setPendingLeave(null)}
+      onConfirm={() => {
+        pendingLeave?.();
+        setPendingLeave(null);
+      }}
+    />
+    </>
   );
-}
+});
+
+PostPropertyForm.displayName = "PostPropertyForm";
+
+export default PostPropertyForm;
 
 function Section({ icon, title, subtitle, children }) {
   return (

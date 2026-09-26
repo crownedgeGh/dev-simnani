@@ -27,9 +27,8 @@ import AdminFormField, {
 import adminAxios from "@/lib/adminAxios";
 import {
   CATEGORIES_BY_TYPE,
-  isStructureCategory,
-  categoryHasBedrooms,
   isPgOrHostel,
+  getFieldProfile,
   GENDER_PREFERENCE_OPTIONS,
   PG_HOSTEL_BATHROOM_OPTIONS,
 } from "@/lib/properties";
@@ -48,20 +47,7 @@ const YES_NO_OPTIONS = [
   { value: "no", label: "No" },
 ];
 
-const PROPERTY_TYPES = [
-  "Flat",
-  "House",
-  "Villa",
-  "Shop",
-  "Plot",
-  "Office",
-  "Warehouse",
-  "Commercial Space",
-  "Penthouse",
-  "Agricultural Land",
-  "PG",
-  "Hostel",
-];
+const PROPERTY_TYPES = ["Flat", "House", "Shop", "Plot", "Office", "Warehouse", "PG", "Hostel"];
 
 const MAX_DESCRIPTION_WORDS = 100;
 
@@ -75,16 +61,13 @@ function countWords(text) {
   return text.trim() ? text.trim().split(/\s+/).filter(Boolean).length : 0;
 }
 
-const PLATFORM_TYPES = [
-  "buy",
-  "sell",
-  "rent",
-  "invest",
-  "commercial",
-  "farming",
-  "industrial",
-  "lease",
-  "seized-property",
+const SECTION_OPTIONS = [
+  { value: "residential", label: "Residential (Buy/Sell/Rent)" },
+  { value: "commercial", label: "Commercial" },
+  { value: "farming", label: "Farming Land" },
+  { value: "industrial", label: "Industrial" },
+  { value: "invest", label: "Investment Property" },
+  { value: "seized-property", label: "Seized Property" },
 ];
 
 const AREA_UNITS = ["sq ft", "sq m", "acres", "gaj"];
@@ -146,10 +129,10 @@ export default function AdminAddPropertyForm() {
 
   const [form, setForm] = useState({
     purpose: "sale",
-    type: "buy",
+    section: "residential",
     category: "",
     title: "",
-    propertyType: "Flat",
+    propertyType: "",
     state: "",
     city: "",
     locality: "",
@@ -179,10 +162,18 @@ export default function AdminAddPropertyForm() {
     badge: "",
   });
 
-  const isResidentialType = !CATEGORIES_BY_TYPE[form.type];
+  const isResidentialType = form.section === "residential";
   const isPgHostelType = isResidentialType && isPgOrHostel(form.propertyType);
-  const needsStructureFields = isStructureCategory(form.type, form.category);
-  const needsBedrooms = categoryHasBedrooms(form.type, form.category, form.propertyType);
+  const hasSelection = isResidentialType ? !!form.propertyType : !!form.category;
+  const fieldProfile = hasSelection ? getFieldProfile(form.section, form.category, form.propertyType) : null;
+  const showBhkSelect = !!fieldProfile?.bhk;
+  const needsBedrooms = !!fieldProfile?.beds;
+  const needsBaths = !!fieldProfile?.baths;
+  const needsFloors = !!fieldProfile?.floors;
+  const needsFurnishing = !!fieldProfile?.furnishing;
+  const needsParking = !!fieldProfile?.parking;
+  const needsFacing = !!fieldProfile?.facing;
+  const needsPreferredFor = isResidentialType && !!fieldProfile?.preferredFor;
 
   // Client-side auto ID generation avoids hydration mismatch
   useEffect(() => {
@@ -195,14 +186,9 @@ export default function AdminAddPropertyForm() {
   const update = (field, val) => {
     setForm((prev) => {
       const next = { ...prev, [field]: val };
-      // Auto-suggest platform category when purpose changes
-      if (field === "purpose") {
-        if (val === "sale") next.type = "sell";
-        if (val === "rent") next.type = "rent";
-        if (val === "lease") next.type = "lease";
-      }
-      if (field === "type") {
+      if (field === "section") {
         next.category = "";
+        next.propertyType = "";
         next.beds = "";
         next.halls = "";
       }
@@ -313,14 +299,17 @@ export default function AdminAddPropertyForm() {
   const validate = () => {
     const errs = {};
     if (!form.title.trim()) errs.title = "Property title is required";
-    if (!form.propertyType) errs.propertyType = "Property type is required";
-    if (CATEGORIES_BY_TYPE[form.type] && !form.category) errs.category = "Category is required";
+    if (isResidentialType) {
+      if (!form.propertyType) errs.propertyType = "Property type is required";
+    } else if (!form.category) {
+      errs.category = "Category is required";
+    }
     if (!form.state.trim()) errs.state = "State is required";
     if (!form.city.trim()) errs.city = "City is required";
     if (!form.locality.trim()) errs.locality = "Area / Locality is required";
     if (!form.price || Number(form.price) <= 0) errs.price = "Valid price is required";
     if (!form.areaSize || Number(form.areaSize) <= 0) errs.areaSize = "Area size is required";
-    if (needsStructureFields && !isPgHostelType && (!form.baths || Number(form.baths) < 1))
+    if (needsBaths && (!form.baths || Number(form.baths) < 1))
       errs.baths = "Number of bathrooms is required";
     if (needsBedrooms && (!form.beds || Number(form.beds) < 1))
       errs.beds = "Number of bedrooms (BHK) is required";
@@ -386,13 +375,24 @@ export default function AdminAddPropertyForm() {
         formattedPrice += " /mo";
       }
 
+      const derivedType = isResidentialType
+        ? form.purpose === "rent"
+          ? "rent"
+          : form.purpose === "lease"
+            ? "lease"
+            : "sell"
+        : form.section;
+      const categoryLabel = !isResidentialType
+        ? CATEGORIES_BY_TYPE[form.section]?.find((c) => c.key === form.category)?.label || ""
+        : "";
+
       const propertyPayload = {
         id: propertyId || `PROP-${Date.now()}`,
         title: form.title.trim(),
         purpose: form.purpose,
-        type: form.type,
-        propertyType: form.propertyType,
-        category: form.category || "",
+        type: derivedType,
+        propertyType: isResidentialType ? form.propertyType : categoryLabel,
+        category: isResidentialType ? "" : form.category,
         price: formattedPrice,
         rawPrice: numericPrice,
         negotiable: form.negotiable,
@@ -408,14 +408,14 @@ export default function AdminAddPropertyForm() {
         beds: needsBedrooms ? (form.beds === "5+" ? 5 : Number(form.beds)) : 0,
         bedsPlus: needsBedrooms ? form.beds === "5+" : false,
         halls: needsBedrooms ? Number(form.halls) : 0,
-        baths: needsStructureFields && !isPgHostelType ? Number(form.baths) : 0,
-        floorNo: needsStructureFields ? form.floorNo : "",
-        totalFloors: needsStructureFields && form.totalFloors ? Number(form.totalFloors) : null,
-        furnishing: needsStructureFields ? form.furnishing : "",
-        parking: needsStructureFields ? form.parking : "",
-        facing: form.facing,
+        baths: needsBaths ? Number(form.baths) : 0,
+        floorNo: needsFloors ? form.floorNo : "",
+        totalFloors: needsFloors && form.totalFloors ? Number(form.totalFloors) : null,
+        furnishing: needsFurnishing ? form.furnishing : "",
+        parking: needsParking ? form.parking : "",
+        facing: needsFacing ? form.facing : "",
         availableFrom: form.availableFrom,
-        preferredFor: isResidentialType ? form.preferredFor : "",
+        preferredFor: needsPreferredFor ? form.preferredFor : "",
         genderPreference: isPgHostelType ? form.genderPreference : "",
         bathroomType: isPgHostelType ? form.bathroomType : "",
         description: form.description.trim(),
@@ -470,10 +470,10 @@ export default function AdminAddPropertyForm() {
     if (confirm("Are you sure you want to reset all fields in this form?")) {
       setForm({
         purpose: "sale",
-        type: "buy",
+        section: "residential",
         category: "",
         title: "",
-        propertyType: "Flat",
+        propertyType: "",
         state: "",
         city: "",
         locality: "",
@@ -610,34 +610,104 @@ export default function AdminAddPropertyForm() {
               </AdminFormField>
             </div>
 
-            {/* Platform Route/Category */}
+            {/* Listing Section */}
             <div>
               <AdminFormField
-                label="Listing Category"
-                id="prop-type"
-                hint="Used for filtering on portal"
+                label="Listing Section"
+                id="prop-section"
+                hint="Where this property will be listed"
                 required
               >
                 <select
-                  id="prop-type"
-                  value={form.type}
-                  onChange={(e) => update("type", e.target.value)}
+                  id="prop-section"
+                  value={form.section}
+                  onChange={(e) => update("section", e.target.value)}
                   className={adminSelectClass}
                 >
-                  {PLATFORM_TYPES.map((t) => (
-                    <option key={t} value={t}>
-                      {t
-                        .split("-")
-                        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                        .join(" ")}
+                  {SECTION_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
                     </option>
                   ))}
                 </select>
               </AdminFormField>
             </div>
 
-            {/* Category (commercial / farming / industrial / invest sub-category) */}
-            {CATEGORIES_BY_TYPE[form.type] && (
+            {isResidentialType ? (
+              <>
+                {/* Property Type (Flat, House, etc.) */}
+                <div>
+                  <AdminFormField
+                    label="Property Type"
+                    id="prop-property-type"
+                    required
+                    error={errors.propertyType}
+                  >
+                    <select
+                      id="prop-property-type"
+                      value={form.propertyType}
+                      onChange={(e) => update("propertyType", e.target.value)}
+                      className={adminSelectClass}
+                    >
+                      <option value="">Select type</option>
+                      {PROPERTY_TYPES.map((type) => (
+                        <option key={type} value={type}>
+                          {type}
+                        </option>
+                      ))}
+                    </select>
+                  </AdminFormField>
+                </div>
+
+                {/* BHK — only for Flat/House-style listings */}
+                {showBhkSelect && (
+                  <div>
+                    <AdminFormField label="BHK" id="prop-beds" required error={errors.beds}>
+                      <select
+                        id="prop-beds"
+                        value={form.beds}
+                        onChange={(e) => update("beds", e.target.value)}
+                        className={adminSelectClass}
+                      >
+                        <option value="">Select BHK</option>
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <option key={n} value={n}>
+                            {n} BHK
+                          </option>
+                        ))}
+                        <option value="5+">5 BHK+</option>
+                      </select>
+                    </AdminFormField>
+                  </div>
+                )}
+
+                {/* Gender Preference — only for PG / Hostel listings */}
+                {isPgHostelType && (
+                  <div>
+                    <AdminFormField
+                      label="Suitable For"
+                      id="prop-gender-preference"
+                      required
+                      error={errors.genderPreference}
+                    >
+                      <select
+                        id="prop-gender-preference"
+                        value={form.genderPreference}
+                        onChange={(e) => update("genderPreference", e.target.value)}
+                        className={adminSelectClass}
+                      >
+                        <option value="">Select</option>
+                        {GENDER_PREFERENCE_OPTIONS.map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                    </AdminFormField>
+                  </div>
+                )}
+              </>
+            ) : (
               <div>
                 <AdminFormField
                   label="Category"
@@ -653,7 +723,7 @@ export default function AdminAddPropertyForm() {
                     className={adminSelectClass}
                   >
                     <option value="">Select category</option>
-                    {CATEGORIES_BY_TYPE[form.type].map((cat) => (
+                    {(CATEGORIES_BY_TYPE[form.section] || []).map((cat) => (
                       <option key={cat.key} value={cat.key}>
                         {cat.label}
                       </option>
@@ -683,55 +753,6 @@ export default function AdminAddPropertyForm() {
                 />
               </AdminFormField>
             </div>
-
-            {/* Property Type (Flat, Villa, etc.) */}
-            <div>
-              <AdminFormField
-                label="Property Sub-Type"
-                id="prop-property-type"
-                required
-                error={errors.propertyType}
-              >
-                <select
-                  id="prop-property-type"
-                  value={form.propertyType}
-                  onChange={(e) => update("propertyType", e.target.value)}
-                  className={adminSelectClass}
-                >
-                  {PROPERTY_TYPES.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
-                  ))}
-                </select>
-              </AdminFormField>
-            </div>
-
-            {/* Gender Preference — only for residential PG / Hostel listings */}
-            {isPgHostelType && (
-              <div>
-                <AdminFormField
-                  label="Suitable For"
-                  id="prop-gender-preference"
-                  required
-                  error={errors.genderPreference}
-                >
-                  <select
-                    id="prop-gender-preference"
-                    value={form.genderPreference}
-                    onChange={(e) => update("genderPreference", e.target.value)}
-                    className={adminSelectClass}
-                  >
-                    <option value="">Select</option>
-                    {GENDER_PREFERENCE_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
-                </AdminFormField>
-              </div>
-            )}
           </div>
         </FormSection>
 
@@ -910,33 +931,6 @@ export default function AdminAddPropertyForm() {
               </AdminFormField>
             </div>
 
-            {/* Bedrooms */}
-            {needsBedrooms && (
-            <div>
-              <AdminFormField
-                label="Bedrooms (BHK)"
-                id="prop-beds"
-                required
-                error={errors.beds}
-              >
-                <select
-                  id="prop-beds"
-                  value={form.beds}
-                  onChange={(e) => update("beds", e.target.value)}
-                  className={adminSelectClass}
-                >
-                  <option value="">Select Bedrooms</option>
-                  {[1, 2, 3, 4, 5].map((n) => (
-                    <option key={n} value={n}>
-                      {n} BHK
-                    </option>
-                  ))}
-                  <option value="5+">5 BHK+</option>
-                </select>
-              </AdminFormField>
-            </div>
-            )}
-
             {/* Halls */}
             {needsBedrooms && (
             <div>
@@ -954,7 +948,7 @@ export default function AdminAddPropertyForm() {
             </div>
             )}
 
-            {needsStructureFields && !isPgHostelType && (
+            {needsBaths && (
             <div>
               <AdminFormField label="Bathrooms" id="prop-baths" required error={errors.baths}>
                 <input
@@ -995,7 +989,7 @@ export default function AdminAddPropertyForm() {
             </div>
             )}
 
-            {needsStructureFields && (
+            {needsFloors && (
             <>
 
             {/* Floor No */}
@@ -1026,8 +1020,11 @@ export default function AdminAddPropertyForm() {
                 />
               </AdminFormField>
             </div>
+            </>
+            )}
 
             {/* Furnishing */}
+            {needsFurnishing && (
             <div>
               <AdminFormField label="Furnishing Status" id="prop-furnishing">
                 <select
@@ -1045,8 +1042,10 @@ export default function AdminAddPropertyForm() {
                 </select>
               </AdminFormField>
             </div>
+            )}
 
             {/* Parking Available */}
+            {needsParking && (
             <div>
               <AdminFormField label="Parking Available">
                 <div className="grid grid-cols-2 gap-2">
@@ -1067,10 +1066,10 @@ export default function AdminAddPropertyForm() {
                 </div>
               </AdminFormField>
             </div>
-            </>
             )}
 
             {/* Facing Direction */}
+            {needsFacing && (
             <div>
               <AdminFormField label="Facing Direction" id="prop-facing">
                 <select
@@ -1088,6 +1087,7 @@ export default function AdminAddPropertyForm() {
                 </select>
               </AdminFormField>
             </div>
+            )}
 
             {/* Available From */}
             <div>
@@ -1103,7 +1103,7 @@ export default function AdminAddPropertyForm() {
             </div>
 
             {/* Preferred For */}
-            {isResidentialType && (
+            {needsPreferredFor && (
             <div className="sm:col-span-2">
               <AdminFormField label="Preferred Tenants / Buyers" id="prop-preferred">
                 <select

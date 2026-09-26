@@ -1,7 +1,7 @@
 import { redirect, notFound } from "next/navigation";
-import PostPropertyForm from "@/components/property/PostPropertyForm";
 import { MdAddHome } from "react-icons/md";
 import BackButton from "@/components/layout/BackButton";
+import PostPropertyGuardedForm from "@/components/property/PostPropertyGuardedForm";
 import RequireAuth from "@/components/auth/RequireAuth";
 import { getCurrentUser } from "@/lib/session";
 import { getPropertyById } from "@/lib/propertiesServer";
@@ -46,8 +46,7 @@ export default async function EditPropertyPage({ params }) {
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_rgba(245,180,0,0.08),_transparent_60%)]" />
 
         <div className="mx-auto max-w-3xl">
-          <div className="flex items-center gap-4">
-            <BackButton />
+          <PostPropertyGuardedForm editId={id}>
             <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gold-400/10 text-gold-400">
               <MdAddHome className="h-7 w-7" />
             </span>
@@ -57,11 +56,7 @@ export default async function EditPropertyPage({ params }) {
                 Update the details below and resubmit for review.
               </p>
             </div>
-          </div>
-
-          <div className="mt-10">
-            <PostPropertyForm editId={id} />
-          </div>
+          </PostPropertyGuardedForm>
         </div>
       </div>
     </RequireAuth>
