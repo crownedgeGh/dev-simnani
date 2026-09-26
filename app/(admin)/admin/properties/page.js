@@ -12,6 +12,7 @@ import AssignPropertyDialog from "@/components/admin/freelancer-cp/AssignPropert
 import adminAxios from "@/lib/adminAxios";
 import { ADMIN_KEYS, readCollection, writeCollection, addCpAssignment } from "@/lib/adminStorage";
 import { getLocationCity } from "@/lib/properties";
+import { isPublicPostedByRole } from "@/lib/postedByRoles";
 
 const PROPERTY_TYPES = [
   "buy",
@@ -29,6 +30,7 @@ function normalizeProperty(p) {
   return {
     ...p,
     city: p.city || (p.location ? getLocationCity(p.location) : "") || "Other",
+    postedByRole: p.postedByRole || "public",
   };
 }
 
@@ -234,22 +236,29 @@ export default function AdminPropertiesPage() {
     }
   };
 
+  // This page is for public-facing listings only (posted by common users /
+  // brokers via the site). CP & Super Admin postings live on /admin/sg-properties.
+  const publicProperties = useMemo(
+    () => properties.filter((p) => isPublicPostedByRole(p.postedByRole)),
+    [properties]
+  );
+
   // Listings the owner has resubmitted after a correction request — need an
   // admin to go check the fix and clear the hold.
   const reviewList = useMemo(
-    () => properties.filter((p) => p.correctionRequest?.underReview && !p.correctionRequest?.active),
-    [properties]
+    () => publicProperties.filter((p) => p.correctionRequest?.underReview && !p.correctionRequest?.active),
+    [publicProperties]
   );
 
   // Dynamically extract all unique cities present in current properties
   const cityOptions = useMemo(() => {
     const set = new Set();
-    properties.forEach((p) => {
+    publicProperties.forEach((p) => {
       const c = p.city || (p.location ? getLocationCity(p.location) : "");
       if (c && c !== "Other") set.add(c);
     });
     return Array.from(set).sort((a, b) => a.localeCompare(b));
-  }, [properties]);
+  }, [publicProperties]);
 
   const COLUMNS = useMemo(
     () => [
@@ -410,7 +419,7 @@ export default function AdminPropertiesPage() {
       <AdminPageHeader
         title="Properties"
         description="Manage all property listings on the platform"
-        badge={`${properties.length} total`}
+        badge={`${publicProperties.length} total`}
         onRefresh={handleRefresh}
         isRefreshing={refreshing}
         actions={
@@ -457,7 +466,7 @@ export default function AdminPropertiesPage() {
 
       <AdminTable
         columns={COLUMNS}
-        data={properties}
+        data={publicProperties}
         loading={loading}
         onRowClick={(row) => router.push(`/admin/properties/${row.id}`)}
         emptyMessage="No properties found. Add your first property!"

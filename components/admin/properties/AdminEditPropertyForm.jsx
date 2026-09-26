@@ -36,6 +36,7 @@ import {
   PG_HOSTEL_BATHROOM_OPTIONS,
 } from "@/lib/properties";
 import { uploadFileToR2 } from "@/lib/uploadToR2";
+import { POSTED_BY_ROLE_OPTIONS, POSTED_BY_ROLES, isPublicPostedByRole } from "@/lib/postedByRoles";
 import BlurredImageFrame from "@/components/property/BlurredImageFrame";
 
 const PURPOSE_OPTIONS = [
@@ -250,6 +251,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
     status: "Active",
     featured: false,
     badge: "",
+    postedByRole: POSTED_BY_ROLES.PUBLIC,
   });
 
   const isResidentialType = !CATEGORIES_BY_TYPE[form.type];
@@ -316,6 +318,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
       status: prop.status || "Active",
       featured: !!prop.featured,
       badge: prop.badge || "",
+      postedByRole: prop.postedByRole || POSTED_BY_ROLES.PUBLIC,
     });
 
     if (prop.image) {
@@ -631,6 +634,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
         status: form.status,
         featured: form.featured,
         badge: form.badge.trim() || (form.featured ? "Featured" : ""),
+        postedByRole: form.postedByRole,
         updatedDate: new Date().toLocaleDateString("en-IN", {
           day: "2-digit",
           month: "short",
@@ -658,7 +662,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
       }
 
       toast.success("Property updated successfully in database!");
-      router.push("/admin/properties");
+      router.push(isPublicPostedByRole(updatedPayload.postedByRole) ? "/admin/properties" : "/admin/sg-properties");
     } catch (err) {
       console.error("Edit property error:", err);
       toast.error(err.message || "Failed to update property. Please try again.");
@@ -1575,7 +1579,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
           title="Admin Status & Platform Visibility"
           subtitle="Moderation status, featured display, and custom promotional badge"
         >
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <AdminFormField label="Listing Status" required>
                 <select
@@ -1586,6 +1590,23 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
                   {STATUS_OPTIONS.map((st) => (
                     <option key={st} value={st}>
                       {st}
+                    </option>
+                  ))}
+                </select>
+              </AdminFormField>
+            </div>
+
+            <div>
+              <AdminFormField label="Posted By" hint="Which staff role posted this listing">
+                <select
+                  value={form.postedByRole}
+                  onChange={(e) => update("postedByRole", e.target.value)}
+                  className={adminSelectClass}
+                >
+                  <option value={POSTED_BY_ROLES.PUBLIC}>Public User</option>
+                  {POSTED_BY_ROLE_OPTIONS.map((role) => (
+                    <option key={role.value} value={role.value}>
+                      {role.label}
                     </option>
                   ))}
                 </select>

@@ -94,6 +94,12 @@ const PropertySchema = new mongoose.Schema(
       default: "",
       index: true,
     },
+    postedByRole: {
+      type: String,
+      enum: ["public", "super-admin", "head-cp", "company-cp", "field-cp", "digital-cp"],
+      default: "public",
+      index: true,
+    },
     addedDate: {
       type: String,
       default: () =>

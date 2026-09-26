@@ -23,6 +23,7 @@ function AdminShell({ children }) {
     "/admin/properties/add": "Add Property",
     "/admin/properties/add-property": "Add Property",
     "/admin/properties": "Properties",
+    "/admin/sg-properties": "SG Properties",
     "/admin/users": "Users",
     "/admin/leads": "Leads",
     "/admin/analytics": "Analytics",

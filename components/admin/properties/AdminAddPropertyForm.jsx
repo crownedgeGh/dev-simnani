@@ -33,6 +33,7 @@ import {
   PG_HOSTEL_BATHROOM_OPTIONS,
 } from "@/lib/properties";
 import { uploadFileToR2 } from "@/lib/uploadToR2";
+import { POSTED_BY_ROLE_OPTIONS, POSTED_BY_ROLES, isPublicPostedByRole } from "@/lib/postedByRoles";
 import BlurredImageFrame from "@/components/property/BlurredImageFrame";
 import ConfirmCloseModal from "@/components/property/ConfirmCloseModal";
 import { STATES, getCitiesForState } from "@/lib/cityState";
@@ -137,6 +138,7 @@ const INITIAL_FORM = {
   status: "Active",
   featured: false,
   badge: "",
+  postedByRole: POSTED_BY_ROLES.SUPER_ADMIN,
 };
 
 export default function AdminAddPropertyForm() {
@@ -465,6 +467,7 @@ export default function AdminAddPropertyForm() {
         status: form.status,
         featured: form.featured,
         badge: form.badge.trim() || (form.featured ? "Featured" : ""),
+        postedByRole: form.postedByRole,
         addedDate: new Date().toLocaleDateString("en-IN", {
           day: "2-digit",
           month: "short",
@@ -493,7 +496,7 @@ export default function AdminAddPropertyForm() {
 
       toast.success("Property added successfully to database!");
       submittedRef.current = true;
-      router.push("/admin/properties");
+      router.push(isPublicPostedByRole(propertyPayload.postedByRole) ? "/admin/properties" : "/admin/sg-properties");
     } catch (err) {
       console.error("Add property error:", err);
       toast.error(err.message || "Failed to save property. Please try again.");
@@ -1419,7 +1422,7 @@ export default function AdminAddPropertyForm() {
           title="Admin Status & Listing Controls"
           subtitle="Publishing status, featured placement, and badges"
         >
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <AdminFormField label="Listing Status" id="prop-status">
                 <select
@@ -1431,6 +1434,27 @@ export default function AdminAddPropertyForm() {
                   {STATUS_OPTIONS.map((status) => (
                     <option key={status} value={status}>
                       {status}
+                    </option>
+                  ))}
+                </select>
+              </AdminFormField>
+            </div>
+
+            <div>
+              <AdminFormField
+                label="Posted By"
+                id="prop-posted-by-role"
+                hint="Which staff role is posting this listing"
+              >
+                <select
+                  id="prop-posted-by-role"
+                  value={form.postedByRole}
+                  onChange={(e) => update("postedByRole", e.target.value)}
+                  className={adminSelectClass}
+                >
+                  {POSTED_BY_ROLE_OPTIONS.map((role) => (
+                    <option key={role.value} value={role.value}>
+                      {role.label}
                     </option>
                   ))}
                 </select>

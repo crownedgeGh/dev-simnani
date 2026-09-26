@@ -14,6 +14,7 @@ import {
   MdChevronRight,
   MdWorkspacePremium,
   MdInsights,
+  MdAdminPanelSettings,
 } from "react-icons/md";
 import { BiBuildingHouse } from "react-icons/bi";
 import { useState } from "react";
@@ -22,6 +23,7 @@ import { useCorrectionReviewCount } from "@/lib/useCorrectionReviewCount";
 const NAV_ITEMS = [
   { href: "/admin/dashboard", label: "Dashboard", icon: MdDashboard },
   { href: "/admin/properties", label: "Properties", icon: MdApartment },
+  { href: "/admin/sg-properties", label: "SG Properties", icon: MdAdminPanelSettings },
   { href: "/admin/users", label: "Users", icon: MdPeople },
   { href: "/admin/leads", label: "Leads", icon: MdLeaderboard },
   { href: "/admin/analytics", label: "Analytics", icon: MdInsights },

@@ -134,6 +134,7 @@ export async function POST(request) {
       halls,
       baths,
       ownerId: sessionUser.accountId,
+      postedByRole: body.postedByRole || "public",
       addedDate:
         body.addedDate ||
         new Date().toLocaleDateString("en-IN", {

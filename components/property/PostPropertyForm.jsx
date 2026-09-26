@@ -474,6 +474,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
           mobile: `+91 ${(form.mobile || "").trim()}`,
         },
         ownerId: user?.accountId || "",
+        postedByRole: "public",
         status: "Pending Review",
         featured: false,
         image: coverImageUrl,
