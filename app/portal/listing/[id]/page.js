@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/session";
 import { getPropertyById } from "@/lib/propertiesServer";
 import PropertyDetailContent from "@/components/property/PropertyDetailContent";
 import ListingOwnerActions from "@/components/portal/ListingOwnerActions";
+import CorrectionHoldBanner from "@/components/portal/CorrectionHoldBanner";
 import BackButton from "@/components/layout/BackButton";
 import ForceBackRedirect from "@/components/layout/ForceBackRedirect";
 
@@ -41,6 +42,7 @@ export default async function OwnerListingPage({ params }) {
   return (
     <>
       <ForceBackRedirect href="/portal/common-person" />
+      <CorrectionHoldBanner correctionRequest={property.correctionRequest} propertyId={property.id} />
       <PropertyDetailContent
         property={property}
         eyebrow="Private Listing View"

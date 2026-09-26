@@ -14,6 +14,7 @@ import {
   MdCall,
   MdContentCopy,
   MdCheck,
+  MdReportProblem,
 } from "react-icons/md";
 import { formatPostedDate, getPropertyCategoryLabels, formatBhkLabel } from "@/lib/properties";
 import { useSavedPropertyIds } from "@/lib/savedProperties";
@@ -36,6 +37,7 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
   const [showAuthGate, setShowAuthGate] = useState(false);
   const postedLabel = formatPostedDate(property);
   const { typeLabel, categoryLabel } = getPropertyCategoryLabels(property);
+  const onHold = ownerView && property.correctionRequest?.active;
   const { isSaved, toggle } = useSavedPropertyIds();
   const { isAuthenticated, user } = useAuth();
   const saved = isSaved(id);
@@ -124,10 +126,17 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
           sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
           className="object-cover transition duration-500 group-active:scale-105 group-hover:scale-105"
         />
-        {badge && (
-          <span className="tracked-label absolute left-3 top-3 rounded-sm bg-gold-500 px-2 py-1 text-[10px] font-semibold text-navy-950">
-            {badge}
+        {onHold ? (
+          <span className="tracked-label absolute left-3 top-3 flex items-center gap-1 rounded-sm bg-gold-500 px-2 py-1 text-[10px] font-semibold text-navy-950">
+            <MdReportProblem className="h-3 w-3 shrink-0" />
+            On Hold
           </span>
+        ) : (
+          badge && (
+            <span className="tracked-label absolute left-3 top-3 rounded-sm bg-gold-500 px-2 py-1 text-[10px] font-semibold text-navy-950">
+              {badge}
+            </span>
+          )
         )}
         <button
           type="button"

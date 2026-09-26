@@ -39,10 +39,13 @@ import {
   MdLocalOffer,
   MdWeekend,
   MdWc,
+  MdReportProblem,
+  MdRemoveCircleOutline,
 } from "react-icons/md";
 import AdminStatusBadge from "@/components/admin/ui/AdminStatusBadge";
 import AdminConfirmModal from "@/components/admin/ui/AdminConfirmModal";
 import PropertyFormDialog from "@/components/admin/properties/PropertyFormDialog";
+import CorrectionRequestDialog from "@/components/admin/properties/CorrectionRequestDialog";
 import adminAxios from "@/lib/adminAxios";
 import { ADMIN_KEYS, readCollection } from "@/lib/adminStorage";
 import {
@@ -71,6 +74,8 @@ export default function PropertyDetailPage() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [statusUpdating, setStatusUpdating] = useState(false);
+  const [correctionOpen, setCorrectionOpen] = useState(false);
+  const [clearingHold, setClearingHold] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -155,6 +160,57 @@ export default function PropertyDetailPage() {
       toast.error("Failed to update status");
     } finally {
       setStatusUpdating(false);
+    }
+  };
+
+  const applyCorrectionRequest = async (correctionRequest) => {
+    try {
+      const res = await fetch(`/api/properties/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ correctionRequest }),
+      });
+      const json = await res.json();
+      if (json.success && json.data) {
+        setProperty(json.data);
+        return;
+      }
+    } catch {
+      // Fallback
+    }
+    const res = await adminAxios.patch(`/admin/properties/${id}`, { correctionRequest });
+    const updated = res.data.data.find((p) => p.id === id);
+    setProperty(updated);
+  };
+
+  const handleSendCorrection = async ({ reasons, message }) => {
+    try {
+      await applyCorrectionRequest({
+        active: true,
+        reasons,
+        message,
+        requestedAt: new Date().toISOString(),
+      });
+      toast.success("Correction request sent — the user will see it on their listing.");
+    } catch {
+      toast.error("Failed to send correction request");
+    }
+  };
+
+  const handleClearHold = async () => {
+    setClearingHold(true);
+    try {
+      await applyCorrectionRequest({
+        active: false,
+        reasons: [],
+        message: "",
+        resolvedAt: new Date().toISOString(),
+      });
+      toast.success("Hold cleared — listing is back to normal.");
+    } catch {
+      toast.error("Failed to clear hold");
+    } finally {
+      setClearingHold(false);
     }
   };
 
@@ -250,6 +306,29 @@ export default function PropertyDetailPage() {
           <h1 className="mt-3 text-3xl font-bold text-[#1a1a2e] sm:text-4xl">{property.title}</h1>
           <p className="mt-2 text-sm text-[#9ca3af]">{property.location}</p>
           <p className="mt-4 text-2xl font-bold text-[#d97706]">{property.price}</p>
+
+          {property.correctionRequest?.active && (
+            <div className="mt-6 rounded-2xl border border-[#f0b429]/40 bg-[#fff8e1] p-4">
+              <div className="flex items-start gap-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f0b429]/20 text-[#d97706]">
+                  <MdReportProblem size={18} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-[#1a1a2e]">Correction requested — on hold</p>
+                  {property.correctionRequest.reasons?.length > 0 && (
+                    <ul className="mt-2 list-disc space-y-1 pl-4 text-sm text-[#6b7280]">
+                      {property.correctionRequest.reasons.map((reason) => (
+                        <li key={reason}>{reason}</li>
+                      ))}
+                    </ul>
+                  )}
+                  {property.correctionRequest.message && (
+                    <p className="mt-2 text-sm text-[#6b7280]">{property.correctionRequest.message}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="mt-6 grid grid-cols-2 gap-4 border-y border-[#e8e0d5] py-6 sm:grid-cols-4">
             {isInvest ? (
@@ -391,6 +470,22 @@ export default function PropertyDetailPage() {
                   <MdCancel size={16} /> Reject
                 </button>
               </div>
+              {property.correctionRequest?.active ? (
+                <button
+                  onClick={handleClearHold}
+                  disabled={clearingHold}
+                  className="flex h-12 items-center justify-center gap-1.5 rounded-xl border border-[#f0b429]/50 bg-[#fff8e1] text-sm font-medium text-[#d97706] transition hover:bg-[#fff2c2] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <MdRemoveCircleOutline size={16} /> {clearingHold ? "Clearing…" : "Clear Hold"}
+                </button>
+              ) : (
+                <button
+                  onClick={() => setCorrectionOpen(true)}
+                  className="flex h-12 items-center justify-center gap-1.5 rounded-xl border border-[#e8e0d5] bg-white text-sm font-medium text-[#374151] transition hover:bg-[#faf8f5]"
+                >
+                  <MdReportProblem size={16} /> Request Correction
+                </button>
+              )}
               {property.status === "Closed" ? (
                 <button
                   onClick={() => handleStatusChange("Active")}
@@ -426,6 +521,12 @@ export default function PropertyDetailPage() {
       </div>
 
       <PropertyFormDialog isOpen={editOpen} onClose={() => setEditOpen(false)} property={property} onSave={handleEdit} />
+      <CorrectionRequestDialog
+        isOpen={correctionOpen}
+        onClose={() => setCorrectionOpen(false)}
+        property={property}
+        onSubmit={handleSendCorrection}
+      />
       <AdminConfirmModal
         isOpen={deleteOpen}
         onClose={() => setDeleteOpen(false)}

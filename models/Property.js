@@ -128,6 +128,13 @@ const PropertySchema = new mongoose.Schema(
       fullName: { type: String, default: "" },
       mobile: { type: String, default: "" },
     },
+    correctionRequest: {
+      active: { type: Boolean, default: false },
+      reasons: { type: [String], default: [] },
+      message: { type: String, default: "" },
+      requestedAt: { type: Date },
+      resolvedAt: { type: Date },
+    },
   },
   {
     timestamps: true,
