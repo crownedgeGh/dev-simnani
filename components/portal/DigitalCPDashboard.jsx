@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { FiPlus, FiLink, FiCheck, FiSend, FiArrowRight, FiChevronDown, FiChevronUp, FiUsers } from "react-icons/fi";
 import { MdCampaign } from "react-icons/md";
+import { FaInstagram, FaFacebook, FaYoutube, FaWhatsapp } from "react-icons/fa6";
 import Tabs from "./Tabs";
 import StatCard from "./StatCard";
 import Badge from "./Badge";
@@ -38,6 +39,14 @@ const PLATFORMS = [
   { value: "other", label: "Other" },
 ];
 
+const PLATFORM_ICONS = {
+  Instagram: FaInstagram,
+  Facebook: FaFacebook,
+  YouTube: FaYoutube,
+  WhatsApp: FaWhatsapp,
+  Other: FiLink,
+};
+
 const INITIAL_LINK_FORM = { platform: "", link: "" };
 const INITIAL_LEAD_FORM = { name: "", contact: "", notes: "" };
 const INITIAL_ADD_CAMPAIGN_FORM = { projectId: "" };
@@ -60,6 +69,8 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
   const [leadDrafts, setLeadDrafts] = useState({});
   const [leadDraftErrors, setLeadDraftErrors] = useState({});
   const [openLeadFormFor, setOpenLeadFormFor] = useState(null);
+  const [expandedLinkIds, setExpandedLinkIds] = useState([]);
+  const [isAddLinkOpen, setIsAddLinkOpen] = useState(false);
 
   const [addCampaignForm, setAddCampaignForm] = useState(INITIAL_ADD_CAMPAIGN_FORM);
   const [addCampaignError, setAddCampaignError] = useState("");
@@ -84,6 +95,8 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
         setLeadDrafts({});
         setLeadDraftErrors({});
         setOpenLeadFormFor(null);
+        setExpandedLinkIds([]);
+        setIsAddLinkOpen(false);
       }
       if (section === "campaign") {
         setJoinedCampaigns(initialJoinedCampaigns);
@@ -178,6 +191,12 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
     setLinkForm((prev) => ({ ...prev, [field]: value }));
   }
 
+  function toggleExpandedLink(linkId) {
+    setExpandedLinkIds((prev) =>
+      prev.includes(linkId) ? prev.filter((id) => id !== linkId) : [...prev, linkId]
+    );
+  }
+
   function handleSubmitLink(e) {
     e.preventDefault();
     if (!linkForm.platform || !linkForm.link.trim()) {
@@ -185,9 +204,11 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
       return;
     }
     setLinkError("");
+    const newLinkId = generateAccountId("LNK");
+    setExpandedLinkIds((prev) => [...prev, newLinkId]);
     setSocialLinks((prev) => [
       {
-        id: generateAccountId("LNK"),
+        id: newLinkId,
         platform: PLATFORMS.find((p) => p.value === linkForm.platform)?.label || "Other",
         link: linkForm.link.trim(),
         date: new Date().toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" }),
@@ -195,6 +216,7 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
       ...prev,
     ]);
     setLinkForm(INITIAL_LINK_FORM);
+    setIsAddLinkOpen(false);
   }
 
   return (
@@ -400,43 +422,67 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
             </p>
 
             {/* ── Add Ad Link ─────────────────────── */}
-            <form
-              onSubmit={handleSubmitLink}
-              className="flex flex-col gap-4 border border-navy-700/60 bg-navy-900 p-4 sm:p-6"
-            >
-              <h2 className="font-display text-xl text-cream">Add Ad / Video Link</h2>
+            <div className="border-2 border-dashed border-gold-500/40 bg-gold-400/[0.04]">
+              <button
+                type="button"
+                onClick={() => setIsAddLinkOpen((prev) => !prev)}
+                aria-expanded={isAddLinkOpen}
+                className="flex w-full min-h-11 items-center justify-between gap-3 p-4 text-left sm:p-6"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold-400/15">
+                    <FiLink className="h-4.5 w-4.5 text-gold-400" />
+                  </div>
+                  <div>
+                    <h2 className="font-display text-xl text-cream">Add Ad / Video Link</h2>
+                    <p className="text-xs text-muted">Create a new trackable link — its own lead list starts below once saved.</p>
+                  </div>
+                </div>
+                {isAddLinkOpen ? (
+                  <FiChevronUp className="h-4 w-4 shrink-0 text-gold-400" />
+                ) : (
+                  <FiChevronDown className="h-4 w-4 shrink-0 text-gold-400" />
+                )}
+              </button>
 
-              <FormField label="Platform" required>
-                <ChipGroup
-                  options={PLATFORMS}
-                  value={linkForm.platform}
-                  onChange={(value) => updateLinkForm("platform", value)}
-                />
-              </FormField>
-
-              <FormField label="Link" htmlFor="dcp-social-link" required>
-                <input
-                  id="dcp-social-link"
-                  type="text"
-                  placeholder="Paste your ad post / reel / video link"
-                  value={linkForm.link}
-                  onChange={(e) => updateLinkForm("link", e.target.value)}
-                  className={inputClass}
-                />
-              </FormField>
-
-              {linkError && <p className="text-xs text-red-400">{linkError}</p>}
-
-              <div className="mt-2 flex justify-end">
-                <button
-                  type="submit"
-                  className="tracked-label flex items-center justify-center gap-2 bg-gold-400 px-6 py-3 text-xs text-navy-950 transition hover:bg-gold-300"
+              {isAddLinkOpen && (
+                <form
+                  onSubmit={handleSubmitLink}
+                  className="flex flex-col gap-4 border-t border-dashed border-gold-500/40 p-4 sm:p-6"
                 >
-                  <FiPlus className="h-4 w-4" />
-                  Add Link
-                </button>
-              </div>
-            </form>
+                  <FormField label="Platform" required>
+                    <ChipGroup
+                      options={PLATFORMS}
+                      value={linkForm.platform}
+                      onChange={(value) => updateLinkForm("platform", value)}
+                    />
+                  </FormField>
+
+                  <FormField label="Link" htmlFor="dcp-social-link" required>
+                    <input
+                      id="dcp-social-link"
+                      type="text"
+                      placeholder="Paste your ad post / reel / video link"
+                      value={linkForm.link}
+                      onChange={(e) => updateLinkForm("link", e.target.value)}
+                      className={inputClass}
+                    />
+                  </FormField>
+
+                  {linkError && <p className="text-xs text-red-400">{linkError}</p>}
+
+                  <div className="mt-2 flex justify-end">
+                    <button
+                      type="submit"
+                      className="tracked-label flex items-center justify-center gap-2 bg-gold-400 px-6 py-3 text-xs text-navy-950 transition hover:bg-gold-300"
+                    >
+                      <FiPlus className="h-4 w-4" />
+                      Add Link
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
 
             {/* ── Links + their own leads ─────────────────────── */}
             {socialLinks.length === 0 ? (
@@ -447,20 +493,22 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
                   const leads = leadsByLink[item.id] || [];
                   const draft = leadDrafts[item.id] || INITIAL_LEAD_FORM;
                   const isFormOpen = openLeadFormFor === item.id;
+                  const isExpanded = expandedLinkIds.includes(item.id);
+                  const PlatformIcon = PLATFORM_ICONS[item.platform] || FiLink;
                   return (
-                    <div key={item.id} className="flex flex-col gap-4 border border-navy-700/60 bg-navy-900 p-4 sm:p-6">
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="flex min-w-0 items-center gap-2">
-                          <FiLink className="h-4 w-4 shrink-0 text-gold-400" />
+                    <div key={item.id} className="border border-navy-700/60 border-l-4 border-l-gold-400 bg-navy-900">
+                      <button
+                        type="button"
+                        onClick={() => toggleExpandedLink(item.id)}
+                        aria-expanded={isExpanded}
+                        className="flex w-full min-h-11 flex-col gap-3 p-4 text-left transition hover:bg-navy-800/40 sm:flex-row sm:items-center sm:justify-between sm:p-5"
+                      >
+                        <div className="flex min-w-0 items-center gap-3">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-navy-700/60 bg-navy-950">
+                            <PlatformIcon className="h-4 w-4 text-gold-400" />
+                          </div>
                           <div className="min-w-0">
-                            <a
-                              href={item.link}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="block truncate text-sm text-cream hover:text-gold-400"
-                            >
-                              {item.link}
-                            </a>
+                            <span className="block truncate text-sm text-cream">{item.link}</span>
                             <span className="tracked-label text-[10px] text-muted">{item.platform} · {item.date}</span>
                           </div>
                         </div>
@@ -471,99 +519,121 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
                               {leads.length} {leads.length === 1 ? "lead" : "leads"}
                             </span>
                           </Badge>
-                          <button
-                            type="button"
-                            onClick={() => setOpenLeadFormFor(isFormOpen ? null : item.id)}
-                            className="tracked-label flex items-center gap-1.5 border border-gold-500/70 px-3 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10"
-                          >
-                            <FiPlus className="h-3.5 w-3.5" />
-                            Add Lead
-                            {isFormOpen ? <FiChevronUp className="h-3.5 w-3.5" /> : <FiChevronDown className="h-3.5 w-3.5" />}
-                          </button>
+                          {isExpanded ? (
+                            <FiChevronUp className="h-4 w-4 shrink-0 text-muted" />
+                          ) : (
+                            <FiChevronDown className="h-4 w-4 shrink-0 text-muted" />
+                          )}
                         </div>
-                      </div>
+                      </button>
 
-                      {isFormOpen && (
-                        <form
-                          onSubmit={(e) => handleAddLeadForLink(item.id, e)}
-                          className="flex flex-col gap-4 border-t border-navy-700/60 pt-4"
-                        >
-                          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                            <FormField label="Name" htmlFor={`dcp-lead-name-${item.id}`} required>
-                              <input
-                                id={`dcp-lead-name-${item.id}`}
-                                type="text"
-                                placeholder="e.g. Ritika Sharma"
-                                value={draft.name}
-                                onChange={(e) => updateLeadDraft(item.id, "name", e.target.value)}
-                                className={inputClass}
-                              />
-                            </FormField>
-                            <FormField label="Contact" htmlFor={`dcp-lead-contact-${item.id}`} required>
-                              <input
-                                id={`dcp-lead-contact-${item.id}`}
-                                type="tel"
-                                placeholder="+91 98765 43210"
-                                value={draft.contact}
-                                onChange={(e) => updateLeadDraft(item.id, "contact", e.target.value)}
-                                className={inputClass}
-                              />
-                            </FormField>
-                          </div>
-                          <FormField label="Notes" htmlFor={`dcp-lead-notes-${item.id}`} optional>
-                            <textarea
-                              id={`dcp-lead-notes-${item.id}`}
-                              rows={2}
-                              placeholder="Any details about the lead"
-                              value={draft.notes}
-                              onChange={(e) => updateLeadDraft(item.id, "notes", e.target.value)}
-                              className={textareaClass}
-                            />
-                          </FormField>
-
-                          {leadDraftErrors[item.id] && <p className="text-xs text-red-400">{leadDraftErrors[item.id]}</p>}
-
-                          <div className="flex justify-end">
-                            <button
-                              type="submit"
-                              className="tracked-label flex items-center justify-center gap-2 bg-gold-400 px-6 py-3 text-xs text-navy-950 transition hover:bg-gold-300"
+                      {isExpanded && (
+                        <div className="flex flex-col gap-4 border-t border-navy-700/60 p-4 sm:p-6">
+                          <div className="flex flex-wrap items-center justify-between gap-3">
+                            <a
+                              href={item.link}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="truncate text-xs text-gold-400 hover:text-gold-300"
                             >
-                              <FiPlus className="h-4 w-4" />
-                              Save Lead
+                              Open link ↗
+                            </a>
+                            <button
+                              type="button"
+                              onClick={() => setOpenLeadFormFor(isFormOpen ? null : item.id)}
+                              className="tracked-label flex items-center gap-1.5 border border-gold-500/70 px-3 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10"
+                            >
+                              <FiPlus className="h-3.5 w-3.5" />
+                              Add Lead
+                              {isFormOpen ? <FiChevronUp className="h-3.5 w-3.5" /> : <FiChevronDown className="h-3.5 w-3.5" />}
                             </button>
                           </div>
-                        </form>
-                      )}
 
-                      {leads.length > 0 && (
-                        <div className="flex flex-col gap-3 border-t border-navy-700/60 pt-4">
-                          {leads.map((lead) => (
-                            <div
-                              key={lead.id}
-                              className="flex flex-col gap-3 border border-navy-700/60 bg-navy-950 p-3 sm:flex-row sm:items-center sm:justify-between"
+                          {isFormOpen && (
+                            <form
+                              onSubmit={(e) => handleAddLeadForLink(item.id, e)}
+                              className="flex flex-col gap-4 border border-navy-700/60 bg-navy-950 p-4"
                             >
-                              <div className="min-w-0">
-                                <p className="text-sm text-cream">{lead.name}</p>
-                                <p className="mt-1 text-xs text-muted">{lead.contact}</p>
-                                {lead.notes && <p className="mt-1 text-xs text-muted">{lead.notes}</p>}
+                              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <FormField label="Name" htmlFor={`dcp-lead-name-${item.id}`} required>
+                                  <input
+                                    id={`dcp-lead-name-${item.id}`}
+                                    type="text"
+                                    placeholder="e.g. Ritika Sharma"
+                                    value={draft.name}
+                                    onChange={(e) => updateLeadDraft(item.id, "name", e.target.value)}
+                                    className={inputClass}
+                                  />
+                                </FormField>
+                                <FormField label="Contact" htmlFor={`dcp-lead-contact-${item.id}`} required>
+                                  <input
+                                    id={`dcp-lead-contact-${item.id}`}
+                                    type="tel"
+                                    placeholder="+91 98765 43210"
+                                    value={draft.contact}
+                                    onChange={(e) => updateLeadDraft(item.id, "contact", e.target.value)}
+                                    className={inputClass}
+                                  />
+                                </FormField>
                               </div>
-                              {lead.forwarded ? (
-                                <span className="tracked-label flex w-fit shrink-0 items-center gap-2 border border-gold-500/70 px-4 py-2 text-xs text-gold-400">
-                                  <FiCheck className="h-3.5 w-3.5" />
-                                  Forwarded to Head CP
-                                </span>
-                              ) : (
+                              <FormField label="Notes" htmlFor={`dcp-lead-notes-${item.id}`} optional>
+                                <textarea
+                                  id={`dcp-lead-notes-${item.id}`}
+                                  rows={2}
+                                  placeholder="Any details about the lead"
+                                  value={draft.notes}
+                                  onChange={(e) => updateLeadDraft(item.id, "notes", e.target.value)}
+                                  className={textareaClass}
+                                />
+                              </FormField>
+
+                              {leadDraftErrors[item.id] && <p className="text-xs text-red-400">{leadDraftErrors[item.id]}</p>}
+
+                              <div className="flex justify-end">
                                 <button
-                                  type="button"
-                                  onClick={() => handleForwardLinkLead(item.id, lead.id)}
-                                  className="tracked-label flex shrink-0 items-center justify-center gap-2 bg-gold-400 px-4 py-2 text-xs text-navy-950 transition hover:bg-gold-300"
+                                  type="submit"
+                                  className="tracked-label flex items-center justify-center gap-2 bg-gold-400 px-6 py-3 text-xs text-navy-950 transition hover:bg-gold-300"
                                 >
-                                  <FiSend className="h-3.5 w-3.5" />
-                                  Forward to Head CP
+                                  <FiPlus className="h-4 w-4" />
+                                  Save Lead
                                 </button>
-                              )}
+                              </div>
+                            </form>
+                          )}
+
+                          {leads.length === 0 ? (
+                            <p className="text-xs text-muted">No leads logged for this link yet.</p>
+                          ) : (
+                            <div className="flex max-h-[24rem] flex-col divide-y divide-navy-800 overflow-y-auto pr-1">
+                              {leads.map((lead) => (
+                                <div
+                                  key={lead.id}
+                                  className="flex flex-col gap-3 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
+                                >
+                                  <div className="min-w-0">
+                                    <p className="text-sm text-cream">{lead.name}</p>
+                                    <p className="mt-1 text-xs text-muted">{lead.contact}</p>
+                                    {lead.notes && <p className="mt-1 text-xs text-muted">{lead.notes}</p>}
+                                  </div>
+                                  {lead.forwarded ? (
+                                    <span className="tracked-label flex w-fit shrink-0 items-center gap-2 border border-gold-500/70 px-4 py-2 text-xs text-gold-400">
+                                      <FiCheck className="h-3.5 w-3.5" />
+                                      Forwarded to Head CP
+                                    </span>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleForwardLinkLead(item.id, lead.id)}
+                                      className="tracked-label flex shrink-0 items-center justify-center gap-2 bg-gold-400 px-4 py-2 text-xs text-navy-950 transition hover:bg-gold-300"
+                                    >
+                                      <FiSend className="h-3.5 w-3.5" />
+                                      Forward to Head CP
+                                    </button>
+                                  )}
+                                </div>
+                              ))}
                             </div>
-                          ))}
+                          )}
                         </div>
                       )}
                     </div>
