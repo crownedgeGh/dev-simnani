@@ -30,7 +30,13 @@ export async function generateMetadata({ params }) {
     .filter(Boolean)
     .join(" · ");
 
-  const image = property.image || property.galleryImages?.[0];
+  const rawImage = property.image || property.galleryImages?.[0];
+  // Route through Next's image optimizer so WhatsApp's crawler (which doesn't
+  // request webp/avif) always gets a JPEG — raw .webp uploads from R2 render
+  // as a blank/broken thumbnail in WhatsApp link previews otherwise.
+  const image = rawImage
+    ? `/_next/image?url=${encodeURIComponent(rawImage)}&w=1200&q=75`
+    : undefined;
   const url = `/property/${property.id}`;
 
   return {
@@ -42,9 +48,7 @@ export async function generateMetadata({ params }) {
       url,
       siteName: "Simnani Estate",
       type: "website",
-      images: image
-        ? [{ url: image, width: 1200, height: 630, alt: property.title }]
-        : undefined,
+      images: image ? [{ url: image, alt: property.title }] : undefined,
     },
     twitter: {
       card: "summary_large_image",
