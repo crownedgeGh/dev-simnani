@@ -4,7 +4,7 @@ import PropertyDetailContent from "@/components/property/PropertyDetailContent";
 import PropertyActionCard from "@/components/property/PropertyActionCard";
 import PropertyViewTracker from "@/components/property/PropertyViewTracker";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60; // cache listing HTML for 60s instead of hitting Mongo on every request
 
 export async function generateMetadata({ params }) {
   const { id } = await params;

@@ -7,7 +7,7 @@ import BackButton from "@/components/layout/BackButton";
 import PropertyGrid from "@/components/property/PropertyGrid";
 import CallNowButton from "@/components/home/CallNowButton";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60; // cache listing HTML for 60s instead of hitting Mongo on every request
 
 export async function generateMetadata({ params }) {
   const { accountId } = await params;

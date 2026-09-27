@@ -5,7 +5,7 @@ import { getPropertiesByType } from "@/lib/propertiesServer";
 import { PROJECTS } from "@/lib/projects";
 import BackButton from "@/components/layout/BackButton";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60; // cache listing HTML for 60s instead of hitting Mongo on every request
 
 export const metadata = {
   title: "Investment Properties | Simnani Estate",
