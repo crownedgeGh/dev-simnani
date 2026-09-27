@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { FiPlus, FiLink, FiCheck, FiSend, FiArrowRight, FiChevronDown, FiChevronUp, FiUsers } from "react-icons/fi";
+import { FiPlus, FiLink, FiCheck, FiSend, FiArrowRight, FiChevronDown, FiChevronUp, FiUsers, FiUserCheck } from "react-icons/fi";
 import { MdCampaign } from "react-icons/md";
 import { FaInstagram, FaFacebook, FaYoutube, FaWhatsapp } from "react-icons/fa6";
 import Tabs from "./Tabs";
@@ -15,7 +15,7 @@ import ChipGroup from "@/components/auth/ChipGroup";
 import FormField from "@/components/auth/FormField";
 import { inputClass, selectClass, textareaClass } from "@/components/auth/inputStyles";
 import { generateAccountId } from "@/lib/auth";
-import { addCpLead } from "@/lib/adminStorage";
+import { addCpLead, ADMIN_KEYS, readCollection } from "@/lib/adminStorage";
 import RefreshButton from "./RefreshButton";
 
 const TABS = [
@@ -64,6 +64,26 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
 
   const [joinedCampaigns, setJoinedCampaigns] = useState(initialJoinedCampaigns);
 
+  // Properties forwarded to this Digital CP by their Company CP.
+  const [forwardedProperties, setForwardedProperties] = useState([]);
+
+  const loadForwardedProperties = useCallback(() => {
+    const assignments = readCollection(ADMIN_KEYS.cpAssignments) || [];
+    setForwardedProperties(
+      assignments.filter(
+        (a) => a.level === "company-to-digital" && a.assignedToName === partner?.fullName
+      )
+    );
+  }, [partner]);
+
+  useEffect(() => {
+    let active = true;
+    Promise.resolve().then(() => {
+      if (active) loadForwardedProperties();
+    });
+    return () => { active = false; };
+  }, [loadForwardedProperties]);
+
   // Leads are tracked per ad link — { [linkId]: [lead, lead, ...] }
   const [leadsByLink, setLeadsByLink] = useState({});
   const [leadDrafts, setLeadDrafts] = useState({});
@@ -103,9 +123,10 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
         setAddCampaignForm(INITIAL_ADD_CAMPAIGN_FORM);
         setAddCampaignError("");
         setAddCampaignSuccess("");
+        loadForwardedProperties();
       }
     },
-    [initialJoinedCampaigns]
+    [initialJoinedCampaigns, loadForwardedProperties]
   );
 
   function toggleJoinCampaign(projectId) {
@@ -291,6 +312,34 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
               <p className="tracked-label text-xs text-gold-400">Assigned Projects</p>
               <RefreshButton onRefresh={() => refreshSection("campaign")} label="Refresh assigned projects" />
             </div>
+
+            {/* ── Forwarded by Company CP ──────────────────────── */}
+            {forwardedProperties.length > 0 && (
+              <div className="flex flex-col gap-4">
+                <h2 className="font-display text-xl text-cream">Forwarded by Company CP</h2>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {forwardedProperties.map((property) => (
+                    <div key={property.id} className="flex flex-col border border-navy-700/60 bg-navy-900 p-4">
+                      <div className="relative h-32 w-full overflow-hidden rounded-sm">
+                        <Image
+                          src={property.propertyImage}
+                          alt={property.propertyTitle}
+                          fill
+                          sizes="(max-width: 640px) 100vw, 33vw"
+                          className="object-cover"
+                        />
+                      </div>
+                      <h3 className="mt-3 font-display text-base text-cream">{property.propertyTitle}</h3>
+                      <p className="mt-1 text-xs text-muted">{property.propertyLocation}</p>
+                      <span className="tracked-label mt-3 flex w-fit items-center gap-1.5 border border-gold-500/70 px-3 py-1 text-[10px] text-gold-400">
+                        <FiUserCheck className="h-3 w-3" />
+                        Forwarded by {property.assignedByName}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* ── Join a Campaign ──────────────────────────────── */}
             <form

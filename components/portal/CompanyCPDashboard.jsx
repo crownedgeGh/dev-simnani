@@ -13,6 +13,7 @@ import {
   FiLink,
   FiUserCheck,
   FiPlus,
+  FiSend,
 } from "react-icons/fi";
 import Tabs from "./Tabs";
 import StatCard from "./StatCard";
@@ -186,6 +187,16 @@ export default function CompanyCPDashboard({
                             <FiUserCheck className="h-3 w-3" />
                             {CP_TYPE_LABEL[delegated.assignedToCpType]}: {delegated.assignedToName}
                           </span>
+                        )}
+                        {digitalPartners.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => handleDelegate(project.id, "digital", digitalPartners[0].name)}
+                            className="tracked-label flex h-11 items-center justify-center gap-2 bg-gold-400 px-4 text-[10px] text-navy-950 transition hover:bg-gold-300"
+                          >
+                            <FiSend className="h-3.5 w-3.5" />
+                            Forward to Digital CP
+                          </button>
                         )}
                         <select
                           aria-label={`Delegate ${project.propertyTitle}`}
