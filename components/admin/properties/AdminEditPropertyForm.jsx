@@ -414,16 +414,6 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
     }
   };
 
-  // Format mobile number
-  const handleMobileChange = (e) => {
-    const raw = e.target.value.replace(/\D/g, "").slice(0, 10);
-    let formatted = raw;
-    if (raw.length > 5) {
-      formatted = `${raw.slice(0, 5)} ${raw.slice(5)}`;
-    }
-    update("mobile", formatted);
-  };
-
   // Cover Image File selection
   const handleCoverFile = (e) => {
     const file = e.target.files?.[0];
@@ -642,9 +632,10 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
         }),
       };
 
-      // 1. Update in MongoDB via Next.js API
-      const res = await fetch(`/api/properties/${propertyId}`, {
-        method: "PUT",
+      // 1. Update in MongoDB via the admin-only API (no owner/session gate —
+      // the admin panel's own auth guard already controls access to this form)
+      const res = await fetch(`/api/admin/properties/${propertyId}`, {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatedPayload),
       });
@@ -1538,13 +1529,19 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
         >
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <AdminFormField label="Full Name" required error={errors.fullName}>
+              <AdminFormField
+                label="Full Name"
+                required
+                error={errors.fullName}
+                hint="Locked — the lister's name cannot be changed from the admin panel"
+              >
                 <input
                   type="text"
                   value={form.fullName}
-                  onChange={(e) => update("fullName", e.target.value)}
+                  disabled
+                  readOnly
                   placeholder="e.g. Rahul Sharma"
-                  className={adminInputClass}
+                  className={`${adminInputClass} cursor-not-allowed bg-[#f3f4f6] text-[#6b7280]`}
                 />
               </AdminFormField>
             </div>
@@ -1554,7 +1551,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
                 label="Mobile Number"
                 required
                 error={errors.mobile}
-                hint="10-digit Indian mobile number"
+                hint="Locked — the lister's mobile number cannot be changed from the admin panel"
               >
                 <div className="relative">
                   <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#9ca3af]">
@@ -1563,9 +1560,10 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
                   <input
                     type="tel"
                     value={form.mobile}
-                    onChange={handleMobileChange}
+                    disabled
+                    readOnly
                     placeholder="98765 43210"
-                    className={`${adminInputClass} pl-11`}
+                    className={`${adminInputClass} pl-11 cursor-not-allowed bg-[#f3f4f6] text-[#6b7280]`}
                   />
                 </div>
               </AdminFormField>
