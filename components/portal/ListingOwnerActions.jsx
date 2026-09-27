@@ -13,7 +13,7 @@ export default function ListingOwnerActions({ property }) {
   const { user } = useAuth();
   const [status, setStatus] = useState(property.status);
   const [busy, setBusy] = useState(false);
-  const portalHref = getAccountPermissions(user?.accountType)?.portalHref || "/";
+  const portalHref = getAccountPermissions(user?.accountType, user?.cpType)?.portalHref || "/";
 
   async function updateStatus(nextStatus, successMessage) {
     setBusy(true);

@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import FreelancerPortalClient from "@/components/portal/freelancer/FreelancerPortalClient";
 import { PROJECTS } from "@/lib/projects";
-import { getCurrentUser } from "@/lib/session";
+import { requireCpUser } from "@/lib/freelancerPortalGuard";
 import { getOwnerPortalData } from "@/lib/ownerPortalData";
 import {
   CP_STATS,
@@ -18,16 +18,13 @@ import {
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Channel Partner Dashboard | Simnani Estate",
-  description: "Manage leads, site visits, assignments and commission as a Simnani Channel Partner.",
+  title: "Company CP Dashboard | Simnani Estate",
+  description: "Verify leads, assign Field Channel Partners and manage the network as a Company Channel Partner.",
 };
 
-export default async function FreelancerPortalPage() {
-  // Properties this CP has actually posted via /post-property (real DB
-  // data, keyed by their own accountId) — separate from the static demo
-  // leads/commissions data below, which populates the rest of the dashboard.
-  const user = await getCurrentUser();
-  const myListings = user?.accountType === "freelancer" ? (await getOwnerPortalData(user.accountId)).listings : [];
+export default async function CompanyCPPortalPage() {
+  const user = await requireCpUser("company");
+  const { listings: myListings } = await getOwnerPortalData(user.accountId);
 
   return (
     <Suspense fallback={null}>
@@ -45,6 +42,7 @@ export default async function FreelancerPortalPage() {
         digitalCampaigns={CP_DIGITAL_CAMPAIGN_JOINS}
         campaignVideos={CP_CAMPAIGN_VIDEOS}
         myListings={myListings}
+        forcedCpType="company"
       />
     </Suspense>
   );

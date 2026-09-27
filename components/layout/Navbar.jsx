@@ -306,7 +306,7 @@ function UserDropdown({ user, onSelectCp, onClose, onLogout }) {
   const [testModeOpen, setTestModeOpen] = useState(false);
   const fullName = user?.fullName;
   const typeLabel = getAccountTypeLabel(user);
-  const perms = getAccountPermissions(user?.accountType);
+  const perms = getAccountPermissions(user?.accountType, user?.cpType);
 
   const MENU_ITEMS = [
     perms.canManageListings && {
@@ -630,7 +630,7 @@ export default function Navbar() {
     if (!profile) return;
     try {
       await login(null, profile);
-      router.push("/portal/freelancer");
+      router.push(`/portal/${cpType}-cp`);
     } catch {
       // best-effort — if the session switch fails, stay on the current page
     }
@@ -638,7 +638,7 @@ export default function Navbar() {
 
   const typeLabel = getAccountTypeLabel(user);
   const initials = getInitials(user?.fullName);
-  const perms = getAccountPermissions(user?.accountType);
+  const perms = getAccountPermissions(user?.accountType, user?.cpType);
   const canPostProperty = !isAuthenticated || perms.canPostProperty;
   const visibleNavLinks = NAV_LINKS;
 

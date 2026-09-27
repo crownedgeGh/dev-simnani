@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { FiPlus, FiLink, FiCheck, FiSend, FiArrowRight, FiUpload } from "react-icons/fi";
+import { FiPlus, FiLink, FiCheck, FiSend, FiArrowRight, FiChevronDown, FiChevronUp, FiUsers } from "react-icons/fi";
 import { MdCampaign } from "react-icons/md";
 import Tabs from "./Tabs";
 import StatCard from "./StatCard";
@@ -14,16 +14,14 @@ import ChipGroup from "@/components/auth/ChipGroup";
 import FormField from "@/components/auth/FormField";
 import { inputClass, selectClass, textareaClass } from "@/components/auth/inputStyles";
 import { generateAccountId } from "@/lib/auth";
-import { ADMIN_KEYS, readCollection, addCpLead, addCampaignVideo } from "@/lib/adminStorage";
+import { addCpLead } from "@/lib/adminStorage";
 import RefreshButton from "./RefreshButton";
 
 const TABS = [
   { key: "overview", label: "Overview" },
-  { key: "assigned", label: "Assigned Projects" },
-  { key: "myLeads", label: "My Leads" },
-  { key: "campaign", label: "Campaign" },
+  { key: "campaign", label: "Assigned Projects" },
+  { key: "links", label: "My Ad Links" },
   { key: "earnings", label: "My Earnings" },
-  { key: "links", label: "My Links" },
   { key: "listings", label: "My Listings" },
 ];
 
@@ -57,58 +55,19 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
 
   const [joinedCampaigns, setJoinedCampaigns] = useState(initialJoinedCampaigns);
 
-  const [leadForm, setLeadForm] = useState(INITIAL_LEAD_FORM);
-  const [leadError, setLeadError] = useState("");
-  const [myLeads, setMyLeads] = useState([]);
+  // Leads are tracked per ad link — { [linkId]: [lead, lead, ...] }
+  const [leadsByLink, setLeadsByLink] = useState({});
+  const [leadDrafts, setLeadDrafts] = useState({});
+  const [leadDraftErrors, setLeadDraftErrors] = useState({});
+  const [openLeadFormFor, setOpenLeadFormFor] = useState(null);
 
   const [addCampaignForm, setAddCampaignForm] = useState(INITIAL_ADD_CAMPAIGN_FORM);
   const [addCampaignError, setAddCampaignError] = useState("");
   const [addCampaignSuccess, setAddCampaignSuccess] = useState("");
 
-  const [delegatedProjects, setDelegatedProjects] = useState([]);
-  const [uploadForms, setUploadForms] = useState({});
-  const [uploadedVideos, setUploadedVideos] = useState([]);
-  const [cpLeadsCount, setCpLeadsCount] = useState({});
-
-  const loadAssignedData = useCallback(() => {
-    const assignments = readCollection(ADMIN_KEYS.cpAssignments) || [];
-    setDelegatedProjects(
-      assignments.filter((a) => a.level === "company-to-digital" && a.assignedToName === partner?.fullName)
-    );
-    setUploadedVideos((readCollection(ADMIN_KEYS.campaignVideos) || []).filter((v) => v.partnerName === partner?.fullName));
-    const leads = readCollection(ADMIN_KEYS.cpLeads) || [];
-    const counts = {};
-    leads
-      .filter((l) => l.submittedBy?.name === partner?.fullName)
-      .forEach((l) => { counts[l.project] = (counts[l.project] || 0) + 1; });
-    setCpLeadsCount(counts);
-  }, [partner]);
-
-  useEffect(() => {
-    let active = true;
-    Promise.resolve().then(() => {
-      if (active) loadAssignedData();
-    });
-    return () => { active = false; };
-  }, [loadAssignedData]);
-
-  function handleUploadVideo(assignment) {
-    const videoName = (uploadForms[assignment.id] || "").trim();
-    if (!videoName) return;
-    addCampaignVideo({
-      partnerName: partner?.fullName || "Digital CP",
-      project: assignment.propertyTitle,
-      videoName,
-    });
-    setUploadForms((prev) => ({ ...prev, [assignment.id]: "" }));
-    loadAssignedData();
-  }
-
   // Per-section refresh keys
   const [refreshKeys, setRefreshKeys] = useState({
     overview: 0,
-    assigned: 0,
-    myLeads: 0,
     campaign: 0,
     earnings: 0,
     links: 0,
@@ -117,25 +76,23 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
   const refreshSection = useCallback(
     (section) => {
       setRefreshKeys((prev) => ({ ...prev, [section]: prev[section] + 1 }));
-      if (section === "assigned") loadAssignedData();
-      if (section === "myLeads") {
-        setMyLeads([]);
-        setLeadForm(INITIAL_LEAD_FORM);
-        setLeadError("");
-      }
       if (section === "links") {
         setSocialLinks([]);
         setLinkForm(INITIAL_LINK_FORM);
         setLinkError("");
+        setLeadsByLink({});
+        setLeadDrafts({});
+        setLeadDraftErrors({});
+        setOpenLeadFormFor(null);
+      }
+      if (section === "campaign") {
+        setJoinedCampaigns(initialJoinedCampaigns);
         setAddCampaignForm(INITIAL_ADD_CAMPAIGN_FORM);
         setAddCampaignError("");
         setAddCampaignSuccess("");
       }
-      if (section === "campaign") {
-        setJoinedCampaigns(initialJoinedCampaigns);
-      }
     },
-    [initialJoinedCampaigns, loadAssignedData]
+    [initialJoinedCampaigns]
   );
 
   function toggleJoinCampaign(projectId) {
@@ -163,44 +120,55 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
     setAddCampaignForm(INITIAL_ADD_CAMPAIGN_FORM);
   }
 
-  function updateLeadForm(field, value) {
-    setLeadForm((prev) => ({ ...prev, [field]: value }));
+  function updateLeadDraft(linkId, field, value) {
+    setLeadDrafts((prev) => ({
+      ...prev,
+      [linkId]: { ...(prev[linkId] || INITIAL_LEAD_FORM), [field]: value },
+    }));
   }
 
-  function handleSubmitLead(e) {
+  function handleAddLeadForLink(linkId, e) {
     e.preventDefault();
-    if (!leadForm.name.trim() || !leadForm.contact.trim()) {
-      setLeadError("Please fill in the name and contact number.");
+    const draft = leadDrafts[linkId] || INITIAL_LEAD_FORM;
+    if (!draft.name?.trim() || !draft.contact?.trim()) {
+      setLeadDraftErrors((prev) => ({ ...prev, [linkId]: "Please fill in the name and contact number." }));
       return;
     }
-    setLeadError("");
-    setMyLeads((prev) => [
-      {
-        id: generateAccountId("LED"),
-        name: leadForm.name.trim(),
-        contact: leadForm.contact.trim(),
-        notes: leadForm.notes.trim(),
-        forwarded: false,
-        date: new Date().toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" }),
-      },
+    setLeadDraftErrors((prev) => ({ ...prev, [linkId]: "" }));
+    setLeadsByLink((prev) => ({
       ...prev,
-    ]);
-    setLeadForm(INITIAL_LEAD_FORM);
+      [linkId]: [
+        {
+          id: generateAccountId("LED"),
+          name: draft.name.trim(),
+          contact: draft.contact.trim(),
+          notes: (draft.notes || "").trim(),
+          forwarded: false,
+          date: new Date().toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" }),
+        },
+        ...(prev[linkId] || []),
+      ],
+    }));
+    setLeadDrafts((prev) => ({ ...prev, [linkId]: INITIAL_LEAD_FORM }));
   }
 
-  function handleForwardLead(id) {
-    const lead = myLeads.find((l) => l.id === id);
+  function handleForwardLinkLead(linkId, leadId) {
+    const lead = (leadsByLink[linkId] || []).find((l) => l.id === leadId);
     if (!lead || lead.forwarded) return;
-    setMyLeads((prev) => prev.map((l) => (l.id === id ? { ...l, forwarded: true } : l)));
+    const link = socialLinks.find((l) => l.id === linkId);
+    setLeadsByLink((prev) => ({
+      ...prev,
+      [linkId]: prev[linkId].map((l) => (l.id === leadId ? { ...l, forwarded: true } : l)),
+    }));
     addCpLead({
       id: generateAccountId("CPL"),
       customer: lead.name,
-      project: "—",
+      project: link?.platform ? `${link.platform} Link` : "—",
       source: "Digital CP",
       submittedBy: { cpType: "digital", name: partner?.fullName || "Digital CP" },
       status: "Pending Verification",
       assignedTo: "",
-      notes: lead.notes,
+      notes: lead.notes ? `${lead.notes} (via ${link?.link})` : `Via ${link?.link}`,
       contact: lead.contact,
       date: lead.date,
     });
@@ -253,7 +221,7 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
                 <div className="mt-4">
                   <EmptyState
                     title="No campaigns joined yet"
-                    message="Head to the Campaign tab or use My Links → Add Campaign to join a project campaign."
+                    message="Head to the Assigned Projects tab to join a project campaign."
                   />
                 </div>
               ) : (
@@ -263,7 +231,7 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
                     .map((p) => (
                       <Link
                         key={p.id}
-                        href={`/portal/freelancer/campaign/${p.id}`}
+                        href={`/portal/digital-cp/campaign/${p.id}`}
                         className="group block border border-navy-700/60 bg-navy-900 p-4 transition hover:border-gold-500/60"
                       >
                         <div className="relative h-32 w-full overflow-hidden rounded-sm">
@@ -295,226 +263,14 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
           </div>
         )}
 
-        {tab === "assigned" && (
-          <div className="flex flex-col gap-6">
-            <div className="flex items-center justify-between">
-              <p className="tracked-label text-xs text-gold-400">Assigned Projects</p>
-              <RefreshButton onRefresh={() => refreshSection("assigned")} label="Refresh assigned projects" />
-            </div>
-            <div key={refreshKeys.assigned} className="flex flex-col gap-4">
-              {delegatedProjects.length === 0 ? (
-                <EmptyState title="No projects assigned yet" message="Properties delegated to you by a Company Channel Partner for promotion will appear here." />
-              ) : (
-                delegatedProjects.map((project) => {
-                  const projectVideos = uploadedVideos.filter((v) => v.project === project.propertyTitle);
-                  return (
-                    <div key={project.id} className="flex flex-col gap-4 border border-navy-700/60 bg-navy-900 p-4">
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div>
-                          <p className="text-sm text-cream">{project.propertyTitle}</p>
-                          <p className="mt-1 text-xs text-muted">{project.propertyLocation}</p>
-                        </div>
-                        <Badge tone="gold">{cpLeadsCount[project.propertyTitle] || 0} leads generated</Badge>
-                      </div>
-
-                      <div className="flex flex-col gap-2 border-t border-navy-700/60 pt-4 sm:flex-row">
-                        <input
-                          type="text"
-                          placeholder="Video file name, e.g. Walkthrough Reel.mp4"
-                          value={uploadForms[project.id] || ""}
-                          onChange={(e) => setUploadForms((prev) => ({ ...prev, [project.id]: e.target.value }))}
-                          className={`${inputClass} h-11`}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleUploadVideo(project)}
-                          className="tracked-label flex shrink-0 items-center justify-center gap-2 bg-gold-400 px-4 py-2 text-xs text-navy-950 transition hover:bg-gold-300"
-                        >
-                          <FiUpload className="h-3.5 w-3.5" />
-                          Upload for Review
-                        </button>
-                      </div>
-
-                      {projectVideos.length > 0 && (
-                        <div className="flex flex-col gap-2 border-t border-navy-700/60 pt-4">
-                          {projectVideos.map((v) => (
-                            <div key={v.id} className="flex items-center justify-between gap-3">
-                              <span className="truncate text-xs text-cream">{v.videoName}</span>
-                              <Badge tone={v.status === "Approved" ? "success" : v.status === "Suggested Edit" ? "gold" : "muted"}>{v.status}</Badge>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </div>
-        )}
-
-        {tab === "myLeads" && (
-          <div className="flex flex-col gap-6">
-            <div className="flex items-center justify-between">
-              <p className="tracked-label text-xs text-gold-400">My Leads</p>
-              <RefreshButton onRefresh={() => refreshSection("myLeads")} label="Refresh leads" />
-            </div>
-            <form
-              onSubmit={handleSubmitLead}
-              className="flex flex-col gap-4 border border-navy-700/60 bg-navy-900 p-4 sm:p-6"
-            >
-              <h2 className="font-display text-xl text-cream">Add Lead</h2>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <FormField label="Name" htmlFor="dcp-lead-name" required>
-                  <input
-                    id="dcp-lead-name"
-                    type="text"
-                    placeholder="e.g. Ritika Sharma"
-                    value={leadForm.name}
-                    onChange={(e) => updateLeadForm("name", e.target.value)}
-                    className={inputClass}
-                  />
-                </FormField>
-                <FormField label="Contact" htmlFor="dcp-lead-contact" required>
-                  <input
-                    id="dcp-lead-contact"
-                    type="tel"
-                    placeholder="+91 98765 43210"
-                    value={leadForm.contact}
-                    onChange={(e) => updateLeadForm("contact", e.target.value)}
-                    className={inputClass}
-                  />
-                </FormField>
-              </div>
-              <FormField label="Notes" htmlFor="dcp-lead-notes" optional>
-                <textarea
-                  id="dcp-lead-notes"
-                  rows={3}
-                  placeholder="Any details about the lead"
-                  value={leadForm.notes}
-                  onChange={(e) => updateLeadForm("notes", e.target.value)}
-                  className={textareaClass}
-                />
-              </FormField>
-
-              {leadError && <p className="text-xs text-red-400">{leadError}</p>}
-
-              <div className="mt-2 flex justify-end">
-                <button
-                  type="submit"
-                  className="tracked-label flex items-center justify-center gap-2 bg-gold-400 px-6 py-3 text-xs text-navy-950 transition hover:bg-gold-300"
-                >
-                  <FiPlus className="h-4 w-4" />
-                  Add Lead
-                </button>
-              </div>
-            </form>
-
-            {myLeads.length === 0 ? (
-              <EmptyState title="No leads yet" message="Add a lead's name, contact and notes, then forward it to the Head CP." />
-            ) : (
-              <div className="flex flex-col gap-3">
-                {myLeads.map((lead) => (
-                  <div
-                    key={lead.id}
-                    className="flex flex-col gap-3 border border-navy-700/60 bg-navy-900 p-4 sm:flex-row sm:items-center sm:justify-between"
-                  >
-                    <div className="min-w-0">
-                      <p className="text-sm text-cream">{lead.name}</p>
-                      <p className="mt-1 text-xs text-muted">{lead.contact}</p>
-                      {lead.notes && <p className="mt-1 text-xs text-muted">{lead.notes}</p>}
-                    </div>
-                    {lead.forwarded ? (
-                      <span className="tracked-label flex w-fit shrink-0 items-center gap-2 border border-gold-500/70 px-4 py-2 text-xs text-gold-400">
-                        <FiCheck className="h-3.5 w-3.5" />
-                        Forwarded to Head CP
-                      </span>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => handleForwardLead(lead.id)}
-                        className="tracked-label flex shrink-0 items-center justify-center gap-2 bg-gold-400 px-4 py-2 text-xs text-navy-950 transition hover:bg-gold-300"
-                      >
-                        <FiSend className="h-3.5 w-3.5" />
-                        Forward to Head CP
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
         {tab === "campaign" && (
           <div className="flex flex-col gap-6">
             <div className="flex items-center justify-between">
-              <p className="tracked-label text-xs text-gold-400">All Campaigns</p>
-              <RefreshButton onRefresh={() => refreshSection("campaign")} label="Refresh campaigns" />
+              <p className="tracked-label text-xs text-gold-400">Assigned Projects</p>
+              <RefreshButton onRefresh={() => refreshSection("campaign")} label="Refresh assigned projects" />
             </div>
-            <p className="text-sm text-muted">
-              Select a campaign below to view full guidelines, video dos &amp; don&apos;ts, and downloadable assets.
-            </p>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {projects.map((p) => (
-                <Link
-                  key={p.id}
-                  href={`/portal/freelancer/campaign/${p.id}`}
-                  className="group flex flex-col gap-0 overflow-hidden border border-navy-700/60 bg-navy-900 transition hover:border-gold-500/60"
-                >
-                  <div className="relative h-36 w-full overflow-hidden">
-                    <Image
-                      src={p.image}
-                      alt={p.name}
-                      fill
-                      sizes="(max-width: 640px) 100vw, 33vw"
-                      className="object-cover transition group-hover:scale-105"
-                    />
-                    {joinedCampaigns.includes(p.id) && (
-                      <div className="absolute left-2 top-2 flex items-center gap-1 border border-gold-500/70 bg-navy-950/80 px-2 py-1 backdrop-blur-sm">
-                        <FiCheck className="h-3 w-3 text-gold-400" />
-                        <span className="tracked-label text-[9px] text-gold-400">Joined</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex flex-col gap-1 p-4">
-                    <h3 className="font-display text-sm text-cream transition group-hover:text-gold-400">{p.name}</h3>
-                    <p className="text-xs text-muted">{p.location}</p>
-                    <p className="text-xs text-muted">{p.startingPrice} · {p.status}</p>
-                    <div className="mt-2 flex items-center gap-1 text-xs text-gold-400 opacity-0 transition group-hover:opacity-100">
-                      <MdCampaign className="h-3.5 w-3.5" />
-                      View Campaign <FiArrowRight className="h-3 w-3" />
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
 
-
-
-        {tab === "earnings" && (
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between">
-              <p className="tracked-label text-xs text-gold-400">My Earnings</p>
-              <RefreshButton onRefresh={() => refreshSection("earnings")} label="Refresh earnings" />
-            </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3" key={refreshKeys.earnings}>
-              <StatCard label="Commission Earned" value={stats.commissionEarned} />
-              <StatCard label="Deals Converted" value={stats.dealsConverted} />
-              <StatCard label="Leads Submitted" value={stats.leadsSubmitted} />
-            </div>
-          </div>
-        )}
-
-        {tab === "links" && (
-          <div className="flex flex-col gap-6">
-            <div className="flex items-center justify-between">
-              <p className="tracked-label text-xs text-gold-400">My Links</p>
-              <RefreshButton onRefresh={() => refreshSection("links")} label="Refresh links" />
-            </div>
-            {/* ── Add Campaign ──────────────────────────────── */}
+            {/* ── Join a Campaign ──────────────────────────────── */}
             <form
               onSubmit={handleAddCampaign}
               className="flex flex-col gap-4 border border-navy-700/60 bg-navy-900 p-4 sm:p-6"
@@ -523,7 +279,7 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gold-400/15">
                   <MdCampaign className="h-4 w-4 text-gold-400" />
                 </div>
-                <h2 className="font-display text-xl text-cream">Add Campaign</h2>
+                <h2 className="font-display text-xl text-cream">Join a Project Campaign</h2>
               </div>
               <p className="text-xs text-muted">
                 Select a project campaign to join. Once joined, it will appear on your Overview and you&apos;ll unlock campaign assets.
@@ -576,12 +332,79 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
               </div>
             </form>
 
-            {/* ── Add Social Media Link ─────────────────────── */}
+            <p className="text-sm text-muted">
+              Select a campaign below to view full guidelines, video dos &amp; don&apos;ts, and downloadable assets.
+            </p>
+            <div key={refreshKeys.campaign} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {projects.map((p) => (
+                <Link
+                  key={p.id}
+                  href={`/portal/digital-cp/campaign/${p.id}`}
+                  className="group flex flex-col gap-0 overflow-hidden border border-navy-700/60 bg-navy-900 transition hover:border-gold-500/60"
+                >
+                  <div className="relative h-36 w-full overflow-hidden">
+                    <Image
+                      src={p.image}
+                      alt={p.name}
+                      fill
+                      sizes="(max-width: 640px) 100vw, 33vw"
+                      className="object-cover transition group-hover:scale-105"
+                    />
+                    {joinedCampaigns.includes(p.id) && (
+                      <div className="absolute left-2 top-2 flex items-center gap-1 border border-gold-500/70 bg-navy-950/80 px-2 py-1 backdrop-blur-sm">
+                        <FiCheck className="h-3 w-3 text-gold-400" />
+                        <span className="tracked-label text-[9px] text-gold-400">Joined</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-1 p-4">
+                    <h3 className="font-display text-sm text-cream transition group-hover:text-gold-400">{p.name}</h3>
+                    <p className="text-xs text-muted">{p.location}</p>
+                    <p className="text-xs text-muted">{p.startingPrice} · {p.status}</p>
+                    <div className="mt-2 flex items-center gap-1 text-xs text-gold-400 opacity-0 transition group-hover:opacity-100">
+                      <MdCampaign className="h-3.5 w-3.5" />
+                      View Campaign <FiArrowRight className="h-3 w-3" />
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+
+
+        {tab === "earnings" && (
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <p className="tracked-label text-xs text-gold-400">My Earnings</p>
+              <RefreshButton onRefresh={() => refreshSection("earnings")} label="Refresh earnings" />
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3" key={refreshKeys.earnings}>
+              <StatCard label="Commission Earned" value={stats.commissionEarned} />
+              <StatCard label="Deals Converted" value={stats.dealsConverted} />
+              <StatCard label="Leads Submitted" value={stats.leadsSubmitted} />
+            </div>
+          </div>
+        )}
+
+        {tab === "links" && (
+          <div className="flex flex-col gap-6">
+            <div className="flex items-center justify-between">
+              <p className="tracked-label text-xs text-gold-400">My Ad Links</p>
+              <RefreshButton onRefresh={() => refreshSection("links")} label="Refresh ad links" />
+            </div>
+            <p className="text-sm text-muted">
+              Post a shareable ad or video link for each promotion, then log every lead that link brings in right underneath it —
+              no more mixing up which lead came from which post.
+            </p>
+
+            {/* ── Add Ad Link ─────────────────────── */}
             <form
               onSubmit={handleSubmitLink}
               className="flex flex-col gap-4 border border-navy-700/60 bg-navy-900 p-4 sm:p-6"
             >
-              <h2 className="font-display text-xl text-cream">Add Social Media Link</h2>
+              <h2 className="font-display text-xl text-cream">Add Ad / Video Link</h2>
 
               <FormField label="Platform" required>
                 <ChipGroup
@@ -595,7 +418,7 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
                 <input
                   id="dcp-social-link"
                   type="text"
-                  placeholder="Paste your post/reel/video link"
+                  placeholder="Paste your ad post / reel / video link"
                   value={linkForm.link}
                   onChange={(e) => updateLinkForm("link", e.target.value)}
                   className={inputClass}
@@ -615,31 +438,137 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
               </div>
             </form>
 
+            {/* ── Links + their own leads ─────────────────────── */}
             {socialLinks.length === 0 ? (
-              <EmptyState title="No links added yet" message="Paste links to your social media posts and reels promoting Simnani projects." />
+              <EmptyState title="No ad links added yet" message="Paste your first ad or video link above — leads for that link will show up right here under it." />
             ) : (
-              <div className="flex flex-col gap-3">
-                {socialLinks.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex flex-col gap-2 border border-navy-700/60 bg-navy-900 p-4 sm:flex-row sm:items-center sm:justify-between"
-                  >
-                    <div className="flex min-w-0 items-center gap-2">
-                      <FiLink className="h-4 w-4 shrink-0 text-gold-400" />
-                      <a
-                        href={item.link}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="truncate text-sm text-cream hover:text-gold-400"
-                      >
-                        {item.link}
-                      </a>
+              <div className="flex flex-col gap-4">
+                {socialLinks.map((item) => {
+                  const leads = leadsByLink[item.id] || [];
+                  const draft = leadDrafts[item.id] || INITIAL_LEAD_FORM;
+                  const isFormOpen = openLeadFormFor === item.id;
+                  return (
+                    <div key={item.id} className="flex flex-col gap-4 border border-navy-700/60 bg-navy-900 p-4 sm:p-6">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex min-w-0 items-center gap-2">
+                          <FiLink className="h-4 w-4 shrink-0 text-gold-400" />
+                          <div className="min-w-0">
+                            <a
+                              href={item.link}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="block truncate text-sm text-cream hover:text-gold-400"
+                            >
+                              {item.link}
+                            </a>
+                            <span className="tracked-label text-[10px] text-muted">{item.platform} · {item.date}</span>
+                          </div>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-2">
+                          <Badge tone="gold">
+                            <span className="flex items-center gap-1">
+                              <FiUsers className="h-3 w-3" />
+                              {leads.length} {leads.length === 1 ? "lead" : "leads"}
+                            </span>
+                          </Badge>
+                          <button
+                            type="button"
+                            onClick={() => setOpenLeadFormFor(isFormOpen ? null : item.id)}
+                            className="tracked-label flex items-center gap-1.5 border border-gold-500/70 px-3 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10"
+                          >
+                            <FiPlus className="h-3.5 w-3.5" />
+                            Add Lead
+                            {isFormOpen ? <FiChevronUp className="h-3.5 w-3.5" /> : <FiChevronDown className="h-3.5 w-3.5" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      {isFormOpen && (
+                        <form
+                          onSubmit={(e) => handleAddLeadForLink(item.id, e)}
+                          className="flex flex-col gap-4 border-t border-navy-700/60 pt-4"
+                        >
+                          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <FormField label="Name" htmlFor={`dcp-lead-name-${item.id}`} required>
+                              <input
+                                id={`dcp-lead-name-${item.id}`}
+                                type="text"
+                                placeholder="e.g. Ritika Sharma"
+                                value={draft.name}
+                                onChange={(e) => updateLeadDraft(item.id, "name", e.target.value)}
+                                className={inputClass}
+                              />
+                            </FormField>
+                            <FormField label="Contact" htmlFor={`dcp-lead-contact-${item.id}`} required>
+                              <input
+                                id={`dcp-lead-contact-${item.id}`}
+                                type="tel"
+                                placeholder="+91 98765 43210"
+                                value={draft.contact}
+                                onChange={(e) => updateLeadDraft(item.id, "contact", e.target.value)}
+                                className={inputClass}
+                              />
+                            </FormField>
+                          </div>
+                          <FormField label="Notes" htmlFor={`dcp-lead-notes-${item.id}`} optional>
+                            <textarea
+                              id={`dcp-lead-notes-${item.id}`}
+                              rows={2}
+                              placeholder="Any details about the lead"
+                              value={draft.notes}
+                              onChange={(e) => updateLeadDraft(item.id, "notes", e.target.value)}
+                              className={textareaClass}
+                            />
+                          </FormField>
+
+                          {leadDraftErrors[item.id] && <p className="text-xs text-red-400">{leadDraftErrors[item.id]}</p>}
+
+                          <div className="flex justify-end">
+                            <button
+                              type="submit"
+                              className="tracked-label flex items-center justify-center gap-2 bg-gold-400 px-6 py-3 text-xs text-navy-950 transition hover:bg-gold-300"
+                            >
+                              <FiPlus className="h-4 w-4" />
+                              Save Lead
+                            </button>
+                          </div>
+                        </form>
+                      )}
+
+                      {leads.length > 0 && (
+                        <div className="flex flex-col gap-3 border-t border-navy-700/60 pt-4">
+                          {leads.map((lead) => (
+                            <div
+                              key={lead.id}
+                              className="flex flex-col gap-3 border border-navy-700/60 bg-navy-950 p-3 sm:flex-row sm:items-center sm:justify-between"
+                            >
+                              <div className="min-w-0">
+                                <p className="text-sm text-cream">{lead.name}</p>
+                                <p className="mt-1 text-xs text-muted">{lead.contact}</p>
+                                {lead.notes && <p className="mt-1 text-xs text-muted">{lead.notes}</p>}
+                              </div>
+                              {lead.forwarded ? (
+                                <span className="tracked-label flex w-fit shrink-0 items-center gap-2 border border-gold-500/70 px-4 py-2 text-xs text-gold-400">
+                                  <FiCheck className="h-3.5 w-3.5" />
+                                  Forwarded to Head CP
+                                </span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => handleForwardLinkLead(item.id, lead.id)}
+                                  className="tracked-label flex shrink-0 items-center justify-center gap-2 bg-gold-400 px-4 py-2 text-xs text-navy-950 transition hover:bg-gold-300"
+                                >
+                                  <FiSend className="h-3.5 w-3.5" />
+                                  Forward to Head CP
+                                </button>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                    <span className="tracked-label w-fit border border-navy-700/60 px-3 py-1 text-xs text-muted">
-                      {item.platform} · {item.date}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

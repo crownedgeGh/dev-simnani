@@ -24,7 +24,7 @@ import { getAccountPermissions } from "@/lib/accountPermissions";
 export default function RequireGuest({ children }) {
   const { isAuthenticated, isLoading, user } = useAuth();
   const router = useRouter();
-  const redirectTo = getAccountPermissions(user?.accountType).portalHref;
+  const redirectTo = getAccountPermissions(user?.accountType, user?.cpType).portalHref;
 
   // Snapshot isAuthenticated the first time auth is known to be resolved.
   // AuthProvider lives in the root layout and never remounts on client-side

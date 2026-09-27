@@ -121,7 +121,7 @@ export default function CampaignDetailPage({ project, assets, backHref }) {
       <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4 text-center">
         <p className="text-lg text-cream">Campaign not found.</p>
         <Link
-          href={backHref || "/portal/freelancer?cpType=digital"}
+          href={backHref || "/portal/digital-cp"}
           className="tracked-label flex items-center gap-2 text-xs text-gold-400 hover:text-gold-300"
         >
           <FiArrowLeft className="h-4 w-4" /> Back to Portal
@@ -134,7 +134,7 @@ export default function CampaignDetailPage({ project, assets, backHref }) {
     <div className="flex flex-col gap-10">
       {/* Back Link */}
       <Link
-        href={backHref || "/portal/freelancer?cpType=digital"}
+        href={backHref || "/portal/digital-cp"}
         className="tracked-label inline-flex w-fit items-center gap-2 text-xs text-muted transition hover:text-gold-400"
       >
         <FiArrowLeft className="h-3.5 w-3.5" />

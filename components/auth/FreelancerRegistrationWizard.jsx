@@ -181,7 +181,7 @@ export default function FreelancerRegistrationWizard() {
       const token = `se_mock_${form.mobile.replace(/\D/g, "")}_${Date.now()}`;
       await login(token, json.data);
       clearDraft();
-      router.push("/portal/freelancer");
+      router.push(`/portal/${form.cpType}-cp`);
     } catch (err) {
       setError(err.message || "Something went wrong. Please try again.");
     } finally {

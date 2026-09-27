@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { PROJECTS } from "@/lib/projects";
 import { CP_PROMOTION_ASSETS } from "@/lib/demoPortal";
+import { requireCpUser } from "@/lib/freelancerPortalGuard";
 import CampaignDetailPage from "@/components/portal/CampaignDetailPage";
 
 export async function generateMetadata({ params }) {
@@ -14,6 +15,8 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function CampaignDetailRoute({ params }) {
+  await requireCpUser("digital");
+
   const { projectId } = await params;
   const project = PROJECTS.find((p) => p.id === projectId);
   if (!project) notFound();
@@ -26,7 +29,7 @@ export default async function CampaignDetailRoute({ params }) {
         <CampaignDetailPage
           project={project}
           assets={assets}
-          backHref="/portal/freelancer?cpType=digital"
+          backHref="/portal/digital-cp"
         />
       </div>
     </div>

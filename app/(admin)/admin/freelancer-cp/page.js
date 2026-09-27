@@ -24,7 +24,7 @@ import { ADMIN_KEYS, readCollection } from "@/lib/adminStorage";
 
 // CP type segments — each has its own dedicated management page with full
 // CRUD, mirroring the three public dashboards at
-// /portal/freelancer?cpType=company|digital|field.
+// /portal/company-cp, /portal/digital-cp, /portal/field-cp.
 const CP_SEGMENTS = [
   {
     key: "headcp",

@@ -1,7 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { FiSun, FiMoon, FiPlusSquare } from "react-icons/fi";
 import PortalHeader from "@/components/portal/PortalHeader";
 import CompanyCPDashboard from "@/components/portal/CompanyCPDashboard";
@@ -36,12 +36,6 @@ function getThemeServerSnapshot() {
   return "light";
 }
 
-const DEMO_CP_NAMES = {
-  digital: "Aarav Shah",
-  field: "Rohan Mehta",
-  company: "Simnani Partners Pvt. Ltd.",
-};
-
 const PORTAL_COPY = {
   company: {
     eyebrow: "Company Channel Partner Portal",
@@ -71,9 +65,9 @@ export default function FreelancerPortalClient({
   digitalCampaigns,
   campaignVideos,
   myListings,
+  forcedCpType,
 }) {
   const { user, isLoading } = useAuth();
-  const searchParams = useSearchParams();
   const router = useRouter();
 
   // Portal defaults to the sunlight-friendly light theme.
@@ -92,18 +86,10 @@ export default function FreelancerPortalClient({
     emitThemeChange();
   };
 
-  // Test Mode support — reads ?cpType=field|digital|company so demo dashboards
-  // can be opened directly from the signup / navbar shortcuts, no form needed.
-  const requestedCpType = searchParams.get("cpType");
-  const isValidRequestedCp = requestedCpType && Boolean(PORTAL_COPY[requestedCpType]);
-
-  const isRealFreelancer = user?.accountType === "freelancer";
-  const cpType = isValidRequestedCp
-    ? requestedCpType
-    : (isRealFreelancer ? user?.cpType || "digital" : "digital");
-  const partner = isValidRequestedCp
-    ? { fullName: (isRealFreelancer && user?.cpType === cpType && user?.fullName) ? user.fullName : DEMO_CP_NAMES[cpType], cpType }
-    : (isRealFreelancer && user ? user : { fullName: DEMO_CP_NAMES[cpType], cpType });
+  // The /portal/{digital,field,company}-cp route already verified server-side
+  // that this user's own cpType matches forcedCpType before rendering us.
+  const cpType = forcedCpType;
+  const partner = user;
   const copy = PORTAL_COPY[cpType];
 
   if (isLoading) return null;

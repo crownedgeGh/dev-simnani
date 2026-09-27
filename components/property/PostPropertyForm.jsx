@@ -153,7 +153,7 @@ const INITIAL_FORM = {
 const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
   const router = useRouter();
   const { user, isLoading } = useAuth();
-  const portalHref = getAccountPermissions(user?.accountType).portalHref;
+  const portalHref = getAccountPermissions(user?.accountType, user?.cpType).portalHref;
   // Channel Partners posting through the public form get attributed to
   // their CP tier (routes them to /admin/sg-properties) instead of the
   // generic "public" bucket everyone else falls into.

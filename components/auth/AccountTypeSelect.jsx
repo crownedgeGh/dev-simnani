@@ -200,7 +200,7 @@ export default function AccountTypeSelect() {
                 key={cpType}
                 type="button"
                 disabled={bypassLoading !== null}
-                onClick={() => handleDirectBypass(cpType, TEST_MODE_CP_PROFILES[cpType], "/portal/freelancer")}
+                onClick={() => handleDirectBypass(cpType, TEST_MODE_CP_PROFILES[cpType], `/portal/${cpType}-cp`)}
                 className="flex flex-col items-center gap-2 border border-navy-700/60 p-4 text-center transition hover:border-gold-500 disabled:opacity-60 sm:gap-3 sm:p-6"
               >
                 <Icon className="h-7 w-7 text-gold-400 sm:h-8 sm:w-8" />
