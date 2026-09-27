@@ -16,12 +16,6 @@ import {
   POSTED_BY_ROLE_OPTIONS,
   getPostedByRoleLabel,
 } from "@/lib/postedByRoles";
-import { TEST_MODE_CP_PROFILES } from "@/lib/testModeCp";
-
-// Demo/testing fallback — guarantees the Company CP tester account is always
-// selectable here even if the CP network hasn't been populated in this browser yet.
-const DEMO_COMPANY_PARTNER = { id: "demo-company-cp", name: TEST_MODE_CP_PROFILES.company.fullName, cpType: "company" };
-
 const PROPERTY_TYPES = [
   "buy",
   "sell",
@@ -66,8 +60,7 @@ export default function AdminSgPropertiesPage() {
     const realPartners = network
       .filter((n) => n.cpType === "company" && n.status !== "Suspended")
       .map((n) => ({ id: n.id, name: n.name, cpType: "company" }));
-    const hasDemoPartner = realPartners.some((p) => p.name === DEMO_COMPANY_PARTNER.name);
-    setCompanyPartners(hasDemoPartner ? realPartners : [DEMO_COMPANY_PARTNER, ...realPartners]);
+    setCompanyPartners(realPartners);
     setAssignments(readCollection(ADMIN_KEYS.cpAssignments) || []);
   }, []);
 
