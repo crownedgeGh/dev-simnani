@@ -3,7 +3,20 @@ import PostPropertyGuardedForm from "@/components/property/PostPropertyGuardedFo
 
 export const metadata = {
   title: "Post Your Property | Simnani Estate",
-  description: "List your property in minutes — no images or full address required.",
+  description:
+    "Add your property on Simnani Estate and get genuine buyer enquiries fast — list free in minutes, no images or full address required.",
+  openGraph: {
+    title: "Add Your Property. Get Buyers Fast. | Simnani Estate",
+    description:
+      "List free on Simnani Estate — verified leads, zero hassle. Post your property in minutes.",
+    siteName: "Simnani Estate",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Add Your Property. Get Buyers Fast. | Simnani Estate",
+    description: "List free on Simnani Estate — verified leads, zero hassle.",
+  },
 };
 
 export default function PostPropertyPage() {
