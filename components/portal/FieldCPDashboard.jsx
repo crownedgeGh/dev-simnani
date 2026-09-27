@@ -58,6 +58,9 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
   const [directError, setDirectError] = useState("");
   const [directLeads, setDirectLeads] = useState([]);
 
+  const [showAddVisit, setShowAddVisit] = useState(false);
+  const [newVisitProject, setNewVisitProject] = useState("");
+
   // Per-section refresh keys
   const [refreshKeys, setRefreshKeys] = useState({
     overview: 0,
@@ -92,6 +95,32 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
       leads: assignedLeads.filter((l) => l.project === project.name),
     }))
     .filter((group) => group.leads.length > 0);
+
+  const assignedProjectOptions = [
+    ...assignedProjects.map(({ project }) => ({ id: project.id, name: project.name })),
+    ...delegatedProjects.map((a) => ({ id: a.propertyId || a.id, name: a.propertyTitle })),
+  ].filter((p, i, arr) => arr.findIndex((x) => x.id === p.id) === i);
+
+  function handleAddSiteVisit(e) {
+    e.preventDefault();
+    if (!newVisitProject) return;
+    const project = assignedProjectOptions.find((p) => p.id === newVisitProject);
+    setSiteVisits((prev) => [
+      {
+        leadId: generateAccountId("VISIT"),
+        project: project ? project.name : "",
+        customer: "",
+        phone: "",
+        scheduledAt: new Date().toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" }),
+        status: "Scheduled",
+        livePhoto: "",
+        followUps: [],
+      },
+      ...prev,
+    ]);
+    setNewVisitProject("");
+    setShowAddVisit(false);
+  }
 
   function updateVisitStatus(leadId, status) {
     setSiteVisits((prev) =>
@@ -305,10 +334,54 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
 
         {tab === "visits" && (
           <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="tracked-label text-xs text-gold-400">Site Visits</p>
-              <RefreshButton onRefresh={() => refreshSection("visits")} label="Refresh site visits" />
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowAddVisit((prev) => !prev)}
+                  className="tracked-label flex items-center gap-2 bg-gold-400 px-4 py-2 text-xs text-navy-950 transition hover:bg-gold-300"
+                >
+                  <FiPlus className="h-3.5 w-3.5" />
+                  Add Site Visit
+                </button>
+                <RefreshButton onRefresh={() => refreshSection("visits")} label="Refresh site visits" />
+              </div>
             </div>
+
+            {showAddVisit && (
+              <form
+                onSubmit={handleAddSiteVisit}
+                className="flex flex-col gap-4 border border-navy-700/60 bg-navy-900 p-4 sm:flex-row sm:items-end"
+              >
+                <div className="flex-1">
+                  <FormField label="Assigned Project" htmlFor="fcp-visit-project" required>
+                    <select
+                      id="fcp-visit-project"
+                      value={newVisitProject}
+                      onChange={(e) => setNewVisitProject(e.target.value)}
+                      className={selectClass}
+                    >
+                      <option value="">Select assigned project</option>
+                      {assignedProjectOptions.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name}
+                        </option>
+                      ))}
+                    </select>
+                  </FormField>
+                </div>
+                <button
+                  type="submit"
+                  disabled={!newVisitProject}
+                  className="tracked-label flex items-center justify-center gap-2 bg-gold-400 px-6 py-3 text-xs text-navy-950 transition hover:bg-gold-300 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <FiPlus className="h-4 w-4" />
+                  Schedule Visit
+                </button>
+              </form>
+            )}
+
             <div key={refreshKeys.visits} className="flex flex-col gap-3">
             {siteVisits.length === 0 ? (
               <EmptyState title="No site visits yet" message="Schedule and track site visits for your assigned leads here." />
@@ -319,8 +392,8 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
                   <div key={visit.leadId} className="flex flex-col gap-4 border border-navy-700/60 bg-navy-900 p-4">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div>
-                        <p className="text-sm text-cream">{lead ? lead.customer : visit.leadId}</p>
-                        <p className="mt-1 text-xs text-muted">{lead?.project}</p>
+                        <p className="text-sm text-cream">{lead ? lead.customer : visit.customer || "New Site Visit"}</p>
+                        <p className="mt-1 text-xs text-muted">{lead ? lead.project : visit.project}</p>
                         <p className="mt-1 text-xs text-gold-400">{visit.scheduledAt}</p>
                       </div>
                       <Badge tone={VISIT_STATUS_TONE[visit.status] || "muted"}>{visit.status}</Badge>
@@ -334,7 +407,7 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
                         className="tracked-label flex items-center justify-center gap-2 border border-gold-500/70 px-4 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10 disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         <FiNavigation className="h-3.5 w-3.5" />
-                        Moving
+                        Ready to Move
                       </button>
 
                       <label
@@ -386,11 +459,11 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
                       <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
                         <div className="flex items-center gap-2 border border-navy-700/60 bg-navy-950 px-4 py-3">
                           <FiUser className="h-4 w-4 shrink-0 text-gold-400" />
-                          <span className="text-sm text-cream">{lead ? lead.customer : "—"}</span>
+                          <span className="text-sm text-cream">{lead ? lead.customer : visit.customer || "—"}</span>
                         </div>
                         <div className="flex items-center gap-2 border border-navy-700/60 bg-navy-950 px-4 py-3">
                           <FiPhone className="h-4 w-4 shrink-0 text-gold-400" />
-                          <span className="text-sm text-cream">{lead ? lead.phone : "—"}</span>
+                          <span className="text-sm text-cream">{lead ? lead.phone : visit.phone || "—"}</span>
                         </div>
                       </div>
                       <textarea
