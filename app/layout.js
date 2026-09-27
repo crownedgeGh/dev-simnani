@@ -16,7 +16,12 @@ const openSans = Open_Sans({
   weight: ["400", "500", "600", "700"],
 });
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+
 export const metadata = {
+  metadataBase: new URL(siteUrl),
   title: "Simnani Estate | Find a Place You'll Love to Call Home",
   description:
     "Discover properties, investment opportunities and trusted real estate services with Simnani Estate.",
