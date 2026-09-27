@@ -13,8 +13,13 @@ import { VISIT_STATUS_TONE } from "./channel-partner/tones";
 import FormField from "@/components/auth/FormField";
 import { inputClass, selectClass, textareaClass } from "@/components/auth/inputStyles";
 import { generateAccountId } from "@/lib/auth";
-import { ADMIN_KEYS, readCollection, addCpLead } from "@/lib/adminStorage";
+import { addCpLead } from "@/lib/adminStorage";
 import RefreshButton from "./RefreshButton";
+
+function formatCpLabel(name, city, state) {
+  const place = [city, state].filter(Boolean).join(", ");
+  return place ? `${name} — ${place}` : name;
+}
 
 const TABS = [
   { key: "overview", label: "Overview" },
@@ -36,14 +41,16 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
   const [delegatedProjects, setDelegatedProjects] = useState([]);
 
   useEffect(() => {
+    if (!partner?.accountId) return;
     let active = true;
-    Promise.resolve().then(() => {
-      if (!active) return;
-      const assignments = readCollection(ADMIN_KEYS.cpAssignments) || [];
-      setDelegatedProjects(
-        assignments.filter((a) => a.level === "company-to-field" && a.assignedToName === partner?.fullName)
-      );
-    });
+    fetch(`/api/assignments?level=company-to-field&assignedToAccountId=${partner.accountId}`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (active) setDelegatedProjects(json.success ? json.data : []);
+      })
+      .catch(() => {
+        if (active) setDelegatedProjects([]);
+      });
     return () => { active = false; };
   }, [partner]);
 
@@ -194,6 +201,9 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
                     <div key={a.id} className="border border-navy-700/60 bg-navy-900 p-4">
                       <p className="text-sm text-cream">{a.propertyTitle}</p>
                       <p className="mt-1 text-xs text-muted">{a.propertyLocation}</p>
+                      <p className="mt-2 text-xs text-muted">
+                        Forwarded by {formatCpLabel(a.assignedByName, a.assignedByCity, a.assignedByState)}
+                      </p>
                       <Badge tone="gold">{a.status}</Badge>
                     </div>
                   ))}

@@ -3,10 +3,10 @@ import FreelancerPortalClient from "@/components/portal/freelancer/FreelancerPor
 import { PROJECTS } from "@/lib/projects";
 import { requireCpUser } from "@/lib/freelancerPortalGuard";
 import { getOwnerPortalData } from "@/lib/ownerPortalData";
+import { getCpNetwork } from "@/lib/cpAssignments";
 import {
   CP_STATS,
   CP_LEADS,
-  CP_NETWORK,
   CP_COMMISSIONS,
   CP_SITE_VISITS,
   CP_PROMOTION_ASSETS,
@@ -25,6 +25,7 @@ export const metadata = {
 export default async function CompanyCPPortalPage() {
   const user = await requireCpUser("company");
   const { listings: myListings } = await getOwnerPortalData(user.accountId);
+  const network = await getCpNetwork();
 
   return (
     <Suspense fallback={null}>
@@ -33,7 +34,7 @@ export default async function CompanyCPPortalPage() {
         digitalStats={CP_STATS.digital}
         fieldStats={CP_STATS.field}
         leads={CP_LEADS}
-        network={CP_NETWORK}
+        network={network}
         commissions={CP_COMMISSIONS}
         siteVisits={CP_SITE_VISITS}
         projects={PROJECTS}

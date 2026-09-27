@@ -15,8 +15,13 @@ import ChipGroup from "@/components/auth/ChipGroup";
 import FormField from "@/components/auth/FormField";
 import { inputClass, selectClass, textareaClass } from "@/components/auth/inputStyles";
 import { generateAccountId } from "@/lib/auth";
-import { addCpLead, ADMIN_KEYS, readCollection } from "@/lib/adminStorage";
+import { addCpLead } from "@/lib/adminStorage";
 import RefreshButton from "./RefreshButton";
+
+function formatCpLabel(name, city, state) {
+  const place = [city, state].filter(Boolean).join(", ");
+  return place ? `${name} — ${place}` : name;
+}
 
 const TABS = [
   { key: "overview", label: "Overview" },
@@ -67,13 +72,15 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
   // Properties forwarded to this Digital CP by their Company CP.
   const [forwardedProperties, setForwardedProperties] = useState([]);
 
-  const loadForwardedProperties = useCallback(() => {
-    const assignments = readCollection(ADMIN_KEYS.cpAssignments) || [];
-    setForwardedProperties(
-      assignments.filter(
-        (a) => a.level === "company-to-digital" && a.assignedToName === partner?.fullName
-      )
-    );
+  const loadForwardedProperties = useCallback(async () => {
+    if (!partner?.accountId) return;
+    try {
+      const res = await fetch(`/api/assignments?level=company-to-digital&assignedToAccountId=${partner.accountId}`);
+      const json = await res.json();
+      setForwardedProperties(json.success ? json.data : []);
+    } catch {
+      setForwardedProperties([]);
+    }
   }, [partner]);
 
   useEffect(() => {
@@ -333,7 +340,7 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
                       <p className="mt-1 text-xs text-muted">{property.propertyLocation}</p>
                       <span className="tracked-label mt-3 flex w-fit items-center gap-1.5 border border-gold-500/70 px-3 py-1 text-[10px] text-gold-400">
                         <FiUserCheck className="h-3 w-3" />
-                        Forwarded by {property.assignedByName}
+                        Forwarded by {formatCpLabel(property.assignedByName, property.assignedByCity, property.assignedByState)}
                       </span>
                     </div>
                   ))}

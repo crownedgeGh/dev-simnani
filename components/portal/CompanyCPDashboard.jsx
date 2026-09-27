@@ -23,7 +23,12 @@ import PropertyGrid from "@/components/property/PropertyGrid";
 import { CP_TYPE_LABEL, VIDEO_STATUS_TONE } from "./channel-partner/tones";
 import { selectClass } from "@/components/auth/inputStyles";
 import RefreshButton from "./RefreshButton";
-import { ADMIN_KEYS, readCollection, addCpAssignment } from "@/lib/adminStorage";
+import { toast } from "sonner";
+
+function formatCpLabel(name, city, state) {
+  const place = [city, state].filter(Boolean).join(", ");
+  return place ? `${name} — ${place}` : name;
+}
 
 const TABS = [
   { key: "overview", label: "Overview" },
@@ -65,8 +70,14 @@ export default function CompanyCPDashboard({
     freelancerLeads: 0,
   });
 
-  const loadAssignments = useCallback(() => {
-    setAssignments(readCollection(ADMIN_KEYS.cpAssignments) || []);
+  const loadAssignments = useCallback(async () => {
+    try {
+      const res = await fetch("/api/assignments");
+      const json = await res.json();
+      setAssignments(json.success ? json.data : []);
+    } catch {
+      toast.error("Failed to load assigned projects");
+    }
   }, []);
 
   useEffect(() => {
@@ -96,26 +107,34 @@ export default function CompanyCPDashboard({
 
   // Properties Head CP has handed down to this Company CP.
   const assignedProjects = assignments.filter(
-    (a) => a.level === "head-to-company" && a.assignedToName === partner?.fullName
+    (a) => a.level === "head-to-company" && a.assignedToAccountId === partner?.accountId
   );
 
-  function handleDelegate(assignmentId, cpType, partnerName) {
-    if (!partnerName) return;
+  async function handleDelegate(assignmentId, cpType, accountId) {
+    if (!accountId) return;
     const parent = assignedProjects.find((a) => a.id === assignmentId);
     if (!parent) return;
-    addCpAssignment({
-      propertyId: parent.propertyId,
-      propertyTitle: parent.propertyTitle,
-      propertyImage: parent.propertyImage,
-      propertyLocation: parent.propertyLocation,
-      level: cpType === "field" ? "company-to-field" : "company-to-digital",
-      assignedByCpType: "company",
-      assignedByName: partner?.fullName,
-      assignedToCpType: cpType,
-      assignedToName: partnerName,
-      parentAssignmentId: assignmentId,
-    });
-    loadAssignments();
+    try {
+      const res = await fetch("/api/assignments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          propertyId: parent.propertyId,
+          propertyTitle: parent.propertyTitle,
+          propertyImage: parent.propertyImage,
+          propertyLocation: parent.propertyLocation,
+          level: cpType === "field" ? "company-to-field" : "company-to-digital",
+          assignedToAccountId: accountId,
+          parentAssignmentId: assignmentId,
+        }),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || "Failed to delegate");
+      toast.success(`Delegated to ${json.data.assignedToName}`);
+      loadAssignments();
+    } catch (err) {
+      toast.error(err.message || "Failed to delegate");
+    }
   }
 
   function updateVideoStatus(id, status, note = "") {
@@ -185,13 +204,13 @@ export default function CompanyCPDashboard({
                         {delegated && (
                           <span className="tracked-label flex w-fit items-center gap-1.5 border border-gold-500/70 px-3 py-1 text-[10px] text-gold-400">
                             <FiUserCheck className="h-3 w-3" />
-                            {CP_TYPE_LABEL[delegated.assignedToCpType]}: {delegated.assignedToName}
+                            {CP_TYPE_LABEL[delegated.assignedToCpType]}: {formatCpLabel(delegated.assignedToName, delegated.assignedToCity, delegated.assignedToState)}
                           </span>
                         )}
                         {digitalPartners.length > 0 && (
                           <button
                             type="button"
-                            onClick={() => handleDelegate(project.id, "digital", digitalPartners[0].name)}
+                            onClick={() => handleDelegate(project.id, "digital", digitalPartners[0].accountId)}
                             className="tracked-label flex h-11 items-center justify-center gap-2 bg-gold-400 px-4 text-[10px] text-navy-950 transition hover:bg-gold-300"
                           >
                             <FiSend className="h-3.5 w-3.5" />
@@ -213,14 +232,14 @@ export default function CompanyCPDashboard({
                           {fieldPartners.length > 0 && (
                             <optgroup label="Field CP">
                               {fieldPartners.map((p) => (
-                                <option key={`field::${p.name}`} value={`field::${p.name}`}>{p.name}</option>
+                                <option key={`field::${p.accountId}`} value={`field::${p.accountId}`}>{formatCpLabel(p.name, p.city, p.state)}</option>
                               ))}
                             </optgroup>
                           )}
                           {digitalPartners.length > 0 && (
                             <optgroup label="Digital CP">
                               {digitalPartners.map((p) => (
-                                <option key={`digital::${p.name}`} value={`digital::${p.name}`}>{p.name}</option>
+                                <option key={`digital::${p.accountId}`} value={`digital::${p.accountId}`}>{formatCpLabel(p.name, p.city, p.state)}</option>
                               ))}
                             </optgroup>
                           )}

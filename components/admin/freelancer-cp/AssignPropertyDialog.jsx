@@ -10,6 +10,11 @@ const CP_TYPE_LABEL = { company: "Company CP", field: "Field CP", digital: "Digi
 // Reusable picker for the top-down property/project delegation chain:
 // Head CP → Company CP (partners filtered to cpType "company"), and
 // Company CP → Field CP / Digital CP (partners filtered to cpType "field"/"digital").
+function formatPartnerLabel(p) {
+  const place = [p.city, p.state].filter(Boolean).join(", ");
+  return place ? `${p.name} — ${place}` : p.name;
+}
+
 export default function AssignPropertyDialog({
   isOpen,
   onClose,
@@ -17,7 +22,7 @@ export default function AssignPropertyDialog({
   description,
   propertyTitle,
   partners = [],
-  currentAssigneeName,
+  currentAssigneeId,
   onAssign,
 }) {
   const [selected, setSelected] = useState("");
@@ -27,10 +32,10 @@ export default function AssignPropertyDialog({
     if (!isOpen) return;
     let active = true;
     Promise.resolve().then(() => {
-      if (active) setSelected(currentAssigneeName || "");
+      if (active) setSelected(currentAssigneeId || "");
     });
     return () => { active = false; };
-  }, [isOpen, currentAssigneeName]);
+  }, [isOpen, currentAssigneeId]);
 
   const groupedByType = partners.reduce((acc, p) => {
     (acc[p.cpType] = acc[p.cpType] || []).push(p);
@@ -43,9 +48,7 @@ export default function AssignPropertyDialog({
       toast.error("Please select a partner");
       return;
     }
-    const [cpType, ...rest] = selected.split("::");
-    const name = rest.join("::");
-    const partner = partners.find((p) => p.cpType === cpType && p.name === name);
+    const partner = partners.find((p) => p.id === selected);
     if (!partner) return;
     setSaving(true);
     try {
@@ -95,8 +98,8 @@ export default function AssignPropertyDialog({
               {Object.entries(groupedByType).map(([cpType, list]) => (
                 <optgroup key={cpType} label={CP_TYPE_LABEL[cpType] || cpType}>
                   {list.map((p) => (
-                    <option key={`${p.cpType}::${p.name}`} value={`${p.cpType}::${p.name}`}>
-                      {p.name}
+                    <option key={p.id} value={p.id}>
+                      {formatPartnerLabel(p)}
                     </option>
                   ))}
                 </optgroup>
