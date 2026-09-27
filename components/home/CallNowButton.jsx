@@ -2,10 +2,14 @@
 
 import { useState } from "react";
 import { MdPhone, MdContentCopy, MdCheck } from "react-icons/md";
+import { useAuth } from "@/context/AuthContext";
+import AuthGateModal from "@/components/auth/AuthGateModal";
 
-export default function CallNowButton({ mobile }) {
+export default function CallNowButton({ mobile, onRevealChange }) {
+  const { isAuthenticated } = useAuth();
   const [revealed, setRevealed] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showAuthGate, setShowAuthGate] = useState(false);
 
   if (!mobile) return null;
 
@@ -17,13 +21,37 @@ export default function CallNowButton({ mobile }) {
     });
   }
 
+  function handleMobileTap(e) {
+    if (!isAuthenticated) {
+      e.preventDefault();
+      setShowAuthGate(true);
+    }
+  }
+
+  function handleReveal() {
+    if (!isAuthenticated) {
+      setShowAuthGate(true);
+      return;
+    }
+    setRevealed(true);
+    onRevealChange?.(true);
+  }
+
   return (
     <>
-      {/* Mobile: tel: link → opens dialpad */}
+      <AuthGateModal
+        isOpen={showAuthGate}
+        onClose={() => setShowAuthGate(false)}
+        title="Contact This Agent"
+        subtitle="Sign in or create a free account to view contact details and connect."
+      />
+
+      {/* Mobile: tel: link → opens dialpad (gated behind auth) */}
       <a
         href={`tel:${mobile}`}
+        onClick={handleMobileTap}
         className="flex w-full items-center justify-center gap-2 rounded-lg border border-gold-500/50 bg-gold-400/10 py-2.5 text-sm font-semibold text-gold-400 transition hover:bg-gold-400/20 active:scale-95 sm:hidden"
-        aria-label={`Call ${mobile}`}
+        aria-label="Call agent"
       >
         <MdPhone size={17} />
         Call Now
@@ -31,15 +59,15 @@ export default function CallNowButton({ mobile }) {
 
       {/* Desktop: reveal number → call link + copy button */}
       <div className="hidden sm:block">
-        {revealed ? (
+        {revealed && isAuthenticated ? (
           <div className="flex items-center gap-2">
             <a
               href={`tel:${mobile}`}
-              className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-gold-500/50 bg-gold-400/10 py-2.5 text-sm font-semibold text-gold-400 transition hover:bg-gold-400/20"
+              className="flex min-w-0 flex-1 items-center justify-center gap-2 rounded-lg border border-gold-500/50 bg-gold-400/10 py-2.5 text-sm font-semibold text-gold-400 transition hover:bg-gold-400/20"
               aria-label={`Call ${mobile}`}
             >
-              <MdPhone size={17} />
-              {mobile}
+              <MdPhone size={17} className="shrink-0" />
+              <span className="truncate">{mobile}</span>
             </a>
             <button
               onClick={handleCopy}
@@ -55,7 +83,7 @@ export default function CallNowButton({ mobile }) {
           </div>
         ) : (
           <button
-            onClick={() => setRevealed(true)}
+            onClick={handleReveal}
             className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-gold-500/50 bg-gold-400/10 py-2.5 text-sm font-semibold text-gold-400 transition hover:bg-gold-400/20 active:scale-95"
           >
             <MdPhone size={17} />

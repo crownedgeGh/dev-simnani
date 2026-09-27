@@ -141,15 +141,15 @@ export default function AccountTypeSelect() {
         </p>
       </div>
 
-      <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
         {ACCOUNT_TYPES.map(({ value, label, description, Icon }) => (
           <button
             key={value}
             type="button"
             onClick={() => router.push(`/auth/register/${value}`)}
-            className="flex flex-col items-center gap-3 border border-navy-700/60 p-6 text-center transition hover:border-gold-500"
+            className="flex flex-col items-center gap-2 border border-navy-700/60 p-4 text-center transition hover:border-gold-500 sm:gap-3 sm:p-6"
           >
-            <Icon className="h-9 w-9 text-cream" />
+            <Icon className="h-7 w-7 text-cream sm:h-9 sm:w-9" />
             <span className="tracked-label text-xs text-cream">{label}</span>
             <p className="text-xs text-muted">{description}</p>
           </button>
@@ -159,13 +159,13 @@ export default function AccountTypeSelect() {
           type="button"
           onClick={() => setTestModeOpen((open) => !open)}
           aria-pressed={testModeOpen}
-          className={`flex flex-col items-center gap-3 border p-6 text-center transition ${
+          className={`flex flex-col items-center gap-2 border p-4 text-center transition sm:gap-3 sm:p-6 ${
             testModeOpen
               ? "border-gold-400 bg-gold-400/5"
               : "border-navy-700/60 hover:border-navy-600"
           }`}
         >
-          <MdScience className={`h-9 w-9 ${testModeOpen ? "text-gold-400" : "text-cream"}`} />
+          <MdScience className={`h-7 w-7 sm:h-9 sm:w-9 ${testModeOpen ? "text-gold-400" : "text-cream"}`} />
           <span className="tracked-label text-xs text-cream">Test Mode</span>
           <p className="text-xs text-muted">Preview a Channel Partner dashboard with demo data — no form required.</p>
         </button>
@@ -174,16 +174,16 @@ export default function AccountTypeSelect() {
       {testModeOpen && (
         <div className="mt-6 border border-navy-700/60 bg-navy-950 p-6">
           <p className="tracked-label text-xs text-gold-400">Test Mode — Bypass Registration</p>
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
             {TEST_MODE_DIRECT_OPTIONS.map((option) => (
               <button
                 key={option.key}
                 type="button"
                 disabled={bypassLoading !== null}
                 onClick={() => handleDirectBypass(option.key, option.profile, option.href)}
-                className="flex flex-col items-center gap-3 border border-navy-700/60 p-6 text-center transition hover:border-gold-500 disabled:opacity-60"
+                className="flex flex-col items-center gap-2 border border-navy-700/60 p-4 text-center transition hover:border-gold-500 disabled:opacity-60 sm:gap-3 sm:p-6"
               >
-                <option.Icon className="h-8 w-8 text-gold-400" />
+                <option.Icon className="h-7 w-7 text-gold-400 sm:h-8 sm:w-8" />
                 <span className="tracked-label text-xs text-cream">
                   {bypassLoading === option.key ? "Loading…" : option.label}
                 </span>
@@ -194,16 +194,16 @@ export default function AccountTypeSelect() {
           {bypassError && <p className="mt-3 text-xs text-gold-500">{bypassError}</p>}
 
           <p className="mt-6 tracked-label text-xs text-gold-400">Test Mode — Choose a Channel Partner Dashboard</p>
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
             {TEST_MODE_CP_OPTIONS.map(({ cpType, label, description, Icon }) => (
               <button
                 key={cpType}
                 type="button"
                 disabled={bypassLoading !== null}
                 onClick={() => handleDirectBypass(cpType, TEST_MODE_CP_PROFILES[cpType], "/portal/freelancer")}
-                className="flex flex-col items-center gap-3 border border-navy-700/60 p-6 text-center transition hover:border-gold-500 disabled:opacity-60"
+                className="flex flex-col items-center gap-2 border border-navy-700/60 p-4 text-center transition hover:border-gold-500 disabled:opacity-60 sm:gap-3 sm:p-6"
               >
-                <Icon className="h-8 w-8 text-gold-400" />
+                <Icon className="h-7 w-7 text-gold-400 sm:h-8 sm:w-8" />
                 <span className="tracked-label text-xs text-cream">
                   {bypassLoading === cpType ? "Loading…" : label}
                 </span>

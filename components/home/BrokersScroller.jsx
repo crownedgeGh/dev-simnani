@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { BiBuildingHouse } from "react-icons/bi";
 import { MdVerified } from "react-icons/md";
@@ -12,6 +12,35 @@ function getInitials(name) {
   const parts = name.trim().split(" ");
   if (parts.length === 1) return parts[0][0]?.toUpperCase() ?? "?";
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function BrokerActions({ accountId, mobile }) {
+  const [revealed, setRevealed] = useState(false);
+
+  return (
+    <div className="mt-4 flex items-stretch gap-2">
+      {revealed ? (
+        <Link
+          href={`/agent/${accountId}`}
+          aria-label="View profile"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-navy-700/60 text-cream transition hover:border-gold-500/50 hover:text-gold-400"
+        >
+          <FiEye size={16} />
+        </Link>
+      ) : (
+        <Link
+          href={`/agent/${accountId}`}
+          className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-navy-700/60 py-2.5 text-sm font-semibold text-cream transition hover:border-gold-500/50 hover:text-gold-400"
+        >
+          <FiEye size={16} />
+          View
+        </Link>
+      )}
+      <div className="min-w-0 flex-1">
+        <CallNowButton mobile={mobile} onRevealChange={setRevealed} />
+      </div>
+    </div>
+  );
 }
 
 function BrokerAvatar({ name }) {
@@ -34,18 +63,27 @@ const SCROLL_STEP = 320;
 export default function BrokersScroller({ brokers }) {
   const scrollerRef = useRef(null);
   const [isAtStart, setIsAtStart] = useState(true);
+  const [isAtEnd, setIsAtEnd] = useState(false);
 
   function scrollByAmount(amount) {
     scrollerRef.current?.scrollBy({ left: amount, behavior: "smooth" });
   }
 
   function handleScroll(e) {
-    setIsAtStart(e.currentTarget.scrollLeft <= 0);
+    const { scrollLeft, scrollWidth, clientWidth } = e.currentTarget;
+    setIsAtStart(scrollLeft <= 0);
+    setIsAtEnd(scrollLeft + clientWidth >= scrollWidth - 1);
   }
 
   function handleRightClick() {
     scrollByAmount(SCROLL_STEP);
   }
+
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    setIsAtEnd(el.scrollWidth <= el.clientWidth);
+  }, [brokers]);
 
   return (
     <div className="relative mt-6">
@@ -83,19 +121,21 @@ export default function BrokersScroller({ brokers }) {
         </button>
       )}
 
-      <button
-        type="button"
-        onClick={handleRightClick}
-        aria-label="Scroll right"
-        className="absolute right-0 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full border border-gold-500/70 bg-navy-950 text-gold-400 transition hover:bg-gold-500/10 sm:flex"
-      >
-        <FiChevronRight size={20} />
-      </button>
+      {!isAtEnd && (
+        <button
+          type="button"
+          onClick={handleRightClick}
+          aria-label="Scroll right"
+          className="absolute right-0 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full border border-gold-500/70 bg-navy-950 text-gold-400 transition hover:bg-gold-500/10 sm:flex"
+        >
+          <FiChevronRight size={20} />
+        </button>
+      )}
 
       <div
         ref={scrollerRef}
         onScroll={handleScroll}
-        className="brokers-scroller flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4 sm:gap-6"
+        className="brokers-scroller flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-4 sm:gap-6 sm:px-2"
       >
         {brokers.map((broker) => (
           <div
@@ -148,41 +188,28 @@ export default function BrokersScroller({ brokers }) {
                 className="mt-4 grid grid-cols-3 gap-2 pt-4"
                 style={{ borderTop: "1px solid rgba(17,26,44,0.8)" }}
               >
-                <div>
-                  <p className="font-display text-base text-gold-400 sm:text-lg">
-                    {broker.experience
-                      ? `${broker.experience} ${Number(broker.experience) === 1 ? "Year" : "Years"}`
-                      : "—"}
+                <div className="min-w-0">
+                  <p className="truncate font-display text-base text-gold-400 sm:text-lg">
+                    {broker.experience || "—"}
                   </p>
-                  <p className="text-[11px] text-muted">Experience</p>
+                  <p className="truncate text-[11px] text-muted">Experience</p>
                 </div>
-                <div>
-                  <p className="font-display text-base text-gold-400 sm:text-lg">
+                <div className="min-w-0">
+                  <p className="truncate font-display text-base text-gold-400 sm:text-lg">
                     {broker.dealsClosed ?? 0}
                   </p>
-                  <p className="text-[11px] text-muted">Deals Closed</p>
+                  <p className="truncate text-[11px] text-muted">Deals Closed</p>
                 </div>
-                <div>
-                  <p className="font-display text-base text-gold-400 sm:text-lg">
+                <div className="min-w-0">
+                  <p className="truncate font-display text-base text-gold-400 sm:text-lg">
                     {broker.propertiesListed ?? 0}
                   </p>
-                  <p className="text-[11px] text-muted">Properties Listed</p>
+                  <p className="truncate text-[11px] text-muted">Properties Listed</p>
                 </div>
               </div>
             </div>
 
-            <div className="mt-4 flex items-stretch gap-2">
-              <Link
-                href={`/agent/${broker.accountId}`}
-                className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-navy-700/60 py-2.5 text-sm font-semibold text-cream transition hover:border-gold-500/50 hover:text-gold-400"
-              >
-                <FiEye size={16} />
-                View
-              </Link>
-              <div className="flex-1">
-                <CallNowButton mobile={broker.mobile} />
-              </div>
-            </div>
+            <BrokerActions accountId={broker.accountId} mobile={broker.mobile} />
           </div>
         ))}
       </div>

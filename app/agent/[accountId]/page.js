@@ -85,9 +85,7 @@ export default async function AgentProfilePage({ params }) {
           <div className="flex items-center gap-6 sm:shrink-0 sm:gap-0 sm:divide-x sm:divide-navy-700/60 sm:rounded-sm sm:border sm:border-navy-700/60 sm:bg-navy-950/40">
             <div className="sm:px-6 sm:py-3 sm:text-center">
               <p className="font-display text-lg text-gold-400">
-                {broker.experience
-                  ? `${broker.experience} ${Number(broker.experience) === 1 ? "Year" : "Years"}`
-                  : "—"}
+                {broker.experience || "—"}
               </p>
               <p className="text-[11px] text-muted">Experience</p>
             </div>

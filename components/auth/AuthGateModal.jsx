@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { MdLock, MdClose, MdPersonAdd, MdLogin } from "react-icons/md";
 
@@ -38,9 +39,9 @@ export default function AuthGateModal({
     };
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  if (!isOpen || typeof document === "undefined") return null;
 
-  return (
+  return createPortal(
     <div
       ref={overlayRef}
       onClick={(e) => {
@@ -150,6 +151,7 @@ export default function AuthGateModal({
           </p>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
