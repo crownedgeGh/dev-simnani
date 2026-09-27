@@ -3,18 +3,24 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { MdAdd, MdEdit, MdDelete, MdOpenInNew, MdLocationOn, MdReportProblem } from "react-icons/md";
+import { MdAdd, MdEdit, MdDelete, MdOpenInNew, MdLocationOn, MdSend, MdReportProblem } from "react-icons/md";
 import AdminPageHeader from "@/components/admin/layout/AdminPageHeader";
 import AdminTable from "@/components/admin/ui/AdminTable";
 import AdminConfirmModal from "@/components/admin/ui/AdminConfirmModal";
+import AssignPropertyDialog from "@/components/admin/freelancer-cp/AssignPropertyDialog";
 import adminAxios from "@/lib/adminAxios";
-import { ADMIN_KEYS, readCollection, writeCollection } from "@/lib/adminStorage";
+import { ADMIN_KEYS, readCollection, writeCollection, addCpAssignment } from "@/lib/adminStorage";
 import { getLocationCity } from "@/lib/properties";
 import {
   NON_PUBLIC_POSTED_BY_ROLES,
   POSTED_BY_ROLE_OPTIONS,
   getPostedByRoleLabel,
 } from "@/lib/postedByRoles";
+import { TEST_MODE_CP_PROFILES } from "@/lib/testModeCp";
+
+// Demo/testing fallback — guarantees the Company CP tester account is always
+// selectable here even if the CP network hasn't been populated in this browser yet.
+const DEMO_COMPANY_PARTNER = { id: "demo-company-cp", name: TEST_MODE_CP_PROFILES.company.fullName, cpType: "company" };
 
 const PROPERTY_TYPES = [
   "buy",
@@ -51,6 +57,29 @@ export default function AdminSgPropertiesPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [companyPartners, setCompanyPartners] = useState([]);
+  const [assignments, setAssignments] = useState([]);
+  const [assignTarget, setAssignTarget] = useState(null);
+
+  const loadCpData = useCallback(() => {
+    const network = readCollection(ADMIN_KEYS.cpNetwork) || [];
+    const realPartners = network
+      .filter((n) => n.cpType === "company" && n.status !== "Suspended")
+      .map((n) => ({ id: n.id, name: n.name, cpType: "company" }));
+    const hasDemoPartner = realPartners.some((p) => p.name === DEMO_COMPANY_PARTNER.name);
+    setCompanyPartners(hasDemoPartner ? realPartners : [DEMO_COMPANY_PARTNER, ...realPartners]);
+    setAssignments(readCollection(ADMIN_KEYS.cpAssignments) || []);
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    Promise.resolve().then(() => {
+      if (active) loadCpData();
+    });
+    return () => {
+      active = false;
+    };
+  }, [loadCpData]);
 
   const loadProperties = useCallback(async () => {
     try {
@@ -89,7 +118,24 @@ export default function AdminSgPropertiesPage() {
   const handleRefresh = async () => {
     setRefreshing(true);
     await loadProperties();
+    loadCpData();
     setRefreshing(false);
+  };
+
+  const handleAssignToCompanyCp = async (partner) => {
+    const record = addCpAssignment({
+      propertyId: assignTarget.id,
+      propertyTitle: assignTarget.title,
+      propertyImage: assignTarget.image,
+      propertyLocation: assignTarget.location,
+      level: "head-to-company",
+      assignedByCpType: "head-cp",
+      assignedByName: "Head CP",
+      assignedToCpType: "company",
+      assignedToName: partner.name,
+    });
+    setAssignments((prev) => [record, ...prev]);
+    toast.success(`Forwarded to ${partner.name}`);
   };
 
   // Only staff-posted listings — Super Admin & every CP tier. Public /
@@ -248,6 +294,23 @@ export default function AdminSgPropertiesPage() {
           ) : null,
       },
       {
+        key: "cpAssignment",
+        label: "CP Assignment",
+        searchable: false,
+        render: (_, row) => {
+          const assignment = assignments.find((a) => a.propertyId === row.id && a.level === "head-to-company");
+          return assignment ? (
+            <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 whitespace-nowrap">
+              Forwarded: {assignment.assignedToName}
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 rounded-full border border-[#e8e0d5] bg-[#faf8f5] px-2 py-0.5 text-xs font-medium text-[#9ca3af] whitespace-nowrap">
+              Not Forwarded
+            </span>
+          );
+        },
+      },
+      {
         key: "actions",
         label: "",
         type: "actions",
@@ -264,6 +327,11 @@ export default function AdminSgPropertiesPage() {
             onClick: () => router.push(`/admin/properties/${row.id}/edit`),
           },
           {
+            label: "Forward to Company CP",
+            icon: MdSend,
+            onClick: () => setAssignTarget(row),
+          },
+          {
             label: "Delete",
             icon: MdDelete,
             variant: "danger",
@@ -272,7 +340,7 @@ export default function AdminSgPropertiesPage() {
         ],
       },
     ],
-    [cityOptions, router]
+    [cityOptions, router, assignments]
   );
 
   return (
@@ -312,6 +380,16 @@ export default function AdminSgPropertiesPage() {
         confirmLabel="Delete"
         confirmVariant="danger"
         isLoading={deleting}
+      />
+
+      <AssignPropertyDialog
+        isOpen={!!assignTarget}
+        onClose={() => setAssignTarget(null)}
+        title="Forward to Company CP"
+        propertyTitle={assignTarget?.title}
+        partners={companyPartners}
+        currentAssigneeName={assignments.find((a) => a.propertyId === assignTarget?.id && a.level === "head-to-company")?.assignedToName}
+        onAssign={handleAssignToCompanyCp}
       />
     </div>
   );
