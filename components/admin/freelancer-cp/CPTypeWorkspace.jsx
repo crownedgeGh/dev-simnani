@@ -449,10 +449,10 @@ export default function CPTypeWorkspace({
       primary: true,
       sortable: true,
       render: (v, row) => (
-        <div>
-          <p className="text-sm font-medium text-[#1a1a2e]">{v}</p>
+        <Link href={`/property/${row.propertyId || row.id}`} target="_blank" className="group block">
+          <p className="text-sm font-medium text-[#1a1a2e] transition group-hover:text-[#d97706] group-hover:underline">{v}</p>
           <p className="mt-0.5 text-xs text-[#9ca3af]">{row.propertyLocation}</p>
-        </div>
+        </Link>
       ),
     },
     { key: "assignedByName", label: "Assigned By", render: (v) => <span className="text-sm text-[#374151]">{v || "—"}</span> },

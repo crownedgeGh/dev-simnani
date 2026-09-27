@@ -325,25 +325,34 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
               <div className="flex flex-col gap-4">
                 <h2 className="font-display text-xl text-cream">Forwarded by Company CP</h2>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {forwardedProperties.map((property) => (
-                    <div key={property.id} className="flex flex-col border border-navy-700/60 bg-navy-900 p-4">
-                      <div className="relative h-32 w-full overflow-hidden rounded-sm">
-                        <Image
-                          src={property.propertyImage}
-                          alt={property.propertyTitle}
-                          fill
-                          sizes="(max-width: 640px) 100vw, 33vw"
-                          className="object-cover"
-                        />
+                  {forwardedProperties.map((property) => {
+                    const propHref = `/property/${property.propertyId || property.id}`;
+                    return (
+                      <div key={property.id} className="flex flex-col justify-between border border-navy-700/60 bg-navy-900 p-4 transition hover:border-gold-500/50">
+                        <Link href={propHref} className="group flex flex-col">
+                          <div className="relative h-36 w-full overflow-hidden rounded-sm">
+                            <Image
+                              src={property.propertyImage || "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=1200&q=80&auto=format&fit=crop"}
+                              alt={property.propertyTitle || "Property"}
+                              fill
+                              sizes="(max-width: 640px) 100vw, 33vw"
+                              className="object-cover transition duration-300 group-hover:scale-105"
+                            />
+                          </div>
+                          <h3 className="mt-3 font-display text-base text-cream transition group-hover:text-gold-400">{property.propertyTitle}</h3>
+                          <p className="mt-1 text-xs text-muted">{property.propertyLocation}</p>
+                          <div className="mt-2 flex items-center gap-1.5 text-xs text-gold-400">
+                            <span className="font-medium">View Property Details</span>
+                            <FiArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+                          </div>
+                        </Link>
+                        <span className="tracked-label mt-3 flex w-fit items-center gap-1.5 border border-gold-500/70 px-3 py-1 text-[10px] text-gold-400">
+                          <FiUserCheck className="h-3 w-3" />
+                          Forwarded by {formatCpLabel(property.assignedByName, property.assignedByCity, property.assignedByState)}
+                        </span>
                       </div>
-                      <h3 className="mt-3 font-display text-base text-cream">{property.propertyTitle}</h3>
-                      <p className="mt-1 text-xs text-muted">{property.propertyLocation}</p>
-                      <span className="tracked-label mt-3 flex w-fit items-center gap-1.5 border border-gold-500/70 px-3 py-1 text-[10px] text-gold-400">
-                        <FiUserCheck className="h-3 w-3" />
-                        Forwarded by {formatCpLabel(property.assignedByName, property.assignedByCity, property.assignedByState)}
-                      </span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -415,36 +424,50 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
             </p>
             <div key={refreshKeys.campaign} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {projects.map((p) => (
-                <Link
+                <div
                   key={p.id}
-                  href={`/portal/digital-cp/campaign/${p.id}`}
-                  className="group flex flex-col gap-0 overflow-hidden border border-navy-700/60 bg-navy-900 transition hover:border-gold-500/60"
+                  className="group flex flex-col justify-between overflow-hidden border border-navy-700/60 bg-navy-900 transition hover:border-gold-500/60"
                 >
-                  <div className="relative h-36 w-full overflow-hidden">
-                    <Image
-                      src={p.image}
-                      alt={p.name}
-                      fill
-                      sizes="(max-width: 640px) 100vw, 33vw"
-                      className="object-cover transition group-hover:scale-105"
-                    />
-                    {joinedCampaigns.includes(p.id) && (
-                      <div className="absolute left-2 top-2 flex items-center gap-1 border border-gold-500/70 bg-navy-950/80 px-2 py-1 backdrop-blur-sm">
-                        <FiCheck className="h-3 w-3 text-gold-400" />
-                        <span className="tracked-label text-[9px] text-gold-400">Joined</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex flex-col gap-1 p-4">
-                    <h3 className="font-display text-sm text-cream transition group-hover:text-gold-400">{p.name}</h3>
-                    <p className="text-xs text-muted">{p.location}</p>
-                    <p className="text-xs text-muted">{p.startingPrice} · {p.status}</p>
-                    <div className="mt-2 flex items-center gap-1 text-xs text-gold-400 opacity-0 transition group-hover:opacity-100">
-                      <MdCampaign className="h-3.5 w-3.5" />
-                      View Campaign <FiArrowRight className="h-3 w-3" />
+                  <Link href={`/property/${p.id}`} className="block">
+                    <div className="relative h-36 w-full overflow-hidden">
+                      <Image
+                        src={p.image}
+                        alt={p.name}
+                        fill
+                        sizes="(max-width: 640px) 100vw, 33vw"
+                        className="object-cover transition duration-300 group-hover:scale-105"
+                      />
+                      {joinedCampaigns.includes(p.id) && (
+                        <div className="absolute left-2 top-2 flex items-center gap-1 border border-gold-500/70 bg-navy-950/80 px-2 py-1 backdrop-blur-sm">
+                          <FiCheck className="h-3 w-3 text-gold-400" />
+                          <span className="tracked-label text-[9px] text-gold-400">Joined</span>
+                        </div>
+                      )}
                     </div>
+                    <div className="flex flex-col gap-1 p-4 pb-2">
+                      <h3 className="font-display text-sm text-cream transition group-hover:text-gold-400">{p.name}</h3>
+                      <p className="text-xs text-muted">{p.location}</p>
+                      <p className="text-xs text-muted">{p.startingPrice} · {p.status}</p>
+                    </div>
+                  </Link>
+
+                  <div className="flex items-center justify-between border-t border-navy-700/60 p-4 pt-3">
+                    <Link
+                      href={`/property/${p.id}`}
+                      className="tracked-label flex items-center gap-1 text-[11px] text-gold-400 transition hover:text-gold-300"
+                    >
+                      <span>View Details</span>
+                      <FiArrowRight className="h-3 w-3" />
+                    </Link>
+                    <Link
+                      href={`/portal/digital-cp/campaign/${p.id}`}
+                      className="tracked-label flex items-center gap-1 border border-navy-700/60 bg-navy-950 px-2.5 py-1 text-[10px] text-cream transition hover:border-gold-400 hover:text-gold-400"
+                    >
+                      <MdCampaign className="h-3.5 w-3.5 text-gold-400" />
+                      <span>Campaign Assets</span>
+                    </Link>
                   </div>
-                </Link>
+                </div>
               ))}
             </div>
           </div>

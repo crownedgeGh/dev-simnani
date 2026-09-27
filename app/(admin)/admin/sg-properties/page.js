@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { MdAdd, MdEdit, MdDelete, MdOpenInNew, MdLocationOn, MdSend, MdReportProblem } from "react-icons/md";
+import { MdAdd, MdEdit, MdDelete, MdOpenInNew, MdLocationOn, MdSend } from "react-icons/md";
 import AdminPageHeader from "@/components/admin/layout/AdminPageHeader";
 import AdminTable from "@/components/admin/ui/AdminTable";
 import AdminConfirmModal from "@/components/admin/ui/AdminConfirmModal";
@@ -214,9 +214,10 @@ export default function AdminSgPropertiesPage() {
         label: "Title",
         sortable: true,
         primary: true,
+        width: "min-w-[200px] max-w-xs",
         render: (val, row) => (
-          <div>
-            <p className="font-medium text-[#1a1a2e] text-sm leading-tight">{val}</p>
+          <div className="min-w-[180px] max-w-xs whitespace-normal break-words">
+            <p className="font-medium text-[#1a1a2e] text-sm leading-snug">{val}</p>
             <p className="text-xs text-[#9ca3af] mt-0.5">{row.location}</p>
           </div>
         ),
@@ -280,21 +281,6 @@ export default function AdminSgPropertiesPage() {
         type: "status",
         sortable: true,
         filterOptions: ["Active", "Pending Review", "Rejected", "Closed"],
-      },
-      {
-        key: "correctionRequest",
-        label: "Review",
-        searchable: false,
-        render: (val) =>
-          val?.underReview && !val?.active ? (
-            <span className="inline-flex items-center gap-1 rounded-full border border-[#f0b429]/40 bg-[#fff8e1] px-2 py-0.5 text-xs font-medium text-[#d97706] whitespace-nowrap">
-              <MdReportProblem size={12} /> Awaiting Review
-            </span>
-          ) : val?.active ? (
-            <span className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-xs font-medium text-red-600 whitespace-nowrap">
-              On Hold
-            </span>
-          ) : null,
       },
       {
         key: "cpAssignment",

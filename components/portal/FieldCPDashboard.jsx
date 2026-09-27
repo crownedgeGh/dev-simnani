@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { FiPlus, FiCheck, FiSend, FiNavigation, FiCamera, FiUser, FiPhone } from "react-icons/fi";
+import { FiPlus, FiCheck, FiSend, FiNavigation, FiCamera, FiUser, FiPhone, FiArrowRight } from "react-icons/fi";
 import Tabs from "./Tabs";
 import StatCard from "./StatCard";
 import Badge from "./Badge";
@@ -197,68 +197,107 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
               <div className="flex flex-col gap-3">
                 <p className="tracked-label text-xs text-gold-400">Properties Delegated by Company CP</p>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {delegatedProjects.map((a) => (
-                    <div key={a.id} className="border border-navy-700/60 bg-navy-900 p-4">
-                      <p className="text-sm text-cream">{a.propertyTitle}</p>
-                      <p className="mt-1 text-xs text-muted">{a.propertyLocation}</p>
-                      <p className="mt-2 text-xs text-muted">
-                        Forwarded by {formatCpLabel(a.assignedByName, a.assignedByCity, a.assignedByState)}
-                      </p>
-                      <Badge tone="gold">{a.status}</Badge>
-                    </div>
-                  ))}
+                  {delegatedProjects.map((a) => {
+                    const propHref = `/property/${a.propertyId || a.id}`;
+                    return (
+                      <Link
+                        key={a.id}
+                        href={propHref}
+                        className="group flex flex-col justify-between border border-navy-700/60 bg-navy-900 p-4 transition hover:border-gold-500/60"
+                      >
+                        {a.propertyImage && (
+                          <div className="relative mb-3 h-36 w-full overflow-hidden rounded-sm">
+                            <Image
+                              src={a.propertyImage}
+                              alt={a.propertyTitle || "Property"}
+                              fill
+                              sizes="(max-width: 640px) 100vw, 33vw"
+                              className="object-cover transition duration-300 group-hover:scale-105"
+                            />
+                          </div>
+                        )}
+                        <div>
+                          <p className="text-sm font-medium text-cream transition group-hover:text-gold-400">{a.propertyTitle}</p>
+                          <p className="mt-1 text-xs text-muted">{a.propertyLocation}</p>
+                          <p className="mt-2 text-xs text-muted">
+                            Forwarded by {formatCpLabel(a.assignedByName, a.assignedByCity, a.assignedByState)}
+                          </p>
+                        </div>
+                        <div className="mt-4 flex items-center justify-between border-t border-navy-700/60 pt-3">
+                          <Badge tone="gold">{a.status}</Badge>
+                          <span className="flex items-center gap-1 text-xs text-gold-400">
+                            View Property <FiArrowRight className="h-3 w-3 transition group-hover:translate-x-0.5" />
+                          </span>
+                        </div>
+                      </Link>
+                    );
+                  })}
                 </div>
               </div>
             )}
             {assignedProjects.length === 0 ? (
               <EmptyState title="No projects assigned yet" message="Projects with leads assigned to you by a Company Channel Partner will appear here." />
             ) : (
-              assignedProjects.map(({ project, leads: projectLeads }) => (
-                <div key={project.id} className="border border-navy-700/60 bg-navy-900 p-5">
-                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-[220px_1fr]">
-                    <div className="relative h-48 w-full overflow-hidden rounded-sm sm:h-full">
-                      <Image
-                        src={project.image}
-                        alt={project.name}
-                        fill
-                        sizes="(max-width: 640px) 100vw, 220px"
-                        className="object-cover"
-                      />
-                    </div>
-                    <div className="flex flex-col">
-                      <h3 className="font-display text-lg text-cream">{project.name}</h3>
-                      <p className="mt-1 text-xs text-muted">{project.location}</p>
-                      <p className="mt-1 text-xs text-muted">
-                        {project.startingPrice} · {project.developer}
-                      </p>
-                      <span className="tracked-label mt-3 flex w-fit items-center gap-1 border border-gold-500/70 px-3 py-1 text-xs text-gold-400">
-                        {project.status}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="mt-5 border-t border-navy-700/60 pt-4">
-                    <p className="tracked-label text-xs text-gold-400">Assigned Customers ({projectLeads.length})</p>
-                    <div className="mt-3 flex flex-col gap-3">
-                      {projectLeads.map((lead) => (
-                        <div
-                          key={lead.id}
-                          className="flex flex-col gap-2 border border-navy-700/60 bg-navy-950 p-3 sm:flex-row sm:items-center sm:justify-between"
-                        >
-                          <div className="min-w-0">
-                            <p className="text-sm text-cream">{lead.customer}</p>
-                            <p className="mt-1 text-xs text-muted">{lead.phone}</p>
-                          </div>
-                          <div className="flex items-center gap-3 sm:shrink-0">
-                            {lead.commission && <span className="text-sm text-gold-400">{lead.commission}</span>}
-                            <Badge tone={lead.status === "Converted" ? "success" : "gold"}>{lead.status}</Badge>
-                          </div>
+              assignedProjects.map(({ project, leads: projectLeads }) => {
+                const propHref = `/property/${project.id}`;
+                return (
+                  <div key={project.id} className="border border-navy-700/60 bg-navy-900 p-5 transition hover:border-navy-600">
+                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-[220px_1fr]">
+                      <Link href={propHref} className="group relative h-48 w-full overflow-hidden rounded-sm sm:h-full block">
+                        <Image
+                          src={project.image}
+                          alt={project.name}
+                          fill
+                          sizes="(max-width: 640px) 100vw, 220px"
+                          className="object-cover transition duration-300 group-hover:scale-105"
+                        />
+                      </Link>
+                      <div className="flex flex-col">
+                        <Link href={propHref} className="group">
+                          <h3 className="font-display text-lg text-cream transition group-hover:text-gold-400">{project.name}</h3>
+                        </Link>
+                        <p className="mt-1 text-xs text-muted">{project.location}</p>
+                        <p className="mt-1 text-xs text-muted">
+                          {project.startingPrice} · {project.developer}
+                        </p>
+                        <div className="mt-3 flex flex-wrap items-center gap-3">
+                          <span className="tracked-label flex w-fit items-center gap-1 border border-gold-500/70 px-3 py-1 text-xs text-gold-400">
+                            {project.status}
+                          </span>
+                          <Link
+                            href={propHref}
+                            className="tracked-label flex items-center gap-1.5 text-xs text-gold-400 transition hover:text-gold-300"
+                          >
+                            <span>View Property Details</span>
+                            <FiArrowRight className="h-3.5 w-3.5" />
+                          </Link>
                         </div>
-                      ))}
+                      </div>
+                    </div>
+
+                    <div className="mt-5 border-t border-navy-700/60 pt-4">
+                      <p className="tracked-label text-xs text-gold-400">Assigned Customers ({projectLeads.length})</p>
+                      <div className="mt-3 flex flex-col gap-3">
+                        {projectLeads.map((lead) => (
+                          <div
+                            key={lead.id}
+                            className="flex flex-col gap-2 border border-navy-700/60 bg-navy-950 p-3 sm:flex-row sm:items-center sm:justify-between"
+                          >
+                            <div className="min-w-0">
+                              <p className="text-sm text-cream">{lead.customer}</p>
+                              <p className="mt-1 text-xs text-muted">{lead.phone}</p>
+                            </div>
+                            <div className="flex items-center gap-3 sm:shrink-0">
+                              {lead.commission && <span className="text-sm text-gold-400">{lead.commission}</span>}
+                              <Badge tone={lead.status === "Converted" ? "success" : "gold"}>{lead.status}</Badge>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
             </div>
           </div>

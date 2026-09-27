@@ -14,6 +14,7 @@ import {
   FiUserCheck,
   FiPlus,
   FiSend,
+  FiArrowRight,
 } from "react-icons/fi";
 import Tabs from "./Tabs";
 import StatCard from "./StatCard";
@@ -186,19 +187,26 @@ export default function CompanyCPDashboard({
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {assignedProjects.map((project) => {
                   const delegated = assignments.find((a) => a.parentAssignmentId === project.id);
+                  const propHref = `/property/${project.propertyId || project.id}`;
                   return (
-                    <div key={project.id} className="flex flex-col border border-navy-700/60 bg-navy-900 p-4">
-                      <div className="relative h-40 w-full overflow-hidden rounded-sm">
-                        <Image
-                          src={project.propertyImage}
-                          alt={project.propertyTitle}
-                          fill
-                          sizes="(max-width: 640px) 100vw, 33vw"
-                          className="object-cover"
-                        />
-                      </div>
-                      <h3 className="mt-3 font-display text-base text-cream">{project.propertyTitle}</h3>
-                      <p className="mt-1 text-xs text-muted">{project.propertyLocation}</p>
+                    <div key={project.id} className="flex flex-col justify-between border border-navy-700/60 bg-navy-900 p-4 transition hover:border-gold-500/50">
+                      <Link href={propHref} className="group flex flex-col">
+                        <div className="relative h-40 w-full overflow-hidden rounded-sm">
+                          <Image
+                            src={project.propertyImage || "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=1200&q=80&auto=format&fit=crop"}
+                            alt={project.propertyTitle || "Property"}
+                            fill
+                            sizes="(max-width: 640px) 100vw, 33vw"
+                            className="object-cover transition duration-300 group-hover:scale-105"
+                          />
+                        </div>
+                        <h3 className="mt-3 font-display text-base text-cream transition group-hover:text-gold-400">{project.propertyTitle}</h3>
+                        <p className="mt-1 text-xs text-muted">{project.propertyLocation}</p>
+                        <div className="mt-2 flex items-center gap-1.5 text-xs text-gold-400">
+                          <span className="font-medium">View Property Details</span>
+                          <FiArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+                        </div>
+                      </Link>
 
                       <div className="mt-4 flex flex-col gap-2 border-t border-navy-700/60 pt-4">
                         {delegated && (
