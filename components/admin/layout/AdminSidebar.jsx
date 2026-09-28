@@ -15,6 +15,7 @@ import {
   MdWorkspacePremium,
   MdInsights,
   MdAdminPanelSettings,
+  MdCategory,
 } from "react-icons/md";
 import { BiBuildingHouse } from "react-icons/bi";
 import { useState } from "react";
@@ -49,6 +50,7 @@ const NAV_ITEMS = [
     ],
   },
   { href: "/admin/callbacks", label: "Callbacks", icon: MdPhone },
+  { href: "/admin/skills", label: "Skills", icon: MdCategory },
   { href: "/admin/settings", label: "Settings", icon: MdSettings },
 ];
 

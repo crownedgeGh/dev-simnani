@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MdClose, MdDashboard, MdApartment, MdPeople, MdLeaderboard, MdSupervisedUserCircle, MdPhone, MdSettings, MdLightMode, MdDarkMode, MdWorkspacePremium, MdInsights, MdAdminPanelSettings } from "react-icons/md";
+import { MdClose, MdDashboard, MdApartment, MdPeople, MdLeaderboard, MdSupervisedUserCircle, MdPhone, MdSettings, MdLightMode, MdDarkMode, MdWorkspacePremium, MdInsights, MdAdminPanelSettings, MdCategory } from "react-icons/md";
 import { BiBuildingHouse } from "react-icons/bi";
 import { useAdminTheme } from "@/context/AdminThemeContext";
 import { useCorrectionReviewCount } from "@/lib/useCorrectionReviewCount";
@@ -37,6 +37,7 @@ const NAV_ITEMS = [
     ],
   },
   { href: "/admin/callbacks", label: "Callbacks", icon: MdPhone },
+  { href: "/admin/skills", label: "Skills", icon: MdCategory },
   { href: "/admin/settings", label: "Settings", icon: MdSettings },
 ];
 

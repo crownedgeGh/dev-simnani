@@ -107,6 +107,19 @@ export default function UserDetailPage() {
     );
   }
 
+  if (user.accountType === "freelancer") {
+    fields.push(
+      [
+        "Skills",
+        Array.isArray(user.skills) && user.skills.length
+          ? user.skills.map((s) => `${s.category} / ${s.subcategory}`).join(", ")
+          : "—",
+      ],
+      ["Coverage Areas", user.coverageAreas || "—"],
+      ["Currently Working Elsewhere", user.currentlyWorking || "—"]
+    );
+  }
+
   if (user.accountType === "investor") {
     fields.push(
       ["Property Types", propertyTypeLabels(user.propertyTypes) || "—"],

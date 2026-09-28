@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { FiSun, FiMoon, FiPlusSquare } from "react-icons/fi";
 import PortalHeader from "@/components/portal/PortalHeader";
@@ -92,7 +92,17 @@ export default function FreelancerPortalClient({
   const partner = user;
   const copy = PORTAL_COPY[cpType];
 
-  if (isLoading) return null;
+  // The server-side guard already confirmed a valid session when this page
+  // rendered, but the client's own auth check (fetchMe) can still land on a
+  // stale/expired session — e.g. the cookie was cleared between the server
+  // request and this fetch. Bounce to /auth instead of crashing on a null user.
+  useEffect(() => {
+    if (!isLoading && !partner) {
+      router.replace("/auth");
+    }
+  }, [isLoading, partner, router]);
+
+  if (isLoading || !partner) return null;
 
   return (
     <div className={`min-h-screen bg-navy-950 ${isLight ? "cp-light-theme" : ""}`}>

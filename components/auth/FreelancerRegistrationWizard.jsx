@@ -10,6 +10,7 @@ import FormField from "./FormField";
 import ChipGroup from "./ChipGroup";
 import PasswordFields from "./PasswordFields";
 import SearchableSelect from "./SearchableSelect";
+import SkillsSelector from "./SkillsSelector";
 import { inputClass } from "./inputStyles";
 import { formatMobile, isMobileValid, isPasswordValid, generateAccountId } from "@/lib/auth";
 import { RTO_STATES, getCitiesForState } from "@/lib/cityRto";
@@ -49,12 +50,6 @@ const CURRENTLY_WORKING_OPTIONS = [
   { value: "no", label: "No" },
 ];
 
-const EXPERIENCE_LEVELS = [
-  { value: "beginner", label: "Beginner", hint: "0-1 Years" },
-  { value: "intermediate", label: "Intermediate", hint: "1-3 Years" },
-  { value: "expert", label: "Expert", hint: "3+ Years" },
-];
-
 const ACCOUNT_ID_PREFIX = { company: "CCP", digital: "DCP", field: "FCP" };
 
 const INITIAL_FORM = {
@@ -68,7 +63,7 @@ const INITIAL_FORM = {
   confirmPassword: "",
   currentlyWorking: "",
   coverageAreas: "",
-  experience: "",
+  skills: [],
   agree: false,
 };
 
@@ -116,8 +111,8 @@ export default function FreelancerRegistrationWizard() {
         setError("Please select your city.");
         return;
       }
-      if (!form.experience) {
-        setError("Please select your experience level.");
+      if (!form.skills.length) {
+        setError("Please add at least one skill.");
         return;
       }
       if (form.cpType === "digital" && !form.currentlyWorking) {
@@ -166,7 +161,7 @@ export default function FreelancerRegistrationWizard() {
       accountId: id,
       currentlyWorking: form.currentlyWorking,
       coverageAreas: form.coverageAreas,
-      experience: form.experience,
+      skills: form.skills,
       registeredAt: new Date().toISOString(),
       profileComplete: true,
     };
@@ -321,12 +316,14 @@ export default function FreelancerRegistrationWizard() {
             </FormField>
           )}
 
-          <FormField label="Experience" required>
-            <ChipGroup
-              options={EXPERIENCE_LEVELS}
-              value={form.experience}
-              onChange={(value) => update("experience", value)}
-              layout="card"
+          <FormField
+            label="Skills"
+            required
+            hint="Pick a skill category and skill, then add it. Don't see yours? Add your own."
+          >
+            <SkillsSelector
+              value={form.skills}
+              onChange={(skills) => update("skills", skills)}
             />
           </FormField>
 

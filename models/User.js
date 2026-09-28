@@ -137,6 +137,18 @@ const UserSchema = new mongoose.Schema(
       max: 10,
       default: null,
     },
+    // Freelancer skills — each entry pairs a SkillCategory name with one of
+    // its subcategories (see /api/skills, models/SkillCategory.js).
+    skills: {
+      type: [
+        {
+          category: { type: String, trim: true },
+          subcategory: { type: String, trim: true },
+          _id: false,
+        },
+      ],
+      default: [],
+    },
   },
   {
     timestamps: true,
