@@ -24,6 +24,7 @@ import PropertyGrid from "@/components/property/PropertyGrid";
 import { CP_TYPE_LABEL, VIDEO_STATUS_TONE } from "./channel-partner/tones";
 import { selectClass } from "@/components/auth/inputStyles";
 import RefreshButton from "./RefreshButton";
+import { usePersistentTab } from "@/lib/usePersistentTab";
 import { toast } from "sonner";
 
 function formatCpLabel(name, city, state) {
@@ -56,7 +57,11 @@ export default function CompanyCPDashboard({
   partner,
   myListings = [],
 }) {
-  const [tab, setTab] = useState("overview");
+  const [tab, setTab] = usePersistentTab(
+    "cp_tab_company",
+    TABS.map((t) => t.key),
+    "overview"
+  );
   const [assignments, setAssignments] = useState([]);
   const [videos, setVideos] = useState(initialCampaignVideos);
   const [editingNoteId, setEditingNoteId] = useState(null);
@@ -187,7 +192,7 @@ export default function CompanyCPDashboard({
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {assignedProjects.map((project) => {
                   const delegated = assignments.find((a) => a.parentAssignmentId === project.id);
-                  const propHref = `/property/${project.propertyId || project.id}`;
+                  const propHref = `/property/${project.propertyId || project.id}?campaign=1`;
                   return (
                     <div key={project.id} className="flex flex-col justify-between border border-navy-700/60 bg-navy-900 p-4 transition hover:border-gold-500/50">
                       <Link href={propHref} className="group flex flex-col">

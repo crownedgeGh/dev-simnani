@@ -7,6 +7,7 @@ import {
   FiCheck,
   FiX,
   FiDownload,
+  FiLoader,
   FiArrowLeft,
   FiVideo,
   FiAlertTriangle,
@@ -15,6 +16,8 @@ import {
   FiPlay,
 } from "react-icons/fi";
 import { MdCampaign } from "react-icons/md";
+import { toast } from "sonner";
+import { downloadFile, downloadFiles } from "@/lib/downloadFile";
 
 const VIDEO_DOS = [
   {
@@ -115,6 +118,37 @@ function slugify(name) {
 
 export default function CampaignDetailPage({ project, assets, backHref }) {
   const [joined, setJoined] = useState(false);
+  const [downloadingImages, setDownloadingImages] = useState(false);
+  const [downloadingVideos, setDownloadingVideos] = useState(false);
+  const [downloadingKey, setDownloadingKey] = useState(null);
+
+  const hasImages = (assets?.images?.length ?? 0) > 0;
+  const hasVideos = (assets?.videos?.length ?? 0) > 0;
+
+  async function handleDownloadImages() {
+    if (downloadingImages) return;
+    setDownloadingImages(true);
+    await downloadFiles(assets.images, `${slugify(project.name)}-image`);
+    setDownloadingImages(false);
+    toast.success(`${assets.images.length} image${assets.images.length > 1 ? "s" : ""} downloaded`);
+  }
+
+  async function handleDownloadVideos() {
+    if (downloadingVideos) return;
+    setDownloadingVideos(true);
+    const videoUrls = assets.videos.map((name) => `https://cdn.simnaniestates.com/campaign-videos/${slugify(name)}`);
+    await downloadFiles(videoUrls, `${slugify(project.name)}-video`);
+    setDownloadingVideos(false);
+    toast.success(`${assets.videos.length} video${assets.videos.length > 1 ? "s" : ""} downloaded`);
+  }
+
+  async function handleDownloadSingle(key, url, filename, message) {
+    if (downloadingKey) return;
+    setDownloadingKey(key);
+    await downloadFile(url, filename);
+    setDownloadingKey(null);
+    toast.success(message);
+  }
 
   if (!project) {
     return (
@@ -179,27 +213,61 @@ export default function CampaignDetailPage({ project, assets, backHref }) {
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setJoined((v) => !v)}
-              className={`tracked-label flex w-fit shrink-0 items-center gap-2 px-6 py-3 text-xs transition ${
-                joined
-                  ? "border border-gold-500/70 text-gold-400 hover:bg-gold-500/10"
-                  : "bg-gold-400 text-navy-950 hover:bg-gold-300"
-              }`}
-            >
-              {joined ? (
-                <>
-                  <FiCheck className="h-4 w-4" />
-                  Joined Campaign
-                </>
-              ) : (
-                <>
-                  <MdCampaign className="h-4 w-4" />
-                  Join Campaign
-                </>
+            <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+              <button
+                type="button"
+                onClick={() => setJoined((v) => !v)}
+                className={`tracked-label flex w-fit items-center gap-2 px-6 py-3 text-xs transition ${
+                  joined
+                    ? "border border-gold-500/70 text-gold-400 hover:bg-gold-500/10"
+                    : "bg-gold-400 text-navy-950 hover:bg-gold-300"
+                }`}
+              >
+                {joined ? (
+                  <>
+                    <FiCheck className="h-4 w-4" />
+                    Joined Campaign
+                  </>
+                ) : (
+                  <>
+                    <MdCampaign className="h-4 w-4" />
+                    Join Campaign
+                  </>
+                )}
+              </button>
+
+              {hasImages && (
+                <button
+                  type="button"
+                  onClick={handleDownloadImages}
+                  disabled={downloadingImages}
+                  className="tracked-label flex w-fit items-center gap-2 border border-gold-500/70 px-6 py-3 text-xs text-gold-400 transition hover:bg-gold-500/10 active:scale-95 disabled:cursor-wait disabled:opacity-70"
+                >
+                  {downloadingImages ? (
+                    <FiLoader className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <FiDownload className="h-4 w-4" />
+                  )}
+                  {downloadingImages ? "Downloading…" : "Download Images"}
+                </button>
               )}
-            </button>
+
+              {hasVideos && (
+                <button
+                  type="button"
+                  onClick={handleDownloadVideos}
+                  disabled={downloadingVideos}
+                  className="tracked-label flex w-fit items-center gap-2 border border-gold-500/70 px-6 py-3 text-xs text-gold-400 transition hover:bg-gold-500/10 active:scale-95 disabled:cursor-wait disabled:opacity-70"
+                >
+                  {downloadingVideos ? (
+                    <FiLoader className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <FiDownload className="h-4 w-4" />
+                  )}
+                  {downloadingVideos ? "Downloading…" : "Download Videos"}
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -278,6 +346,46 @@ export default function CampaignDetailPage({ project, assets, backHref }) {
       {/* ── Campaign Videos & Brochure ────────────────────────── */}
       {assets && (
         <div className="flex flex-col gap-5">
+          {/* Campaign Images */}
+          {assets.images && assets.images.length > 0 && (
+            <div className="border border-navy-700/60 bg-navy-900 p-5 sm:p-6">
+              <p className="tracked-label mb-4 text-xs text-gold-400">Campaign Images</p>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                {assets.images.map((src, i) => (
+                  <div key={src} className="group relative aspect-square overflow-hidden border border-navy-700/60 bg-navy-950">
+                    <Image
+                      src={src}
+                      alt={`${project.name} image ${i + 1}`}
+                      fill
+                      sizes="(max-width: 640px) 50vw, 25vw"
+                      className="object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleDownloadSingle(
+                          `image-${i}`,
+                          src,
+                          `${slugify(project.name)}-image-${i + 1}`,
+                          "Image downloaded"
+                        )
+                      }
+                      disabled={downloadingKey === `image-${i}`}
+                      className="absolute inset-0 flex items-center justify-center bg-navy-950/0 opacity-0 transition group-hover:bg-navy-950/60 group-hover:opacity-100 disabled:cursor-wait disabled:opacity-100"
+                      aria-label={`Download image ${i + 1}`}
+                    >
+                      {downloadingKey === `image-${i}` ? (
+                        <FiLoader className="h-5 w-5 animate-spin text-gold-400" />
+                      ) : (
+                        <FiDownload className="h-5 w-5 text-gold-400 transition active:scale-90" />
+                      )}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Campaign Videos */}
           {assets.videos && assets.videos.length > 0 && (
             <div className="border border-navy-700/60 bg-navy-900 p-5 sm:p-6">
@@ -306,14 +414,19 @@ export default function CampaignDetailPage({ project, assets, backHref }) {
                           </a>
                         </div>
                       </div>
-                      <a
-                        href={videoLink}
-                        download
-                        className="tracked-label flex shrink-0 items-center justify-center gap-2 border border-gold-500/70 px-4 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10"
+                      <button
+                        type="button"
+                        onClick={() => handleDownloadSingle(`video-${name}`, videoLink, slugify(name), "Video downloaded")}
+                        disabled={downloadingKey === `video-${name}`}
+                        className="tracked-label flex shrink-0 items-center justify-center gap-2 border border-gold-500/70 px-4 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10 active:scale-95 disabled:cursor-wait disabled:opacity-70"
                       >
-                        <FiDownload className="h-3.5 w-3.5" />
-                        Download Video
-                      </a>
+                        {downloadingKey === `video-${name}` ? (
+                          <FiLoader className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <FiDownload className="h-3.5 w-3.5" />
+                        )}
+                        {downloadingKey === `video-${name}` ? "Downloading…" : "Download Video"}
+                      </button>
                     </div>
                   );
                 })}
@@ -332,14 +445,26 @@ export default function CampaignDetailPage({ project, assets, backHref }) {
                   </div>
                   <p className="text-sm text-cream">{assets.brochureUrl}</p>
                 </div>
-                <a
-                  href={`https://cdn.simnaniestates.com/brochures/${assets.brochureUrl}`}
-                  download
-                  className="tracked-label flex shrink-0 items-center justify-center gap-2 border border-gold-500/70 px-4 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10"
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleDownloadSingle(
+                      "brochure",
+                      `https://cdn.simnaniestates.com/brochures/${assets.brochureUrl}`,
+                      assets.brochureUrl,
+                      "Brochure downloaded"
+                    )
+                  }
+                  disabled={downloadingKey === "brochure"}
+                  className="tracked-label flex shrink-0 items-center justify-center gap-2 border border-gold-500/70 px-4 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10 active:scale-95 disabled:cursor-wait disabled:opacity-70"
                 >
-                  <FiDownload className="h-3.5 w-3.5" />
-                  Download Brochure
-                </a>
+                  {downloadingKey === "brochure" ? (
+                    <FiLoader className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <FiDownload className="h-3.5 w-3.5" />
+                  )}
+                  {downloadingKey === "brochure" ? "Downloading…" : "Download Brochure"}
+                </button>
               </div>
             </div>
           )}

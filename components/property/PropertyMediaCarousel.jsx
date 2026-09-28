@@ -3,8 +3,11 @@
 import { useMemo, useState, useRef } from "react";
 import Image from "next/image";
 import { MdChevronLeft, MdChevronRight, MdPlayCircle } from "react-icons/md";
+import { FiDownload, FiLoader } from "react-icons/fi";
+import { toast } from "sonner";
+import { downloadFiles } from "@/lib/downloadFile";
 
-export default function PropertyMediaCarousel({ image, galleryImages, video, title, badge }) {
+export default function PropertyMediaCarousel({ image, galleryImages, video, title, badge, showDownloadButtons = false }) {
   const slides = useMemo(() => {
     const images = [image, ...(galleryImages || [])].filter(Boolean);
     const uniqueImages = [...new Set(images)].map((src) => ({ type: "image", src }));
@@ -12,7 +15,12 @@ export default function PropertyMediaCarousel({ image, galleryImages, video, tit
     return [...uniqueImages, ...videoSlide];
   }, [image, galleryImages, video]);
 
+  const imageSlides = useMemo(() => slides.filter((s) => s.type === "image"), [slides]);
+  const videoSlides = useMemo(() => slides.filter((s) => s.type === "video"), [slides]);
+
   const [index, setIndex] = useState(0);
+  const [downloadingImages, setDownloadingImages] = useState(false);
+  const [downloadingVideo, setDownloadingVideo] = useState(false);
   const touchStartX = useRef(null);
 
   const hasMultiple = slides.length > 1;
@@ -20,6 +28,22 @@ export default function PropertyMediaCarousel({ image, galleryImages, video, tit
 
   function goTo(next) {
     setIndex((next + slides.length) % slides.length);
+  }
+
+  async function handleDownloadImages() {
+    if (downloadingImages) return;
+    setDownloadingImages(true);
+    await downloadFiles(imageSlides.map((s) => s.src), title || "property-image");
+    setDownloadingImages(false);
+    toast.success(`${imageSlides.length} image${imageSlides.length > 1 ? "s" : ""} downloaded`);
+  }
+
+  async function handleDownloadVideo() {
+    if (downloadingVideo) return;
+    setDownloadingVideo(true);
+    await downloadFiles(videoSlides.map((s) => s.src), title || "property-video");
+    setDownloadingVideo(false);
+    toast.success("Video downloaded");
   }
 
   function handleTouchStart(e) {
@@ -136,6 +160,41 @@ export default function PropertyMediaCarousel({ image, galleryImages, video, tit
             </button>
           ))}
         </div>
+      )}
+
+      {showDownloadButtons && (
+      <div className="mt-3 flex flex-wrap justify-end gap-2">
+        {imageSlides.length > 0 && (
+          <button
+            type="button"
+            onClick={handleDownloadImages}
+            disabled={downloadingImages}
+            className="tracked-label flex min-h-11 items-center gap-2 border border-gold-500/70 px-4 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10 active:scale-95 disabled:cursor-wait disabled:opacity-70"
+          >
+            {downloadingImages ? (
+              <FiLoader className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <FiDownload className="h-3.5 w-3.5" />
+            )}
+            {downloadingImages ? "Downloading…" : `Download Image${imageSlides.length > 1 ? "s" : ""}`}
+          </button>
+        )}
+        {videoSlides.length > 0 && (
+          <button
+            type="button"
+            onClick={handleDownloadVideo}
+            disabled={downloadingVideo}
+            className="tracked-label flex min-h-11 items-center gap-2 border border-gold-500/70 px-4 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10 active:scale-95 disabled:cursor-wait disabled:opacity-70"
+          >
+            {downloadingVideo ? (
+              <FiLoader className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <FiDownload className="h-3.5 w-3.5" />
+            )}
+            {downloadingVideo ? "Downloading…" : "Download Video"}
+          </button>
+        )}
+      </div>
       )}
     </div>
   );

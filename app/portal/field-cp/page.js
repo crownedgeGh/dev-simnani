@@ -3,12 +3,12 @@ import FreelancerPortalClient from "@/components/portal/freelancer/FreelancerPor
 import { PROJECTS } from "@/lib/projects";
 import { requireCpUser } from "@/lib/freelancerPortalGuard";
 import { getOwnerPortalData } from "@/lib/ownerPortalData";
+import { getSiteVisitsForFieldCp } from "@/lib/siteVisitsServer";
 import {
   CP_STATS,
   CP_LEADS,
   CP_NETWORK,
   CP_COMMISSIONS,
-  CP_SITE_VISITS,
   CP_PROMOTION_ASSETS,
   CP_FIELD_ACTIVITY_TODAY,
   CP_DIGITAL_CAMPAIGN_JOINS,
@@ -25,6 +25,7 @@ export const metadata = {
 export default async function FieldCPPortalPage() {
   const user = await requireCpUser("field");
   const { listings: myListings } = await getOwnerPortalData(user.accountId);
+  const siteVisits = await getSiteVisitsForFieldCp(user.accountId);
 
   return (
     <Suspense fallback={null}>
@@ -35,7 +36,7 @@ export default async function FieldCPPortalPage() {
         leads={CP_LEADS}
         network={CP_NETWORK}
         commissions={CP_COMMISSIONS}
-        siteVisits={CP_SITE_VISITS}
+        siteVisits={siteVisits}
         projects={PROJECTS}
         promotionAssets={CP_PROMOTION_ASSETS}
         fieldActivity={CP_FIELD_ACTIVITY_TODAY}

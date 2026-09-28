@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { FiPlus, FiLink, FiCheck, FiSend, FiArrowRight, FiChevronDown, FiChevronUp, FiUsers, FiUserCheck } from "react-icons/fi";
+import { FiPlus, FiLink, FiCheck, FiSend, FiArrowRight, FiChevronDown, FiChevronUp, FiUsers } from "react-icons/fi";
 import { MdCampaign } from "react-icons/md";
 import { FaInstagram, FaFacebook, FaYoutube, FaWhatsapp } from "react-icons/fa6";
 import Tabs from "./Tabs";
@@ -17,11 +17,7 @@ import { inputClass, selectClass, textareaClass } from "@/components/auth/inputS
 import { generateAccountId } from "@/lib/auth";
 import { addCpLead } from "@/lib/adminStorage";
 import RefreshButton from "./RefreshButton";
-
-function formatCpLabel(name, city, state) {
-  const place = [city, state].filter(Boolean).join(", ");
-  return place ? `${name} — ${place}` : name;
-}
+import { usePersistentTab } from "@/lib/usePersistentTab";
 
 const TABS = [
   { key: "overview", label: "Overview" },
@@ -61,7 +57,11 @@ function slugify(name) {
 }
 
 export default function DigitalCPDashboard({ stats, projects, assets, initialJoinedCampaigns = [], partner, myListings = [] }) {
-  const [tab, setTab] = useState("overview");
+  const [tab, setTab] = usePersistentTab(
+    "cp_tab_digital",
+    TABS.map((t) => t.key),
+    "overview"
+  );
 
   const [linkForm, setLinkForm] = useState(INITIAL_LINK_FORM);
   const [linkError, setLinkError] = useState("");
@@ -71,6 +71,7 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
 
   // Properties forwarded to this Digital CP by their Company CP.
   const [forwardedProperties, setForwardedProperties] = useState([]);
+  const [joinedForwardedIds, setJoinedForwardedIds] = useState([]);
 
   const loadForwardedProperties = useCallback(async () => {
     if (!partner?.accountId) return;
@@ -139,6 +140,12 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
   function toggleJoinCampaign(projectId) {
     setJoinedCampaigns((prev) =>
       prev.includes(projectId) ? prev.filter((id) => id !== projectId) : [...prev, projectId]
+    );
+  }
+
+  function toggleJoinForwardedProperty(id) {
+    setJoinedForwardedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
   }
 
@@ -267,7 +274,7 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
 
             <div>
               <h2 className="font-display text-xl text-cream">My Campaigns</h2>
-              {joinedCampaigns.length === 0 ? (
+              {joinedCampaigns.length === 0 && joinedForwardedIds.length === 0 ? (
                 <div className="mt-4">
                   <EmptyState
                     title="No campaigns joined yet"
@@ -306,6 +313,36 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
                         </div>
                       </Link>
                     ))}
+                  {forwardedProperties
+                    .filter((p) => joinedForwardedIds.includes(p.id))
+                    .map((p) => (
+                      <Link
+                        key={p.id}
+                        href={`/property/${p.propertyId || p.id}?campaign=1`}
+                        className="group block border border-navy-700/60 bg-navy-900 p-4 transition hover:border-gold-500/60"
+                      >
+                        <div className="relative h-32 w-full overflow-hidden rounded-sm">
+                          <Image
+                            src={p.propertyImage || "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=1200&q=80&auto=format&fit=crop"}
+                            alt={p.propertyTitle || "Property"}
+                            fill
+                            sizes="(max-width: 640px) 100vw, 33vw"
+                            className="object-cover transition group-hover:scale-105"
+                          />
+                        </div>
+                        <h3 className="mt-3 font-display text-base text-cream group-hover:text-gold-400 transition">{p.propertyTitle}</h3>
+                        <p className="mt-1 text-xs text-muted">{p.propertyLocation}</p>
+                        <div className="mt-3 flex items-center justify-between">
+                          <span className="tracked-label flex w-fit items-center gap-1 border border-gold-500/70 px-3 py-1 text-xs text-gold-400">
+                            <FiCheck className="h-3.5 w-3.5" />
+                            Joined
+                          </span>
+                          <span className="flex items-center gap-1 text-xs text-muted opacity-0 transition group-hover:opacity-100">
+                            View Property <FiArrowRight className="h-3.5 w-3.5" />
+                          </span>
+                        </div>
+                      </Link>
+                    ))}
                 </div>
               )}
             </div>
@@ -326,7 +363,8 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
                 <h2 className="font-display text-xl text-cream">Forwarded by Company CP</h2>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {forwardedProperties.map((property) => {
-                    const propHref = `/property/${property.propertyId || property.id}`;
+                    const propHref = `/property/${property.propertyId || property.id}?campaign=1`;
+                    const isJoined = joinedForwardedIds.includes(property.id);
                     return (
                       <div key={property.id} className="flex flex-col justify-between border border-navy-700/60 bg-navy-900 p-4 transition hover:border-gold-500/50">
                         <Link href={propHref} className="group flex flex-col">
@@ -346,10 +384,27 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
                             <FiArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
                           </div>
                         </Link>
-                        <span className="tracked-label mt-3 flex w-fit items-center gap-1.5 border border-gold-500/70 px-3 py-1 text-[10px] text-gold-400">
-                          <FiUserCheck className="h-3 w-3" />
-                          Forwarded by {formatCpLabel(property.assignedByName, property.assignedByCity, property.assignedByState)}
-                        </span>
+                        <button
+                          type="button"
+                          onClick={() => toggleJoinForwardedProperty(property.id)}
+                          className={`tracked-label mt-3 flex w-fit items-center gap-1.5 px-3 py-2 text-[10px] transition ${
+                            isJoined
+                              ? "border border-gold-500/70 text-gold-400 hover:bg-gold-500/10"
+                              : "bg-gold-400 text-navy-950 hover:bg-gold-300"
+                          }`}
+                        >
+                          {isJoined ? (
+                            <>
+                              <FiCheck className="h-3 w-3" />
+                              Joined Campaign
+                            </>
+                          ) : (
+                            <>
+                              <MdCampaign className="h-3.5 w-3.5" />
+                              Join Campaign
+                            </>
+                          )}
+                        </button>
                       </div>
                     );
                   })}
@@ -428,7 +483,7 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
                   key={p.id}
                   className="group flex flex-col justify-between overflow-hidden border border-navy-700/60 bg-navy-900 transition hover:border-gold-500/60"
                 >
-                  <Link href={`/property/${p.id}`} className="block">
+                  <Link href={`/property/${p.id}?campaign=1`} className="block">
                     <div className="relative h-36 w-full overflow-hidden">
                       <Image
                         src={p.image}
@@ -453,7 +508,7 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
 
                   <div className="flex items-center justify-between border-t border-navy-700/60 p-4 pt-3">
                     <Link
-                      href={`/property/${p.id}`}
+                      href={`/property/${p.id}?campaign=1`}
                       className="tracked-label flex items-center gap-1 text-[11px] text-gold-400 transition hover:text-gold-300"
                     >
                       <span>View Details</span>

@@ -28,6 +28,7 @@ import CPPartnerFormDialog from "@/components/admin/freelancer-cp/CPPartnerFormD
 import VideoModerationDialog from "@/components/admin/freelancer-cp/VideoModerationDialog";
 import AssignPropertyDialog from "@/components/admin/freelancer-cp/AssignPropertyDialog";
 import SiteVisitLogDialog from "@/components/admin/freelancer-cp/SiteVisitLogDialog";
+import FieldPartnerVisitsDialog from "@/components/admin/freelancer-cp/FieldPartnerVisitsDialog";
 import adminAxios from "@/lib/adminAxios";
 import { ADMIN_KEYS, readCollection, addCpAssignment, addCpSiteVisit, updateCpSiteVisit } from "@/lib/adminStorage";
 
@@ -79,6 +80,25 @@ export default function CPTypeWorkspace({
   const [fieldCPs, setFieldCPs] = useState([]);
   const [delegateTarget, setDelegateTarget] = useState(null); // assignment row being delegated onward
   const [visitDialog, setVisitDialog] = useState(null); // { mode, context, visit }
+  const [fieldCpNetwork, setFieldCpNetwork] = useState([]);
+  const [loadingFieldCps, setLoadingFieldCps] = useState(cpType === "field");
+  const [fieldPartnerDetail, setFieldPartnerDetail] = useState(null);
+
+  // Field CP partners are real registered accounts (Mongo `User` docs), not
+  // the mock localStorage roster the rest of this workspace still uses —
+  // see app/api/admin/field-cps.
+  const loadFieldCps = useCallback(() => {
+    if (cpType !== "field") return;
+    fetch("/api/admin/field-cps")
+      .then((res) => res.json())
+      .then((json) => setFieldCpNetwork(json.success ? json.data : []))
+      .catch(() => setFieldCpNetwork([]))
+      .finally(() => setLoadingFieldCps(false));
+  }, [cpType]);
+
+  useEffect(() => {
+    loadFieldCps();
+  }, [loadFieldCps]);
 
   const load = useCallback(() => {
     const cpn = readCollection(ADMIN_KEYS.cpNetwork) || [];
@@ -106,6 +126,8 @@ export default function CPTypeWorkspace({
     setRefreshing(true);
     await new Promise((r) => setTimeout(r, 500));
     load();
+    if (cpType === "field") setLoadingFieldCps(true);
+    loadFieldCps();
     setRefreshing(false);
   };
 
@@ -121,8 +143,8 @@ export default function CPTypeWorkspace({
   // Scoped-to-this-CP-type collections
   // ---------------------------------------------------------------------
   const network = useMemo(
-    () => (cpType ? data.cpNetwork.filter((n) => n.cpType === cpType) : []),
-    [data.cpNetwork, cpType]
+    () => (cpType === "field" ? fieldCpNetwork : cpType ? data.cpNetwork.filter((n) => n.cpType === cpType) : []),
+    [data.cpNetwork, cpType, fieldCpNetwork]
   );
   // Every lead is owned by exactly one routing stage at a time — this is the
   // single source of truth for lead visibility, decoupled from who originally
@@ -249,20 +271,27 @@ export default function CPTypeWorkspace({
       label: "",
       type: "actions",
       searchable: false,
-      actions: (row) => [
-        { label: "Edit", icon: MdEdit, onClick: () => setPartnerFormTarget(row) },
-        {
-          label: row.status === "Active" ? "Suspend" : "Reactivate",
-          icon: MdBlock,
-          variant: row.status === "Active" ? "danger" : "default",
-          onClick: async () => {
-            const newStatus = row.status === "Active" ? "Suspended" : "Active";
-            const ok = await patchItem("cp-network", row.id, { status: newStatus }, "cpNetwork");
-            if (ok) toast.success(`CP status changed to ${newStatus}`);
-          },
-        },
-        { label: "Delete", icon: MdDelete, variant: "danger", onClick: () => setDeleteTarget(row) },
-      ],
+      // Field CP partners are real registered accounts — this workspace's
+      // mock Edit/Suspend/Delete actions only apply to the localStorage CP
+      // Network roster (Company/Digital CP), so they're hidden here. Click a
+      // row instead to view that partner's real site visits.
+      actions:
+        cpType === "field"
+          ? () => []
+          : (row) => [
+              { label: "Edit", icon: MdEdit, onClick: () => setPartnerFormTarget(row) },
+              {
+                label: row.status === "Active" ? "Suspend" : "Reactivate",
+                icon: MdBlock,
+                variant: row.status === "Active" ? "danger" : "default",
+                onClick: async () => {
+                  const newStatus = row.status === "Active" ? "Suspended" : "Active";
+                  const ok = await patchItem("cp-network", row.id, { status: newStatus }, "cpNetwork");
+                  if (ok) toast.success(`CP status changed to ${newStatus}`);
+                },
+              },
+              { label: "Delete", icon: MdDelete, variant: "danger", onClick: () => setDeleteTarget(row) },
+            ],
     },
   ];
 
@@ -612,7 +641,7 @@ export default function CPTypeWorkspace({
               <MdCalendarToday size={16} />
               <span>Schedule Site Visit</span>
             </button>
-          ) : showAddPartner ? (
+          ) : showAddPartner && cpType !== "field" ? (
             <button
               onClick={() => setPartnerFormTarget(null)}
               className="flex h-9 items-center gap-1.5 rounded-xl bg-[#f0b429] px-3.5 text-xs font-semibold text-white shadow-sm transition hover:bg-[#d97706]"
@@ -670,9 +699,10 @@ export default function CPTypeWorkspace({
       <AdminTable
         columns={current.columns}
         data={current.data}
-        loading={loading}
+        loading={tab === "network" && cpType === "field" ? loadingFieldCps : loading}
         emptyMessage={emptyMessage}
         pageSize={10}
+        onRowClick={tab === "network" && cpType === "field" ? (row) => setFieldPartnerDetail(row) : undefined}
       />
 
       <CPPartnerFormDialog
@@ -757,6 +787,13 @@ export default function CPTypeWorkspace({
             }
           }
         }}
+      />
+
+      <FieldPartnerVisitsDialog
+        key={fieldPartnerDetail?.accountId || "none"}
+        isOpen={!!fieldPartnerDetail}
+        onClose={() => setFieldPartnerDetail(null)}
+        partner={fieldPartnerDetail}
       />
     </div>
   );

@@ -59,8 +59,9 @@ export async function generateMetadata({ params }) {
   };
 }
 
-export default async function PropertyDetailPage({ params }) {
+export default async function PropertyDetailPage({ params, searchParams }) {
   const { id } = await params;
+  const { campaign } = await searchParams;
   const property = await getPropertyById(id);
 
   if (!property || property.status === "Closed") {
@@ -78,6 +79,7 @@ export default async function PropertyDetailPage({ params }) {
       />
       <PropertyDetailContent
         property={property}
+        showDownloadButtons={campaign === "1"}
         sidebar={
           <PropertyActionCard
             propertyId={property.id}

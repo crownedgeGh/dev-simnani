@@ -9,6 +9,7 @@ import {
 } from "@/lib/properties";
 import { getPropertyDescription } from "@/lib/propertyContent";
 import PropertyMediaCarousel from "@/components/property/PropertyMediaCarousel";
+import VideoEditingGuidelines from "@/components/property/VideoEditingGuidelines";
 import BackButton from "@/components/layout/BackButton";
 import {
   MdBed,
@@ -36,7 +37,7 @@ import {
   MdWc,
 } from "react-icons/md";
 
-export default function PropertyDetailContent({ property, eyebrow, sidebar, backHref }) {
+export default function PropertyDetailContent({ property, eyebrow, sidebar, backHref, showDownloadButtons = false }) {
   const isInvest = property.type === "invest";
   // A category-aware view of which fields make sense for this listing —
   // e.g. Plantation Farming / Agricultural Land are bare land with no
@@ -116,6 +117,7 @@ export default function PropertyDetailContent({ property, eyebrow, sidebar, back
         video={property.video}
         title={property.title}
         badge={property.badge}
+        showDownloadButtons={showDownloadButtons}
       />
 
       <div className="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-3">
@@ -199,6 +201,8 @@ export default function PropertyDetailContent({ property, eyebrow, sidebar, back
               </div>
             </section>
           )}
+
+          <VideoEditingGuidelines />
         </div>
 
         <div className="lg:col-span-1">
