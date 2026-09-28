@@ -122,7 +122,20 @@ export default function AdminUsersPage() {
       render: (val, row) => (
         <div>
           <p className="font-medium text-[#1a1a2e] text-sm">{val}</p>
-          <p className="text-xs text-[#9ca3af]">{row.accountId}</p>
+          <div className="flex items-center gap-1.5 text-xs text-[#9ca3af]">
+            <span>{row.accountId}</span>
+            {Array.isArray(row.skills) && row.skills.length > 0 && (
+              <>
+                <span>•</span>
+                <span
+                  title={row.skills.map((s) => s.subcategory || s.name).join(", ")}
+                  className="rounded-full bg-[#fff8e1] px-2 py-0.5 text-[10px] font-semibold text-[#d97706] border border-[#f0b429]/30"
+                >
+                  {row.skills.length} {row.skills.length === 1 ? "skill" : "skills"}
+                </span>
+              </>
+            )}
+          </div>
         </div>
       ),
     },

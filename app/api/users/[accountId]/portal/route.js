@@ -212,9 +212,13 @@ function getEmployeeSnapshot() {
   };
 }
 
-function getFreelancerSnapshot() {
+function getFreelancerSnapshot(user) {
   return {
     kind: "freelancer",
+    skills: user?.skills || [],
+    cpType: user?.cpType || "",
+    coverageAreas: user?.coverageAreas || "",
+    currentlyWorking: user?.currentlyWorking || "",
     stats: CP_STATS,
     leads: CP_LEADS,
     network: CP_NETWORK,
@@ -251,7 +255,7 @@ export async function GET(request, { params }) {
         portal = getEmployeeSnapshot();
         break;
       case "freelancer":
-        portal = getFreelancerSnapshot();
+        portal = getFreelancerSnapshot(user);
         break;
       default:
         portal = { kind: "unknown" };

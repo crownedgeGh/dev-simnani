@@ -109,12 +109,6 @@ export default function UserDetailPage() {
 
   if (user.accountType === "freelancer") {
     fields.push(
-      [
-        "Skills",
-        Array.isArray(user.skills) && user.skills.length
-          ? user.skills.map((s) => `${s.category} / ${s.subcategory}`).join(", ")
-          : "—",
-      ],
       ["Coverage Areas", user.coverageAreas || "—"],
       ["Currently Working Elsewhere", user.currentlyWorking || "—"]
     );
@@ -163,6 +157,51 @@ export default function UserDetailPage() {
               ))}
             </tbody>
           </table>
+
+          {/* Dedicated Skills & Expertise Section */}
+          {(user.accountType === "freelancer" || (Array.isArray(user.skills) && user.skills.length > 0)) && (
+            <div className="mt-6 border-t border-[#f0ebe3] pt-5">
+              <div className="mb-3 flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-[#9ca3af]">
+                  Skills &amp; Expertise
+                </span>
+                <span className="rounded-full bg-[#fff8e1] px-2 py-0.5 text-xs font-bold text-[#d97706] border border-[#f0b429]/30">
+                  {user.skills?.length || 0} {(user.skills?.length || 0) === 1 ? "skill" : "skills"}
+                </span>
+              </div>
+
+              {Array.isArray(user.skills) && user.skills.length > 0 ? (
+                <div className="flex flex-col gap-2.5">
+                  {Object.entries(
+                    user.skills.reduce((acc, s) => {
+                      const cat = s.category || "General";
+                      if (!acc[cat]) acc[cat] = [];
+                      acc[cat].push(s.subcategory || s.name || "");
+                      return acc;
+                    }, {})
+                  ).map(([cat, skills]) => (
+                    <div key={cat} className="rounded-xl border border-[#e8e0d5] bg-[#faf8f5] p-3">
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-[#6b7280] mb-2">
+                        {cat}
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {skills.map((skill, idx) => (
+                          <span
+                            key={idx}
+                            className="inline-flex items-center rounded-lg bg-white px-2.5 py-1 text-xs font-medium text-[#1a1a2e] border border-[#e8e0d5] shadow-xs"
+                          >
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-[#9ca3af] italic">No skills registered yet.</p>
+              )}
+            </div>
+          )}
         </div>
 
         <UserPortalSnapshot accountId={user.accountId} />

@@ -32,6 +32,8 @@ export async function GET(request) {
         { mobile: { $regex: search, $options: "i" } },
         { email: { $regex: search, $options: "i" } },
         { accountId: { $regex: search, $options: "i" } },
+        { "skills.subcategory": { $regex: search, $options: "i" } },
+        { "skills.category": { $regex: search, $options: "i" } },
       ];
     }
 
@@ -97,6 +99,15 @@ export async function POST(request) {
 
     if (body.dealsClosed !== undefined) {
       userData.dealsClosed = Math.max(0, Number(body.dealsClosed) || 0);
+    }
+
+    if (Array.isArray(body.skills)) {
+      userData.skills = body.skills
+        .map((s) => ({
+          category: (s.category || "").trim(),
+          subcategory: (s.subcategory || s.name || "").trim(),
+        }))
+        .filter((s) => s.subcategory);
     }
 
     const newUser = await User.create(userData);

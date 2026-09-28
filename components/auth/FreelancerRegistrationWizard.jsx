@@ -134,6 +134,34 @@ export default function FreelancerRegistrationWizard() {
   }
 
   async function handleSubmit() {
+    if (!form.fullName.trim()) {
+      setError("Please enter your full name.");
+      return;
+    }
+    if (!isMobileValid(form.mobile)) {
+      setError("Please enter a valid 10-digit mobile number.");
+      return;
+    }
+    if (!form.state) {
+      setError("Please select your state.");
+      return;
+    }
+    if (!form.city) {
+      setError("Please select your city.");
+      return;
+    }
+    if (!form.skills || !form.skills.length) {
+      setError("Please select at least one skill.");
+      return;
+    }
+    if (form.cpType === "digital" && !form.currentlyWorking) {
+      setError("Please let us know if you are currently working anywhere.");
+      return;
+    }
+    if (form.cpType === "field" && !form.coverageAreas.trim()) {
+      setError("Please enter the localities you cover.");
+      return;
+    }
     if (!form.agree) {
       setError("Please accept the Terms & Conditions to continue.");
       return;
@@ -317,9 +345,9 @@ export default function FreelancerRegistrationWizard() {
           )}
 
           <FormField
-            label="Skills"
+            label="Your Current Skills"
             required
-            hint="Pick a skill category and skill, then add it. Don't see yours? Add your own."
+            hint="Select your category, then pick or add your skills below."
           >
             <SkillsSelector
               value={form.skills}

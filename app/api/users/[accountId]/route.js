@@ -17,6 +17,14 @@ async function preparePatch(body) {
   if (rest.dealsClosed !== undefined) {
     rest.dealsClosed = Math.max(0, Number(rest.dealsClosed) || 0);
   }
+  if (Array.isArray(rest.skills)) {
+    rest.skills = rest.skills
+      .map((s) => ({
+        category: (s.category || "").trim(),
+        subcategory: (s.subcategory || s.name || "").trim(),
+      }))
+      .filter((s) => s.subcategory);
+  }
   return rest;
 }
 

@@ -14,6 +14,7 @@ import {
   MdBookmarkBorder,
   MdVisibility,
   MdOutlineMap,
+  MdWork,
 } from "react-icons/md";
 import AdminKpiCard from "@/components/admin/ui/AdminKpiCard";
 import AdminStatusBadge from "@/components/admin/ui/AdminStatusBadge";
@@ -135,6 +136,7 @@ function tabsForKind(kind) {
     case "freelancer":
       return [
         { key: "overview", label: "Overview" },
+        { key: "skills", label: "Skills & Services" },
         { key: "leads", label: "Leads" },
         { key: "network", label: "Network" },
         { key: "commissions", label: "Commissions" },
@@ -612,6 +614,51 @@ function FreelancerTabs({ data, tab }) {
           { title: "Commission Pending", value: stats.company.commissionPendingApproval, icon: MdAttachMoney, color: "purple" },
         ]}
       />
+    );
+  }
+
+  if (tab === "skills") {
+    const skills = Array.isArray(data.skills) ? data.skills : [];
+    return (
+      <div className="flex flex-col gap-4">
+        <KpiGrid
+          items={[
+            { title: "Total Skills Registered", value: skills.length, icon: MdWork, color: "gold" },
+            { title: "Channel Partner Type", value: (data.cpType ? data.cpType.toUpperCase() + " CP" : "Freelancer"), icon: MdPeople, color: "blue" },
+            { title: "Coverage Areas", value: data.coverageAreas || "All Areas", icon: MdOutlineMap, color: "orange" },
+            { title: "Working Elsewhere", value: data.currentlyWorking === "yes" ? "Yes" : "No", icon: MdCalendarToday, color: "purple" },
+          ]}
+        />
+
+        <div className="rounded-xl border border-[#e8e0d5] bg-white p-5">
+          <div className="mb-4 flex items-center justify-between">
+            <h4 className="text-sm font-bold text-[#1a1a2e]">All Registered Skills ({skills.length})</h4>
+          </div>
+
+          {skills.length === 0 ? (
+            <EmptyRow message="No skills registered for this freelancer." />
+          ) : (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {skills.map((s, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center justify-between rounded-xl border border-[#e8e0d5] bg-[#faf8f5] p-3 text-sm"
+                >
+                  <div className="flex flex-col">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-[#9ca3af]">
+                      {s.category || "General"}
+                    </span>
+                    <span className="font-semibold text-[#1a1a2e]">{s.subcategory || s.name}</span>
+                  </div>
+                  <span className="rounded-full bg-[#ecfdf5] px-2.5 py-0.5 text-xs font-medium text-[#059669] border border-[#a7f3d0]">
+                    Active
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
     );
   }
 

@@ -10,8 +10,18 @@ const STATUSES = ["Active", "Suspended", "Deleted"];
 
 export default function UserEditDialog({ isOpen, onClose, user, onSave }) {
   const [form, setForm] = useState(
-    user ? { accountType: user.accountType, status: user.status, dealsClosed: user.dealsClosed ?? 0 } : {}
+    user
+      ? {
+          accountType: user.accountType,
+          status: user.status,
+          dealsClosed: user.dealsClosed ?? 0,
+          coverageAreas: user.coverageAreas || "",
+          skills: Array.isArray(user.skills) ? user.skills : [],
+        }
+      : {}
   );
+  const [newSkillCat, setNewSkillCat] = useState("");
+  const [newSkillSub, setNewSkillSub] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -81,6 +91,78 @@ export default function UserEditDialog({ isOpen, onClose, user, onSave }) {
               className={adminInputClass}
             />
           </AdminFormField>
+        )}
+        {(user.accountType === "freelancer" || form.accountType === "freelancer") && (
+          <>
+            <AdminFormField label="Coverage Areas" id="user-coverage-areas">
+              <input
+                id="user-coverage-areas"
+                type="text"
+                value={form.coverageAreas ?? ""}
+                onChange={(e) => set("coverageAreas", e.target.value)}
+                className={adminInputClass}
+                placeholder="e.g. Bandra, Andheri, Powai"
+              />
+            </AdminFormField>
+            <AdminFormField label="Skills & Services" id="user-skills">
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-wrap gap-1.5">
+                  {(form.skills || []).map((s, idx) => (
+                    <span
+                      key={idx}
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-[#faf8f5] px-2.5 py-1 text-xs font-medium text-[#1a1a2e] border border-[#e8e0d5]"
+                    >
+                      <span className="text-[#9ca3af]">{s.category || "General"} /</span>
+                      <span>{s.subcategory}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          set("skills", (form.skills || []).filter((_, i) => i !== idx));
+                        }}
+                        className="text-[#9ca3af] hover:text-red-500 ml-0.5"
+                        title="Remove skill"
+                      >
+                        ✕
+                      </button>
+                    </span>
+                  ))}
+                  {(form.skills || []).length === 0 && (
+                    <span className="text-xs text-[#9ca3af] italic">No skills registered</span>
+                  )}
+                </div>
+                <div className="flex gap-2 mt-1">
+                  <input
+                    type="text"
+                    placeholder="Category (e.g. IT)"
+                    value={newSkillCat}
+                    onChange={(e) => setNewSkillCat(e.target.value)}
+                    className={`${adminInputClass} text-xs h-9`}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Skill name"
+                    value={newSkillSub}
+                    onChange={(e) => setNewSkillSub(e.target.value)}
+                    className={`${adminInputClass} text-xs h-9`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const sub = newSkillSub.trim();
+                      const cat = newSkillCat.trim() || "General";
+                      if (sub) {
+                        set("skills", [...(form.skills || []), { category: cat, subcategory: sub }]);
+                        setNewSkillSub("");
+                      }
+                    }}
+                    className="rounded-xl bg-[#faf8f5] border border-[#e8e0d5] px-3 text-xs font-semibold text-[#1a1a2e] hover:bg-[#f0ebe3] shrink-0"
+                  >
+                    + Add
+                  </button>
+                </div>
+              </div>
+            </AdminFormField>
+          </>
         )}
         <AdminFormField label="Reset Password" id="user-new-password" hint="Leave blank to keep the current password">
           <input

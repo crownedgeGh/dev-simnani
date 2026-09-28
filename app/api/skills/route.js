@@ -15,6 +15,14 @@ export async function GET() {
       await SkillCategory.insertMany(
         SKILL_CATEGORIES_SEED.map((c) => ({ ...c, isCustom: false }))
       );
+    } else {
+      // Ensure existing categories have all baseline seed subcategories
+      for (const seed of SKILL_CATEGORIES_SEED) {
+        await SkillCategory.updateOne(
+          { name: { $regex: `^${escapeRegex(seed.name)}$`, $options: "i" }, isCustom: { $ne: true } },
+          { $set: { subcategories: seed.subcategories } }
+        );
+      }
     }
 
     const categories = await SkillCategory.find({}).sort({ name: 1 }).lean();
@@ -97,6 +105,43 @@ export async function POST(request) {
   }
 }
 
+export async function DELETE(request) {
+  try {
+    await dbConnect();
+    const { searchParams } = new URL(request.url);
+    const categoryName = (searchParams.get("category") || "").trim();
+    const subcategory = (searchParams.get("subcategory") || "").trim();
+
+    if (!categoryName || !subcategory) {
+      return NextResponse.json(
+        { success: false, error: "category and subcategory are required" },
+        { status: 400 }
+      );
+    }
+
+    const category = await SkillCategory.findOne({
+      name: { $regex: `^${escapeRegex(categoryName)}$`, $options: "i" },
+    });
+
+    if (category) {
+      category.subcategories = category.subcategories.filter(
+        (s) => s.toLowerCase() !== subcategory.toLowerCase()
+      );
+      await category.save();
+      return NextResponse.json({ success: true, data: category });
+    }
+
+    return NextResponse.json({ success: false, error: "Category not found" }, { status: 404 });
+  } catch (error) {
+    console.error("DELETE /api/skills error:", error);
+    return NextResponse.json(
+      { success: false, error: error.message || "Failed to delete skill" },
+      { status: 500 }
+    );
+  }
+}
+
 function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
+
