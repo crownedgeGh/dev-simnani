@@ -11,6 +11,7 @@ import { getPropertyDescription } from "@/lib/propertyContent";
 import PropertyMediaCarousel from "@/components/property/PropertyMediaCarousel";
 import VideoEditingGuidelines from "@/components/property/VideoEditingGuidelines";
 import BackButton from "@/components/layout/BackButton";
+import ContactForm from "@/components/property/ContactForm";
 import {
   MdBed,
   MdBathtub,
@@ -206,7 +207,22 @@ export default function PropertyDetailContent({ property, eyebrow, sidebar, back
         </div>
 
         <div className="lg:col-span-1">
-          <div className="lg:sticky lg:top-24">{sidebar}</div>
+          <div className="space-y-6 lg:sticky lg:top-24">
+            <div className="border border-navy-700/60 bg-navy-900 p-6">
+              <h3 className="font-display text-lg text-cream">Send Us an Enquiry</h3>
+              <p className="mt-1 text-xs text-muted">
+                Interested in this property? Leave your details and we&apos;ll call you back.
+              </p>
+              <div className="mt-4">
+                <ContactForm
+                  source={`Property: ${property.id}`}
+                  propertyTitle={property.title}
+                />
+              </div>
+            </div>
+
+            {sidebar}
+          </div>
         </div>
       </div>
     </div>

@@ -5,7 +5,7 @@ import { FiArrowUpRight } from "react-icons/fi";
 import { getPropertiesByType } from "@/lib/propertiesServer";
 import BackButton from "@/components/layout/BackButton";
 
-export const revalidate = 60; // cache listing HTML for 60s instead of hitting Mongo on every request
+export const revalidate = 60;
 
 export const metadata = {
   title: "Properties | Simnani Estate",
@@ -101,3 +101,4 @@ export default async function PropertiesPage() {
     </div>
   );
 }
+
