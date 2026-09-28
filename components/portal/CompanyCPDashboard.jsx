@@ -11,7 +11,6 @@ import {
   FiCamera,
   FiPhoneCall,
   FiLink,
-  FiUserCheck,
   FiPlus,
   FiSend,
   FiArrowRight,
@@ -22,7 +21,6 @@ import Badge from "./Badge";
 import EmptyState from "./EmptyState";
 import PropertyGrid from "@/components/property/PropertyGrid";
 import { CP_TYPE_LABEL, VIDEO_STATUS_TONE } from "./channel-partner/tones";
-import { selectClass } from "@/components/auth/inputStyles";
 import RefreshButton from "./RefreshButton";
 import { usePersistentTab } from "@/lib/usePersistentTab";
 import { toast } from "sonner";
@@ -63,6 +61,7 @@ export default function CompanyCPDashboard({
     "overview"
   );
   const [assignments, setAssignments] = useState([]);
+  const [openPicker, setOpenPicker] = useState({});
   const [videos, setVideos] = useState(initialCampaignVideos);
   const [editingNoteId, setEditingNoteId] = useState(null);
   const [noteDraft, setNoteDraft] = useState("");
@@ -137,10 +136,18 @@ export default function CompanyCPDashboard({
       const json = await res.json();
       if (!json.success) throw new Error(json.error || "Failed to delegate");
       toast.success(`Delegated to ${json.data.assignedToName}`);
+      setOpenPicker((prev) => ({ ...prev, [assignmentId]: null }));
       loadAssignments();
     } catch (err) {
       toast.error(err.message || "Failed to delegate");
     }
+  }
+
+  function togglePicker(projectId, cpType) {
+    setOpenPicker((prev) => ({
+      ...prev,
+      [projectId]: prev[projectId] === cpType ? null : cpType,
+    }));
   }
 
   function updateVideoStatus(id, status, note = "") {
@@ -191,7 +198,6 @@ export default function CompanyCPDashboard({
             ) : (
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {assignedProjects.map((project) => {
-                  const delegated = assignments.find((a) => a.parentAssignmentId === project.id);
                   const propHref = `/property/${project.propertyId || project.id}?campaign=1`;
                   return (
                     <div key={project.id} className="flex flex-col justify-between border border-navy-700/60 bg-navy-900 p-4 transition hover:border-gold-500/50">
@@ -214,49 +220,58 @@ export default function CompanyCPDashboard({
                       </Link>
 
                       <div className="mt-4 flex flex-col gap-2 border-t border-navy-700/60 pt-4">
-                        {delegated && (
-                          <span className="tracked-label flex w-fit items-center gap-1.5 border border-gold-500/70 px-3 py-1 text-[10px] text-gold-400">
-                            <FiUserCheck className="h-3 w-3" />
-                            {CP_TYPE_LABEL[delegated.assignedToCpType]}: {formatCpLabel(delegated.assignedToName, delegated.assignedToCity, delegated.assignedToState)}
-                          </span>
-                        )}
-                        {digitalPartners.length > 0 && (
+                        <div className="grid grid-cols-2 gap-2">
                           <button
                             type="button"
-                            onClick={() => handleDelegate(project.id, "digital", digitalPartners[0].accountId)}
-                            className="tracked-label flex h-11 items-center justify-center gap-2 bg-gold-400 px-4 text-[10px] text-navy-950 transition hover:bg-gold-300"
+                            disabled={fieldPartners.length === 0}
+                            onClick={() => togglePicker(project.id, "field")}
+                            className="tracked-label flex h-11 items-center justify-center gap-2 border border-gold-500/70 px-3 text-[10px] text-gold-400 transition hover:bg-gold-500/10 disabled:cursor-not-allowed disabled:opacity-40"
+                          >
+                            <FiSend className="h-3.5 w-3.5" />
+                            Forward to Field CP
+                          </button>
+                          <button
+                            type="button"
+                            disabled={digitalPartners.length === 0}
+                            onClick={() => togglePicker(project.id, "digital")}
+                            className="tracked-label flex h-11 items-center justify-center gap-2 bg-gold-400 px-3 text-[10px] text-navy-950 transition hover:bg-gold-300 disabled:cursor-not-allowed disabled:opacity-40"
                           >
                             <FiSend className="h-3.5 w-3.5" />
                             Forward to Digital CP
                           </button>
+                        </div>
+
+                        {openPicker[project.id] === "field" && (
+                          <div className="flex flex-col gap-1.5 border border-navy-700/60 bg-navy-950 p-2">
+                            {fieldPartners.map((p) => (
+                              <button
+                                key={p.accountId}
+                                type="button"
+                                onClick={() => handleDelegate(project.id, "field", p.accountId)}
+                                className="flex items-center justify-between px-2 py-2 text-left text-xs text-cream transition hover:bg-gold-500/10 hover:text-gold-400"
+                              >
+                                {formatCpLabel(p.name, p.city, p.state)}
+                                <FiArrowRight className="h-3.5 w-3.5 shrink-0" />
+                              </button>
+                            ))}
+                          </div>
                         )}
-                        <select
-                          aria-label={`Delegate ${project.propertyTitle}`}
-                          value=""
-                          onChange={(e) => {
-                            const [cpType, ...rest] = e.target.value.split("::");
-                            handleDelegate(project.id, cpType, rest.join("::"));
-                          }}
-                          className={`${selectClass} h-11 text-xs`}
-                        >
-                          <option value="" disabled>
-                            {delegated ? "Re-delegate" : "Delegate to…"}
-                          </option>
-                          {fieldPartners.length > 0 && (
-                            <optgroup label="Field CP">
-                              {fieldPartners.map((p) => (
-                                <option key={`field::${p.accountId}`} value={`field::${p.accountId}`}>{formatCpLabel(p.name, p.city, p.state)}</option>
-                              ))}
-                            </optgroup>
-                          )}
-                          {digitalPartners.length > 0 && (
-                            <optgroup label="Digital CP">
-                              {digitalPartners.map((p) => (
-                                <option key={`digital::${p.accountId}`} value={`digital::${p.accountId}`}>{formatCpLabel(p.name, p.city, p.state)}</option>
-                              ))}
-                            </optgroup>
-                          )}
-                        </select>
+
+                        {openPicker[project.id] === "digital" && (
+                          <div className="flex flex-col gap-1.5 border border-navy-700/60 bg-navy-950 p-2">
+                            {digitalPartners.map((p) => (
+                              <button
+                                key={p.accountId}
+                                type="button"
+                                onClick={() => handleDelegate(project.id, "digital", p.accountId)}
+                                className="flex items-center justify-between px-2 py-2 text-left text-xs text-cream transition hover:bg-gold-500/10 hover:text-gold-400"
+                              >
+                                {formatCpLabel(p.name, p.city, p.state)}
+                                <FiArrowRight className="h-3.5 w-3.5 shrink-0" />
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                   );

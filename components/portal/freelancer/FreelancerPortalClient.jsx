@@ -139,27 +139,14 @@ export default function FreelancerPortalClient({
               myListings={myListings}
             />
           )}
-          {cpType === "digital" && (() => {
-            // Find this partner's pre-joined campaigns by name and convert to IDs
-            const partnerEntry = (digitalCampaigns || []).find(
-              (d) => d.partnerName === partner.fullName
-            );
-            const initialJoinedCampaigns = partnerEntry
-              ? projects
-                  .filter((p) => partnerEntry.campaigns.includes(p.name))
-                  .map((p) => p.id)
-              : [];
-            return (
-              <DigitalCPDashboard
-                stats={digitalStats}
-                projects={projects}
-                assets={promotionAssets}
-                initialJoinedCampaigns={initialJoinedCampaigns}
-                partner={partner}
-                myListings={myListings}
-              />
-            );
-          })()}
+          {cpType === "digital" && (
+            <DigitalCPDashboard
+              stats={digitalStats}
+              assets={promotionAssets}
+              partner={partner}
+              myListings={myListings}
+            />
+          )}
           {cpType === "field" && (
             <FieldCPDashboard
               stats={fieldStats}

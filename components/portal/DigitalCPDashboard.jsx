@@ -13,7 +13,7 @@ import EmptyState from "./EmptyState";
 import PropertyGrid from "@/components/property/PropertyGrid";
 import ChipGroup from "@/components/auth/ChipGroup";
 import FormField from "@/components/auth/FormField";
-import { inputClass, selectClass, textareaClass } from "@/components/auth/inputStyles";
+import { inputClass, textareaClass } from "@/components/auth/inputStyles";
 import { generateAccountId } from "@/lib/auth";
 import { addCpLead } from "@/lib/adminStorage";
 import RefreshButton from "./RefreshButton";
@@ -50,13 +50,12 @@ const PLATFORM_ICONS = {
 
 const INITIAL_LINK_FORM = { platform: "", link: "" };
 const INITIAL_LEAD_FORM = { name: "", contact: "", notes: "" };
-const INITIAL_ADD_CAMPAIGN_FORM = { projectId: "" };
 
 function slugify(name) {
   return name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 }
 
-export default function DigitalCPDashboard({ stats, projects, assets, initialJoinedCampaigns = [], partner, myListings = [] }) {
+export default function DigitalCPDashboard({ stats, assets, partner, myListings = [] }) {
   const [tab, setTab] = usePersistentTab(
     "cp_tab_digital",
     TABS.map((t) => t.key),
@@ -66,8 +65,6 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
   const [linkForm, setLinkForm] = useState(INITIAL_LINK_FORM);
   const [linkError, setLinkError] = useState("");
   const [socialLinks, setSocialLinks] = useState([]);
-
-  const [joinedCampaigns, setJoinedCampaigns] = useState(initialJoinedCampaigns);
 
   // Properties forwarded to this Digital CP by their Company CP.
   const [forwardedProperties, setForwardedProperties] = useState([]);
@@ -100,10 +97,6 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
   const [expandedLinkIds, setExpandedLinkIds] = useState([]);
   const [isAddLinkOpen, setIsAddLinkOpen] = useState(false);
 
-  const [addCampaignForm, setAddCampaignForm] = useState(INITIAL_ADD_CAMPAIGN_FORM);
-  const [addCampaignError, setAddCampaignError] = useState("");
-  const [addCampaignSuccess, setAddCampaignSuccess] = useState("");
-
   // Per-section refresh keys
   const [refreshKeys, setRefreshKeys] = useState({
     overview: 0,
@@ -127,45 +120,16 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
         setIsAddLinkOpen(false);
       }
       if (section === "campaign") {
-        setJoinedCampaigns(initialJoinedCampaigns);
-        setAddCampaignForm(INITIAL_ADD_CAMPAIGN_FORM);
-        setAddCampaignError("");
-        setAddCampaignSuccess("");
         loadForwardedProperties();
       }
     },
-    [initialJoinedCampaigns, loadForwardedProperties]
+    [loadForwardedProperties]
   );
-
-  function toggleJoinCampaign(projectId) {
-    setJoinedCampaigns((prev) =>
-      prev.includes(projectId) ? prev.filter((id) => id !== projectId) : [...prev, projectId]
-    );
-  }
 
   function toggleJoinForwardedProperty(id) {
     setJoinedForwardedIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
-  }
-
-  function handleAddCampaign(e) {
-    e.preventDefault();
-    if (!addCampaignForm.projectId) {
-      setAddCampaignError("Please select a campaign to join.");
-      setAddCampaignSuccess("");
-      return;
-    }
-    if (joinedCampaigns.includes(addCampaignForm.projectId)) {
-      setAddCampaignError("You have already joined this campaign.");
-      setAddCampaignSuccess("");
-      return;
-    }
-    setJoinedCampaigns((prev) => [...prev, addCampaignForm.projectId]);
-    const name = projects.find((p) => p.id === addCampaignForm.projectId)?.name || "";
-    setAddCampaignSuccess(`You have joined the "${name}" campaign.`);
-    setAddCampaignError("");
-    setAddCampaignForm(INITIAL_ADD_CAMPAIGN_FORM);
   }
 
   function updateLeadDraft(linkId, field, value) {
@@ -274,45 +238,15 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
 
             <div>
               <h2 className="font-display text-xl text-cream">My Campaigns</h2>
-              {joinedCampaigns.length === 0 && joinedForwardedIds.length === 0 ? (
+              {joinedForwardedIds.length === 0 ? (
                 <div className="mt-4">
                   <EmptyState
                     title="No campaigns joined yet"
-                    message="Head to the Assigned Projects tab to join a project campaign."
+                    message="Projects assigned to you by your Company CP will appear here."
                   />
                 </div>
               ) : (
                 <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {projects
-                    .filter((p) => joinedCampaigns.includes(p.id))
-                    .map((p) => (
-                      <Link
-                        key={p.id}
-                        href={`/portal/digital-cp/campaign/${p.id}`}
-                        className="group block border border-navy-700/60 bg-navy-900 p-4 transition hover:border-gold-500/60"
-                      >
-                        <div className="relative h-32 w-full overflow-hidden rounded-sm">
-                          <Image
-                            src={p.image}
-                            alt={p.name}
-                            fill
-                            sizes="(max-width: 640px) 100vw, 33vw"
-                            className="object-cover transition group-hover:scale-105"
-                          />
-                        </div>
-                        <h3 className="mt-3 font-display text-base text-cream group-hover:text-gold-400 transition">{p.name}</h3>
-                        <p className="mt-1 text-xs text-muted">{p.location}</p>
-                        <div className="mt-3 flex items-center justify-between">
-                          <span className="tracked-label flex w-fit items-center gap-1 border border-gold-500/70 px-3 py-1 text-xs text-gold-400">
-                            <FiCheck className="h-3.5 w-3.5" />
-                            Joined
-                          </span>
-                          <span className="flex items-center gap-1 text-xs text-muted opacity-0 transition group-hover:opacity-100">
-                            View Campaign <FiArrowRight className="h-3.5 w-3.5" />
-                          </span>
-                        </div>
-                      </Link>
-                    ))}
                   {forwardedProperties
                     .filter((p) => joinedForwardedIds.includes(p.id))
                     .map((p) => (
@@ -412,119 +346,12 @@ export default function DigitalCPDashboard({ stats, projects, assets, initialJoi
               </div>
             )}
 
-            {/* ── Join a Campaign ──────────────────────────────── */}
-            <form
-              onSubmit={handleAddCampaign}
-              className="flex flex-col gap-4 border border-navy-700/60 bg-navy-900 p-4 sm:p-6"
-            >
-              <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gold-400/15">
-                  <MdCampaign className="h-4 w-4 text-gold-400" />
-                </div>
-                <h2 className="font-display text-xl text-cream">Join a Project Campaign</h2>
-              </div>
-              <p className="text-xs text-muted">
-                Select a project campaign to join. Once joined, it will appear on your Overview and you&apos;ll unlock campaign assets.
-              </p>
-
-              <FormField label="Campaign" htmlFor="dcp-add-campaign-select" required>
-                <select
-                  id="dcp-add-campaign-select"
-                  value={addCampaignForm.projectId}
-                  onChange={(e) => setAddCampaignForm({ projectId: e.target.value })}
-                  className={selectClass}
-                >
-                  <option value="">Select campaign</option>
-                  {projects.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
-              </FormField>
-
-              {addCampaignError && <p className="text-xs text-red-400">{addCampaignError}</p>}
-              {addCampaignSuccess && (
-                <p className="flex items-center gap-1.5 text-xs text-emerald-400">
-                  <FiCheck className="h-3.5 w-3.5" /> {addCampaignSuccess}
-                </p>
-              )}
-
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex flex-wrap gap-2">
-                  {joinedCampaigns.length > 0 && projects
-                    .filter((p) => joinedCampaigns.includes(p.id))
-                    .map((p) => (
-                      <span
-                        key={p.id}
-                        className="tracked-label flex items-center gap-1 border border-gold-500/70 bg-gold-500/10 px-2 py-1 text-[10px] text-gold-400"
-                      >
-                        <FiCheck className="h-3 w-3" />
-                        {p.name}
-                      </span>
-                    ))}
-                </div>
-                <button
-                  type="submit"
-                  className="tracked-label flex shrink-0 items-center justify-center gap-2 bg-gold-400 px-6 py-3 text-xs text-navy-950 transition hover:bg-gold-300"
-                >
-                  <MdCampaign className="h-4 w-4" />
-                  Add Campaign
-                </button>
-              </div>
-            </form>
-
-            <p className="text-sm text-muted">
-              Select a campaign below to view full guidelines, video dos &amp; don&apos;ts, and downloadable assets.
-            </p>
-            <div key={refreshKeys.campaign} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {projects.map((p) => (
-                <div
-                  key={p.id}
-                  className="group flex flex-col justify-between overflow-hidden border border-navy-700/60 bg-navy-900 transition hover:border-gold-500/60"
-                >
-                  <Link href={`/property/${p.id}?campaign=1`} className="block">
-                    <div className="relative h-36 w-full overflow-hidden">
-                      <Image
-                        src={p.image}
-                        alt={p.name}
-                        fill
-                        sizes="(max-width: 640px) 100vw, 33vw"
-                        className="object-cover transition duration-300 group-hover:scale-105"
-                      />
-                      {joinedCampaigns.includes(p.id) && (
-                        <div className="absolute left-2 top-2 flex items-center gap-1 border border-gold-500/70 bg-navy-950/80 px-2 py-1 backdrop-blur-sm">
-                          <FiCheck className="h-3 w-3 text-gold-400" />
-                          <span className="tracked-label text-[9px] text-gold-400">Joined</span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex flex-col gap-1 p-4 pb-2">
-                      <h3 className="font-display text-sm text-cream transition group-hover:text-gold-400">{p.name}</h3>
-                      <p className="text-xs text-muted">{p.location}</p>
-                      <p className="text-xs text-muted">{p.startingPrice} · {p.status}</p>
-                    </div>
-                  </Link>
-
-                  <div className="flex items-center justify-between border-t border-navy-700/60 p-4 pt-3">
-                    <Link
-                      href={`/property/${p.id}?campaign=1`}
-                      className="tracked-label flex items-center gap-1 text-[11px] text-gold-400 transition hover:text-gold-300"
-                    >
-                      <span>View Details</span>
-                      <FiArrowRight className="h-3 w-3" />
-                    </Link>
-                    <Link
-                      href={`/portal/digital-cp/campaign/${p.id}`}
-                      className="tracked-label flex items-center gap-1 border border-navy-700/60 bg-navy-950 px-2.5 py-1 text-[10px] text-cream transition hover:border-gold-400 hover:text-gold-400"
-                    >
-                      <MdCampaign className="h-3.5 w-3.5 text-gold-400" />
-                      <span>Campaign Assets</span>
-                    </Link>
-                  </div>
-                </div>
-              ))}
-            </div>
+            {forwardedProperties.length === 0 && (
+              <EmptyState
+                title="No projects assigned yet"
+                message="Your Company CP will forward project assignments here."
+              />
+            )}
           </div>
         )}
 
