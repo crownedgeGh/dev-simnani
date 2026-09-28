@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { FiPlus, FiCheck, FiSend, FiNavigation, FiCamera, FiUser, FiPhone, FiArrowRight } from "react-icons/fi";
+import { MdContentCopy, MdCheck, MdCall } from "react-icons/md";
 import Tabs from "./Tabs";
 import StatCard from "./StatCard";
 import Badge from "./Badge";
@@ -14,11 +15,52 @@ import FormField from "@/components/auth/FormField";
 import { inputClass, selectClass, textareaClass } from "@/components/auth/inputStyles";
 import { generateAccountId } from "@/lib/auth";
 import { addCpLead } from "@/lib/adminStorage";
+import { compressImageToWebp } from "@/lib/mediaCompress";
 import RefreshButton from "./RefreshButton";
 
 function formatCpLabel(name, city, state) {
   const place = [city, state].filter(Boolean).join(", ");
   return place ? `${name} — ${place}` : name;
+}
+
+function PhoneActions({ phone }) {
+  const [copied, setCopied] = useState(false);
+  if (!phone) return null;
+
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(phone);
+    } catch {
+      // Clipboard API unavailable — silently ignore
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <button
+        type="button"
+        onClick={handleCopy}
+        aria-label="Copy phone number"
+        className={`hidden h-6 w-6 shrink-0 items-center justify-center rounded-sm border transition active:scale-95 sm:inline-flex ${
+          copied
+            ? "border-gold-400 bg-gold-400 text-navy-950"
+            : "border-navy-700/60 text-gold-400 hover:border-gold-400"
+        }`}
+      >
+        {copied ? <MdCheck className="h-3.5 w-3.5" /> : <MdContentCopy className="h-3.5 w-3.5" />}
+      </button>
+      <a
+        href={`tel:${phone.replace(/\s+/g, "")}`}
+        aria-label="Call now"
+        className="flex h-9 min-w-[44px] items-center justify-center gap-1.5 rounded-sm border border-navy-700/60 px-3 text-xs text-gold-400 transition hover:border-gold-400 sm:hidden"
+      >
+        <MdCall className="h-4 w-4 shrink-0" />
+        Call
+      </a>
+    </span>
+  );
 }
 
 const TABS = [
@@ -60,6 +102,8 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
 
   const [showAddVisit, setShowAddVisit] = useState(false);
   const [newVisitProject, setNewVisitProject] = useState("");
+  const [newVisitLead, setNewVisitLead] = useState("");
+  const [convertingPhoto, setConvertingPhoto] = useState({});
 
   // Per-section refresh keys
   const [refreshKeys, setRefreshKeys] = useState({
@@ -101,24 +145,28 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
     ...delegatedProjects.map((a) => ({ id: a.propertyId || a.id, name: a.propertyTitle })),
   ].filter((p, i, arr) => arr.findIndex((x) => x.id === p.id) === i);
 
+  const newVisitLeadOptions = assignedProjects.find((g) => g.project.id === newVisitProject)?.leads || [];
+
   function handleAddSiteVisit(e) {
     e.preventDefault();
     if (!newVisitProject) return;
     const project = assignedProjectOptions.find((p) => p.id === newVisitProject);
+    const selectedLead = newVisitLeadOptions.find((l) => l.id === newVisitLead);
     setSiteVisits((prev) => [
       {
         leadId: generateAccountId("VISIT"),
         project: project ? project.name : "",
-        customer: "",
-        phone: "",
+        customer: selectedLead ? selectedLead.customer : "",
+        phone: selectedLead ? selectedLead.phone : "",
         scheduledAt: new Date().toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" }),
         status: "Scheduled",
-        livePhoto: "",
+        livePhotos: [],
         followUps: [],
       },
       ...prev,
     ]);
     setNewVisitProject("");
+    setNewVisitLead("");
     setShowAddVisit(false);
   }
 
@@ -128,11 +176,25 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
     );
   }
 
-  function uploadLivePhoto(leadId, file) {
-    if (!file) return;
-    setSiteVisits((prev) =>
-      prev.map((v) => (v.leadId === leadId ? { ...v, livePhoto: file.name } : v))
-    );
+  async function uploadLivePhotos(leadId, fileList) {
+    const files = Array.from(fileList || []);
+    if (files.length === 0) return;
+    setConvertingPhoto((prev) => ({ ...prev, [leadId]: true }));
+    try {
+      const converted = await Promise.all(
+        files.map(async (file) => {
+          const webpFile = await compressImageToWebp(file);
+          return { name: webpFile.name, url: URL.createObjectURL(webpFile) };
+        })
+      );
+      setSiteVisits((prev) =>
+        prev.map((v) =>
+          v.leadId === leadId ? { ...v, livePhotos: [...(v.livePhotos || []), ...converted] } : v
+        )
+      );
+    } finally {
+      setConvertingPhoto((prev) => ({ ...prev, [leadId]: false }));
+    }
   }
 
   function addFollowUp(leadId) {
@@ -314,7 +376,10 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
                           >
                             <div className="min-w-0">
                               <p className="text-sm text-cream">{lead.customer}</p>
-                              <p className="mt-1 text-xs text-muted">{lead.phone}</p>
+                              <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                                <span className="text-xs text-muted">{lead.phone}</span>
+                                <PhoneActions phone={lead.phone} />
+                              </div>
                             </div>
                             <div className="flex items-center gap-3 sm:shrink-0">
                               {lead.commission && <span className="text-sm text-gold-400">{lead.commission}</span>}
@@ -359,7 +424,10 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
                     <select
                       id="fcp-visit-project"
                       value={newVisitProject}
-                      onChange={(e) => setNewVisitProject(e.target.value)}
+                      onChange={(e) => {
+                        setNewVisitProject(e.target.value);
+                        setNewVisitLead("");
+                      }}
                       className={selectClass}
                     >
                       <option value="">Select assigned project</option>
@@ -371,6 +439,25 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
                     </select>
                   </FormField>
                 </div>
+                {newVisitLeadOptions.length > 0 && (
+                  <div className="flex-1">
+                    <FormField label="Assigned Customer" htmlFor="fcp-visit-lead" optional>
+                      <select
+                        id="fcp-visit-lead"
+                        value={newVisitLead}
+                        onChange={(e) => setNewVisitLead(e.target.value)}
+                        className={selectClass}
+                      >
+                        <option value="">Select customer (auto-fills name & phone)</option>
+                        {newVisitLeadOptions.map((l) => (
+                          <option key={l.id} value={l.id}>
+                            {l.customer} — {l.phone}
+                          </option>
+                        ))}
+                      </select>
+                    </FormField>
+                  </div>
+                )}
                 <button
                   type="submit"
                   disabled={!newVisitProject}
@@ -412,17 +499,28 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
 
                       <label
                         htmlFor={`live-photo-${visit.leadId}`}
-                        className="tracked-label flex cursor-pointer items-center justify-center gap-2 border border-gold-500/70 px-4 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10"
+                        className={`tracked-label flex cursor-pointer items-center justify-center gap-2 border border-gold-500/70 px-4 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10 ${
+                          convertingPhoto[visit.leadId] ? "pointer-events-none opacity-60" : ""
+                        }`}
                       >
                         <FiCamera className="h-3.5 w-3.5" />
-                        {visit.livePhoto ? "Replace Live Photo" : "Live Photo"}
+                        {convertingPhoto[visit.leadId]
+                          ? "Converting…"
+                          : visit.livePhotos?.length
+                          ? `Add More Photos (${visit.livePhotos.length})`
+                          : "Live Photo"}
                       </label>
                       <input
                         id={`live-photo-${visit.leadId}`}
                         type="file"
                         accept="image/*"
                         capture="environment"
-                        onChange={(e) => uploadLivePhoto(visit.leadId, e.target.files?.[0])}
+                        multiple
+                        disabled={convertingPhoto[visit.leadId]}
+                        onChange={(e) => {
+                          uploadLivePhotos(visit.leadId, e.target.files);
+                          e.target.value = "";
+                        }}
                         className="hidden"
                       />
 
@@ -446,13 +544,30 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
                         </button>
                       )}
 
-                      {visit.livePhoto && (
-                        <span className="tracked-label ml-auto flex items-center gap-1.5 text-[10px] text-muted">
-                          <FiCamera className="h-3 w-3" />
-                          {visit.livePhoto}
-                        </span>
-                      )}
                     </div>
+
+                    {visit.livePhotos?.length > 0 && (
+                      <div className="border-t border-navy-700/60 pt-4">
+                        <p className="tracked-label text-xs text-gold-400">Live Photos ({visit.livePhotos.length})</p>
+                        <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6">
+                          {visit.livePhotos.map((photo, i) => (
+                            <div
+                              key={i}
+                              className="relative aspect-square overflow-hidden rounded-sm border border-navy-700/60 bg-navy-950"
+                            >
+                              <Image
+                                src={photo.url}
+                                alt={photo.name}
+                                fill
+                                sizes="(max-width: 640px) 33vw, 16vw"
+                                unoptimized
+                                className="object-cover"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
                     <div className="border-t border-navy-700/60 pt-4">
                       <p className="tracked-label text-xs text-gold-400">Customer Details</p>
@@ -464,6 +579,11 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
                         <div className="flex items-center gap-2 border border-navy-700/60 bg-navy-950 px-4 py-3">
                           <FiPhone className="h-4 w-4 shrink-0 text-gold-400" />
                           <span className="text-sm text-cream">{lead ? lead.phone : visit.phone || "—"}</span>
+                          {(lead ? lead.phone : visit.phone) && (
+                            <span className="ml-auto">
+                              <PhoneActions phone={lead ? lead.phone : visit.phone} />
+                            </span>
+                          )}
                         </div>
                       </div>
                       <textarea
