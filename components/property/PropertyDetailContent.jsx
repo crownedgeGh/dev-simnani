@@ -203,7 +203,7 @@ export default function PropertyDetailContent({ property, eyebrow, sidebar, back
             </section>
           )}
 
-          <VideoEditingGuidelines />
+          {showDownloadButtons && <VideoEditingGuidelines />}
         </div>
 
         <div className="lg:col-span-1">
