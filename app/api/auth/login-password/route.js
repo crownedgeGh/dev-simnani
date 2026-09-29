@@ -33,7 +33,17 @@ export async function POST(request) {
     const users = await User.find({}).select("+password").lean();
     const user = users.find((u) => (u.mobile || "").replace(/\D/g, "").slice(-10) === digits);
 
-    if (!user || !user.password) {
+    if (!user) {
+      return NextResponse.json(
+        {
+          success: false,
+          notRegistered: true,
+          error: "This mobile number is not registered. Please sign up to continue.",
+        },
+        { status: 404 }
+      );
+    }
+    if (!user.password) {
       return NextResponse.json(
         {
           success: false,

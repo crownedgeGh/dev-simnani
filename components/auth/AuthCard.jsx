@@ -4,9 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { MdScience, MdCheckCircle } from "react-icons/md";
-import { FiEye, FiEyeOff, FiArrowLeft } from "react-icons/fi";
+import { FiEye, FiEyeOff, FiArrowLeft, FiX } from "react-icons/fi";
 import { useAuth } from "@/context/AuthContext";
-import BackButton from "@/components/layout/BackButton";
 
 // Must match OTP_LENGTH in lib/otp.js — the apitxt.com template currently
 // only supports a 4-digit code.
@@ -34,6 +33,7 @@ export default function AuthCard() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [otp, setOtp] = useState(Array(OTP_LENGTH).fill(""));
   const [error, setError] = useState("");
+  const [notRegistered, setNotRegistered] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [isTesterLogin, setIsTesterLogin] = useState(false);
@@ -64,11 +64,16 @@ export default function AuthCard() {
     if (!mobileValid || !password || loading) return;
     setLoading(true);
     setError("");
+    setNotRegistered(false);
     try {
       await loginWithPassword(mobile, password);
       router.push("/");
     } catch (err) {
-      setError(err.message || "Login failed. Please try again.");
+      if (err.notRegistered) {
+        setNotRegistered(true);
+      } else {
+        setError(err.message || "Login failed. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -77,6 +82,7 @@ export default function AuthCard() {
   function switchMode(nextMode) {
     setMode(nextMode);
     setError("");
+    setNotRegistered(false);
     setPassword("");
   }
 
@@ -87,7 +93,11 @@ export default function AuthCard() {
       body: JSON.stringify({ mobile }),
     });
     const data = await res.json();
-    if (!data.success) throw new Error(data.error || "Failed to send OTP");
+    if (!data.success) {
+      const err = new Error(data.error || "Failed to send OTP");
+      err.notRegistered = Boolean(data.notRegistered);
+      throw err;
+    }
   }
 
   async function handleMobileSubmit(event) {
@@ -95,6 +105,7 @@ export default function AuthCard() {
     if (!mobileValid || loading) return;
     setLoading(true);
     setError("");
+    setNotRegistered(false);
     try {
       await sendLoginOtp();
       setOtp(Array(OTP_LENGTH).fill(""));
@@ -102,7 +113,11 @@ export default function AuthCard() {
       startResendTimer();
       requestAnimationFrame(() => otpRefs.current[0]?.focus());
     } catch (err) {
-      setError(err.message || "Failed to send OTP. Please try again.");
+      if (err.notRegistered) {
+        setNotRegistered(true);
+      } else {
+        setError(err.message || "Failed to send OTP. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -208,6 +223,7 @@ export default function AuthCard() {
   function handleChangeNumber() {
     clearInterval(timerRef.current);
     setError("");
+    setNotRegistered(false);
     setSuccessMessage("");
     setNewPassword("");
     setConfirmPassword("");
@@ -297,7 +313,14 @@ export default function AuthCard() {
         </span>
         <div className="flex items-center gap-3">
           {step === "mobile" ? (
-            <BackButton />
+            <button
+              type="button"
+              onClick={() => router.push("/")}
+              aria-label="Close"
+              className="flex h-12 w-12 shrink-0 items-center justify-center border border-navy-700/60 bg-navy-900 text-cream transition hover:border-gold-400 hover:text-gold-400"
+            >
+              <FiX className="h-6 w-6" />
+            </button>
           ) : (
             <button
               type="button"
@@ -360,7 +383,11 @@ export default function AuthCard() {
                   autoComplete="tel-national"
                   placeholder="0000 000 000"
                   value={mobile}
-                  onChange={(event) => setMobile(formatMobile(event.target.value))}
+                  onChange={(event) => {
+                    setMobile(formatMobile(event.target.value));
+                    setNotRegistered(false);
+                    setError("");
+                  }}
                   className="h-14 w-full bg-transparent px-3 text-cream placeholder:text-muted focus:outline-none"
                 />
               </div>
@@ -405,40 +432,56 @@ export default function AuthCard() {
               </div>
             )}
 
-            {error && (
+            {error && !notRegistered && (
               <p className="text-xs text-red-400">{error}</p>
             )}
 
-            <button
-              type="submit"
-              disabled={mode === "password" ? !mobileValid || !password || loading : !mobileValid || loading}
-              className="tracked-label mt-2 flex items-center justify-center gap-2 bg-gold-400 px-6 py-4 text-xs text-navy-950 transition hover:bg-gold-300 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {mode === "password"
-                ? loading ? "Logging in..." : "Login"
-                : loading && !isTesterLogin ? "Sending OTP..." : "Continue with OTP"}
-            </button>
-          </form>
-
-          <div className="mt-4 text-center">
-            {mode === "password" ? (
-              <button
-                type="button"
-                onClick={() => switchMode("otp")}
-                className="tracked-label text-xs text-gold-400 hover:text-gold-300"
-              >
-                Or Login via OTP
-              </button>
+            {notRegistered ? (
+              <>
+                <p className="text-xs text-red-400">
+                  This mobile number is not registered.
+                </p>
+                <Link
+                  href="/auth/register"
+                  className="tracked-label mt-2 flex items-center justify-center gap-2 bg-gold-400 px-6 py-4 text-xs text-navy-950 transition hover:bg-gold-300"
+                >
+                  Create Account
+                </Link>
+              </>
             ) : (
               <button
-                type="button"
-                onClick={() => switchMode("password")}
-                className="tracked-label text-xs text-gold-400 hover:text-gold-300"
+                type="submit"
+                disabled={mode === "password" ? !mobileValid || !password || loading : !mobileValid || loading}
+                className="tracked-label mt-2 flex items-center justify-center gap-2 bg-gold-400 px-6 py-4 text-xs text-navy-950 transition hover:bg-gold-300 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Or Login with Password
+                {mode === "password"
+                  ? loading ? "Logging in..." : "Login"
+                  : loading && !isTesterLogin ? "Sending OTP..." : "Continue with OTP"}
               </button>
             )}
-          </div>
+          </form>
+
+          {!notRegistered && (
+            <div className="mt-5 text-center">
+              {mode === "password" ? (
+                <button
+                  type="button"
+                  onClick={() => switchMode("otp")}
+                  className="tracked-label w-full border border-gold-500/70 px-6 py-3.5 text-xs text-gold-400 transition hover:bg-gold-500/10"
+                >
+                  Or Login via OTP
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => switchMode("password")}
+                  className="tracked-label w-full border border-gold-500/70 px-6 py-3.5 text-xs text-gold-400 transition hover:bg-gold-500/10"
+                >
+                  Or Login with Password
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Tester Login Divider & Button */}
           <div className="relative my-6 flex items-center justify-center">

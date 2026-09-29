@@ -131,7 +131,11 @@ export function AuthProvider({ children }) {
       body: JSON.stringify({ mobile, password }),
     });
     const data = await res.json();
-    if (!data.success) throw new Error(data.error || "Login failed");
+    if (!data.success) {
+      const err = new Error(data.error || "Login failed");
+      err.notRegistered = Boolean(data.notRegistered);
+      throw err;
+    }
     setUser(data.data);
     setIsAuthenticated(true);
     if (typeof window !== "undefined") {
