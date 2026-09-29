@@ -30,8 +30,8 @@ export async function POST(request) {
       );
     }
 
-    const users = await User.find({}).select("+password").lean();
-    const user = users.find((u) => (u.mobile || "").replace(/\D/g, "").slice(-10) === digits);
+    const mobileRegex = new RegExp(digits.split("").join("\\D*") + "$");
+    const user = await User.findOne({ mobile: mobileRegex }).select("+password").lean();
 
     if (!user) {
       return NextResponse.json(
