@@ -176,7 +176,7 @@ export default function AuthCard() {
   async function handleVerify() {
     const code = otp.join("");
     if (code.length < OTP_LENGTH) {
-      setError("Please enter all 6 digits");
+      setError("Please enter all 4 digits");
       return;
     }
     setLoading(true);
@@ -241,15 +241,16 @@ export default function AuthCard() {
     setError("");
     setSuccessMessage("");
     try {
-      const res = await fetch("/api/auth/reset-password", {
+      const checkRes = await fetch("/api/auth/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mobile, checkOnly: true }),
       });
-      const data = await res.json();
-      if (!data.success) {
-        throw new Error(data.error || "No account found with this mobile number");
+      const checkData = await checkRes.json();
+      if (!checkData.success) {
+        throw new Error(checkData.error || "No account found with this mobile number");
       }
+      await sendLoginOtp();
       setOtp(Array(OTP_LENGTH).fill(""));
       setStep("forgot-otp");
       startResendTimer();
@@ -264,7 +265,7 @@ export default function AuthCard() {
   function handleForgotOtpVerify() {
     const code = otp.join("");
     if (code.length < OTP_LENGTH) {
-      setError("Please enter all 6 digits of the verification code");
+      setError("Please enter all 4 digits of the verification code");
       return;
     }
     setError("");
@@ -345,13 +346,13 @@ export default function AuthCard() {
             "Access your exclusive Simnani Estate portfolio."}
           {step === "otp" && (
             <>
-              We&apos;ve sent a 6-digit code to{" "}
+              We&apos;ve sent a 4-digit code to{" "}
               <span className="text-gold-400">+91 {mobile}</span>
             </>
           )}
           {step === "forgot-otp" && (
             <>
-              Enter the 6-digit code sent to{" "}
+              Enter the 4-digit code sent to{" "}
               <span className="text-gold-400">+91 {mobile}</span> to reset your password.
             </>
           )}
