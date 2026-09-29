@@ -21,10 +21,8 @@ export async function POST(request) {
       );
     }
 
-    const users = await User.find({}).select("mobile").lean();
-    const isRegistered = users.some(
-      (u) => (u.mobile || "").replace(/\D/g, "").slice(-10) === digits
-    );
+    const mobileRegex = new RegExp(digits.split("").join("\\D*") + "$");
+    const isRegistered = await User.exists({ mobile: mobileRegex });
     if (!isRegistered) {
       return NextResponse.json(
         {

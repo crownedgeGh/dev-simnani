@@ -40,8 +40,8 @@ export async function POST(request) {
       );
     }
 
-    const users = await User.find({}).lean();
-    let user = users.find((u) => (u.mobile || "").replace(/\D/g, "").slice(-10) === digits);
+    const mobileRegex = new RegExp(digits.split("").join("\\D*") + "$");
+    let user = await User.findOne({ mobile: mobileRegex }).lean();
 
     if (!user) {
       const created = await User.create({
