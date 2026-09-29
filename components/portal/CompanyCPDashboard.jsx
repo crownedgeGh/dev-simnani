@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -47,11 +47,9 @@ const ACTIVITY_ICON = {
 
 export default function CompanyCPDashboard({
   stats,
-  leads,
   network,
   fieldActivity,
   digitalCampaigns,
-  campaignVideos: initialCampaignVideos,
   partner,
   myListings = [],
 }) {
@@ -62,7 +60,8 @@ export default function CompanyCPDashboard({
   );
   const [assignments, setAssignments] = useState([]);
   const [openPicker, setOpenPicker] = useState({});
-  const [videos, setVideos] = useState(initialCampaignVideos);
+  const [videos, setVideos] = useState([]);
+  const [leads, setLeads] = useState([]);
   const [editingNoteId, setEditingNoteId] = useState(null);
   const [noteDraft, setNoteDraft] = useState("");
 
@@ -85,13 +84,42 @@ export default function CompanyCPDashboard({
     }
   }, []);
 
+  const digitalPartnerAccountIds = useMemo(
+    () => new Set(network.filter((p) => p.cpType === "digital").map((p) => p.accountId)),
+    [network]
+  );
+
+  const loadVideos = useCallback(async () => {
+    try {
+      const res = await fetch("/api/campaign-videos");
+      const json = await res.json();
+      setVideos(json.success ? json.data.filter((v) => digitalPartnerAccountIds.has(v.partnerAccountId)) : []);
+    } catch {
+      setVideos([]);
+    }
+  }, [digitalPartnerAccountIds]);
+
+  const loadLeads = useCallback(async () => {
+    if (!partner?.accountId) return;
+    try {
+      const res = await fetch(`/api/cp-leads?routingStage=company-cp`);
+      const json = await res.json();
+      setLeads(json.success ? json.data.filter((l) => l.assignedToAccountId === partner.accountId) : []);
+    } catch {
+      setLeads([]);
+    }
+  }, [partner]);
+
   useEffect(() => {
     let active = true;
     Promise.resolve().then(() => {
-      if (active) loadAssignments();
+      if (!active) return;
+      loadAssignments();
+      loadVideos();
+      loadLeads();
     });
     return () => { active = false; };
-  }, [loadAssignments]);
+  }, [loadAssignments, loadVideos, loadLeads]);
 
   const refreshSection = useCallback(
     (section) => {
@@ -99,12 +127,13 @@ export default function CompanyCPDashboard({
       // Reset section-specific local state
       if (section === "projects") loadAssignments();
       if (section === "trackDigital") {
-        setVideos(initialCampaignVideos);
         setEditingNoteId(null);
         setNoteDraft("");
+        loadVideos();
       }
+      if (section === "freelancerLeads") loadLeads();
     },
-    [initialCampaignVideos, loadAssignments]
+    [loadAssignments, loadVideos, loadLeads]
   );
 
   const fieldPartners = network.filter((p) => p.cpType === "field");
@@ -150,10 +179,21 @@ export default function CompanyCPDashboard({
     }));
   }
 
-  function updateVideoStatus(id, status, note = "") {
-    setVideos((prev) => prev.map((v) => (v.id === id ? { ...v, status, note } : v)));
+  async function updateVideoStatus(id, status, note = "") {
     setEditingNoteId(null);
     setNoteDraft("");
+    try {
+      const res = await fetch(`/api/campaign-videos/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status, note }),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || "Failed to update video");
+      setVideos((prev) => prev.map((v) => (v.id === id ? json.data : v)));
+    } catch (error) {
+      toast.error(error.message || "Couldn't update the video — please try again");
+    }
   }
 
   function startSuggestEdit(video) {

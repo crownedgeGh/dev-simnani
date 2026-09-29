@@ -15,8 +15,7 @@ import PropertyGrid from "@/components/property/PropertyGrid";
 import ChipGroup from "@/components/auth/ChipGroup";
 import FormField from "@/components/auth/FormField";
 import { inputClass, textareaClass } from "@/components/auth/inputStyles";
-import { generateAccountId } from "@/lib/auth";
-import { addCpLead } from "@/lib/adminStorage";
+import { toast } from "sonner";
 import RefreshButton from "./RefreshButton";
 import { usePersistentTab } from "@/lib/usePersistentTab";
 
@@ -66,11 +65,13 @@ export default function DigitalCPDashboard({ stats, assets, partner, myListings 
   const [linkForm, setLinkForm] = useState(INITIAL_LINK_FORM);
   const [linkError, setLinkError] = useState("");
   const [socialLinks, setSocialLinks] = useState([]);
+  const [linkSaving, setLinkSaving] = useState(false);
 
-  // Properties forwarded to this Digital CP by their Company CP.
+  // Properties forwarded to this Digital CP by their Company CP. "Joined"
+  // is persisted as the assignment's own status ("In Progress" = joined).
   const [forwardedProperties, setForwardedProperties] = useState([]);
-  const [joinedForwardedIds, setJoinedForwardedIds] = useState([]);
   const [leaveCampaignId, setLeaveCampaignId] = useState(null);
+  const joinedForwardedIds = forwardedProperties.filter((p) => p.status === "In Progress").map((p) => p.id);
 
   const loadForwardedProperties = useCallback(async () => {
     if (!partner?.accountId) return;
@@ -95,9 +96,41 @@ export default function DigitalCPDashboard({ stats, assets, partner, myListings 
   const [leadsByLink, setLeadsByLink] = useState({});
   const [leadDrafts, setLeadDrafts] = useState({});
   const [leadDraftErrors, setLeadDraftErrors] = useState({});
+  const [leadSaving, setLeadSaving] = useState({});
   const [openLeadFormFor, setOpenLeadFormFor] = useState(null);
   const [expandedLinkIds, setExpandedLinkIds] = useState([]);
   const [isAddLinkOpen, setIsAddLinkOpen] = useState(false);
+
+  const loadLinksAndLeads = useCallback(async () => {
+    if (!partner?.accountId) return;
+    try {
+      const [linksRes, leadsRes] = await Promise.all([
+        fetch(`/api/ad-links?digitalCpAccountId=${partner.accountId}`),
+        fetch(`/api/cp-leads?submittedByAccountId=${partner.accountId}`),
+      ]);
+      const linksJson = await linksRes.json();
+      const leadsJson = await leadsRes.json();
+      const links = linksJson.success ? linksJson.data : [];
+      const leads = leadsJson.success ? leadsJson.data : [];
+      setSocialLinks(links);
+      const grouped = {};
+      leads.forEach((lead) => {
+        if (!lead.adLinkId) return;
+        grouped[lead.adLinkId] = [...(grouped[lead.adLinkId] || []), lead];
+      });
+      setLeadsByLink(grouped);
+    } catch {
+      // keep whatever was already loaded
+    }
+  }, [partner]);
+
+  useEffect(() => {
+    let active = true;
+    Promise.resolve().then(() => {
+      if (active) loadLinksAndLeads();
+    });
+    return () => { active = false; };
+  }, [loadLinksAndLeads]);
 
   // Per-section refresh keys
   const [refreshKeys, setRefreshKeys] = useState({
@@ -111,39 +144,47 @@ export default function DigitalCPDashboard({ stats, assets, partner, myListings 
     (section) => {
       setRefreshKeys((prev) => ({ ...prev, [section]: prev[section] + 1 }));
       if (section === "links") {
-        setSocialLinks([]);
         setLinkForm(INITIAL_LINK_FORM);
         setLinkError("");
-        setLeadsByLink({});
         setLeadDrafts({});
         setLeadDraftErrors({});
         setOpenLeadFormFor(null);
         setExpandedLinkIds([]);
         setIsAddLinkOpen(false);
+        loadLinksAndLeads();
       }
       if (section === "campaign") {
         loadForwardedProperties();
       }
     },
-    [loadForwardedProperties]
+    [loadForwardedProperties, loadLinksAndLeads]
   );
 
-  function toggleJoinForwardedProperty(id) {
-    setJoinedForwardedIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
+  async function setCampaignJoined(id, joined) {
+    try {
+      const res = await fetch(`/api/assignments/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: joined ? "In Progress" : "Assigned" }),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || "Failed to update campaign");
+      setForwardedProperties((prev) => prev.map((p) => (p.id === id ? json.data : p)));
+    } catch (error) {
+      toast.error(error.message || "Couldn't update the campaign — please try again");
+    }
   }
 
   function handleCampaignButtonClick(id) {
     if (joinedForwardedIds.includes(id)) {
       setLeaveCampaignId(id);
     } else {
-      toggleJoinForwardedProperty(id);
+      setCampaignJoined(id, true);
     }
   }
 
   function confirmLeaveCampaign() {
-    if (leaveCampaignId) toggleJoinForwardedProperty(leaveCampaignId);
+    if (leaveCampaignId) setCampaignJoined(leaveCampaignId, false);
     setLeaveCampaignId(null);
   }
 
@@ -154,7 +195,7 @@ export default function DigitalCPDashboard({ stats, assets, partner, myListings 
     }));
   }
 
-  function handleAddLeadForLink(linkId, e) {
+  async function handleAddLeadForLink(linkId, e) {
     e.preventDefault();
     const draft = leadDrafts[linkId] || INITIAL_LEAD_FORM;
     if (!draft.name?.trim() || !draft.contact?.trim()) {
@@ -162,43 +203,51 @@ export default function DigitalCPDashboard({ stats, assets, partner, myListings 
       return;
     }
     setLeadDraftErrors((prev) => ({ ...prev, [linkId]: "" }));
-    setLeadsByLink((prev) => ({
-      ...prev,
-      [linkId]: [
-        {
-          id: generateAccountId("LED"),
-          name: draft.name.trim(),
-          contact: draft.contact.trim(),
-          notes: (draft.notes || "").trim(),
-          forwarded: false,
-          date: new Date().toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" }),
-        },
-        ...(prev[linkId] || []),
-      ],
-    }));
-    setLeadDrafts((prev) => ({ ...prev, [linkId]: INITIAL_LEAD_FORM }));
+    const link = socialLinks.find((l) => l.id === linkId);
+    try {
+      const res = await fetch("/api/cp-leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customer: draft.name.trim(),
+          phone: draft.contact.trim(),
+          project: link?.platform ? `${link.platform} Link` : "—",
+          source: "Digital CP",
+          notes: draft.notes ? `${draft.notes} (via ${link?.link})` : `Via ${link?.link}`,
+          adLinkId: linkId,
+        }),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || "Failed to save lead");
+      setLeadsByLink((prev) => ({ ...prev, [linkId]: [json.data, ...(prev[linkId] || [])] }));
+      setLeadDrafts((prev) => ({ ...prev, [linkId]: INITIAL_LEAD_FORM }));
+    } catch (error) {
+      setLeadDraftErrors((prev) => ({ ...prev, [linkId]: error.message || "Couldn't save the lead — please try again." }));
+    }
   }
 
-  function handleForwardLinkLead(linkId, leadId) {
+  async function handleForwardLinkLead(linkId, leadId) {
     const lead = (leadsByLink[linkId] || []).find((l) => l.id === leadId);
     if (!lead || lead.forwarded) return;
-    const link = socialLinks.find((l) => l.id === linkId);
-    setLeadsByLink((prev) => ({
-      ...prev,
-      [linkId]: prev[linkId].map((l) => (l.id === leadId ? { ...l, forwarded: true } : l)),
-    }));
-    addCpLead({
-      id: generateAccountId("CPL"),
-      customer: lead.name,
-      project: link?.platform ? `${link.platform} Link` : "—",
-      source: "Digital CP",
-      submittedBy: { cpType: "digital", name: partner?.fullName || "Digital CP" },
-      status: "Pending Verification",
-      assignedTo: "",
-      notes: lead.notes ? `${lead.notes} (via ${link?.link})` : `Via ${link?.link}`,
-      contact: lead.contact,
-      date: lead.date,
-    });
+    setLeadSaving((prev) => ({ ...prev, [leadId]: true }));
+    try {
+      const res = await fetch(`/api/cp-leads/${leadId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ forward: true }),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || "Failed to forward lead");
+      setLeadsByLink((prev) => ({
+        ...prev,
+        [linkId]: prev[linkId].map((l) => (l.id === leadId ? json.data : l)),
+      }));
+      toast.success("Lead forwarded to Head CP");
+    } catch (error) {
+      toast.error(error.message || "Couldn't forward the lead — please try again");
+    } finally {
+      setLeadSaving((prev) => ({ ...prev, [leadId]: false }));
+    }
   }
 
   function updateLinkForm(field, value) {
@@ -211,26 +260,34 @@ export default function DigitalCPDashboard({ stats, assets, partner, myListings 
     );
   }
 
-  function handleSubmitLink(e) {
+  async function handleSubmitLink(e) {
     e.preventDefault();
     if (!linkForm.platform || !linkForm.link.trim()) {
       setLinkError("Please select a platform and paste the link.");
       return;
     }
     setLinkError("");
-    const newLinkId = generateAccountId("LNK");
-    setExpandedLinkIds((prev) => [...prev, newLinkId]);
-    setSocialLinks((prev) => [
-      {
-        id: newLinkId,
-        platform: PLATFORMS.find((p) => p.value === linkForm.platform)?.label || "Other",
-        link: linkForm.link.trim(),
-        date: new Date().toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" }),
-      },
-      ...prev,
-    ]);
-    setLinkForm(INITIAL_LINK_FORM);
-    setIsAddLinkOpen(false);
+    setLinkSaving(true);
+    try {
+      const res = await fetch("/api/ad-links", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          platform: PLATFORMS.find((p) => p.value === linkForm.platform)?.label || "Other",
+          link: linkForm.link.trim(),
+        }),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || "Failed to add link");
+      setExpandedLinkIds((prev) => [...prev, json.data.id]);
+      setSocialLinks((prev) => [json.data, ...prev]);
+      setLinkForm(INITIAL_LINK_FORM);
+      setIsAddLinkOpen(false);
+    } catch (error) {
+      setLinkError(error.message || "Couldn't add the link — please try again.");
+    } finally {
+      setLinkSaving(false);
+    }
   }
 
   return (
@@ -587,8 +644,8 @@ export default function DigitalCPDashboard({ stats, assets, partner, myListings 
                                   className="flex flex-col gap-3 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
                                 >
                                   <div className="min-w-0">
-                                    <p className="text-sm text-cream">{lead.name}</p>
-                                    <p className="mt-1 text-xs text-muted">{lead.contact}</p>
+                                    <p className="text-sm text-cream">{lead.customer}</p>
+                                    <p className="mt-1 text-xs text-muted">{lead.phone}</p>
                                     {lead.notes && <p className="mt-1 text-xs text-muted">{lead.notes}</p>}
                                   </div>
                                   {lead.forwarded ? (
@@ -599,11 +656,12 @@ export default function DigitalCPDashboard({ stats, assets, partner, myListings 
                                   ) : (
                                     <button
                                       type="button"
+                                      disabled={leadSaving[lead.id]}
                                       onClick={() => handleForwardLinkLead(item.id, lead.id)}
-                                      className="tracked-label flex shrink-0 items-center justify-center gap-2 bg-gold-400 px-4 py-2 text-xs text-navy-950 transition hover:bg-gold-300"
+                                      className="tracked-label flex shrink-0 items-center justify-center gap-2 bg-gold-400 px-4 py-2 text-xs text-navy-950 transition hover:bg-gold-300 disabled:opacity-60"
                                     >
                                       <FiSend className="h-3.5 w-3.5" />
-                                      Forward to Head CP
+                                      {leadSaving[lead.id] ? "Forwarding…" : "Forward to Head CP"}
                                     </button>
                                   )}
                                 </div>

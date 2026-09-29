@@ -20,7 +20,6 @@ import {
 import AdminPageHeader from "@/components/admin/layout/AdminPageHeader";
 import AdminTable from "@/components/admin/ui/AdminTable";
 import AdminConfirmModal from "@/components/admin/ui/AdminConfirmModal";
-import { ADMIN_KEYS, readCollection } from "@/lib/adminStorage";
 
 // CP type segments — each has its own dedicated management page with full
 // CRUD, mirroring the three public dashboards at
@@ -75,7 +74,7 @@ const STATUS_LABEL = { active: "Active", hold: "On Hold" };
 export default function FreelancerCPPage() {
   const router = useRouter();
   const [freelancers, setFreelancers] = useState([]);
-  const [cpCounts, setCpCounts] = useState({ cpNetwork: [], cpLeads: [] });
+  const [cpLeads, setCpLeads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [updatingId, setUpdatingId] = useState(null);
@@ -84,17 +83,17 @@ export default function FreelancerCPPage() {
 
   const load = useCallback(async () => {
     try {
-      const res = await fetch("/api/users?accountType=freelancer");
-      const json = await res.json();
-      const list = (json.success ? json.data : []).map((u) => ({ ...u, id: u.accountId }));
-      setFreelancers(list);
+      const [usersRes, leadsRes] = await Promise.all([
+        fetch("/api/users?accountType=freelancer"),
+        fetch("/api/cp-leads"),
+      ]);
+      const usersJson = await usersRes.json();
+      const leadsJson = await leadsRes.json();
+      setFreelancers((usersJson.success ? usersJson.data : []).map((u) => ({ ...u, id: u.accountId })));
+      setCpLeads(leadsJson.success ? leadsJson.data : []);
     } catch {
       toast.error("Failed to load channel partners");
     }
-    setCpCounts({
-      cpNetwork: readCollection(ADMIN_KEYS.cpNetwork) || [],
-      cpLeads: readCollection(ADMIN_KEYS.cpLeads) || [],
-    });
   }, []);
 
   useEffect(() => {
@@ -158,12 +157,12 @@ export default function FreelancerCPPage() {
     const counts = {};
     CP_SEGMENTS.forEach((seg) => {
       counts[seg.key] = {
-        partners: seg.key === "headcp" ? null : cpCounts.cpNetwork.filter((n) => n.cpType === seg.key).length,
-        leads: cpCounts.cpLeads.filter((l) => (l.routingStage || "head-cp") === seg.routingStage).length,
+        partners: seg.key === "headcp" ? null : freelancers.filter((f) => f.cpType === seg.key).length,
+        leads: cpLeads.filter((l) => (l.routingStage || "head-cp") === seg.routingStage).length,
       };
     });
     return counts;
-  }, [cpCounts]);
+  }, [freelancers, cpLeads]);
 
   const COLUMNS = [
     { key: "fullName", label: "Name", primary: true, sortable: true },

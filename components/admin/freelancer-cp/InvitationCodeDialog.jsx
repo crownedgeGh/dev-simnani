@@ -13,7 +13,6 @@ import {
 import AdminDialog from "@/components/admin/ui/AdminDialog";
 import AdminFormField, { adminInputClass, adminTextareaClass } from "@/components/admin/ui/AdminFormField";
 import AdminSearchableSelect from "@/components/admin/ui/AdminSearchableSelect";
-import { ADMIN_KEYS, readCollection, writeCollection } from "@/lib/adminStorage";
 import { RTO_STATES, getCitiesForState, getRtoCode } from "@/lib/cityRto";
 
 const CP_TYPES = [
@@ -45,30 +44,29 @@ const CP_TYPES = [
 
 const EMPTY_FORM = { name: "", mobile: "", state: "", city: "", address: "" };
 
-function buildCode(prefix, rtoCode, existingCodes) {
-  let code;
-  do {
-    const random = Math.floor(10000 + Math.random() * 90000);
-    code = `${prefix}${rtoCode}-${random}`;
-  } while (existingCodes.includes(code));
-  return code;
+function buildCode(prefix, rtoCode) {
+  const random = Math.floor(10000 + Math.random() * 90000);
+  return `${prefix}${rtoCode}-${random}`;
 }
 
-export default function InvitationCodeDialog({ isOpen, onClose }) {
-  const [step, setStep] = useState("type"); // type | details | result
-  const [cpType, setCpType] = useState(null);
+export default function InvitationCodeDialog({ isOpen, onClose, cpType: forcedCpTypeKey, onGenerated }) {
+  const forcedType = forcedCpTypeKey ? CP_TYPES.find((t) => t.key === forcedCpTypeKey) : null;
+  const [step, setStep] = useState(forcedType ? "details" : "type"); // type | details | result
+  const [cpType, setCpType] = useState(forcedType || null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState({});
   const [generatedCode, setGeneratedCode] = useState("");
   const [copied, setCopied] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const reset = () => {
-    setStep("type");
-    setCpType(null);
+    setStep(forcedType ? "details" : "type");
+    setCpType(forcedType || null);
     setForm(EMPTY_FORM);
     setErrors({});
     setGeneratedCode("");
     setCopied(false);
+    setSaving(false);
   };
 
   const handleClose = () => {
@@ -98,29 +96,40 @@ export default function InvitationCodeDialog({ isOpen, onClose }) {
     return Object.keys(next).length === 0;
   };
 
-  const handleGenerate = (e) => {
+  const handleGenerate = async (e) => {
     e.preventDefault();
     if (!validate()) return;
 
     const rtoCode = getRtoCode(form.state, form.city) || form.state.slice(0, 2).toUpperCase();
-    const existing = readCollection(ADMIN_KEYS.invitationCodes) || [];
-    const code = buildCode(cpType.prefix, rtoCode, existing.map((c) => c.code));
+    const code = buildCode(cpType.prefix, rtoCode);
 
-    const record = {
-      code,
-      cpType: cpType.key,
-      name: form.name.trim(),
-      mobile: form.mobile.trim(),
-      state: form.state,
-      city: form.city,
-      address: form.address.trim(),
-      createdAt: new Date().toISOString(),
-    };
-    writeCollection(ADMIN_KEYS.invitationCodes, [record, ...existing]);
+    setSaving(true);
+    try {
+      const res = await fetch("/api/invitation-codes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code,
+          cpType: cpType.key,
+          name: form.name.trim(),
+          mobile: form.mobile.trim(),
+          state: form.state,
+          city: form.city,
+          address: form.address.trim(),
+        }),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || "Failed to generate code");
 
-    setGeneratedCode(code);
-    setStep("result");
-    toast.success("Invitation code generated");
+      onGenerated?.(json.data);
+      setGeneratedCode(json.data.code);
+      setStep("result");
+      toast.success("Invitation code generated");
+    } catch (err) {
+      toast.error(err.message || "Failed to generate invitation code");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleCopy = async () => {
@@ -172,13 +181,15 @@ export default function InvitationCodeDialog({ isOpen, onClose }) {
 
       {step === "details" && (
         <form id="invitation-code-form" onSubmit={handleGenerate} className="flex flex-col gap-4">
-          <button
-            type="button"
-            onClick={() => setStep("type")}
-            className="flex min-h-[44px] w-fit items-center gap-1.5 text-xs font-medium text-[#9ca3af] transition hover:text-[#d97706]"
-          >
-            <MdArrowBack size={14} /> Change CP type
-          </button>
+          {!forcedType && (
+            <button
+              type="button"
+              onClick={() => setStep("type")}
+              className="flex min-h-[44px] w-fit items-center gap-1.5 text-xs font-medium text-[#9ca3af] transition hover:text-[#d97706]"
+            >
+              <MdArrowBack size={14} /> Change CP type
+            </button>
+          )}
 
           <AdminFormField label="Full Name" id="inv-name" required error={errors.name}>
             <input
@@ -237,9 +248,10 @@ export default function InvitationCodeDialog({ isOpen, onClose }) {
 
           <button
             type="submit"
-            className="mt-1 flex h-11 min-h-[44px] w-full items-center justify-center rounded-xl bg-[#f0b429] px-5 text-sm font-semibold text-white transition hover:bg-[#d97706]"
+            disabled={saving}
+            className="mt-1 flex h-11 min-h-[44px] w-full items-center justify-center rounded-xl bg-[#f0b429] px-5 text-sm font-semibold text-white transition hover:bg-[#d97706] disabled:opacity-60"
           >
-            Generate Code
+            {saving ? "Generating…" : "Generate Code"}
           </button>
         </form>
       )}

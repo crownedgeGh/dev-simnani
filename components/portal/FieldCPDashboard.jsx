@@ -13,8 +13,6 @@ import PropertyGrid from "@/components/property/PropertyGrid";
 import { VISIT_STATUS_TONE } from "./channel-partner/tones";
 import FormField from "@/components/auth/FormField";
 import { inputClass, selectClass, textareaClass } from "@/components/auth/inputStyles";
-import { generateAccountId } from "@/lib/auth";
-import { addCpLead } from "@/lib/adminStorage";
 import { uploadFileToR2 } from "@/lib/uploadToR2";
 import RefreshButton from "./RefreshButton";
 import { usePersistentTab } from "@/lib/usePersistentTab";
@@ -190,6 +188,23 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
   const [directForm, setDirectForm] = useState(INITIAL_DIRECT_FORM);
   const [directError, setDirectError] = useState("");
   const [directLeads, setDirectLeads] = useState([]);
+  const [directSaving, setDirectSaving] = useState({});
+
+  const loadDirectLeads = useCallback(() => {
+    if (!partner?.accountId) return;
+    fetch(`/api/cp-leads?submittedByAccountId=${partner.accountId}`)
+      .then((res) => res.json())
+      .then((json) => setDirectLeads(json.success ? json.data.filter((l) => !l.adLinkId) : []))
+      .catch(() => setDirectLeads([]));
+  }, [partner]);
+
+  useEffect(() => {
+    let active = true;
+    Promise.resolve().then(() => {
+      if (active) loadDirectLeads();
+    });
+    return () => { active = false; };
+  }, [loadDirectLeads]);
 
   const [showAddVisit, setShowAddVisit] = useState(false);
   const [newVisitProject, setNewVisitProject] = useState("");
@@ -243,12 +258,12 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
         }
       }
       if (section === "direct") {
-        setDirectLeads([]);
         setDirectForm(INITIAL_DIRECT_FORM);
         setDirectError("");
+        loadDirectLeads();
       }
     },
-    [partner]
+    [partner, loadDirectLeads]
   );
 
   const assignedLeads = leads.filter((l) => l.assignedTo);
@@ -389,7 +404,7 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
     setExpandedReports((prev) => ({ ...prev, [leadId]: !prev[leadId] }));
   }
 
-  function handleDirectSubmit(e) {
+  async function handleDirectSubmit(e) {
     e.preventDefault();
     if (!directForm.customer.trim() || !directForm.phone.trim() || !directForm.project) {
       setDirectError("Please fill in customer name, phone and project.");
@@ -397,37 +412,47 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
     }
     setDirectError("");
     const project = projects.find((p) => p.id === directForm.project);
-    setDirectLeads((prev) => [
-      {
-        id: generateAccountId("LED"),
-        customer: directForm.customer.trim(),
-        phone: directForm.phone.trim(),
-        project: project ? project.name : directForm.project,
-        notes: directForm.notes.trim(),
-        forwarded: false,
-        date: new Date().toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" }),
-      },
-      ...prev,
-    ]);
-    setDirectForm(INITIAL_DIRECT_FORM);
+    try {
+      const res = await fetch("/api/cp-leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customer: directForm.customer.trim(),
+          phone: directForm.phone.trim(),
+          project: project ? project.name : directForm.project,
+          projectId: directForm.project,
+          source: "Field CP Direct Lead",
+          notes: directForm.notes.trim(),
+        }),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || "Failed to add lead");
+      setDirectLeads((prev) => [json.data, ...prev]);
+      setDirectForm(INITIAL_DIRECT_FORM);
+    } catch (error) {
+      setDirectError(error.message || "Couldn't add the lead — please try again.");
+    }
   }
 
-  function handleForwardDirectLead(id) {
+  async function handleForwardDirectLead(id) {
     const lead = directLeads.find((l) => l.id === id);
     if (!lead || lead.forwarded) return;
-    setDirectLeads((prev) => prev.map((l) => (l.id === id ? { ...l, forwarded: true } : l)));
-    addCpLead({
-      id: generateAccountId("CPL"),
-      customer: lead.customer,
-      project: lead.project,
-      source: "Field CP Direct Lead",
-      submittedBy: { cpType: "field", name: partner?.fullName || "Field CP" },
-      status: "Pending Verification",
-      assignedTo: "",
-      notes: lead.notes,
-      phone: lead.phone,
-      date: lead.date,
-    });
+    setDirectSaving((prev) => ({ ...prev, [id]: true }));
+    try {
+      const res = await fetch(`/api/cp-leads/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ forward: true }),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || "Failed to forward lead");
+      setDirectLeads((prev) => prev.map((l) => (l.id === id ? json.data : l)));
+      toast.success("Lead forwarded to Head CP");
+    } catch (error) {
+      toast.error(error.message || "Couldn't forward the lead — please try again");
+    } finally {
+      setDirectSaving((prev) => ({ ...prev, [id]: false }));
+    }
   }
 
   return (
@@ -1060,11 +1085,12 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
                     ) : (
                       <button
                         type="button"
+                        disabled={directSaving[lead.id]}
                         onClick={() => handleForwardDirectLead(lead.id)}
-                        className="tracked-label flex shrink-0 items-center justify-center gap-2 bg-gold-400 px-4 py-2 text-xs text-navy-950 transition hover:bg-gold-300"
+                        className="tracked-label flex shrink-0 items-center justify-center gap-2 bg-gold-400 px-4 py-2 text-xs text-navy-950 transition hover:bg-gold-300 disabled:opacity-60"
                       >
                         <FiSend className="h-3.5 w-3.5" />
-                        Forward to Head CP
+                        {directSaving[lead.id] ? "Forwarding…" : "Forward to Head CP"}
                       </button>
                     )}
                   </div>

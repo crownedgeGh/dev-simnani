@@ -89,26 +89,41 @@ export async function POST(request) {
       // same way the rest of /api/admin/* is trusted from the admin UI.
     } else {
       const sessionUser = await getSessionUser(request);
-      if (!sessionUser || sessionUser.accountType !== "freelancer" || sessionUser.cpType !== "company") {
+      if (sessionUser && sessionUser.accountType === "freelancer" && sessionUser.cpType === "company") {
+        assignedByAccountId = sessionUser.accountId;
+        assignedByName = sessionUser.fullName;
+        assignedByCpType = "company";
+        assignedByCity = sessionUser.city || "";
+        assignedByState = sessionUser.state || "";
+
+        if (parentAssignmentId) {
+          const parent = await Assignment.findOne({ id: parentAssignmentId }).lean();
+          if (!parent || parent.assignedToAccountId !== sessionUser.accountId || parent.level !== "head-to-company") {
+            return NextResponse.json(
+              { success: false, error: "This property was not assigned to you by Head CP" },
+              { status: 403 }
+            );
+          }
+        }
+      } else if (body.assignedByAccountId) {
+        // No Company CP session — this is the admin panel delegating on a
+        // Company CP's behalf (Company CP Management's "Delegate" action).
+        // Trusted like head-to-company, but still resolves the real account
+        // so assignedByName/city/state aren't client-supplied.
+        const delegator = await User.findOne({ accountId: body.assignedByAccountId, cpType: "company" }).lean();
+        if (!delegator) {
+          return NextResponse.json({ success: false, error: "Delegating Company CP account not found" }, { status: 404 });
+        }
+        assignedByAccountId = delegator.accountId;
+        assignedByName = delegator.fullName;
+        assignedByCpType = "company";
+        assignedByCity = delegator.city || "";
+        assignedByState = delegator.state || "";
+      } else {
         return NextResponse.json(
           { success: false, error: "You must be logged in as a Company CP to delegate" },
           { status: 401 }
         );
-      }
-      assignedByAccountId = sessionUser.accountId;
-      assignedByName = sessionUser.fullName;
-      assignedByCpType = "company";
-      assignedByCity = sessionUser.city || "";
-      assignedByState = sessionUser.state || "";
-
-      if (parentAssignmentId) {
-        const parent = await Assignment.findOne({ id: parentAssignmentId }).lean();
-        if (!parent || parent.assignedToAccountId !== sessionUser.accountId || parent.level !== "head-to-company") {
-          return NextResponse.json(
-            { success: false, error: "This property was not assigned to you by Head CP" },
-            { status: 403 }
-          );
-        }
       }
     }
 
