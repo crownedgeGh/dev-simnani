@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import dbConnect from "@/lib/mongodb";
 import Property from "@/models/Property";
 import { PROPERTIES, getLocationCity } from "@/lib/properties";
@@ -61,6 +62,13 @@ export async function PATCH(request, { params }) {
       { new: true, runValidators: true }
     ).lean();
 
+    revalidatePath("/");
+    revalidatePath("/buy");
+    revalidatePath("/rent");
+    revalidatePath("/sell");
+    revalidatePath("/invest");
+    revalidatePath(`/property/${id}`);
+
     return NextResponse.json({
       success: true,
       message: "Property updated successfully",
@@ -88,6 +96,13 @@ export async function DELETE(request, { params }) {
         { status: 404 }
       );
     }
+
+    revalidatePath("/");
+    revalidatePath("/buy");
+    revalidatePath("/rent");
+    revalidatePath("/sell");
+    revalidatePath("/invest");
+    revalidatePath(`/property/${id}`);
 
     return NextResponse.json({
       success: true,
