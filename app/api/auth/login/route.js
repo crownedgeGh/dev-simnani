@@ -5,22 +5,38 @@ import User from "@/models/User";
 import Session from "@/models/Session";
 import { generateAccountId } from "@/lib/auth";
 import { SESSION_MAX_AGE, setSessionCookie } from "@/lib/session";
+import { verifyOtp } from "@/lib/otp";
 
 export const dynamic = "force-dynamic";
 
-// Mobile + OTP login. OTP delivery/verification is mocked (no SMS gateway),
-// but the resulting session is a real DB-backed record — matches the
-// existing find-or-create behaviour that used to live in localStorage.
+// Mobile + OTP login. The OTP is sent by /api/auth/send-otp and verified
+// here against the hash stored in the Otp collection; the resulting
+// session is a real DB-backed record — matches the existing find-or-create
+// behaviour that used to live in localStorage.
 export async function POST(request) {
   try {
     await dbConnect();
-    const { mobile } = await request.json();
+    const { mobile, otp } = await request.json();
     const digits = (mobile || "").replace(/\D/g, "").slice(-10);
 
     if (digits.length !== 10) {
       return NextResponse.json(
         { success: false, error: "Enter a valid 10-digit mobile number" },
         { status: 400 }
+      );
+    }
+    if (!otp) {
+      return NextResponse.json(
+        { success: false, error: "Enter the OTP sent to your mobile" },
+        { status: 400 }
+      );
+    }
+
+    const verification = await verifyOtp(digits, "login", otp);
+    if (!verification.valid) {
+      return NextResponse.json(
+        { success: false, error: verification.error },
+        { status: 401 }
       );
     }
 

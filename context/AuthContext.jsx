@@ -100,11 +100,11 @@ export function AuthProvider({ children }) {
    * loginWithMobile — OTP login path. Looks the user up by mobile number in
    * the database (creating a minimal Common Person profile on first login).
    */
-  const loginWithMobile = useCallback(async (mobile) => {
+  const loginWithMobile = useCallback(async (mobile, otp) => {
     const res = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ mobile }),
+      body: JSON.stringify({ mobile, otp }),
     });
     const data = await res.json();
     if (!data.success) throw new Error(data.error || "Login failed");

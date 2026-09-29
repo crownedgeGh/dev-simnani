@@ -46,6 +46,8 @@ export default function RootLayout({ children }) {
         <Toaster
           position="top-right"
           richColors
+          closeButton
+          duration={3000}
           gap={12}
           toastOptions={{
             style: {

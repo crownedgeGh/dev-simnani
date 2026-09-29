@@ -8,7 +8,9 @@ import { FiEye, FiEyeOff, FiArrowLeft } from "react-icons/fi";
 import { useAuth } from "@/context/AuthContext";
 import BackButton from "@/components/layout/BackButton";
 
-const OTP_LENGTH = 6;
+// Must match OTP_LENGTH in lib/otp.js — the apitxt.com template currently
+// only supports a 4-digit code.
+const OTP_LENGTH = parseInt(process.env.NEXT_PUBLIC_OTP_LENGTH || "4", 10);
 
 function formatMobile(value) {
   const digits = value.replace(/\D/g, "").slice(0, 10);
@@ -78,18 +80,48 @@ export default function AuthCard() {
     setPassword("");
   }
 
-  function handleMobileSubmit(event) {
+  async function sendLoginOtp() {
+    const res = await fetch("/api/auth/send-otp", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mobile }),
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || "Failed to send OTP");
+  }
+
+  async function handleMobileSubmit(event) {
     event.preventDefault();
     if (!mobileValid || loading) return;
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    setError("");
+    try {
+      await sendLoginOtp();
       setOtp(Array(OTP_LENGTH).fill(""));
-      setError("");
       setStep("otp");
       startResendTimer();
       requestAnimationFrame(() => otpRefs.current[0]?.focus());
-    }, 800);
+    } catch (err) {
+      setError(err.message || "Failed to send OTP. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleResendOtp() {
+    if (loading) return;
+    setLoading(true);
+    setError("");
+    try {
+      await sendLoginOtp();
+      setOtp(Array(OTP_LENGTH).fill(""));
+      startResendTimer();
+      requestAnimationFrame(() => otpRefs.current[0]?.focus());
+    } catch (err) {
+      setError(err.message || "Failed to resend OTP. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   function handleOtpChange(index, rawValue) {
@@ -135,7 +167,7 @@ export default function AuthCard() {
     setLoading(true);
     setError("");
     try {
-      await loginWithMobile(mobile);
+      await loginWithMobile(mobile, code);
       clearInterval(timerRef.current);
       router.push("/");
     } catch (err) {
@@ -373,7 +405,7 @@ export default function AuthCard() {
               </div>
             )}
 
-            {error && mode === "password" && (
+            {error && (
               <p className="text-xs text-red-400">{error}</p>
             )}
 
@@ -494,7 +526,7 @@ export default function AuthCard() {
             ) : (
               <button
                 type="button"
-                onClick={startResendTimer}
+                onClick={handleResendOtp}
                 className="tracked-label text-gold-400 hover:text-gold-300"
               >
                 Resend OTP
