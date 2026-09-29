@@ -29,6 +29,7 @@ import {
   GENDER_PREFERENCE_OPTIONS,
   PG_HOSTEL_BATHROOM_OPTIONS,
   getFieldProfile,
+  RESIDENTIAL_PROPERTY_TYPES,
 } from "@/lib/properties";
 import { uploadFileToR2, uploadFilesToR2 } from "@/lib/uploadToR2";
 import { trackEvent } from "@/lib/gtag";
@@ -53,15 +54,13 @@ const YES_NO_OPTIONS = [
 ];
 
 const SECTION_OPTIONS = [
-  { value: "residential", label: "Residential (Buy/Sell/Rent)" },
+  { value: "residential", label: "Residential" },
   { value: "commercial", label: "Commercial" },
   { value: "farming", label: "Farming Land" },
   { value: "industrial", label: "Industrial" },
   { value: "invest", label: "Investment Property" },
   { value: "seized-property", label: "Seized Property" },
 ];
-
-const PROPERTY_TYPES = ["Flat", "House", "Shop", "Plot", "Office", "Warehouse", "PG", "Hostel"];
 
 const MAX_DESCRIPTION_WORDS = 100;
 
@@ -609,7 +608,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
                   className={errClass(`${selectClass} rounded-sm pr-10`, "propertyType")}
                 >
                   <option value="">Select type</option>
-                  {PROPERTY_TYPES.map((type) => (
+                  {RESIDENTIAL_PROPERTY_TYPES.map((type) => (
                     <option key={type} value={type}>
                       {type}
                     </option>

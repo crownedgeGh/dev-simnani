@@ -1,7 +1,14 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Property from "@/models/Property";
-import { getLocationCity, isStructureCategory, categoryHasBedrooms, isPgOrHostel } from "@/lib/properties";
+import {
+  getLocationCity,
+  isStructureCategory,
+  categoryHasBedrooms,
+  isPgOrHostel,
+  isResidentialSection,
+  RESIDENTIAL_PROPERTY_TYPES,
+} from "@/lib/properties";
 import { getSessionUser } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
@@ -86,6 +93,13 @@ export async function POST(request) {
     }
 
     const body = await request.json();
+
+    if (isResidentialSection(body.type) && !RESIDENTIAL_PROPERTY_TYPES.includes(body.propertyType)) {
+      return NextResponse.json(
+        { success: false, error: "Invalid property type for a Residential listing" },
+        { status: 400 }
+      );
+    }
 
     const isPgHostel = isPgOrHostel(body.propertyType);
     const needsStructureFields = isStructureCategory(body.type, body.category) && !isPgHostel;

@@ -34,6 +34,7 @@ import {
   isPgOrHostel,
   GENDER_PREFERENCE_OPTIONS,
   PG_HOSTEL_BATHROOM_OPTIONS,
+  RESIDENTIAL_PROPERTY_TYPES,
 } from "@/lib/properties";
 import { uploadFileToR2 } from "@/lib/uploadToR2";
 import { POSTED_BY_ROLE_OPTIONS, POSTED_BY_ROLES, isPublicPostedByRole } from "@/lib/postedByRoles";
@@ -48,21 +49,6 @@ const PURPOSE_OPTIONS = [
 const YES_NO_OPTIONS = [
   { value: "yes", label: "Yes" },
   { value: "no", label: "No" },
-];
-
-const PROPERTY_TYPES = [
-  "Flat",
-  "House",
-  "Villa",
-  "Shop",
-  "Plot",
-  "Office",
-  "Warehouse",
-  "Commercial Space",
-  "Penthouse",
-  "Agricultural Land",
-  "PG",
-  "Hostel",
 ];
 
 const MAX_DESCRIPTION_WORDS = 100;
@@ -874,7 +860,10 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
                   onChange={(e) => update("propertyType", e.target.value)}
                   className={adminSelectClass}
                 >
-                  {PROPERTY_TYPES.map((pt) => (
+                  {(RESIDENTIAL_PROPERTY_TYPES.includes(form.propertyType) || !form.propertyType
+                    ? RESIDENTIAL_PROPERTY_TYPES
+                    : [form.propertyType, ...RESIDENTIAL_PROPERTY_TYPES]
+                  ).map((pt) => (
                     <option key={pt} value={pt}>
                       {pt}
                     </option>

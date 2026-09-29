@@ -31,6 +31,7 @@ import {
   getFieldProfile,
   GENDER_PREFERENCE_OPTIONS,
   PG_HOSTEL_BATHROOM_OPTIONS,
+  RESIDENTIAL_PROPERTY_TYPES,
 } from "@/lib/properties";
 import { uploadFileToR2 } from "@/lib/uploadToR2";
 import { POSTED_BY_ROLE_OPTIONS, POSTED_BY_ROLES, isPublicPostedByRole } from "@/lib/postedByRoles";
@@ -49,8 +50,6 @@ const YES_NO_OPTIONS = [
   { value: "no", label: "No" },
 ];
 
-const PROPERTY_TYPES = ["Flat", "House", "Shop", "Plot", "Office", "Warehouse", "PG", "Hostel"];
-
 const MAX_DESCRIPTION_WORDS = 100;
 
 function limitToWords(text, maxWords) {
@@ -64,7 +63,7 @@ function countWords(text) {
 }
 
 const SECTION_OPTIONS = [
-  { value: "residential", label: "Residential (Buy/Sell/Rent)" },
+  { value: "residential", label: "Residential" },
   { value: "commercial", label: "Commercial" },
   { value: "farming", label: "Farming Land" },
   { value: "industrial", label: "Industrial" },
@@ -668,7 +667,7 @@ export default function AdminAddPropertyForm() {
                       className={adminSelectClass}
                     >
                       <option value="">Select type</option>
-                      {PROPERTY_TYPES.map((type) => (
+                      {RESIDENTIAL_PROPERTY_TYPES.map((type) => (
                         <option key={type} value={type}>
                           {type}
                         </option>
