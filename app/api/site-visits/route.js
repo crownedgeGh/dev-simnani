@@ -8,9 +8,9 @@ export const revalidate = 0;
 
 // Not gated by the caller's own session for GET — the admin panel needs to
 // look up any Field CP's visits by their accountId (see /api/admin/field-cps
-// and FieldPartnerVisitsDialog), the same way /api/assignments is queried by
-// arbitrary assignedToAccountId. The Field CP portal itself always passes its
-// own accountId.
+// and app/(admin)/admin/freelancer-cp/[cpType]/[accountId]/page.js), the same
+// way /api/assignments is queried by arbitrary assignedToAccountId. The Field
+// CP portal itself always passes its own accountId.
 export async function GET(request) {
   try {
     await dbConnect();

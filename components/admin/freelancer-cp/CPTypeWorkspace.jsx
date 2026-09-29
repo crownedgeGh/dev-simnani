@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   MdCheckCircle,
@@ -25,7 +26,6 @@ import CPPartnerFormDialog from "@/components/admin/freelancer-cp/CPPartnerFormD
 import VideoModerationDialog from "@/components/admin/freelancer-cp/VideoModerationDialog";
 import AssignPropertyDialog from "@/components/admin/freelancer-cp/AssignPropertyDialog";
 import InvitationCodeDialog from "@/components/admin/freelancer-cp/InvitationCodeDialog";
-import FieldPartnerVisitsDialog from "@/components/admin/freelancer-cp/FieldPartnerVisitsDialog";
 
 const CP_LEAD_STATUSES = ["Pending Verification", "Verified", "Assigned", "Site Visit Scheduled", "Site Visit Completed", "Converted", "Lost"];
 const COMM_STATUSES = ["Pending", "Approved", "On Hold"];
@@ -59,6 +59,7 @@ export default function CPTypeWorkspace({
   showSiteVisits = false,
   emptyMessage = "No records found",
 }) {
+  const router = useRouter();
   const effectiveLeadCpTypes = useMemo(
     () => leadCpTypes || (cpType ? [cpType] : []),
     [leadCpTypes, cpType]
@@ -80,7 +81,6 @@ export default function CPTypeWorkspace({
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [delegateTarget, setDelegateTarget] = useState(null); // assignment row being delegated onward
-  const [fieldPartnerDetail, setFieldPartnerDetail] = useState(null);
   const [invitationDialogOpen, setInvitationDialogOpen] = useState(false);
 
   const needsNetwork = (t) =>
@@ -320,7 +320,13 @@ export default function CPTypeWorkspace({
   // ---------------------------------------------------------------------
   const NETWORK_COLUMNS = [
     { key: "id", label: "CP ID", render: (v) => <span className="font-mono text-xs text-[#9ca3af]">{v}</span> },
-    { key: "name", label: "Name", sortable: true, primary: true },
+    {
+      key: "name",
+      label: "Name",
+      sortable: true,
+      primary: true,
+      render: (v) => <span className="text-sm font-medium text-[#1a1a2e] transition hover:text-[#d97706] hover:underline">{v}</span>,
+    },
     { key: "phone", label: "Phone", render: (v) => <span className="text-sm text-[#374151]">{v || "—"}</span> },
     { key: "city", label: "City", sortable: true, render: (v) => <span className="text-sm text-[#374151]">{v || "—"}</span> },
     { key: "leadsSubmitted", label: "Leads", sortable: true },
@@ -733,7 +739,7 @@ export default function CPTypeWorkspace({
         loading={loading}
         emptyMessage={emptyMessage}
         pageSize={10}
-        onRowClick={tab === "network" && cpType === "field" ? (row) => setFieldPartnerDetail(row) : undefined}
+        onRowClick={tab === "network" ? (row) => router.push(`/admin/freelancer-cp/${cpType}/${row.accountId || row.id}`) : undefined}
       />
 
       <CPPartnerFormDialog
@@ -803,12 +809,6 @@ export default function CPTypeWorkspace({
         }}
       />
 
-      <FieldPartnerVisitsDialog
-        key={fieldPartnerDetail?.accountId || "none"}
-        isOpen={!!fieldPartnerDetail}
-        onClose={() => setFieldPartnerDetail(null)}
-        partner={fieldPartnerDetail}
-      />
     </div>
   );
 }

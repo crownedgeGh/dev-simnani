@@ -15,10 +15,12 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const cpType = searchParams.get("cpType");
     const leadId = searchParams.get("leadId");
+    const cpAccountId = searchParams.get("cpAccountId");
 
     const query = {};
     if (cpType) query.cpType = cpType;
     if (leadId) query.leadId = leadId;
+    if (cpAccountId) query.cpAccountId = cpAccountId;
 
     const commissions = await Commission.find(query).sort({ createdAt: -1 }).lean();
 
