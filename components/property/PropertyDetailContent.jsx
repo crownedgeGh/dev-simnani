@@ -1,3 +1,6 @@
+"use client";
+
+import { useAuth } from "@/context/AuthContext";
 import {
   formatPostedDate,
   CATEGORIES_BY_TYPE,
@@ -39,6 +42,7 @@ import {
 } from "react-icons/md";
 
 export default function PropertyDetailContent({ property, eyebrow, sidebar, backHref, showDownloadButtons = false }) {
+  const { isAuthenticated } = useAuth();
   const isInvest = property.type === "invest";
   // A category-aware view of which fields make sense for this listing —
   // e.g. Plantation Farming / Agricultural Land are bare land with no
@@ -208,20 +212,22 @@ export default function PropertyDetailContent({ property, eyebrow, sidebar, back
 
         <div className="lg:col-span-1">
           <div className="space-y-6 lg:sticky lg:top-24">
-            <div className="border border-navy-700/60 bg-navy-900 p-6">
-              <h3 className="font-display text-lg text-cream">Send Us an Enquiry</h3>
-              <p className="mt-1 text-xs text-muted">
-                Interested in this property? Leave your details and we&apos;ll call you back.
-              </p>
-              <div className="mt-4">
-                <ContactForm
-                  source={`Property: ${property.id}`}
-                  propertyTitle={property.title}
-                />
+            {!isAuthenticated && (
+              <div className="border border-navy-700/60 bg-navy-900 p-6">
+                <h3 className="font-display text-lg text-cream">Send Us an Enquiry</h3>
+                <p className="mt-1 text-xs text-muted">
+                  Interested in this property? Leave your details and we&apos;ll call you back.
+                </p>
+                <div className="mt-4">
+                  <ContactForm
+                    source={`Property: ${property.id}`}
+                    propertyTitle={property.title}
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
-            {sidebar}
+            {isAuthenticated && sidebar}
           </div>
         </div>
       </div>
