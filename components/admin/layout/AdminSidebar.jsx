@@ -23,7 +23,15 @@ import { useCorrectionReviewCount } from "@/lib/useCorrectionReviewCount";
 
 const NAV_ITEMS = [
   { href: "/admin/dashboard", label: "Dashboard", icon: MdDashboard },
-  { href: "/admin/properties", label: "Properties", icon: MdApartment },
+  {
+    href: "/admin/properties",
+    label: "Properties",
+    icon: MdApartment,
+    children: [
+      { href: "/admin/properties", label: "All Properties" },
+      { href: "/admin/properties/closed", label: "Closed Listings" },
+    ],
+  },
   { href: "/admin/users", label: "Users", icon: MdPeople },
   {
     href: "/admin/sg-properties",

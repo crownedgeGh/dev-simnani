@@ -47,7 +47,6 @@ import AdminConfirmModal from "@/components/admin/ui/AdminConfirmModal";
 import AdminPhoneCell from "@/components/admin/ui/AdminPhoneCell";
 import PropertyFormDialog from "@/components/admin/properties/PropertyFormDialog";
 import CorrectionRequestDialog from "@/components/admin/properties/CorrectionRequestDialog";
-import adminAxios from "@/lib/adminAxios";
 import { ADMIN_KEYS, readCollection } from "@/lib/adminStorage";
 import {
   formatPostedDate,
@@ -111,25 +110,18 @@ export default function PropertyDetailPage() {
   }, [id]);
 
   const handleEdit = async (formData) => {
-    try {
-      const res = await fetch(`/api/properties/${formData.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-      const json = await res.json();
-      if (json.success && json.data) {
-        setProperty(json.data);
-        toast.success("Property updated successfully");
-        return;
-      }
-    } catch {
-      // Fallback
+    const res = await fetch(`/api/admin/properties/${formData.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+    const json = await res.json();
+    if (json.success && json.data) {
+      setProperty(json.data);
+      toast.success("Property updated successfully");
+      return;
     }
-    const res = await adminAxios.put(`/admin/properties/${formData.id}`, formData);
-    const updated = res.data.data.find((p) => p.id === formData.id);
-    setProperty(updated);
-    toast.success("Property updated successfully");
+    toast.error(json.error || "Failed to update property");
   };
 
   const STATUS_MESSAGES = {
@@ -141,8 +133,8 @@ export default function PropertyDetailPage() {
   const handleStatusChange = async (status) => {
     setStatusUpdating(true);
     try {
-      const res = await fetch(`/api/properties/${id}`, {
-        method: "PUT",
+      const res = await fetch(`/api/admin/properties/${id}`, {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
       });
@@ -150,17 +142,9 @@ export default function PropertyDetailPage() {
       if (json.success && json.data) {
         setProperty(json.data);
         toast.success(STATUS_MESSAGES[status] || "Status updated");
-        setStatusUpdating(false);
         return;
       }
-    } catch {
-      // Fallback
-    }
-    try {
-      const res = await adminAxios.patch(`/admin/properties/${id}`, { status });
-      const updated = res.data.data.find((p) => p.id === id);
-      setProperty(updated);
-      toast.success(STATUS_MESSAGES[status] || "Status updated");
+      toast.error(json.error || "Failed to update status");
     } catch {
       toast.error("Failed to update status");
     } finally {
@@ -169,23 +153,17 @@ export default function PropertyDetailPage() {
   };
 
   const applyCorrectionRequest = async (correctionRequest) => {
-    try {
-      const res = await fetch(`/api/properties/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ correctionRequest }),
-      });
-      const json = await res.json();
-      if (json.success && json.data) {
-        setProperty(json.data);
-        return;
-      }
-    } catch {
-      // Fallback
+    const res = await fetch(`/api/admin/properties/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ correctionRequest }),
+    });
+    const json = await res.json();
+    if (json.success && json.data) {
+      setProperty(json.data);
+      return;
     }
-    const res = await adminAxios.patch(`/admin/properties/${id}`, { correctionRequest });
-    const updated = res.data.data.find((p) => p.id === id);
-    setProperty(updated);
+    throw new Error(json.error || "Failed to update correction request");
   };
 
   const handleSendCorrection = async ({ reasons, message }) => {
@@ -222,7 +200,7 @@ export default function PropertyDetailPage() {
   const handleDelete = async () => {
     setDeleting(true);
     try {
-      const res = await fetch(`/api/properties/${id}`, {
+      const res = await fetch(`/api/admin/properties/${id}`, {
         method: "DELETE",
       });
       const json = await res.json();
@@ -231,15 +209,10 @@ export default function PropertyDetailPage() {
         router.push("/admin/properties");
         return;
       }
+      toast.error(json.error || "Failed to delete property");
     } catch {
-      // Fallback
-    }
-    try {
-      await adminAxios.delete(`/admin/properties/${id}`);
-      toast.success("Property deleted successfully");
-      router.push("/admin/properties");
-    } catch {
-      toast.error("Failed to delete");
+      toast.error("Failed to delete property");
+    } finally {
       setDeleting(false);
       setDeleteOpen(false);
     }

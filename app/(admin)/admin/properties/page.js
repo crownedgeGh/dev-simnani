@@ -3,12 +3,11 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { MdAdd, MdEdit, MdDelete, MdOpenInNew, MdLocationOn, MdSend, MdReportProblem } from "react-icons/md";
+import { MdAdd, MdEdit, MdDelete, MdOpenInNew, MdLocationOn, MdReportProblem } from "react-icons/md";
 import AdminPageHeader from "@/components/admin/layout/AdminPageHeader";
 import AdminTable from "@/components/admin/ui/AdminTable";
 import AdminConfirmModal from "@/components/admin/ui/AdminConfirmModal";
 import PropertyFormDialog from "@/components/admin/properties/PropertyFormDialog";
-import AssignPropertyDialog from "@/components/admin/freelancer-cp/AssignPropertyDialog";
 import adminAxios from "@/lib/adminAxios";
 import { ADMIN_KEYS, readCollection, writeCollection } from "@/lib/adminStorage";
 import { getLocationCity } from "@/lib/properties";
@@ -39,37 +38,12 @@ export default function AdminPropertiesPage() {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [companyPartners, setCompanyPartners] = useState([]);
-  const [assignments, setAssignments] = useState([]);
 
   // Dialog states
   const [formOpen, setFormOpen] = useState(false);
   const [editingProperty, setEditingProperty] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
-  const [assignTarget, setAssignTarget] = useState(null);
-
-  const loadCpData = useCallback(async () => {
-    try {
-      const [partnersRes, asgRes] = await Promise.all([
-        fetch("/api/cp-network?cpType=company"),
-        fetch("/api/assignments?level=head-to-company"),
-      ]);
-      const [partnersJson, asgJson] = await Promise.all([partnersRes.json(), asgRes.json()]);
-      setCompanyPartners(partnersJson.success ? partnersJson.data : []);
-      setAssignments(asgJson.success ? asgJson.data : []);
-    } catch {
-      toast.error("Failed to load Company CP network");
-    }
-  }, []);
-
-  useEffect(() => {
-    let active = true;
-    Promise.resolve().then(() => {
-      if (active) loadCpData();
-    });
-    return () => { active = false; };
-  }, [loadCpData]);
 
   const loadProperties = useCallback(async () => {
     try {
@@ -107,30 +81,8 @@ export default function AdminPropertiesPage() {
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([loadProperties(), loadCpData()]);
+    await loadProperties();
     setRefreshing(false);
-  };
-
-  const handleAssignToCompanyCp = async (partner) => {
-    const res = await fetch("/api/assignments", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        propertyId: assignTarget.id,
-        propertyTitle: assignTarget.title,
-        propertyImage: assignTarget.image,
-        propertyLocation: assignTarget.location,
-        level: "head-to-company",
-        assignedToAccountId: partner.accountId,
-      }),
-    });
-    const json = await res.json();
-    if (!json.success) {
-      toast.error(json.error || "Failed to forward property");
-      return;
-    }
-    setAssignments((prev) => [json.data, ...prev]);
-    toast.success(`Assigned to ${partner.name}`);
   };
 
   // Create
@@ -192,24 +144,16 @@ export default function AdminPropertiesPage() {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      const res = await fetch(`/api/properties/${deleteTarget.id}`, {
+      const res = await fetch(`/api/admin/properties/${deleteTarget.id}`, {
         method: "DELETE",
       });
       const json = await res.json();
       if (json.success) {
         setProperties((prev) => prev.filter((p) => p.id !== deleteTarget.id));
         toast.success("Property deleted successfully");
-        setDeleting(false);
-        setDeleteTarget(null);
         return;
       }
-    } catch {
-      // Fallback
-    }
-    try {
-      const res = await adminAxios.delete(`/admin/properties/${deleteTarget.id}`);
-      setProperties((res.data.data || []).map(normalizeProperty));
-      toast.success("Property deleted successfully");
+      toast.error(json.error || "Failed to delete property");
     } catch {
       toast.error("Failed to delete property");
     } finally {
@@ -362,24 +306,6 @@ export default function AdminPropertiesPage() {
         render: null,
       },
       {
-        key: "cpAssignment",
-        label: "CP Assignment",
-        searchable: false,
-        render: (_, row) => {
-          const assignment = assignments.find((a) => a.propertyId === row.id && a.level === "head-to-company");
-          const place = assignment ? [assignment.assignedToCity, assignment.assignedToState].filter(Boolean).join(", ") : "";
-          return assignment ? (
-            <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 whitespace-nowrap">
-              Assigned: {assignment.assignedToName}{place ? ` — ${place}` : ""}
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-1 rounded-full border border-[#e8e0d5] bg-[#faf8f5] px-2 py-0.5 text-xs font-medium text-[#9ca3af] whitespace-nowrap">
-              Unassigned
-            </span>
-          );
-        },
-      },
-      {
         key: "actions",
         label: "",
         type: "actions",
@@ -396,11 +322,6 @@ export default function AdminPropertiesPage() {
             onClick: () => router.push(`/admin/properties/${row.id}/edit`),
           },
           {
-            label: "Assign to Company CP",
-            icon: MdSend,
-            onClick: () => setAssignTarget(row),
-          },
-          {
             label: "Delete",
             icon: MdDelete,
             variant: "danger",
@@ -409,7 +330,7 @@ export default function AdminPropertiesPage() {
         ],
       },
     ],
-    [cityOptions, router, assignments]
+    [cityOptions, router]
   );
 
   return (
@@ -492,16 +413,6 @@ export default function AdminPropertiesPage() {
         confirmLabel="Delete"
         confirmVariant="danger"
         isLoading={deleting}
-      />
-
-      <AssignPropertyDialog
-        isOpen={!!assignTarget}
-        onClose={() => setAssignTarget(null)}
-        title="Assign to Company CP"
-        propertyTitle={assignTarget?.title}
-        partners={companyPartners}
-        currentAssigneeId={assignments.find((a) => a.propertyId === assignTarget?.id && a.level === "head-to-company")?.assignedToAccountId}
-        onAssign={handleAssignToCompanyCp}
       />
     </div>
   );

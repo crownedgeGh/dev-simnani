@@ -74,3 +74,31 @@ export async function PATCH(request, { params }) {
     );
   }
 }
+
+export async function DELETE(request, { params }) {
+  try {
+    await dbConnect();
+    const { id } = await params;
+
+    const deleted = await Property.findOneAndDelete({ id });
+
+    if (!deleted) {
+      return NextResponse.json(
+        { success: false, error: "Property not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: "Property deleted successfully",
+      id,
+    });
+  } catch (error) {
+    console.error("DELETE /api/admin/properties/[id] error:", error);
+    return NextResponse.json(
+      { success: false, error: error.message || "Failed to delete property" },
+      { status: 500 }
+    );
+  }
+}
