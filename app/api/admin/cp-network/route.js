@@ -19,11 +19,12 @@ export async function GET(request) {
       return NextResponse.json({ success: false, error: "cpType must be 'company' or 'digital'" }, { status: 400 });
     }
 
-    const users = await User.find({ accountType: "freelancer", cpType }).sort({ createdAt: -1 }).lean();
-
-    const leadCounts = await CpLead.aggregate([
-      { $match: { "submittedBy.cpType": cpType } },
-      { $group: { _id: "$submittedBy.accountId", count: { $sum: 1 } } },
+    const [users, leadCounts] = await Promise.all([
+      User.find({ accountType: "freelancer", cpType }).sort({ createdAt: -1 }).lean(),
+      CpLead.aggregate([
+        { $match: { "submittedBy.cpType": cpType } },
+        { $group: { _id: "$submittedBy.accountId", count: { $sum: 1 } } },
+      ]),
     ]);
     const leadCountByAccount = new Map(leadCounts.map((l) => [l._id, l.count]));
 

@@ -15,12 +15,9 @@ export async function GET() {
   try {
     await dbConnect();
 
-    const users = await User.find({ accountType: "freelancer", cpType: "field" })
-      .sort({ createdAt: -1 })
-      .lean();
-
-    const visitCounts = await SiteVisit.aggregate([
-      { $group: { _id: "$fieldCpAccountId", count: { $sum: 1 } } },
+    const [users, visitCounts] = await Promise.all([
+      User.find({ accountType: "freelancer", cpType: "field" }).sort({ createdAt: -1 }).lean(),
+      SiteVisit.aggregate([{ $group: { _id: "$fieldCpAccountId", count: { $sum: 1 } } }]),
     ]);
     const visitCountByAccount = new Map(visitCounts.map((v) => [v._id, v.count]));
 

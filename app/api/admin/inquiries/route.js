@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import ContactInquiry from "@/models/ContactInquiry";
-import { getSessionUser } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -9,11 +8,6 @@ export const revalidate = 0;
 // GET — admin fetch all contact inquiries from real DB
 export async function GET(request) {
   try {
-    const sessionUser = await getSessionUser(request);
-    // Admin only — check if this is an admin request via cookie/header
-    // For now we allow any authenticated user (admin panel is guarded at the layout level)
-    // In a production system, you'd check sessionUser.role === "admin"
-
     await dbConnect();
 
     const inquiries = await ContactInquiry.find({})

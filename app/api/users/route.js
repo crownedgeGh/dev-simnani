@@ -37,7 +37,7 @@ export async function GET(request) {
       ];
     }
 
-    const users = await User.find(query).sort({ createdAt: -1 }).lean();
+    const users = await User.find(query).select("-password").sort({ createdAt: -1 }).lean();
 
     return NextResponse.json({
       success: true,
