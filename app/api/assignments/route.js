@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Assignment from "@/models/Assignment";
+import Property from "@/models/Property";
 import User from "@/models/User";
 import { getSessionUser } from "@/lib/session";
 
@@ -33,7 +34,20 @@ export async function GET(request) {
 
     const assignments = await Assignment.find(query).sort({ createdAt: -1 }).lean();
 
-    return NextResponse.json({ success: true, count: assignments.length, data: assignments });
+    // Attach each property's current status so downstream CP portals can
+    // show "Sold Out" once the Company CP marks the property sold — the
+    // Assignment record itself never changes on a sale.
+    const propertyIds = [...new Set(assignments.map((a) => a.propertyId))];
+    const properties = propertyIds.length
+      ? await Property.find({ id: { $in: propertyIds } }, { id: 1, status: 1 }).lean()
+      : [];
+    const statusByPropertyId = Object.fromEntries(properties.map((p) => [p.id, p.status]));
+    const enriched = assignments.map((a) => ({
+      ...a,
+      propertyStatus: statusByPropertyId[a.propertyId] || "Active",
+    }));
+
+    return NextResponse.json({ success: true, count: enriched.length, data: enriched });
   } catch (error) {
     console.error("GET /api/assignments error:", error);
     return NextResponse.json(

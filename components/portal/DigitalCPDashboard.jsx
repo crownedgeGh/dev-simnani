@@ -339,10 +339,16 @@ export default function DigitalCPDashboard({ stats, assets, partner, myListings 
                         <h3 className="mt-3 font-display text-base text-cream group-hover:text-gold-400 transition">{p.propertyTitle}</h3>
                         <p className="mt-1 text-xs text-muted">{p.propertyLocation}</p>
                         <div className="mt-3 flex items-center justify-between">
-                          <span className="tracked-label flex w-fit items-center gap-1 border border-gold-500/70 px-3 py-1 text-xs text-gold-400">
-                            <FiCheck className="h-3.5 w-3.5" />
-                            Joined
-                          </span>
+                          {p.propertyStatus === "Sold" ? (
+                            <span className="tracked-label flex w-fit items-center gap-1 border border-red-500/70 px-3 py-1 text-xs text-red-400">
+                              Sold Out
+                            </span>
+                          ) : (
+                            <span className="tracked-label flex w-fit items-center gap-1 border border-gold-500/70 px-3 py-1 text-xs text-gold-400">
+                              <FiCheck className="h-3.5 w-3.5" />
+                              Joined
+                            </span>
+                          )}
                           <span className="flex items-center gap-1 text-xs text-muted opacity-0 transition group-hover:opacity-100">
                             View Property <FiArrowRight className="h-3.5 w-3.5" />
                           </span>
@@ -371,6 +377,7 @@ export default function DigitalCPDashboard({ stats, assets, partner, myListings 
                   {forwardedProperties.map((property) => {
                     const propHref = `/property/${property.propertyId || property.id}?campaign=1`;
                     const isJoined = joinedForwardedIds.includes(property.id);
+                    const isSold = property.propertyStatus === "Sold";
                     return (
                       <div key={property.id} className="flex flex-col justify-between border border-navy-700/60 bg-navy-900 p-4 transition hover:border-gold-500/50">
                         <Link href={propHref} className="group flex flex-col">
@@ -390,27 +397,33 @@ export default function DigitalCPDashboard({ stats, assets, partner, myListings 
                             <FiArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
                           </div>
                         </Link>
-                        <button
-                          type="button"
-                          onClick={() => handleCampaignButtonClick(property.id)}
-                          className={`tracked-label mt-3 flex w-fit items-center gap-1.5 px-3 py-2 text-[10px] transition ${
-                            isJoined
-                              ? "border border-red-500/70 text-red-400 hover:bg-red-500/10"
-                              : "bg-gold-400 text-navy-950 hover:bg-gold-300"
-                          }`}
-                        >
-                          {isJoined ? (
-                            <>
-                              <FiX className="h-3.5 w-3.5" />
-                              Leave Campaign
-                            </>
-                          ) : (
-                            <>
-                              <MdCampaign className="h-3.5 w-3.5" />
-                              Join Campaign
-                            </>
-                          )}
-                        </button>
+                        {isSold ? (
+                          <span className="tracked-label mt-3 flex w-fit items-center gap-1.5 border border-red-500/70 px-3 py-2 text-[10px] text-red-400">
+                            Sold Out
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleCampaignButtonClick(property.id)}
+                            className={`tracked-label mt-3 flex w-fit items-center gap-1.5 px-3 py-2 text-[10px] transition ${
+                              isJoined
+                                ? "border border-red-500/70 text-red-400 hover:bg-red-500/10"
+                                : "bg-gold-400 text-navy-950 hover:bg-gold-300"
+                            }`}
+                          >
+                            {isJoined ? (
+                              <>
+                                <FiX className="h-3.5 w-3.5" />
+                                Leave Campaign
+                              </>
+                            ) : (
+                              <>
+                                <MdCampaign className="h-3.5 w-3.5" />
+                                Join Campaign
+                              </>
+                            )}
+                          </button>
+                        )}
                       </div>
                     );
                   })}

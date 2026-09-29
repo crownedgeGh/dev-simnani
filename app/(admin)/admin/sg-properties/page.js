@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { MdAdd, MdEdit, MdDelete, MdOpenInNew, MdLocationOn, MdSend } from "react-icons/md";
+import { MdAdd, MdEdit, MdDelete, MdOpenInNew, MdLocationOn, MdSend, MdSell, MdLockOpen } from "react-icons/md";
 import AdminPageHeader from "@/components/admin/layout/AdminPageHeader";
 import AdminTable from "@/components/admin/ui/AdminTable";
 import AdminConfirmModal from "@/components/admin/ui/AdminConfirmModal";
@@ -118,6 +118,23 @@ export default function AdminSgPropertiesPage() {
     await Promise.all([loadProperties(), loadCpData()]);
     setRefreshing(false);
   };
+
+  const handleToggleSold = useCallback(async (row) => {
+    const nextStatus = row.status === "Sold" ? "Active" : "Sold";
+    try {
+      const res = await fetch(`/api/admin/properties/${row.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: nextStatus }),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || "Failed to update property");
+      setProperties((prev) => prev.map((p) => (p.id === row.id ? { ...p, status: nextStatus } : p)));
+      toast.success(nextStatus === "Sold" ? "Property marked as sold" : "Property reopened");
+    } catch (err) {
+      toast.error(err.message || "Failed to update property");
+    }
+  }, []);
 
   const handleAssignToCompanyCp = async (partner) => {
     const res = await fetch("/api/assignments", {
@@ -280,7 +297,7 @@ export default function AdminSgPropertiesPage() {
         label: "Status",
         type: "status",
         sortable: true,
-        filterOptions: ["Active", "Pending Review", "Rejected", "Closed"],
+        filterOptions: ["Active", "Pending Review", "Rejected", "Closed", "Sold"],
       },
       {
         key: "cpAssignment",
@@ -306,32 +323,43 @@ export default function AdminSgPropertiesPage() {
         label: "",
         type: "actions",
         searchable: false,
-        actions: (row) => [
-          {
-            label: "View Details",
-            icon: MdOpenInNew,
-            onClick: () => router.push(`/admin/properties/${row.id}`),
-          },
-          {
-            label: "Edit",
-            icon: MdEdit,
-            onClick: () => router.push(`/admin/properties/${row.id}/edit`),
-          },
-          {
-            label: "Forward to Company CP",
-            icon: MdSend,
-            onClick: () => setAssignTarget(row),
-          },
-          {
+        actions: (row) => {
+          const isSold = row.status === "Sold";
+          const list = [
+            {
+              label: "View Details",
+              icon: MdOpenInNew,
+              onClick: () => router.push(`/admin/properties/${row.id}`),
+            },
+            {
+              label: "Edit",
+              icon: MdEdit,
+              onClick: () => router.push(`/admin/properties/${row.id}/edit`),
+            },
+          ];
+          if (!isSold) {
+            list.push({
+              label: "Forward to Company CP",
+              icon: MdSend,
+              onClick: () => setAssignTarget(row),
+            });
+          }
+          list.push({
+            label: isSold ? "Reopen Property" : "Mark as Sold",
+            icon: isSold ? MdLockOpen : MdSell,
+            onClick: () => handleToggleSold(row),
+          });
+          list.push({
             label: "Delete",
             icon: MdDelete,
             variant: "danger",
             onClick: () => setDeleteTarget(row),
-          },
-        ],
+          });
+          return list;
+        },
       },
     ],
-    [cityOptions, router, assignments]
+    [cityOptions, router, assignments, handleToggleSold]
   );
 
   return (

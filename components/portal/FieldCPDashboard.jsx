@@ -513,7 +513,11 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
                           </p>
                         </div>
                         <div className="mt-4 flex items-center justify-between border-t border-navy-700/60 pt-3">
-                          <Badge tone="gold">{a.status}</Badge>
+                          {a.propertyStatus === "Sold" ? (
+                            <Badge tone="error">Sold Out</Badge>
+                          ) : (
+                            <Badge tone="gold">{a.status}</Badge>
+                          )}
                           <span className="flex items-center gap-1 text-xs text-gold-400">
                             View Property <FiArrowRight className="h-3 w-3 transition group-hover:translate-x-0.5" />
                           </span>

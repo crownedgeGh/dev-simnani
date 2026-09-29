@@ -15,6 +15,7 @@ import {
   FiSend,
   FiArrowRight,
 } from "react-icons/fi";
+import { MdSell, MdLockOpen } from "react-icons/md";
 import Tabs from "./Tabs";
 import StatCard from "./StatCard";
 import Badge from "./Badge";
@@ -60,6 +61,7 @@ export default function CompanyCPDashboard({
   );
   const [assignments, setAssignments] = useState([]);
   const [openPicker, setOpenPicker] = useState({});
+  const [soldBusyId, setSoldBusyId] = useState(null);
   const [videos, setVideos] = useState([]);
   const [leads, setLeads] = useState([]);
   const [editingNoteId, setEditingNoteId] = useState(null);
@@ -172,6 +174,32 @@ export default function CompanyCPDashboard({
     }
   }
 
+  async function toggleSold(project) {
+    const nextSold = project.propertyStatus !== "Sold";
+    setSoldBusyId(project.id);
+    try {
+      const res = await fetch(`/api/properties/${project.propertyId}/mark-sold`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sold: nextSold }),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || "Failed to update property");
+      toast.success(nextSold ? "Property marked as sold" : "Property reopened");
+      setAssignments((prev) =>
+        prev.map((a) =>
+          a.propertyId === project.propertyId
+            ? { ...a, propertyStatus: nextSold ? "Sold" : "Active" }
+            : a
+        )
+      );
+    } catch (err) {
+      toast.error(err.message || "Failed to update property");
+    } finally {
+      setSoldBusyId(null);
+    }
+  }
+
   function togglePicker(projectId, cpType) {
     setOpenPicker((prev) => ({
       ...prev,
@@ -239,6 +267,7 @@ export default function CompanyCPDashboard({
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {assignedProjects.map((project) => {
                   const propHref = `/property/${project.propertyId || project.id}?campaign=1`;
+                  const isSold = project.propertyStatus === "Sold";
                   return (
                     <div key={project.id} className="flex flex-col justify-between border border-navy-700/60 bg-navy-900 p-4 transition hover:border-gold-500/50">
                       <Link href={propHref} className="group flex flex-col">
@@ -253,9 +282,16 @@ export default function CompanyCPDashboard({
                         </div>
                         <h3 className="mt-3 font-display text-base text-cream transition group-hover:text-gold-400">{project.propertyTitle}</h3>
                         <p className="mt-1 text-xs text-muted">{project.propertyLocation}</p>
-                        <div className="mt-2 flex items-center gap-1.5 text-xs text-gold-400">
-                          <span className="font-medium">View Property Details</span>
-                          <FiArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+                        <div className="mt-2 flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-1.5 text-xs text-gold-400">
+                            <span className="font-medium">View Property Details</span>
+                            <FiArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+                          </div>
+                          {isSold && (
+                            <span className="tracked-label flex items-center gap-1 border border-red-500/70 px-2 py-1 text-[10px] text-red-400">
+                              Sold Out
+                            </span>
+                          )}
                         </div>
                       </Link>
 
@@ -263,7 +299,7 @@ export default function CompanyCPDashboard({
                         <div className="grid grid-cols-2 gap-2">
                           <button
                             type="button"
-                            disabled={fieldPartners.length === 0}
+                            disabled={fieldPartners.length === 0 || isSold}
                             onClick={() => togglePicker(project.id, "field")}
                             className="tracked-label flex h-11 items-center justify-center gap-2 border border-gold-500/70 px-3 text-[10px] text-gold-400 transition hover:bg-gold-500/10 disabled:cursor-not-allowed disabled:opacity-40"
                           >
@@ -272,7 +308,7 @@ export default function CompanyCPDashboard({
                           </button>
                           <button
                             type="button"
-                            disabled={digitalPartners.length === 0}
+                            disabled={digitalPartners.length === 0 || isSold}
                             onClick={() => togglePicker(project.id, "digital")}
                             className="tracked-label flex h-11 items-center justify-center gap-2 bg-gold-400 px-3 text-[10px] text-navy-950 transition hover:bg-gold-300 disabled:cursor-not-allowed disabled:opacity-40"
                           >
@@ -281,7 +317,30 @@ export default function CompanyCPDashboard({
                           </button>
                         </div>
 
-                        {openPicker[project.id] === "field" && (
+                        <button
+                          type="button"
+                          disabled={soldBusyId === project.id}
+                          onClick={() => toggleSold(project)}
+                          className={`tracked-label flex h-11 items-center justify-center gap-2 px-3 text-[10px] transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                            isSold
+                              ? "border border-navy-700/60 text-cream hover:border-gold-500/50 hover:text-gold-400"
+                              : "border border-red-500/70 text-red-400 hover:bg-red-500/10"
+                          }`}
+                        >
+                          {isSold ? (
+                            <>
+                              <MdLockOpen className="h-3.5 w-3.5" />
+                              Reopen Property
+                            </>
+                          ) : (
+                            <>
+                              <MdSell className="h-3.5 w-3.5" />
+                              Mark as Sold
+                            </>
+                          )}
+                        </button>
+
+                        {!isSold && openPicker[project.id] === "field" && (
                           <div className="flex flex-col gap-1.5 border border-navy-700/60 bg-navy-950 p-2">
                             {fieldPartners.map((p) => (
                               <button
@@ -297,7 +356,7 @@ export default function CompanyCPDashboard({
                           </div>
                         )}
 
-                        {openPicker[project.id] === "digital" && (
+                        {!isSold && openPicker[project.id] === "digital" && (
                           <div className="flex flex-col gap-1.5 border border-navy-700/60 bg-navy-950 p-2">
                             {digitalPartners.map((p) => (
                               <button
