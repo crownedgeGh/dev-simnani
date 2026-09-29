@@ -3,13 +3,14 @@
 import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { FiPlus, FiLink, FiCheck, FiSend, FiArrowRight, FiChevronDown, FiChevronUp, FiUsers } from "react-icons/fi";
+import { FiPlus, FiLink, FiCheck, FiSend, FiArrowRight, FiChevronDown, FiChevronUp, FiUsers, FiX } from "react-icons/fi";
 import { MdCampaign } from "react-icons/md";
 import { FaInstagram, FaFacebook, FaYoutube, FaWhatsapp } from "react-icons/fa6";
 import Tabs from "./Tabs";
 import StatCard from "./StatCard";
 import Badge from "./Badge";
 import EmptyState from "./EmptyState";
+import ConfirmDialog from "./ConfirmDialog";
 import PropertyGrid from "@/components/property/PropertyGrid";
 import ChipGroup from "@/components/auth/ChipGroup";
 import FormField from "@/components/auth/FormField";
@@ -69,6 +70,7 @@ export default function DigitalCPDashboard({ stats, assets, partner, myListings 
   // Properties forwarded to this Digital CP by their Company CP.
   const [forwardedProperties, setForwardedProperties] = useState([]);
   const [joinedForwardedIds, setJoinedForwardedIds] = useState([]);
+  const [leaveCampaignId, setLeaveCampaignId] = useState(null);
 
   const loadForwardedProperties = useCallback(async () => {
     if (!partner?.accountId) return;
@@ -130,6 +132,19 @@ export default function DigitalCPDashboard({ stats, assets, partner, myListings 
     setJoinedForwardedIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
+  }
+
+  function handleCampaignButtonClick(id) {
+    if (joinedForwardedIds.includes(id)) {
+      setLeaveCampaignId(id);
+    } else {
+      toggleJoinForwardedProperty(id);
+    }
+  }
+
+  function confirmLeaveCampaign() {
+    if (leaveCampaignId) toggleJoinForwardedProperty(leaveCampaignId);
+    setLeaveCampaignId(null);
   }
 
   function updateLeadDraft(linkId, field, value) {
@@ -320,17 +335,17 @@ export default function DigitalCPDashboard({ stats, assets, partner, myListings 
                         </Link>
                         <button
                           type="button"
-                          onClick={() => toggleJoinForwardedProperty(property.id)}
+                          onClick={() => handleCampaignButtonClick(property.id)}
                           className={`tracked-label mt-3 flex w-fit items-center gap-1.5 px-3 py-2 text-[10px] transition ${
                             isJoined
-                              ? "border border-gold-500/70 text-gold-400 hover:bg-gold-500/10"
+                              ? "border border-red-500/70 text-red-400 hover:bg-red-500/10"
                               : "bg-gold-400 text-navy-950 hover:bg-gold-300"
                           }`}
                         >
                           {isJoined ? (
                             <>
-                              <FiCheck className="h-3 w-3" />
-                              Joined Campaign
+                              <FiX className="h-3.5 w-3.5" />
+                              Leave Campaign
                             </>
                           ) : (
                             <>
@@ -621,6 +636,16 @@ export default function DigitalCPDashboard({ stats, assets, partner, myListings 
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        isOpen={leaveCampaignId !== null}
+        onCancel={() => setLeaveCampaignId(null)}
+        onConfirm={confirmLeaveCampaign}
+        title="Leave this campaign?"
+        message="You will stop promoting this project and lose access to its campaign assets. You can re-join anytime from Assigned Projects."
+        confirmLabel="Leave Campaign"
+        cancelLabel="Stay Joined"
+      />
     </div>
   );
 }
