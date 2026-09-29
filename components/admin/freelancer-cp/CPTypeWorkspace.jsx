@@ -26,6 +26,7 @@ import CPPartnerFormDialog from "@/components/admin/freelancer-cp/CPPartnerFormD
 import VideoModerationDialog from "@/components/admin/freelancer-cp/VideoModerationDialog";
 import AssignPropertyDialog from "@/components/admin/freelancer-cp/AssignPropertyDialog";
 import InvitationCodeDialog from "@/components/admin/freelancer-cp/InvitationCodeDialog";
+import LeadDetailDialog from "@/components/admin/freelancer-cp/LeadDetailDialog";
 
 const CP_LEAD_STATUSES = ["Pending Verification", "Verified", "Assigned", "Site Visit Scheduled", "Site Visit Completed", "Converted", "Lost"];
 const COMM_STATUSES = ["Pending", "Approved", "On Hold"];
@@ -82,6 +83,7 @@ export default function CPTypeWorkspace({
   const [deleting, setDeleting] = useState(false);
   const [delegateTarget, setDelegateTarget] = useState(null); // assignment row being delegated onward
   const [invitationDialogOpen, setInvitationDialogOpen] = useState(false);
+  const [leadDetailTarget, setLeadDetailTarget] = useState(null);
 
   const needsNetwork = (t) =>
     t === cpType || (delegateToTypes || []).includes(t) || (t === "company" && routingStage === "head-cp");
@@ -739,7 +741,13 @@ export default function CPTypeWorkspace({
         loading={loading}
         emptyMessage={emptyMessage}
         pageSize={10}
-        onRowClick={tab === "network" ? (row) => router.push(`/admin/freelancer-cp/${cpType}/${row.accountId || row.id}`) : undefined}
+        onRowClick={
+          tab === "network"
+            ? (row) => router.push(`/admin/freelancer-cp/${cpType}/${row.accountId || row.id}`)
+            : tab === "leads"
+            ? (row) => setLeadDetailTarget(row)
+            : undefined
+        }
       />
 
       <CPPartnerFormDialog
@@ -769,6 +777,12 @@ export default function CPTypeWorkspace({
           const ok = await patchVideo(updated.id, { status: updated.status, note: updated.note });
           if (ok) setVideoTarget(null);
         }}
+      />
+
+      <LeadDetailDialog
+        isOpen={!!leadDetailTarget}
+        onClose={() => setLeadDetailTarget(null)}
+        lead={leadDetailTarget}
       />
 
       <InvitationCodeDialog
