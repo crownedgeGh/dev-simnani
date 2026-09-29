@@ -27,16 +27,19 @@ export default function UserDetailPage() {
   const { accountId } = useParams();
   const router = useRouter();
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!accountId) return;
     let active = true;
+    setLoading(true);
     (async () => {
       try {
         const res = await fetch(`/api/users/${accountId}`, { cache: "no-store" });
         const json = await res.json();
         if (active && json.success && json.data) {
           setUser(json.data);
+          setLoading(false);
           return;
         }
       } catch (err) {
@@ -45,12 +48,19 @@ export default function UserDetailPage() {
       if (active) {
         const users = readCollection(ADMIN_KEYS.users) || [];
         setUser(users.find((u) => u.accountId === accountId) || null);
+        setLoading(false);
       }
     })();
     return () => {
       active = false;
     };
   }, [accountId]);
+
+  if (loading) return (
+    <div className="flex flex-col items-center gap-3 py-20">
+      <p className="text-[#9ca3af]">Loading…</p>
+    </div>
+  );
 
   if (!user) return (
     <div className="flex flex-col items-center gap-3 py-20">
@@ -66,8 +76,6 @@ export default function UserDetailPage() {
     ["Email", user.email],
     ["City", user.city],
     ["State", user.state || "—"],
-    ["District", user.district || "—"],
-    ["CP Type", user.cpType || "—"],
     ["Registered Date", user.registeredDate],
   ];
 

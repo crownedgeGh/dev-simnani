@@ -11,8 +11,16 @@ import { useCorrectionReviewCount } from "@/lib/useCorrectionReviewCount";
 const NAV_ITEMS = [
   { href: "/admin/dashboard", label: "Dashboard", icon: MdDashboard },
   { href: "/admin/properties", label: "Properties", icon: MdApartment },
-  { href: "/admin/sg-properties", label: "SG Properties", icon: MdAdminPanelSettings },
   { href: "/admin/users", label: "Users", icon: MdPeople },
+  {
+    href: "/admin/sg-properties",
+    label: "SG Internals",
+    icon: MdAdminPanelSettings,
+    children: [
+      { href: "/admin/sg-properties", label: "SG Properties" },
+      { href: "/admin/sg-users", label: "SG Users" },
+    ],
+  },
   { href: "/admin/leads", label: "Leads", icon: MdLeaderboard },
   { href: "/admin/analytics", label: "Analytics", icon: MdInsights },
   { href: "/admin/plans", label: "Plans", icon: MdWorkspacePremium },
@@ -107,7 +115,10 @@ export default function AdminMobileDrawer({ isOpen, onClose }) {
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto py-3 px-3">
           {NAV_ITEMS.map(({ href, label, icon: Icon, children }) => {
-            const isActive = pathname === href || pathname.startsWith(href + "/");
+            const isActive =
+              pathname === href ||
+              pathname.startsWith(href + "/") ||
+              (children ? children.some((c) => pathname === c.href || pathname.startsWith(c.href + "/")) : false);
             return (
               <div key={href}>
                 <Link

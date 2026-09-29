@@ -70,6 +70,7 @@ export default function PropertyDetailPage() {
   const { id } = useParams();
   const router = useRouter();
   const [property, setProperty] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -79,6 +80,7 @@ export default function PropertyDetailPage() {
 
   useEffect(() => {
     let active = true;
+    setLoading(true);
 
     async function loadProperty() {
       try {
@@ -86,6 +88,7 @@ export default function PropertyDetailPage() {
         const json = await res.json();
         if (json.success && json.data && active) {
           setProperty(json.data);
+          setLoading(false);
           return;
         }
       } catch {
@@ -96,6 +99,7 @@ export default function PropertyDetailPage() {
       const props = readCollection(ADMIN_KEYS.properties) || [];
       const found = props.find((p) => p.id === id);
       setProperty(found || null);
+      setLoading(false);
     }
 
     loadProperty();
@@ -239,6 +243,14 @@ export default function PropertyDetailPage() {
       setDeleteOpen(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center gap-3 py-20">
+        <p className="text-[#9ca3af]">Loading…</p>
+      </div>
+    );
+  }
 
   if (!property) {
     return (
