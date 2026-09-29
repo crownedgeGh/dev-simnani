@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import AdminDialog from "@/components/admin/ui/AdminDialog";
 import AdminFormField, { adminInputClass, adminTextareaClass } from "@/components/admin/ui/AdminFormField";
+import AdminPhoneCell from "@/components/admin/ui/AdminPhoneCell";
 
 export default function CallbackEditDialog({ isOpen, onClose, callback: cb, onSave }) {
   const [assignedTo, setAssignedTo] = useState(cb?.assignedTo || "");
@@ -41,7 +42,9 @@ export default function CallbackEditDialog({ isOpen, onClose, callback: cb, onSa
       <div className="flex flex-col gap-4">
         {/* Read-only info */}
         <div className="rounded-xl bg-[#faf8f5] p-3 text-sm">
-          <p className="font-medium text-[#1a1a2e]">{cb.name} · {cb.phone}</p>
+          <p className="flex items-center gap-1.5 font-medium text-[#1a1a2e]">
+            {cb.name} · <AdminPhoneCell value={cb.phone} />
+          </p>
           <p className="text-[#9ca3af] mt-0.5 text-xs">{cb.topic}</p>
           {cb.message && <p className="mt-1.5 text-[#374151] text-xs border-t border-[#e8e0d5] pt-1.5">{cb.message}</p>}
         </div>

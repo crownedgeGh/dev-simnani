@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { MdStar, MdWorkspacePremium, MdApartment } from "react-icons/md";
 import AdminPageHeader from "@/components/admin/layout/AdminPageHeader";
 import AdminTable from "@/components/admin/ui/AdminTable";
+import AdminPhoneCell from "@/components/admin/ui/AdminPhoneCell";
 import AdminKpiCard from "@/components/admin/ui/AdminKpiCard";
 
 const POSITIONS = Array.from({ length: 10 }, (_, i) => i + 1);
@@ -138,7 +139,7 @@ export default function AdminFeaturedBrokersPage() {
     {
       key: "mobile",
       label: "Mobile",
-      render: (v) => <span className="text-sm text-[#374151] font-mono">{v || "—"}</span>,
+      render: (v) => <AdminPhoneCell value={v} />,
     },
     {
       key: "agencyName",

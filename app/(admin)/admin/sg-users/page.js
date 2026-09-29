@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { MdBlock, MdOpenInNew, MdTouchApp, MdPauseCircle } from "react-icons/md";
 import AdminPageHeader from "@/components/admin/layout/AdminPageHeader";
 import AdminTable from "@/components/admin/ui/AdminTable";
+import AdminPhoneCell from "@/components/admin/ui/AdminPhoneCell";
 import AdminConfirmModal from "@/components/admin/ui/AdminConfirmModal";
 import adminAxios from "@/lib/adminAxios";
 import { ADMIN_KEYS, readCollection, writeCollection } from "@/lib/adminStorage";
@@ -147,7 +148,7 @@ export default function AdminSgUsersPage() {
       {
         key: "mobile",
         label: "Mobile",
-        render: (v) => <span className="text-sm text-[#374151] font-mono">{v}</span>,
+        render: (v) => <AdminPhoneCell value={v} />,
       },
       {
         key: "email",

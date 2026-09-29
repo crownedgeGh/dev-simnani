@@ -2,6 +2,7 @@
 
 import AdminDialog from "@/components/admin/ui/AdminDialog";
 import AdminStatusBadge from "@/components/admin/ui/AdminStatusBadge";
+import AdminPhoneCell from "@/components/admin/ui/AdminPhoneCell";
 
 export default function InquiryDetailPanel({ isOpen, onClose, lead }) {
   if (!lead) return null;
@@ -9,7 +10,7 @@ export default function InquiryDetailPanel({ isOpen, onClose, lead }) {
   const fields = [
     ["Inquiry ID", lead.id],
     ["Name", lead.name],
-    ["Phone", lead.phone],
+    ["Phone", lead.phone, "phone"],
     ["Email", lead.email || "—"],
     ["User Type", lead.userType ? lead.userType.charAt(0).toUpperCase() + lead.userType.slice(1) : "—"],
     ["Source", lead.source || "—"],
@@ -27,7 +28,7 @@ export default function InquiryDetailPanel({ isOpen, onClose, lead }) {
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-[#1a1a2e]">{lead.name}</p>
-            <p className="text-sm text-[#9ca3af]">{lead.phone}</p>
+            <AdminPhoneCell value={lead.phone} className="text-[#9ca3af]" />
           </div>
           <div className="ml-auto shrink-0">
             <AdminStatusBadge status={lead.status} />
@@ -37,10 +38,12 @@ export default function InquiryDetailPanel({ isOpen, onClose, lead }) {
         {/* Fields */}
         <table className="w-full text-sm">
           <tbody className="divide-y divide-[#f0ebe3]">
-            {fields.map(([k, v]) => (
+            {fields.map(([k, v, type]) => (
               <tr key={k}>
                 <td className="py-2 text-[#9ca3af] w-40 pr-4 align-top">{k}</td>
-                <td className="py-2 text-[#374151] font-medium">{v || "—"}</td>
+                <td className="py-2 text-[#374151] font-medium">
+                  {type === "phone" ? <AdminPhoneCell value={v} /> : v || "—"}
+                </td>
               </tr>
             ))}
           </tbody>

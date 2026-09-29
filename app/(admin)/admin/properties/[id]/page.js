@@ -44,6 +44,7 @@ import {
 } from "react-icons/md";
 import AdminStatusBadge from "@/components/admin/ui/AdminStatusBadge";
 import AdminConfirmModal from "@/components/admin/ui/AdminConfirmModal";
+import AdminPhoneCell from "@/components/admin/ui/AdminPhoneCell";
 import PropertyFormDialog from "@/components/admin/properties/PropertyFormDialog";
 import CorrectionRequestDialog from "@/components/admin/properties/CorrectionRequestDialog";
 import adminAxios from "@/lib/adminAxios";
@@ -453,11 +454,11 @@ export default function PropertyDetailPage() {
                   },
                 { icon: <MdAccessTime />, label: "Posted", value: formatPostedDate(property) || property.addedDate },
                 { icon: <MdPerson />, label: "Contact Person", value: property.contact?.fullName },
-                { icon: <MdPhone />, label: "Contact Number", value: property.contact?.mobile },
+                { icon: <MdPhone />, label: "Contact Number", value: property.contact?.mobile, isPhone: true },
               ]
                 .filter(Boolean)
                 .filter((row) => row.value !== undefined && row.value !== null && row.value !== "")
-                .map(({ icon, label, value }) => (
+                .map(({ icon, label, value, isPhone }) => (
                   <div
                     key={label}
                     className="flex items-start gap-2 rounded-2xl border border-[#e8e0d5] bg-white p-3 transition hover:border-[#f0b429]/50 sm:gap-3 sm:p-4"
@@ -467,7 +468,11 @@ export default function PropertyDetailPage() {
                     </span>
                     <div className="min-w-0">
                       <p className="text-[9px] font-semibold uppercase tracking-wide text-[#9ca3af] sm:text-[10px]">{label}</p>
-                      <p className="mt-0.5 break-words text-xs font-medium text-[#374151] sm:text-sm">{value}</p>
+                      {isPhone ? (
+                        <AdminPhoneCell value={value} className="mt-0.5 text-xs sm:text-sm" />
+                      ) : (
+                        <p className="mt-0.5 break-words text-xs font-medium text-[#374151] sm:text-sm">{value}</p>
+                      )}
                     </div>
                   </div>
                 ))}

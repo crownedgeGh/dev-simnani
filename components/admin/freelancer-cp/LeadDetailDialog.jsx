@@ -1,7 +1,10 @@
 "use client";
 
+import Link from "next/link";
+import { MdOpenInNew } from "react-icons/md";
 import AdminDialog from "@/components/admin/ui/AdminDialog";
 import AdminStatusBadge from "@/components/admin/ui/AdminStatusBadge";
+import AdminPhoneCell from "@/components/admin/ui/AdminPhoneCell";
 
 function DetailRow({ label, value }) {
   return (
@@ -39,8 +42,25 @@ export default function LeadDetailDialog({ isOpen, onClose, lead }) {
 
       <div className="rounded-xl border border-[#e8e0d5] bg-[#faf8f5] px-4">
         <DetailRow label="Customer" value={lead.customer} />
-        <DetailRow label="Phone" value={lead.phone} />
-        <DetailRow label="Project" value={lead.project} />
+        <div className="flex items-start justify-between gap-4 border-b border-[#f0ebe3] py-2.5">
+          <span className="tracked-label text-[10px] text-[#9ca3af]">Phone</span>
+          <AdminPhoneCell value={lead.phone} />
+        </div>
+        <div className="flex items-start justify-between gap-4 border-b border-[#f0ebe3] py-2.5">
+          <span className="tracked-label text-[10px] text-[#9ca3af]">Project</span>
+          {lead.projectId ? (
+            <Link
+              href={`/projects/${lead.projectId}`}
+              target="_blank"
+              className="flex items-center gap-1 text-sm font-medium text-[#d97706] transition hover:underline"
+            >
+              {lead.project || lead.projectId}
+              <MdOpenInNew size={13} />
+            </Link>
+          ) : (
+            <span className="text-right text-sm font-medium text-[#1a1a2e]">{lead.project || "—"}</span>
+          )}
+        </div>
         {lead.projectId && <DetailRow label="Project ID" value={lead.projectId} />}
         <DetailRow label="Source" value={lead.source} />
         <DetailRow

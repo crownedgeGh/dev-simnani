@@ -2,6 +2,7 @@
 
 import AdminDialog from "@/components/admin/ui/AdminDialog";
 import AdminStatusBadge from "@/components/admin/ui/AdminStatusBadge";
+import AdminPhoneCell from "@/components/admin/ui/AdminPhoneCell";
 import { MdPerson, MdPhone, MdBusiness, MdCalendarToday, MdSource } from "react-icons/md";
 
 export default function LeadDetailPanel({ isOpen, onClose, lead }) {
@@ -10,7 +11,7 @@ export default function LeadDetailPanel({ isOpen, onClose, lead }) {
   const fields = [
     ["Lead ID", lead.id],
     ["Customer", lead.customer || lead.name],
-    ["Phone", lead.phone],
+    ["Phone", lead.phone, "phone"],
     ["Project / Property", lead.project || lead.property],
     ["Source", lead.source],
     ["Portal Source", lead.portalSource],
@@ -30,7 +31,7 @@ export default function LeadDetailPanel({ isOpen, onClose, lead }) {
           </div>
           <div>
             <p className="font-semibold text-[#1a1a2e]">{lead.customer || lead.name}</p>
-            <p className="text-sm text-[#9ca3af]">{lead.phone}</p>
+            <AdminPhoneCell value={lead.phone} className="text-[#9ca3af]" />
           </div>
           <div className="ml-auto">
             <AdminStatusBadge status={lead.status} />
@@ -40,10 +41,12 @@ export default function LeadDetailPanel({ isOpen, onClose, lead }) {
         {/* Fields */}
         <table className="w-full text-sm">
           <tbody className="divide-y divide-[#f0ebe3]">
-            {fields.map(([k, v]) => (
+            {fields.map(([k, v, type]) => (
               <tr key={k}>
                 <td className="py-2 text-[#9ca3af] w-36 pr-4">{k}</td>
-                <td className="py-2 text-[#374151] font-medium">{v || "—"}</td>
+                <td className="py-2 text-[#374151] font-medium">
+                  {type === "phone" ? <AdminPhoneCell value={v} /> : v || "—"}
+                </td>
               </tr>
             ))}
           </tbody>

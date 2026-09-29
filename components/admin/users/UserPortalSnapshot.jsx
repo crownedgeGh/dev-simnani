@@ -18,6 +18,7 @@ import {
 } from "react-icons/md";
 import AdminKpiCard from "@/components/admin/ui/AdminKpiCard";
 import AdminStatusBadge from "@/components/admin/ui/AdminStatusBadge";
+import AdminPhoneCell from "@/components/admin/ui/AdminPhoneCell";
 
 export default function UserPortalSnapshot({ accountId }) {
   const [fetched, setFetched] = useState({ forId: null, data: null });
@@ -190,7 +191,7 @@ function Row({ title, subtitle, meta, status, right, href, external = false }) {
     <div className="flex flex-col gap-2 rounded-xl border border-[#f0ebe3] p-3.5 transition hover:border-[#e8e0d5] hover:bg-[#faf8f5] sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium text-[#1a1a2e]">{title}</p>
-        {subtitle && <p className="mt-0.5 truncate text-xs text-[#9ca3af]">{subtitle}</p>}
+        {subtitle && <div className="mt-0.5 flex items-center gap-1 truncate text-xs text-[#9ca3af]">{subtitle}</div>}
         {meta && <p className="mt-1 text-[11px] text-[#9ca3af]">{meta}</p>}
       </div>
       <div className="flex shrink-0 items-center gap-2">
@@ -330,7 +331,7 @@ function OwnerTabs({ data, tab }) {
             <Row
               key={l._id || l.id}
               title={l.name}
-              subtitle={`${l.phone || "—"} · Interested in ${l.interest || "—"}`}
+              subtitle={<><AdminPhoneCell value={l.phone} /> · Interested in {l.interest || "—"}</>}
               meta={`${l.source || "—"} · ${l.date || "—"}`}
               status={l.status}
             />
@@ -350,7 +351,7 @@ function OwnerTabs({ data, tab }) {
             <Row
               key={c._id || c.id || c.name}
               title={c.name}
-              subtitle={`${c.phone || "—"} · ${c.property || "—"}`}
+              subtitle={<><AdminPhoneCell value={c.phone} /> · {c.property || "—"}</>}
               meta={c.lastActivity}
               status={c.status}
             />
@@ -520,7 +521,7 @@ function EmployeeTabs({ data, tab }) {
             <Row
               key={l.id}
               title={l.name}
-              subtitle={`${l.phone} · ${l.property}`}
+              subtitle={<><AdminPhoneCell value={l.phone} /> · {l.property}</>}
               meta={`${l.source} · ${l.date} · Next: ${l.nextFollowUp}`}
               status={l.status}
             />
@@ -672,7 +673,7 @@ function FreelancerTabs({ data, tab }) {
             <Row
               key={l.id}
               title={l.customer}
-              subtitle={`${l.phone} · ${l.project}`}
+              subtitle={<><AdminPhoneCell value={l.phone} /> · {l.project}</>}
               meta={`${l.source} · ${l.date} · by ${l.submittedBy?.name || "—"}`}
               status={l.status}
             />

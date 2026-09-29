@@ -20,6 +20,7 @@ import {
   MdOpenInNew,
 } from "react-icons/md";
 import AdminStatusBadge from "@/components/admin/ui/AdminStatusBadge";
+import AdminPhoneCell from "@/components/admin/ui/AdminPhoneCell";
 
 const LEVEL_FOR_CP_TYPE = { company: "head-to-company", field: "company-to-field", digital: "company-to-digital" };
 const CP_TYPE_TITLES = { company: "Company CP", digital: "Digital CP", field: "Field CP" };
@@ -162,7 +163,7 @@ function VisitCard({ visit }) {
         </p>
         <p className="flex items-center gap-1.5 text-xs text-[#374151]">
           <MdPhone size={14} className="text-[#9ca3af]" />
-          {visit.phone || "—"}
+          <AdminPhoneCell value={visit.phone} />
         </p>
       </div>
 
@@ -313,7 +314,7 @@ export default function PartnerPortalPage() {
               <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs text-[#374151] sm:flex-col sm:items-end">
                 {partner.mobile && (
                   <span className="flex items-center gap-1.5">
-                    <MdPhone size={14} className="text-[#9ca3af]" /> {partner.mobile}
+                    <MdPhone size={14} className="text-[#9ca3af]" /> <AdminPhoneCell value={partner.mobile} />
                   </span>
                 )}
                 {partner.email && (
@@ -350,7 +351,11 @@ export default function PartnerPortalPage() {
               ) : (
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {assignments.map((a) => (
-                    <div key={a.id} className="rounded-xl border border-[#e8e0d5] bg-[#faf8f5] p-3.5">
+                    <div
+                      key={a.id}
+                      onClick={() => a.propertyId && router.push(`/admin/properties/${a.propertyId}`)}
+                      className={`rounded-xl border border-[#e8e0d5] bg-[#faf8f5] p-3.5 ${a.propertyId ? "cursor-pointer transition hover:border-[#f0b429]/50 hover:bg-white" : ""}`}
+                    >
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
                           <p className="truncate text-sm font-medium text-[#1a1a2e]">{a.propertyTitle || "—"}</p>
@@ -412,7 +417,9 @@ export default function PartnerPortalPage() {
                     <div key={lead.id} className="flex items-center justify-between gap-3 rounded-xl border border-[#e8e0d5] bg-[#faf8f5] p-3.5">
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-[#1a1a2e]">{lead.customer}</p>
-                        <p className="mt-0.5 text-xs text-[#9ca3af]">{lead.project || "—"} · {lead.phone || "—"}</p>
+                        <p className="mt-0.5 flex items-center gap-1 text-xs text-[#9ca3af]">
+                          {lead.project || "—"} · <AdminPhoneCell value={lead.phone} />
+                        </p>
                       </div>
                       <AdminStatusBadge status={lead.status} />
                     </div>

@@ -22,6 +22,7 @@ import AdminPageHeader from "@/components/admin/layout/AdminPageHeader";
 import AdminTable from "@/components/admin/ui/AdminTable";
 import AdminKpiCard from "@/components/admin/ui/AdminKpiCard";
 import AdminConfirmModal from "@/components/admin/ui/AdminConfirmModal";
+import AdminPhoneCell from "@/components/admin/ui/AdminPhoneCell";
 import CPPartnerFormDialog from "@/components/admin/freelancer-cp/CPPartnerFormDialog";
 import VideoModerationDialog from "@/components/admin/freelancer-cp/VideoModerationDialog";
 import AssignPropertyDialog from "@/components/admin/freelancer-cp/AssignPropertyDialog";
@@ -86,7 +87,7 @@ export default function CPTypeWorkspace({
   const [leadDetailTarget, setLeadDetailTarget] = useState(null);
 
   const needsNetwork = (t) =>
-    t === cpType || (delegateToTypes || []).includes(t) || (t === "company" && routingStage === "head-cp");
+    t === cpType || (delegateToTypes || []).includes(t) || (t === "company" && !!routingStage);
 
   const load = useCallback(async () => {
     const [company, digital, field] = await Promise.all([
@@ -329,7 +330,7 @@ export default function CPTypeWorkspace({
       primary: true,
       render: (v) => <span className="text-sm font-medium text-[#1a1a2e] transition hover:text-[#d97706] hover:underline">{v}</span>,
     },
-    { key: "phone", label: "Phone", render: (v) => <span className="text-sm text-[#374151]">{v || "—"}</span> },
+    { key: "phone", label: "Phone", render: (v) => <AdminPhoneCell value={v} /> },
     { key: "city", label: "City", sortable: true, render: (v) => <span className="text-sm text-[#374151]">{v || "—"}</span> },
     { key: "leadsSubmitted", label: "Leads", sortable: true },
     { key: "siteVisits", label: "Visits", sortable: true },
@@ -415,7 +416,7 @@ export default function CPTypeWorkspace({
             {CP_LEAD_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
 
-          {routingStage === "head-cp" && (
+          {routingStage && routingStage !== "company-cp" && (
             <select
               value=""
               onChange={async (e) => {
@@ -539,7 +540,7 @@ export default function CPTypeWorkspace({
       primary: true,
       sortable: true,
       render: (v, row) => (
-        <Link href={`/property/${row.propertyId || row.id}`} target="_blank" className="group block">
+        <Link href={`/admin/properties/${row.propertyId || row.id}`} target="_blank" className="group block">
           <p className="text-sm font-medium text-[#1a1a2e] transition group-hover:text-[#d97706] group-hover:underline">{v}</p>
           <p className="mt-0.5 text-xs text-[#9ca3af]">{row.propertyLocation}</p>
         </Link>
@@ -577,7 +578,7 @@ export default function CPTypeWorkspace({
 
   const SITE_VISIT_COLUMNS = [
     { key: "customer", label: "Customer", primary: true, sortable: true },
-    { key: "phone", label: "Phone", render: (v) => <span className="text-sm text-[#374151]">{v || "—"}</span> },
+    { key: "phone", label: "Phone", render: (v) => <AdminPhoneCell value={v} /> },
     { key: "project", label: "Project", render: (v) => <span className="text-sm text-[#374151]">{v || "—"}</span> },
     { key: "fieldCpAccountId", label: "Field CP", render: (v) => <span className="font-mono text-xs text-[#9ca3af]">{v}</span> },
     {
@@ -621,7 +622,7 @@ export default function CPTypeWorkspace({
       ),
     },
     { key: "name", label: "Name", sortable: true },
-    { key: "mobile", label: "Mobile", render: (v) => <span className="text-sm text-[#374151]">{v || "—"}</span> },
+    { key: "mobile", label: "Mobile", render: (v) => <AdminPhoneCell value={v} /> },
     { key: "city", label: "City", sortable: true, render: (v) => <span className="text-sm text-[#374151]">{v || "—"}</span> },
     { key: "state", label: "State", sortable: true },
     { key: "address", label: "Full Address", render: (v) => <span className="max-w-[220px] block truncate text-xs text-[#6b7280]" title={v}>{v || "—"}</span> },

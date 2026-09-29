@@ -14,11 +14,7 @@ import {
 import AdminPageHeader from "@/components/admin/layout/AdminPageHeader";
 import AdminKpiCard from "@/components/admin/ui/AdminKpiCard";
 import RankedBarList from "@/components/admin/analytics/RankedBarList";
-import AdminSearchableSelect from "@/components/admin/ui/AdminSearchableSelect";
-import AdminFormField from "@/components/admin/ui/AdminFormField";
-
-const ALL_STATES = "All States";
-const ALL_CITIES = "All Cities";
+import LocationSearchBreakdown from "@/components/admin/analytics/LocationSearchBreakdown";
 
 const SETUP_STEPS = [
   "Create a GA4 property and add the Measurement ID to NEXT_PUBLIC_GA_MEASUREMENT_ID.",
@@ -42,7 +38,6 @@ function formatDate(yyyymmdd) {
 export default function AdminAnalyticsPage() {
   const [state, setState] = useState({ loading: true, configured: null, reports: null, error: null });
   const [refreshing, setRefreshing] = useState(false);
-  const [locationFilter, setLocationFilter] = useState({ state: "", city: "" });
 
   const load = useCallback(async () => {
     try {
@@ -55,25 +50,6 @@ export default function AdminAnalyticsPage() {
     }
   }, []);
 
-  // Re-fetches only the Top Search Queries panel, filtered by state/city —
-  // the rest of the dashboard (KPIs, trend, realtime) doesn't need to reload.
-  const loadSearchTerms = useCallback(async (stateName, cityName) => {
-    const params = new URLSearchParams({ searchTermsOnly: "1" });
-    if (stateName) params.set("state", stateName);
-    if (cityName) params.set("city", cityName);
-    try {
-      const res = await fetch(`/api/admin/analytics?${params.toString()}`);
-      const data = await res.json();
-      if (!data.success) throw new Error(data.error || "Failed to load search queries");
-      setState((prev) => ({
-        ...prev,
-        reports: { ...prev.reports, topSearchTerms: data.reports.topSearchTerms },
-      }));
-    } catch (err) {
-      console.error("Failed to load filtered search queries:", err);
-    }
-  }, []);
-
   useEffect(() => {
     load();
   }, [load]);
@@ -81,34 +57,21 @@ export default function AdminAnalyticsPage() {
   async function handleRefresh() {
     setRefreshing(true);
     await load();
-    if (locationFilter.state || locationFilter.city) {
-      await loadSearchTerms(locationFilter.state, locationFilter.city);
-    }
     setRefreshing(false);
-  }
-
-  function handleStateChange(value) {
-    const nextState = value === ALL_STATES ? "" : value;
-    setLocationFilter({ state: nextState, city: "" });
-    loadSearchTerms(nextState, "");
-  }
-
-  function handleCityChange(value) {
-    const nextCity = value === ALL_CITIES ? "" : value;
-    setLocationFilter((prev) => ({ ...prev, city: nextCity }));
-    loadSearchTerms(locationFilter.state, nextCity);
   }
 
   const overview = state.reports?.overview?.data?.[0] || {};
   const trend = state.reports?.trend?.data || [];
   const realtimeOverview = state.reports?.realtimeOverview?.data?.[0] || {};
   const realtimeEvents = state.reports?.realtimeEvents;
+  const locationBreakdown = state.reports?.locationBreakdown;
+  const topSearchTermsError = state.reports?.topSearchTerms?.error;
 
   return (
     <div>
       <AdminPageHeader
         title="Analytics"
-        description="Google Analytics 4 — search queries, filters, leads & site activity"
+        description="Google Analytics 4 — site traffic and what people search for, by city"
         onRefresh={state.configured ? handleRefresh : undefined}
         isRefreshing={refreshing}
       />
@@ -152,43 +115,7 @@ export default function AdminAnalyticsPage() {
 
       {!state.loading && !state.error && state.configured && (
         <div className="flex flex-col gap-6">
-          <div className="rounded-2xl border border-[#e8e0d5] bg-white p-5">
-            <div className="flex items-center justify-between gap-3">
-              <p className="flex items-center gap-2 text-sm font-semibold text-[#1a1a2e]">
-                <span className="relative flex h-2.5 w-2.5">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
-                </span>
-                Right Now — Last 30 Minutes
-              </p>
-              <span className="text-xs text-[#9ca3af]">Use this to test — updates within ~1 minute</span>
-            </div>
-            <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
-              <div>
-                <p className="text-2xl font-bold text-[#d97706]">{(realtimeOverview.activeUsers ?? 0).toLocaleString()}</p>
-                <p className="text-xs text-[#9ca3af]">Active users right now</p>
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-[#d97706]">{(realtimeOverview.eventCount ?? 0).toLocaleString()}</p>
-                <p className="text-xs text-[#9ca3af]">Events in last 30 min</p>
-              </div>
-            </div>
-            {realtimeEvents && (
-              <div className="mt-4 border-t border-[#f5f2ec] pt-4">
-                {realtimeEvents.error ? (
-                  <p className="text-xs text-[#9ca3af]">{realtimeEvents.error}</p>
-                ) : (
-                  <RankedBarList
-                    rows={realtimeEvents.data}
-                    labelKey="eventName"
-                    valueKey="eventCount"
-                    emptyMessage="No activity in the last 30 minutes. Browse the site (search, view a property) and click Refresh."
-                  />
-                )}
-              </div>
-            )}
-          </div>
-
+          {/* KPI overview */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <AdminKpiCard
               title="Active Users"
@@ -220,82 +147,91 @@ export default function AdminAnalyticsPage() {
             />
           </div>
 
-          {trend.length > 0 && (
+          {/* Right now + trend, side by side so the page reads in fewer scrolls */}
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <div className="rounded-2xl border border-[#e8e0d5] bg-white p-5">
-              <p className="flex items-center gap-2 text-sm font-semibold text-[#1a1a2e]">
-                <MdInsights className="text-[#f0b429]" size={18} />
-                Users & Sessions — Last 14 Days
-              </p>
-              <div className="mt-4 flex h-32 items-end gap-1.5 overflow-x-auto sm:gap-2">
-                {trend.map((row) => {
-                  const max = trendMax(trend, "sessions");
-                  const height = Math.max(((Number(row.sessions) || 0) / max) * 100, 4);
-                  return (
-                    <div key={row.date} className="flex min-w-[28px] flex-1 flex-col items-center gap-1.5">
-                      <div className="flex h-24 w-full items-end">
-                        <div
-                          className="w-full rounded-t-sm bg-[#f0b429]"
-                          style={{ height: `${height}%` }}
-                          title={`${row.sessions} sessions`}
-                        />
-                      </div>
-                      <span className="text-[10px] text-[#9ca3af]">{formatDate(row.date)}</span>
-                    </div>
-                  );
-                })}
+              <div className="flex items-center justify-between gap-3">
+                <p className="flex items-center gap-2 text-sm font-semibold text-[#1a1a2e]">
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                  </span>
+                  Right Now
+                </p>
+                <span className="text-xs text-[#9ca3af]">Last 30 min</span>
               </div>
+              <div className="mt-4 grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-2xl font-bold text-[#d97706]">{(realtimeOverview.activeUsers ?? 0).toLocaleString()}</p>
+                  <p className="text-xs text-[#9ca3af]">Active users</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-[#d97706]">{(realtimeOverview.eventCount ?? 0).toLocaleString()}</p>
+                  <p className="text-xs text-[#9ca3af]">Events</p>
+                </div>
+              </div>
+              {realtimeEvents && (
+                <div className="mt-4 border-t border-[#f5f2ec] pt-4">
+                  {realtimeEvents.error ? (
+                    <p className="text-xs text-[#9ca3af]">{realtimeEvents.error}</p>
+                  ) : (
+                    <RankedBarList
+                      rows={realtimeEvents.data}
+                      labelKey="eventName"
+                      valueKey="eventCount"
+                      emptyMessage="No activity in the last 30 minutes. Browse the site, then click Refresh."
+                    />
+                  )}
+                </div>
+              )}
             </div>
-          )}
 
+            {trend.length > 0 && (
+              <div className="rounded-2xl border border-[#e8e0d5] bg-white p-5">
+                <p className="flex items-center gap-2 text-sm font-semibold text-[#1a1a2e]">
+                  <MdInsights className="text-[#f0b429]" size={18} />
+                  Users & Sessions — Last 14 Days
+                </p>
+                <div className="mt-4 flex h-32 items-end gap-1.5 overflow-x-auto sm:gap-2">
+                  {trend.map((row) => {
+                    const max = trendMax(trend, "sessions");
+                    const height = Math.max(((Number(row.sessions) || 0) / max) * 100, 4);
+                    return (
+                      <div key={row.date} className="flex min-w-[28px] flex-1 flex-col items-center gap-1.5">
+                        <div className="flex h-24 w-full items-end">
+                          <div
+                            className="w-full rounded-t-sm bg-[#f0b429]"
+                            style={{ height: `${height}%` }}
+                            title={`${row.sessions} sessions`}
+                          />
+                        </div>
+                        <span className="text-[10px] text-[#9ca3af]">{formatDate(row.date)}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Search activity by state & city — the main thing admins come here for */}
           <div className="rounded-2xl border border-[#e8e0d5] bg-white p-5">
             <p className="flex items-center gap-2 text-sm font-semibold text-[#1a1a2e]">
               <MdSearch className="text-[#f0b429]" size={18} />
-              Top Search Queries
+              Search Activity by City
             </p>
             <p className="mt-1 text-xs text-[#9ca3af]">
-              Exactly what visitors searched for — property type, buy/rent, city & budget combined.
+              Every state with activity, and what was actually searched in each of its cities.
             </p>
-            {!state.reports.topSearchTerms.error && (
-              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <AdminFormField label="State" id="search-terms-state">
-                  <AdminSearchableSelect
-                    id="search-terms-state"
-                    value={locationFilter.state || ALL_STATES}
-                    onChange={handleStateChange}
-                    options={[ALL_STATES, ...(state.reports.topSearchTerms.availableStates || [])]}
-                    placeholder={ALL_STATES}
-                  />
-                </AdminFormField>
-                <AdminFormField label="City" id="search-terms-city">
-                  <AdminSearchableSelect
-                    id="search-terms-city"
-                    value={locationFilter.city || ALL_CITIES}
-                    onChange={handleCityChange}
-                    options={[ALL_CITIES, ...(state.reports.topSearchTerms.availableCities || [])]}
-                    placeholder={ALL_CITIES}
-                    disabled={!(state.reports.topSearchTerms.availableCities || []).length}
-                  />
-                </AdminFormField>
-              </div>
-            )}
             <div className="mt-4">
-              {state.reports.topSearchTerms.error ? (
+              {topSearchTermsError ? (
                 <p className="py-6 text-center text-xs text-[#9ca3af]">
-                  {state.reports.topSearchTerms.error.includes("customEvent")
+                  {topSearchTermsError.includes("customEvent")
                     ? 'Register the "search_term" event-scoped custom dimension in GA4 Admin > Custom Definitions to see this.'
-                    : state.reports.topSearchTerms.error}
+                    : topSearchTermsError}
                 </p>
               ) : (
-                <RankedBarList
-                  rows={state.reports.topSearchTerms.data}
-                  labelKey="customEvent:search_term"
-                  valueKey="eventCount"
-                  emptyMessage={
-                    locationFilter.state || locationFilter.city
-                      ? "No searches recorded yet for this state/city."
-                      : "No searches recorded yet — try searching on the site, then check the Right Now panel above first."
-                  }
-                />
+                <LocationSearchBreakdown breakdown={locationBreakdown} />
               )}
             </div>
           </div>

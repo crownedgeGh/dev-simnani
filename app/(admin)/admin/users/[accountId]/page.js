@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { MdArrowBack } from "react-icons/md";
 import AdminStatusBadge from "@/components/admin/ui/AdminStatusBadge";
+import AdminPhoneCell from "@/components/admin/ui/AdminPhoneCell";
 import UserPortalSnapshot from "@/components/admin/users/UserPortalSnapshot";
 import { ADMIN_KEYS, readCollection } from "@/lib/adminStorage";
 import { PROPERTY_CATEGORIES } from "@/lib/propertyCategories";
@@ -72,7 +73,7 @@ export default function UserDetailPage() {
   const fields = [
     ["Account ID", user.accountId],
     ["Full Name", user.fullName],
-    ["Mobile", user.mobile],
+    ["Mobile", user.mobile, "phone"],
     ["Email", user.email],
     ["City", user.city],
     ["State", user.state || "—"],
@@ -128,10 +129,12 @@ export default function UserDetailPage() {
 
           <table className="w-full text-sm">
             <tbody className="divide-y divide-[#f0ebe3]">
-              {fields.map(([k, v]) => (
+              {fields.map(([k, v, type]) => (
                 <tr key={k}>
                   <td className="py-2.5 text-[#9ca3af] w-36 pr-4 align-top">{k}</td>
-                  <td className="py-2.5 text-[#374151] font-medium break-words">{v || "—"}</td>
+                  <td className="py-2.5 text-[#374151] font-medium break-words">
+                    {type === "phone" ? <AdminPhoneCell value={v} /> : v || "—"}
+                  </td>
                 </tr>
               ))}
             </tbody>

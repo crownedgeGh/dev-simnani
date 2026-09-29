@@ -6,6 +6,7 @@ import { MdOpenInNew, MdRefresh } from "react-icons/md";
 import AdminPageHeader from "@/components/admin/layout/AdminPageHeader";
 import AdminTable from "@/components/admin/ui/AdminTable";
 import AdminStatusBadge from "@/components/admin/ui/AdminStatusBadge";
+import AdminPhoneCell from "@/components/admin/ui/AdminPhoneCell";
 import InquiryDetailPanel from "@/components/admin/leads/InquiryDetailPanel";
 
 const ALL_STATUSES = ["New", "Contacted", "Closed"];
@@ -80,7 +81,7 @@ export default function AdminLeadsPage() {
       render: (v, row) => (
         <div>
           <p className="text-sm font-medium text-[#1a1a2e]">{v}</p>
-          <p className="text-xs text-[#9ca3af]">{row.phone}</p>
+          <AdminPhoneCell value={row.phone} className="text-xs text-[#9ca3af]" />
         </div>
       ),
     },
