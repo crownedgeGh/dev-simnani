@@ -32,10 +32,12 @@ export default function AssignPropertyDialog({
     if (!isOpen) return;
     let active = true;
     Promise.resolve().then(() => {
-      if (active) setSelected(currentAssigneeId || "");
+      if (!active) return;
+      const stillValid = currentAssigneeId && partners.some((p) => p.id === currentAssigneeId);
+      setSelected(stillValid ? currentAssigneeId : "");
     });
     return () => { active = false; };
-  }, [isOpen, currentAssigneeId]);
+  }, [isOpen, currentAssigneeId, partners]);
 
   const groupedByType = partners.reduce((acc, p) => {
     (acc[p.cpType] = acc[p.cpType] || []).push(p);
@@ -49,7 +51,10 @@ export default function AssignPropertyDialog({
       return;
     }
     const partner = partners.find((p) => p.id === selected);
-    if (!partner) return;
+    if (!partner) {
+      toast.error("Selected partner is no longer available. Please pick another.");
+      return;
+    }
     setSaving(true);
     try {
       await onAssign(partner);
