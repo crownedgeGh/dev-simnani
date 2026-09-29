@@ -9,6 +9,7 @@ import {
   MdMoreVert,
   MdClose,
   MdInbox,
+  MdChevronRight,
 } from "react-icons/md";
 import AdminStatusBadge from "./AdminStatusBadge";
 
@@ -41,6 +42,7 @@ function ToggleSwitch({ checked, onChange, disabled }) {
 // ---------------------------------------------------------------------------
 function RowActions({ actions, row }) {
   const [open, setOpen] = useState(false);
+  const [submenuOpen, setSubmenuOpen] = useState(null);
 
   if (!actions?.length) return null;
 
@@ -56,22 +58,53 @@ function RowActions({ actions, row }) {
 
       {open && (
         <>
-          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div className="fixed inset-0 z-10" onClick={() => { setOpen(false); setSubmenuOpen(null); }} />
           <div className="absolute right-0 z-20 mt-1 min-w-[140px] rounded-xl border border-[#e8e0d5] bg-white py-1 shadow-lg">
-            {actions.map((action, i) => (
-              <button
-                key={i}
-                onClick={() => { setOpen(false); action.onClick(row); }}
-                className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition hover:bg-[#faf8f5] ${
-                  action.variant === "danger"
-                    ? "text-red-500 hover:text-red-600"
-                    : "text-[#374151] hover:text-[#1a1a2e]"
-                }`}
-              >
-                {action.icon && <action.icon size={16} className="shrink-0" />}
-                {action.label}
-              </button>
-            ))}
+            {actions.map((action, i) =>
+              action.submenu?.length ? (
+                <div key={i} className="relative" onMouseEnter={() => setSubmenuOpen(i)} onMouseLeave={() => setSubmenuOpen(null)}>
+                  <button
+                    onClick={() => setSubmenuOpen((v) => (v === i ? null : i))}
+                    className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm text-[#374151] transition hover:bg-[#faf8f5] hover:text-[#1a1a2e]"
+                  >
+                    {action.icon && <action.icon size={16} className="shrink-0" />}
+                    <span className="flex-1">{action.label}</span>
+                    <MdChevronRight size={16} className="shrink-0 text-[#9ca3af]" />
+                  </button>
+                  {submenuOpen === i && (
+                    <div className="absolute right-full top-0 z-30 min-w-[120px] rounded-xl border border-[#e8e0d5] bg-white py-1 shadow-lg">
+                      {action.submenu.map((sub, j) => (
+                        <button
+                          key={j}
+                          onClick={() => { setOpen(false); setSubmenuOpen(null); sub.onClick(row); }}
+                          className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition hover:bg-[#faf8f5] ${
+                            sub.variant === "danger"
+                              ? "text-red-500 hover:text-red-600"
+                              : "text-[#374151] hover:text-[#1a1a2e]"
+                          }`}
+                        >
+                          {sub.icon && <sub.icon size={16} className="shrink-0" />}
+                          {sub.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <button
+                  key={i}
+                  onClick={() => { setOpen(false); action.onClick(row); }}
+                  className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition hover:bg-[#faf8f5] ${
+                    action.variant === "danger"
+                      ? "text-red-500 hover:text-red-600"
+                      : "text-[#374151] hover:text-[#1a1a2e]"
+                  }`}
+                >
+                  {action.icon && <action.icon size={16} className="shrink-0" />}
+                  {action.label}
+                </button>
+              )
+            )}
           </div>
         </>
       )}

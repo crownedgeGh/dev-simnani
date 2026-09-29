@@ -3,12 +3,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { MdEdit, MdBlock, MdOpenInNew } from "react-icons/md";
+import { MdBlock, MdOpenInNew, MdTouchApp, MdPauseCircle } from "react-icons/md";
 import AdminPageHeader from "@/components/admin/layout/AdminPageHeader";
 import AdminTable from "@/components/admin/ui/AdminTable";
-import AdminStatusBadge from "@/components/admin/ui/AdminStatusBadge";
 import AdminConfirmModal from "@/components/admin/ui/AdminConfirmModal";
-import UserEditDialog from "@/components/admin/users/UserEditDialog";
 import adminAxios from "@/lib/adminAxios";
 import { ADMIN_KEYS, readCollection, writeCollection } from "@/lib/adminStorage";
 
@@ -20,7 +18,6 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [editTarget, setEditTarget] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -62,23 +59,29 @@ export default function AdminUsersPage() {
     setRefreshing(false);
   };
 
-  const handleEdit = async (updated) => {
+  const handleSetStatus = async (row, status) => {
     try {
-      const res = await fetch(`/api/users/${updated.accountId}`, {
-        method: "PUT",
+      const res = await fetch(`/api/users/${row.accountId}`, {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updated),
+        body: JSON.stringify({ status }),
       });
       const json = await res.json();
       if (json.success && json.data) {
         setUsers((prev) => prev.map((u) => (u.accountId === json.data.accountId ? json.data : u)));
+        toast.success(`User ${status.toLowerCase()}ed`);
         return;
       }
     } catch {
       // Fallback
     }
-    const res = await adminAxios.put(`/admin/users/${updated.accountId}`, { ...updated, id: updated.accountId });
-    setUsers(res.data.data);
+    try {
+      const res = await adminAxios.patch(`/admin/users/${row.accountId}`, { status, id: row.accountId });
+      setUsers(res.data.data);
+      toast.success(`User ${status.toLowerCase()}ed`);
+    } catch {
+      toast.error("Operation failed");
+    }
   };
 
   const handleSoftDelete = async () => {
@@ -180,7 +183,14 @@ export default function AdminUsersPage() {
       searchable: false,
       actions: (row) => [
         { label: "View Profile", icon: MdOpenInNew, onClick: () => router.push(`/admin/users/${row.accountId}`) },
-        { label: "Edit", icon: MdEdit, onClick: () => setEditTarget(row) },
+        {
+          label: "Take Action",
+          icon: MdTouchApp,
+          submenu: [
+            { label: "Hold", icon: MdPauseCircle, onClick: () => handleSetStatus(row, "Hold") },
+            { label: "Block", icon: MdBlock, variant: "danger", onClick: () => handleSetStatus(row, "Block") },
+          ],
+        },
         { label: "Soft Delete", icon: MdBlock, variant: "danger", onClick: () => setDeleteTarget(row) },
       ],
     },
@@ -205,7 +215,6 @@ export default function AdminUsersPage() {
         pageSize={10}
       />
 
-      <UserEditDialog isOpen={!!editTarget} onClose={() => setEditTarget(null)} user={editTarget} onSave={handleEdit} />
       <AdminConfirmModal
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}

@@ -2,14 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { MdArrowBack, MdEdit } from "react-icons/md";
+import { MdArrowBack } from "react-icons/md";
 import AdminStatusBadge from "@/components/admin/ui/AdminStatusBadge";
-import UserEditDialog from "@/components/admin/users/UserEditDialog";
 import UserPortalSnapshot from "@/components/admin/users/UserPortalSnapshot";
-import adminAxios from "@/lib/adminAxios";
 import { ADMIN_KEYS, readCollection } from "@/lib/adminStorage";
 import { PROPERTY_CATEGORIES } from "@/lib/propertyCategories";
-import { toast } from "sonner";
 
 const INVESTOR_BUDGET_LABELS = {
   "under-50l": "Under ₹50 Lakh",
@@ -30,7 +27,6 @@ export default function UserDetailPage() {
   const { accountId } = useParams();
   const router = useRouter();
   const [user, setUser] = useState(null);
-  const [editOpen, setEditOpen] = useState(false);
 
   useEffect(() => {
     if (!accountId) return;
@@ -55,28 +51,6 @@ export default function UserDetailPage() {
       active = false;
     };
   }, [accountId]);
-
-  const handleEdit = async (updated) => {
-    try {
-      const res = await fetch(`/api/users/${updated.accountId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updated),
-      });
-      const json = await res.json();
-      if (json.success && json.data) {
-        setUser(json.data);
-        toast.success("User updated successfully");
-        return;
-      }
-    } catch {
-      // Fallback
-    }
-    const res = await adminAxios.put(`/admin/users/${updated.accountId}`, { ...updated, id: updated.accountId });
-    const found = res.data.data.find((u) => u.accountId === accountId);
-    setUser(found);
-    toast.success("User updated successfully");
-  };
 
   if (!user) return (
     <div className="flex flex-col items-center gap-3 py-20">
@@ -142,9 +116,6 @@ export default function UserDetailPage() {
                 <AdminStatusBadge status={user.status} />
               </div>
             </div>
-            <button onClick={() => setEditOpen(true)} className="flex items-center gap-1.5 h-9 rounded-xl border border-[#e8e0d5] px-3 text-sm text-[#374151] hover:bg-[#faf8f5]">
-              <MdEdit size={16} /> Edit
-            </button>
           </div>
 
           <table className="w-full text-sm">
@@ -206,8 +177,6 @@ export default function UserDetailPage() {
 
         <UserPortalSnapshot accountId={user.accountId} />
       </div>
-
-      <UserEditDialog isOpen={editOpen} onClose={() => setEditOpen(false)} user={user} onSave={handleEdit} />
     </div>
   );
 }
