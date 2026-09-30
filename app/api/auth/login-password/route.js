@@ -5,6 +5,7 @@ import User from "@/models/User";
 import Session from "@/models/Session";
 import { verifyPassword } from "@/lib/password";
 import { SESSION_MAX_AGE, setSessionCookie } from "@/lib/session";
+import { isRateLimited, rateLimitResponse } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,10 @@ export const dynamic = "force-dynamic";
 // does, then verifies the bcrypt hash stored on the user record.
 export async function POST(request) {
   try {
+    if (isRateLimited(request, { limit: 10, windowMs: 10 * 60 * 1000, key: "login-password" })) {
+      return rateLimitResponse();
+    }
+
     await dbConnect();
     const { mobile, password } = await request.json();
     const digits = (mobile || "").replace(/\D/g, "").slice(-10);

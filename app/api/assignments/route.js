@@ -4,6 +4,7 @@ import Assignment from "@/models/Assignment";
 import Property from "@/models/Property";
 import User from "@/models/User";
 import { getSessionUser } from "@/lib/session";
+import { isAdminRequest } from "@/lib/adminSession";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -14,16 +15,31 @@ const CHILD_CP_TYPE_FOR_LEVEL = {
   "company-to-digital": "digital",
 };
 
+// Two legitimate callers: a CP portal always scopes its own query by its own
+// accountId (assignedToAccountId or assignedByAccountId), and the admin
+// panel queries unscoped across every CP. Anyone else — including a logged
+// -in CP passing someone else's accountId — is rejected.
 export async function GET(request) {
   try {
-    await dbConnect();
-
     const { searchParams } = new URL(request.url);
     const level = searchParams.get("level");
     const assignedToAccountId = searchParams.get("assignedToAccountId");
     const assignedByAccountId = searchParams.get("assignedByAccountId");
     const parentAssignmentId = searchParams.get("parentAssignmentId");
     const propertyId = searchParams.get("propertyId");
+
+    if (!isAdminRequest(request)) {
+      const sessionUser = await getSessionUser(request);
+      const ownsQuery =
+        sessionUser &&
+        ((assignedToAccountId && assignedToAccountId === sessionUser.accountId) ||
+          (assignedByAccountId && assignedByAccountId === sessionUser.accountId));
+      if (!ownsQuery) {
+        return NextResponse.json({ success: false, error: "Not authorized" }, { status: 403 });
+      }
+    }
+
+    await dbConnect();
 
     const query = {};
     if (level) query.level = level;
@@ -98,9 +114,12 @@ export async function POST(request) {
     let assignedByState = "";
 
     if (level === "head-to-company") {
-      // The admin/Head CP panel authenticates separately (single implicit
-      // super-admin) and has no session cookie of its own — trusted here the
-      // same way the rest of /api/admin/* is trusted from the admin UI.
+      if (!isAdminRequest(request)) {
+        return NextResponse.json(
+          { success: false, error: "You must be logged in as Head CP (admin) to assign this" },
+          { status: 401 }
+        );
+      }
     } else {
       const sessionUser = await getSessionUser(request);
       if (sessionUser && sessionUser.accountType === "freelancer" && sessionUser.cpType === "company") {
@@ -119,11 +138,11 @@ export async function POST(request) {
             );
           }
         }
-      } else if (body.assignedByAccountId) {
+      } else if (body.assignedByAccountId && isAdminRequest(request)) {
         // No Company CP session — this is the admin panel delegating on a
         // Company CP's behalf (Company CP Management's "Delegate" action).
-        // Trusted like head-to-company, but still resolves the real account
-        // so assignedByName/city/state aren't client-supplied.
+        // Requires an admin session; the real account is still resolved
+        // server-side so assignedByName/city/state aren't client-supplied.
         const delegator = await User.findOne({ accountId: body.assignedByAccountId, cpType: "company" }).lean();
         if (!delegator) {
           return NextResponse.json({ success: false, error: "Delegating Company CP account not found" }, { status: 404 });

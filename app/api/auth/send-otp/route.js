@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import User from "@/models/User";
 import { sendOtp } from "@/lib/otp";
+import { isRateLimited, rateLimitResponse } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +11,10 @@ export const dynamic = "force-dynamic";
 // an unrecognised number should be sent to sign up instead of burning an SMS.
 export async function POST(request) {
   try {
+    if (isRateLimited(request, { limit: 5, windowMs: 10 * 60 * 1000, key: "send-otp" })) {
+      return rateLimitResponse();
+    }
+
     await dbConnect();
     const { mobile } = await request.json();
     const digits = (mobile || "").replace(/\D/g, "").slice(-10);

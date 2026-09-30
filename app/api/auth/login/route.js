@@ -6,6 +6,7 @@ import Session from "@/models/Session";
 import { generateAccountId } from "@/lib/auth";
 import { SESSION_MAX_AGE, setSessionCookie } from "@/lib/session";
 import { verifyOtp } from "@/lib/otp";
+import { isRateLimited, rateLimitResponse } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,10 @@ export const dynamic = "force-dynamic";
 // behaviour that used to live in localStorage.
 export async function POST(request) {
   try {
+    if (isRateLimited(request, { limit: 10, windowMs: 10 * 60 * 1000, key: "login-otp" })) {
+      return rateLimitResponse();
+    }
+
     await dbConnect();
     const { mobile, otp } = await request.json();
     const digits = (mobile || "").replace(/\D/g, "").slice(-10);

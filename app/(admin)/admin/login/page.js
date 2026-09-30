@@ -30,15 +30,13 @@ export default function AdminLoginPage() {
       return;
     }
     setSubmitting(true);
-    // Small delay for UX feel
-    await new Promise((r) => setTimeout(r, 400));
-    const result = adminLogin(email, password);
+    const result = await adminLogin(email, password);
     setSubmitting(false);
     if (result.success) {
       toast.success("Welcome back, Admin!");
       router.replace("/admin/dashboard");
     } else {
-      toast.error("Invalid credentials. Hint: admin@simnani.com / admin123");
+      toast.error(result.error || "Invalid credentials");
     }
   };
 
@@ -83,12 +81,6 @@ export default function AdminLoginPage() {
               <h1 className="text-xl font-bold text-[#1a1a2e]">Simnani Admin</h1>
               <p className="text-sm text-[#9ca3af]">Sign in to your admin account</p>
             </div>
-          </div>
-
-          {/* Hint box */}
-          <div className="mb-6 rounded-xl border border-[#f0b429]/30 bg-[#fff8e1] px-4 py-3">
-            <p className="text-xs font-medium text-[#d97706]">Demo credentials</p>
-            <p className="text-xs text-[#92400e] mt-0.5">admin@simnani.com / admin123</p>
           </div>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">

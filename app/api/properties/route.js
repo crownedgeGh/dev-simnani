@@ -10,12 +10,25 @@ import {
   RESIDENTIAL_PROPERTY_TYPES,
 } from "@/lib/properties";
 import { getSessionUser } from "@/lib/session";
+import { isAdminRequest } from "@/lib/adminSession";
+import { isRateLimited, rateLimitResponse } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+const PUBLIC_DEFAULT_LIMIT = 24;
+const PUBLIC_MAX_LIMIT = 100;
+const ADMIN_MAX_LIMIT = 2000;
+
 export async function GET(request) {
   try {
+    if (isRateLimited(request, { limit: 60, windowMs: 60 * 1000, key: "properties-list" })) {
+      return rateLimitResponse();
+    }
+
+    const isAdmin = isAdminRequest(request);
+    const sessionUser = await getSessionUser(request);
+
     await dbConnect();
 
     const { searchParams } = new URL(request.url);
@@ -26,6 +39,11 @@ export async function GET(request) {
     const search = searchParams.get("search");
     const contactMobile = searchParams.get("contactMobile");
     const ownerId = searchParams.get("ownerId");
+    const page = Math.max(Number(searchParams.get("page")) || 1, 1);
+
+    let limit = Number(searchParams.get("limit"));
+    if (!Number.isFinite(limit) || limit <= 0) limit = isAdmin ? ADMIN_MAX_LIMIT : PUBLIC_DEFAULT_LIMIT;
+    limit = Math.min(limit, isAdmin ? ADMIN_MAX_LIMIT : PUBLIC_MAX_LIMIT);
 
     const query = {};
 
@@ -57,7 +75,11 @@ export async function GET(request) {
       ];
     }
 
-    let properties = await Property.find(query).sort({ createdAt: -1 }).lean();
+    let properties = await Property.find(query)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean();
 
     if (contactMobile) {
       const digits = contactMobile.replace(/\D/g, "").slice(-10);
@@ -65,6 +87,15 @@ export async function GET(request) {
         (p) => (p.contact?.mobile || "").replace(/\D/g, "").slice(-10) === digits
       );
     }
+
+    // Owner phone numbers are only visible to the listing's own owner or an
+    // admin — everyone else gets the listing without a scrapeable mobile
+    // number attached.
+    properties = properties.map((p) => {
+      const canSeeContact = isAdmin || (sessionUser && sessionUser.accountId === p.ownerId);
+      if (canSeeContact) return p;
+      return { ...p, contact: { ...p.contact, mobile: "" } };
+    });
 
     return NextResponse.json({
       success: true,

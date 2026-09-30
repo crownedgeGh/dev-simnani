@@ -3,12 +3,19 @@ import dbConnect from "@/lib/mongodb";
 import User from "@/models/User";
 import { isPasswordValid } from "@/lib/auth";
 import { hashPassword } from "@/lib/password";
+import { isAdminRequest } from "@/lib/adminSession";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+// Admin-only user directory (mobile/email/RERA number for every account) —
+// registration (POST, below) stays open to unauthenticated visitors.
 export async function GET(request) {
   try {
+    if (!isAdminRequest(request)) {
+      return NextResponse.json({ success: false, error: "Admin access required" }, { status: 401 });
+    }
+
     await dbConnect();
 
     const { searchParams } = new URL(request.url);

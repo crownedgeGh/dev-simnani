@@ -1,16 +1,20 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import User from "@/models/User";
+import { isAdminRequest } from "@/lib/adminSession";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-// Directory of registered Channel Partners, used to populate "forward to" /
-// "delegate to" pickers with real accounts (name + city + state) instead of
-// demo data. On hold / suspended CPs are excluded — they shouldn't receive
-// new work while blocked from the portal.
+// Directory of registered Channel Partners (with phone numbers), used to
+// populate "forward to" / "delegate to" pickers in the admin panel — never
+// shown to site visitors, so it's admin-only.
 export async function GET(request) {
   try {
+    if (!isAdminRequest(request)) {
+      return NextResponse.json({ success: false, error: "Admin access required" }, { status: 401 });
+    }
+
     await dbConnect();
 
     const { searchParams } = new URL(request.url);

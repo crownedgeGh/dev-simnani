@@ -1,15 +1,19 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Commission from "@/models/Commission";
+import { isAdminRequest } from "@/lib/adminSession";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-// Admin-only surface (created automatically when a lead converts, managed
-// from the CP Management Commissions tab) — unauthenticated like the rest of
-// /api/admin/*-adjacent CP routes.
+// Admin-only surface, managed from the CP Management Commissions tab —
+// gated by the real server-side admin session.
 export async function GET(request) {
   try {
+    if (!isAdminRequest(request)) {
+      return NextResponse.json({ success: false, error: "Admin access required" }, { status: 401 });
+    }
+
     await dbConnect();
 
     const { searchParams } = new URL(request.url);
@@ -36,6 +40,10 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
+    if (!isAdminRequest(request)) {
+      return NextResponse.json({ success: false, error: "Admin access required" }, { status: 401 });
+    }
+
     await dbConnect();
     const body = await request.json();
     const { leadId, customer, project, cpType, cpAccountId } = body;

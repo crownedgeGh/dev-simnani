@@ -2,12 +2,22 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import CampaignVideo from "@/models/CampaignVideo";
 import { getSessionUser } from "@/lib/session";
+import { isAdminRequest } from "@/lib/adminSession";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+// Any authenticated CP can browse available campaign videos (no PII in the
+// response — just name/url fields); admin sees everything too. Never public.
 export async function GET(request) {
   try {
+    if (!isAdminRequest(request)) {
+      const sessionUser = await getSessionUser(request);
+      if (!sessionUser) {
+        return NextResponse.json({ success: false, error: "You must be logged in" }, { status: 401 });
+      }
+    }
+
     await dbConnect();
 
     const { searchParams } = new URL(request.url);

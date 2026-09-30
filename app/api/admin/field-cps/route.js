@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import User from "@/models/User";
 import SiteVisit from "@/models/SiteVisit";
+import { isAdminRequest } from "@/lib/adminSession";
 
 // Real registered Field CP accounts, for the admin Field CP Management
 // page's Network tab — unlike the rest of the CP Network/Leads/Commissions
@@ -11,8 +12,12 @@ import SiteVisit from "@/models/SiteVisit";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export async function GET() {
+export async function GET(request) {
   try {
+    if (!isAdminRequest(request)) {
+      return NextResponse.json({ success: false, error: "Admin access required" }, { status: 401 });
+    }
+
     await dbConnect();
 
     const [users, visitCounts] = await Promise.all([

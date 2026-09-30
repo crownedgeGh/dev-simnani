@@ -2,21 +2,28 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import SiteVisit from "@/models/SiteVisit";
 import { getSessionUser } from "@/lib/session";
+import { isAdminRequest } from "@/lib/adminSession";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-// Not gated by the caller's own session for GET — the admin panel needs to
-// look up any Field CP's visits by their accountId (see /api/admin/field-cps
-// and app/(admin)/admin/freelancer-cp/[cpType]/[accountId]/page.js), the same
-// way /api/assignments is queried by arbitrary assignedToAccountId. The Field
-// CP portal itself always passes its own accountId.
+// The admin panel needs to look up any Field CP's visits by their accountId
+// (see /api/admin/field-cps); the Field CP portal itself always passes its
+// own accountId. Anyone else — including a logged-in CP passing someone
+// else's accountId — is rejected.
 export async function GET(request) {
   try {
-    await dbConnect();
-
     const { searchParams } = new URL(request.url);
     const fieldCpAccountId = searchParams.get("fieldCpAccountId");
+
+    if (!isAdminRequest(request)) {
+      const sessionUser = await getSessionUser(request);
+      if (!sessionUser || !fieldCpAccountId || fieldCpAccountId !== sessionUser.accountId) {
+        return NextResponse.json({ success: false, error: "Not authorized" }, { status: 403 });
+      }
+    }
+
+    await dbConnect();
 
     const query = {};
     if (fieldCpAccountId) query.fieldCpAccountId = fieldCpAccountId;

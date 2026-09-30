@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Commission from "@/models/Commission";
+import { isAdminRequest } from "@/lib/adminSession";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -9,6 +10,10 @@ const PATCHABLE_FIELDS = ["approvalStatus", "amount"];
 
 export async function PATCH(request, { params }) {
   try {
+    if (!isAdminRequest(request)) {
+      return NextResponse.json({ success: false, error: "Admin access required" }, { status: 401 });
+    }
+
     await dbConnect();
     const { id } = await params;
 

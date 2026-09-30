@@ -2,16 +2,24 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import AdLink from "@/models/AdLink";
 import { getSessionUser } from "@/lib/session";
+import { isAdminRequest } from "@/lib/adminSession";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET(request) {
   try {
-    await dbConnect();
-
     const { searchParams } = new URL(request.url);
     const digitalCpAccountId = searchParams.get("digitalCpAccountId");
+
+    if (!isAdminRequest(request)) {
+      const sessionUser = await getSessionUser(request);
+      if (!sessionUser || !digitalCpAccountId || digitalCpAccountId !== sessionUser.accountId) {
+        return NextResponse.json({ success: false, error: "Not authorized" }, { status: 403 });
+      }
+    }
+
+    await dbConnect();
 
     const query = {};
     if (digitalCpAccountId) query.digitalCpAccountId = digitalCpAccountId;

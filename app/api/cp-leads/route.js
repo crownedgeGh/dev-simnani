@@ -2,22 +2,31 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import CpLead from "@/models/CpLead";
 import { getSessionUser } from "@/lib/session";
+import { isAdminRequest } from "@/lib/adminSession";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-// GET is unauthenticated the same way /api/assignments and /api/site-visits
-// are — the admin panel needs to query across any CP's leads by routingStage,
-// and the portal always scopes its own query by submittedByAccountId.
+// The admin panel needs to query across any CP's leads by routingStage; the
+// portal always scopes its own query by submittedByAccountId. Anyone else —
+// including a logged-in CP passing someone else's accountId or a bare
+// routingStage query — is rejected.
 export async function GET(request) {
   try {
-    await dbConnect();
-
     const { searchParams } = new URL(request.url);
     const routingStage = searchParams.get("routingStage");
     const submittedByAccountId = searchParams.get("submittedByAccountId");
     const adLinkId = searchParams.get("adLinkId");
     const forwarded = searchParams.get("forwarded");
+
+    if (!isAdminRequest(request)) {
+      const sessionUser = await getSessionUser(request);
+      if (!sessionUser || !submittedByAccountId || submittedByAccountId !== sessionUser.accountId) {
+        return NextResponse.json({ success: false, error: "Not authorized" }, { status: 403 });
+      }
+    }
+
+    await dbConnect();
 
     const query = {};
     if (routingStage) query.routingStage = routingStage;

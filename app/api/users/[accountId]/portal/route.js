@@ -22,6 +22,8 @@ import {
   PERFORMANCE,
   TERRITORY,
 } from "@/lib/demoEmployeePortal";
+import { getSessionUser } from "@/lib/session";
+import { isAdminRequest } from "@/lib/adminSession";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -229,8 +231,16 @@ function getFreelancerSnapshot(user) {
 
 export async function GET(request, { params }) {
   try {
-    await dbConnect();
     const { accountId } = await params;
+
+    if (!isAdminRequest(request)) {
+      const sessionUser = await getSessionUser(request);
+      if (!sessionUser || sessionUser.accountId !== accountId) {
+        return NextResponse.json({ success: false, error: "Not authorized" }, { status: 403 });
+      }
+    }
+
+    await dbConnect();
 
     const user = await User.findOne(buildLookup(accountId)).lean();
     if (!user) {

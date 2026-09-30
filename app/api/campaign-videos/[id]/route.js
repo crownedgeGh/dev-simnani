@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import CampaignVideo from "@/models/CampaignVideo";
+import { getSessionUser } from "@/lib/session";
+import { isAdminRequest } from "@/lib/adminSession";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -8,11 +10,16 @@ export const revalidate = 0;
 const PATCHABLE_FIELDS = ["status", "note", "postedLinks"];
 
 // Moderation (Approve / Suggest Edit / Reject) happens from both the Company
-// CP portal (their own network's Digital CPs) and the admin panel — neither
-// carries a strict ownership check today, matching the trust model of the
-// rest of the CP admin surface.
+// CP portal (their own network's Digital CPs) and the admin panel.
 export async function PATCH(request, { params }) {
   try {
+    if (!isAdminRequest(request)) {
+      const sessionUser = await getSessionUser(request);
+      if (!sessionUser || sessionUser.accountType !== "freelancer" || sessionUser.cpType !== "company") {
+        return NextResponse.json({ success: false, error: "Not authorized" }, { status: 401 });
+      }
+    }
+
     await dbConnect();
     const { id } = await params;
 

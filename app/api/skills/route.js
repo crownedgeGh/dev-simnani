@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import SkillCategory from "@/models/SkillCategory";
 import { SKILL_CATEGORIES_SEED } from "@/lib/skillCategoriesSeed";
+import { isAdminRequest } from "@/lib/adminSession";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -105,8 +106,13 @@ export async function POST(request) {
   }
 }
 
+// Admin-only management: removes a single subcategory from a category.
 export async function DELETE(request) {
   try {
+    if (!isAdminRequest(request)) {
+      return NextResponse.json({ success: false, error: "Admin access required" }, { status: 401 });
+    }
+
     await dbConnect();
     const { searchParams } = new URL(request.url);
     const categoryName = (searchParams.get("category") || "").trim();

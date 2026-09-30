@@ -1,12 +1,20 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import InvitationCode from "@/models/InvitationCode";
+import { isAdminRequest } from "@/lib/adminSession";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+// Codes here are registration-bypass secrets — admin-only, both to read
+// (leaking a code lets anyone self-register as a "verified" CP) and to
+// generate.
 export async function GET(request) {
   try {
+    if (!isAdminRequest(request)) {
+      return NextResponse.json({ success: false, error: "Admin access required" }, { status: 401 });
+    }
+
     await dbConnect();
 
     const { searchParams } = new URL(request.url);
@@ -29,9 +37,13 @@ export async function GET(request) {
   }
 }
 
-// Generated from the admin CP workspace — trusted, no session of its own.
+// Generated from the admin CP workspace.
 export async function POST(request) {
   try {
+    if (!isAdminRequest(request)) {
+      return NextResponse.json({ success: false, error: "Admin access required" }, { status: 401 });
+    }
+
     await dbConnect();
     const body = await request.json();
     const { code, cpType, name, mobile, city, state, address } = body;

@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
 import { isGa4Configured, getDashboardReports } from "@/lib/ga4Server";
 import { matchCityState } from "@/lib/searchLocation";
+import { isAdminRequest } from "@/lib/adminSession";
 
-// Admin panel > Analytics page. Not gated by the buyer/broker session cookie
-// — the admin panel has its own (client-side) auth gate (see AdminGuard),
-// matching /api/admin/subscriptions and /api/admin/properties.
+// Admin panel > Analytics page — gated by the real server-side admin session.
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -53,7 +52,11 @@ function buildLocationBreakdown(topSearchTerms) {
   return { states, cities, matchedTotal, unmatchedTotal };
 }
 
-export async function GET() {
+export async function GET(request) {
+  if (!isAdminRequest(request)) {
+    return NextResponse.json({ success: false, error: "Admin access required" }, { status: 401 });
+  }
+
   if (!isGa4Configured()) {
     return NextResponse.json({ success: true, configured: false, reports: null });
   }

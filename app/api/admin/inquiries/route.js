@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import ContactInquiry from "@/models/ContactInquiry";
+import { isAdminRequest } from "@/lib/adminSession";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -8,6 +9,10 @@ export const revalidate = 0;
 // GET — admin fetch all contact inquiries from real DB
 export async function GET(request) {
   try {
+    if (!isAdminRequest(request)) {
+      return NextResponse.json({ success: false, error: "Admin access required" }, { status: 401 });
+    }
+
     await dbConnect();
 
     const inquiries = await ContactInquiry.find({})
@@ -27,6 +32,10 @@ export async function GET(request) {
 // PATCH — update status
 export async function PATCH(request) {
   try {
+    if (!isAdminRequest(request)) {
+      return NextResponse.json({ success: false, error: "Admin access required" }, { status: 401 });
+    }
+
     await dbConnect();
     const body = await request.json();
     const { id, status } = body;

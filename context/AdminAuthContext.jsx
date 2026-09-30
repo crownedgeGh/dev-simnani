@@ -4,38 +4,43 @@ import { createContext, useContext, useState, useEffect, useCallback } from "rea
 
 const AdminAuthContext = createContext(null);
 
-const ADMIN_TOKEN_KEY = "se_admin_token";
-const ADMIN_CREDENTIALS = { email: "admin@simnani.com", password: "admin123" };
-
 export function AdminAuthProvider({ children }) {
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [adminUser, setAdminUser] = useState(null);
 
   useEffect(() => {
-    const token = localStorage.getItem(ADMIN_TOKEN_KEY);
-    if (token) {
-      setAdminUser({ email: ADMIN_CREDENTIALS.email, name: "Super Admin" });
-      setIsAdminAuthenticated(true);
-    }
-    setIsLoading(false);
+    fetch("/api/admin/me")
+      .then((res) => res.json())
+      .then((data) => {
+        setIsAdminAuthenticated(!!data.authenticated);
+        setAdminUser(data.authenticated ? { name: "Super Admin" } : null);
+      })
+      .catch(() => setIsAdminAuthenticated(false))
+      .finally(() => setIsLoading(false));
   }, []);
 
-  const adminLogin = useCallback((email, password) => {
-    if (
-      email === ADMIN_CREDENTIALS.email &&
-      password === ADMIN_CREDENTIALS.password
-    ) {
-      localStorage.setItem(ADMIN_TOKEN_KEY, `admin_token_${Date.now()}`);
-      setAdminUser({ email, name: "Super Admin" });
-      setIsAdminAuthenticated(true);
-      return { success: true };
+  const adminLogin = useCallback(async (email, password) => {
+    try {
+      const res = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setAdminUser({ email, name: "Super Admin" });
+        setIsAdminAuthenticated(true);
+        return { success: true };
+      }
+      return { success: false, error: data.error || "Invalid credentials" };
+    } catch {
+      return { success: false, error: "Login failed. Please try again." };
     }
-    return { success: false, error: "Invalid credentials" };
   }, []);
 
   const adminLogout = useCallback(() => {
-    localStorage.removeItem(ADMIN_TOKEN_KEY);
+    fetch("/api/admin/logout", { method: "POST" }).catch(() => {});
     setAdminUser(null);
     setIsAdminAuthenticated(false);
   }, []);

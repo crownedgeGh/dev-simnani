@@ -2,9 +2,16 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Property from "@/models/Property";
 import { PROPERTIES, getLocationCity } from "@/lib/properties";
+import { isAdminRequest } from "@/lib/adminSession";
 
+// Destructive with ?force=true (wipes and reseeds the entire Property
+// collection) — must never be reachable by an unauthenticated request.
 export async function GET(request) {
   try {
+    if (!isAdminRequest(request)) {
+      return NextResponse.json({ success: false, error: "Admin access required" }, { status: 401 });
+    }
+
     await dbConnect();
 
     const { searchParams } = new URL(request.url);

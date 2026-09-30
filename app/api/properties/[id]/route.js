@@ -11,12 +11,18 @@ import {
 } from "@/lib/properties";
 import { getPropertyById } from "@/lib/propertiesServer";
 import { getSessionUser } from "@/lib/session";
+import { isAdminRequest } from "@/lib/adminSession";
+import { isRateLimited, rateLimitResponse } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET(request, { params }) {
   try {
+    if (isRateLimited(request, { limit: 120, windowMs: 60 * 1000, key: "property-detail" })) {
+      return rateLimitResponse();
+    }
+
     const resolvedParams = await params;
     const id = resolvedParams.id;
 
@@ -29,7 +35,14 @@ export async function GET(request, { params }) {
       );
     }
 
-    return NextResponse.json({ success: true, data: property });
+    const isAdmin = isAdminRequest(request);
+    const sessionUser = await getSessionUser(request);
+    const canSeeContact = isAdmin || (sessionUser && sessionUser.accountId === property.ownerId);
+    const safeProperty = canSeeContact
+      ? property
+      : { ...property, contact: { ...property.contact, mobile: "" } };
+
+    return NextResponse.json({ success: true, data: safeProperty });
   } catch (error) {
     console.error("GET /api/properties/[id] error:", error);
     return NextResponse.json(

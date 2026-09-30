@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import CpLead from "@/models/CpLead";
 import { getSessionUser } from "@/lib/session";
+import { isAdminRequest } from "@/lib/adminSession";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -39,6 +40,9 @@ export async function PATCH(request, { params }) {
       update.forwarded = true;
       update.routingStage = "head-cp";
     } else {
+      if (!isAdminRequest(request)) {
+        return NextResponse.json({ success: false, error: "Admin access required" }, { status: 401 });
+      }
       for (const key of ADMIN_PATCHABLE_FIELDS) {
         if (body[key] !== undefined) update[key] = body[key];
       }

@@ -283,7 +283,29 @@ npm run lint     # ESLint
 
 ---
 
-## 12. Design Quality Bar
+## 12. Channel Partner (CP) System
+
+Simnani Estate runs a broker/freelancer network called **Channel Partners (CP)**. CPs register as `accountType: "freelancer"` with a `cpType` sub-field chosen in `FreelancerRegistrationWizard.jsx`. Five roles, strict top-down hierarchy:
+
+| CP Type | Role | Portal | Key files |
+|---|---|---|---|
+| **Head CP** | The admin panel itself — not a registerable account. Single inbox for every new lead, forwards leads to Company CP, assigns properties to Company CP, generates invitation codes, approves/holds CP accounts. | `/admin/freelancer-cp/head-cp` | `HeadCpForwardPanel.jsx`, `CPTypeWorkspace.jsx` |
+| **Company CP** | Mid-tier registered partner (`cpType: "company"`). Receives properties/leads from Head CP, delegates each project to one Field CP or Digital CP, moderates Digital CP ad creative. | `/portal/company-cp` | `CompanyCPDashboard.jsx` |
+| **Field CP** | Ground-conversion partner (`cpType: "field"`). Works only projects/leads delegated to them; logs site visits (Scheduled → Visit Done/No Show), advances leads to Negotiation → Converted/Lost, earns commission on conversion. | `/portal/field-cp` | `FieldCPDashboard.jsx`, `SiteVisitLogDialog.jsx` |
+| **Digital CP** | Online-promotion partner (`cpType: "digital"`). Creates trackable ad links (Instagram/Facebook/YouTube/WhatsApp), uploads campaign creative for moderation, tracks ad-generated leads. | `/portal/digital-cp` | `DigitalCPDashboard.jsx`, `CampaignDetailPage.jsx` |
+| **Freelancer (umbrella)** | The actual `accountType` value for all CPs; `cpType` (company/field/digital) is set at registration. `cpApprovalStatus` (`active`/`hold`) gates portal access. | — | `FreelancerRegistrationWizard.jsx`, `CPUnderReviewModal.jsx` |
+
+**Flow:**
+- **Property assignment** (top-down only): Head CP → Company CP (`Assignment.level = "head-to-company"`) → Field CP or Digital CP (`"company-to-field"` / `"company-to-digital"`, chained via `parentAssignmentId`). A Field/Digital CP only ever sees what was explicitly delegated to them — see `lib/cpAssignments.js`, `models/Assignment.js`.
+- **Lead routing**: every lead lands at Head CP first (`CpLead.routingStage: "head-cp"`) no matter who originated it, then flows down to `"company-cp"` → `"field-cp"` / `"digital-cp"`. `submittedBy.cpType` is provenance only, not a visibility rule. See `models/CpLead.js`, `openspec/specs/cp-lead-routing`.
+- **Commission**: a `Commission` record is created/updated when a lead is marked Converted; admin approves/holds it from the Commissions tab. See `models/Commission.js`, `app/api/commissions/route.js`.
+- **Approval/onboarding**: new CP accounts default to `cpApprovalStatus: "active"`; Head CP can flip it to `"hold"`, which blocks the portal and shows `CPUnderReviewModal`. `InvitationCode` records (`app/api/invitation-codes/route.js`) are an onboarding aid, not a hard registration gate.
+
+**Before touching CP code**, read the authoritative specs first: `openspec/specs/field-cp-workflow`, `openspec/specs/digital-cp-workflow`, `openspec/specs/cp-property-assignment`, `openspec/specs/cp-lead-routing`. The live implementation is real MongoDB-backed (Mongoose models + `app/api/*` routes) — the older `openspec/changes/archive/2026-09-26-cp-hierarchy-system/design.md` describes an earlier localStorage/mock version that has since been superseded; trust the current models/API routes over that doc.
+
+---
+
+## 13. Design Quality Bar
 
 Every UI must be **premium and visually excellent**:
 - Dark theme always: `bg-navy-950` page background, `bg-navy-900` for cards.

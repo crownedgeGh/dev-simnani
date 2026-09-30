@@ -3,18 +3,21 @@ import { revalidatePath } from "next/cache";
 import dbConnect from "@/lib/mongodb";
 import Property from "@/models/Property";
 import { PROPERTIES, getLocationCity } from "@/lib/properties";
+import { isAdminRequest } from "@/lib/adminSession";
 
-// Admin-panel property mutations. Unlike /api/properties/[id], this route is
-// not gated by the buyer/broker session cookie or ownerId — the admin panel
-// has its own (client-side) auth gate and must be able to manage any
-// listing, including the static demo properties from lib/properties.js
-// that don't exist as Mongo documents yet.
+// Admin-panel property mutations. Unlike /api/properties/[id], this route
+// manages any listing (including static demo properties not yet in Mongo),
+// so it's gated by the real server-side admin session instead of ownerId.
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function PATCH(request, { params }) {
   try {
+    if (!isAdminRequest(request)) {
+      return NextResponse.json({ success: false, error: "Admin access required" }, { status: 401 });
+    }
+
     await dbConnect();
     const { id } = await params;
     const body = await request.json();
@@ -85,6 +88,10 @@ export async function PATCH(request, { params }) {
 
 export async function DELETE(request, { params }) {
   try {
+    if (!isAdminRequest(request)) {
+      return NextResponse.json({ success: false, error: "Admin access required" }, { status: 401 });
+    }
+
     await dbConnect();
     const { id } = await params;
 

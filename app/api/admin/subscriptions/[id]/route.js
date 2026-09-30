@@ -3,6 +3,7 @@ import dbConnect from "@/lib/mongodb";
 import Subscription from "@/models/Subscription";
 import User from "@/models/User";
 import { getPlanById } from "@/lib/plans";
+import { isAdminRequest } from "@/lib/adminSession";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -21,6 +22,10 @@ const ALLOWED_STATUSES = ["Approved", "Hold", "Rejected", "Pending"];
 // leave their last-known plan fields alone for reference.
 export async function PATCH(request, { params }) {
   try {
+    if (!isAdminRequest(request)) {
+      return NextResponse.json({ success: false, error: "Admin access required" }, { status: 401 });
+    }
+
     await dbConnect();
     const { id } = await params;
     const body = await request.json();

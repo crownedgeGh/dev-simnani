@@ -3,6 +3,18 @@ import dbConnect from "@/lib/mongodb";
 import User from "@/models/User";
 import { isPasswordValid } from "@/lib/auth";
 import { hashPassword } from "@/lib/password";
+import { getSessionUser } from "@/lib/session";
+import { isAdminRequest } from "@/lib/adminSession";
+
+// Every handler below reads/writes one user's full record (mobile, email,
+// RERA number, and — on PUT/PATCH — password) or deletes the account
+// outright, so each one must confirm the caller either owns this accountId
+// or holds an admin session before touching anything.
+async function canAccessAccount(request, accountId) {
+  if (isAdminRequest(request)) return true;
+  const sessionUser = await getSessionUser(request);
+  return !!sessionUser && sessionUser.accountId === accountId;
+}
 
 async function preparePatch(body) {
   const { confirmPassword, ...rest } = body;
@@ -39,8 +51,12 @@ function buildLookup(accountId) {
 
 export async function GET(request, { params }) {
   try {
-    await dbConnect();
     const { accountId } = await params;
+    if (!(await canAccessAccount(request, accountId))) {
+      return NextResponse.json({ success: false, error: "Not authorized" }, { status: 403 });
+    }
+
+    await dbConnect();
 
     const user = await User.findOne(buildLookup(accountId)).lean();
 
@@ -60,8 +76,12 @@ export async function GET(request, { params }) {
 
 export async function PUT(request, { params }) {
   try {
-    await dbConnect();
     const { accountId } = await params;
+    if (!(await canAccessAccount(request, accountId))) {
+      return NextResponse.json({ success: false, error: "Not authorized" }, { status: 403 });
+    }
+
+    await dbConnect();
     const body = await preparePatch(await request.json());
 
     const updated = await User.findOneAndUpdate(buildLookup(accountId), { $set: body }, {
@@ -89,8 +109,12 @@ export async function PUT(request, { params }) {
 
 export async function PATCH(request, { params }) {
   try {
-    await dbConnect();
     const { accountId } = await params;
+    if (!(await canAccessAccount(request, accountId))) {
+      return NextResponse.json({ success: false, error: "Not authorized" }, { status: 403 });
+    }
+
+    await dbConnect();
     const body = await preparePatch(await request.json());
 
     const updated = await User.findOneAndUpdate(buildLookup(accountId), { $set: body }, {
@@ -118,8 +142,12 @@ export async function PATCH(request, { params }) {
 
 export async function DELETE(request, { params }) {
   try {
-    await dbConnect();
     const { accountId } = await params;
+    if (!(await canAccessAccount(request, accountId))) {
+      return NextResponse.json({ success: false, error: "Not authorized" }, { status: 403 });
+    }
+
+    await dbConnect();
 
     const deleted = await User.findOneAndDelete(buildLookup(accountId));
 
