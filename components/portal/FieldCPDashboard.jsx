@@ -169,7 +169,7 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
   const [followUpDrafts, setFollowUpDrafts] = useState({});
   const [visitDrafts, setVisitDrafts] = useState({});
   const [expandedReports, setExpandedReports] = useState({});
-  const [delegatedProjects, setDelegatedProjects] = useState([]);
+  const [delegatedProjects, setDelegatedProjects] = useState(null);
 
   useEffect(() => {
     if (!partner?.accountId) return;
@@ -277,7 +277,7 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
 
   const assignedProjectOptions = [
     ...assignedProjects.map(({ project }) => ({ id: project.id, name: project.name })),
-    ...delegatedProjects.map((a) => ({ id: a.propertyId || a.id, name: a.propertyTitle })),
+    ...(delegatedProjects || []).map((a) => ({ id: a.propertyId || a.id, name: a.propertyTitle })),
   ].filter((p, i, arr) => arr.findIndex((x) => x.id === p.id) === i);
 
   // Persists a partial update for one visit to the database, then reconciles
@@ -482,6 +482,10 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
               <RefreshButton onRefresh={() => refreshSection("assigned")} label="Refresh assigned projects" />
             </div>
             <div key={refreshKeys.assigned} className="flex flex-col gap-6">
+            {delegatedProjects === null ? (
+              <p className="text-sm text-muted">Loading assigned projects…</p>
+            ) : (
+              <>
             {delegatedProjects.length > 0 && (
               <div className="flex flex-col gap-3">
                 <p className="tracked-label text-xs text-gold-400">Properties Delegated by Company CP</p>
@@ -528,7 +532,7 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
                 </div>
               </div>
             )}
-            {assignedProjects.length === 0 ? (
+            {assignedProjects.length === 0 && delegatedProjects.length === 0 ? (
               <EmptyState title="No projects assigned yet" message="Projects with leads assigned to you by a Company Channel Partner will appear here." />
             ) : (
               assignedProjects.map(({ project, leads: projectLeads }) => {
@@ -594,6 +598,8 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
                   </div>
                 );
               })
+            )}
+              </>
             )}
             </div>
           </div>

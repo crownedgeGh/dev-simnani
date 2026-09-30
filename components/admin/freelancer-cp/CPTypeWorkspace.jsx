@@ -35,6 +35,7 @@ const VIDEO_STATUSES = ["Pending Review", "Approved", "Suggested Edit", "Rejecte
 const ACTIVE_LEAD_STATUSES = ["Assigned", "Site Visit Scheduled", "Site Visit Completed"];
 const CHILD_LEVEL_FOR_TYPE = { field: "company-to-field", digital: "company-to-digital" };
 const SITE_VISIT_STATUSES = ["Scheduled", "Moving", "Visit Done", "No Show"];
+const ROUTING_STAGE_LABELS = { "digital-cp": "Digital CP", "field-cp": "Field CP", "head-cp": "Head CP", "company-cp": "Company CP" };
 
 async function getJSON(url) {
   const res = await fetch(url);
@@ -59,6 +60,7 @@ export default function CPTypeWorkspace({
   assignmentLevel,
   delegateToTypes,
   showSiteVisits = false,
+  showAllLeads = false,
   emptyMessage = "No records found",
 }) {
   const router = useRouter();
@@ -90,24 +92,25 @@ export default function CPTypeWorkspace({
     t === cpType || (delegateToTypes || []).includes(t) || (t === "company" && !!routingStage);
 
   const load = useCallback(async () => {
-    const [company, digital, field] = await Promise.all([
+    const [company, digital, field, cpl, cv, comm, inv, asg, visits] = await Promise.all([
       needsNetwork("company") ? getJSON("/api/admin/cp-network?cpType=company") : Promise.resolve([]),
       needsNetwork("digital") ? getJSON("/api/admin/cp-network?cpType=digital") : Promise.resolve([]),
       needsNetwork("field") ? getJSON("/api/admin/field-cps") : Promise.resolve([]),
-    ]);
-    setNetworks({ company, digital, field });
-
-    const [cpl, cv, comm, inv, asg, visits] = await Promise.all([
-      routingStage ? getJSON(`/api/cp-leads?routingStage=${routingStage}`) : Promise.resolve([]),
+      showAllLeads
+        ? getJSON("/api/cp-leads")
+        : routingStage
+        ? getJSON(`/api/cp-leads?routingStage=${routingStage}`)
+        : Promise.resolve([]),
       showCampaignVideos ? getJSON("/api/campaign-videos") : Promise.resolve([]),
       showCommissions ? getJSON(`/api/commissions?cpType=${cpType || ""}`) : Promise.resolve([]),
       showInvitationCodes && cpType ? getJSON(`/api/invitation-codes?cpType=${cpType}`) : Promise.resolve([]),
       assignmentLevel ? getJSON(`/api/assignments?level=${assignmentLevel}`) : Promise.resolve([]),
       showSiteVisits ? getJSON("/api/site-visits") : Promise.resolve([]),
     ]);
+    setNetworks({ company, digital, field });
     setData({ cpLeads: cpl, campaignVideos: cv, commissions: comm, invitationCodes: inv, cpAssignments: asg, siteVisits: visits });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cpType, routingStage, assignmentLevel, showCampaignVideos, showCommissions, showInvitationCodes, showSiteVisits, delegateToTypes]);
+  }, [cpType, routingStage, assignmentLevel, showCampaignVideos, showCommissions, showInvitationCodes, showSiteVisits, showAllLeads, delegateToTypes]);
 
   useEffect(() => {
     let active = true;
@@ -167,6 +170,7 @@ export default function CPTypeWorkspace({
     const siteVisits = network.reduce((sum, n) => sum + (n.siteVisits || 0), 0);
     return {
       totalLeads: leads.length,
+      pendingForward: leads.filter((l) => l.routingStage === "head-cp").length,
       pendingVerification: leads.filter((l) => l.status === "Pending Verification").length,
       activeAssignments: leads.filter((l) => ACTIVE_LEAD_STATUSES.includes(l.status)).length,
       networkPartners: network.length,
@@ -180,7 +184,7 @@ export default function CPTypeWorkspace({
 
   const kpiCards = [
     routingStage === "head-cp"
-      ? { title: "Pending Forward", value: kpis.totalLeads, subtitle: "Awaiting Forward to Company CP", icon: MdSend, color: "gold" }
+      ? { title: "Pending Forward", value: kpis.pendingForward, subtitle: `${kpis.totalLeads} leads total`, icon: MdSend, color: "gold" }
       : { title: "CP Leads", value: kpis.totalLeads, subtitle: `${kpis.pendingVerification} pending verification`, icon: MdLeaderboard, color: "gold" },
     { title: "Active Assignments", value: kpis.activeAssignments, subtitle: "Assigned or in site-visit stage", icon: MdAssignmentInd, color: "blue" },
     ...(showNetworkTab
@@ -374,6 +378,14 @@ export default function CPTypeWorkspace({
       render: (_, row) => <span className="text-xs font-medium text-[#374151]">{row.submittedBy?.name || "—"}</span>,
     },
     { key: "status", label: "Status", type: "status", filterOptions: CP_LEAD_STATUSES },
+    ...(showAllLeads
+      ? [{
+          key: "routingStage",
+          label: "Stage",
+          filterOptions: ["digital-cp", "field-cp", "head-cp", "company-cp"],
+          render: (v) => <span className="text-xs font-medium text-[#d97706]">{ROUTING_STAGE_LABELS[v] || v || "—"}</span>,
+        }]
+      : []),
     { key: "assignedTo", label: "Assigned To", render: (v) => <span className="text-sm">{v || "—"}</span> },
     {
       key: "statusChange",
@@ -416,7 +428,7 @@ export default function CPTypeWorkspace({
             {CP_LEAD_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
 
-          {routingStage && routingStage !== "company-cp" && (
+          {row.routingStage && row.routingStage !== "company-cp" && (
             <select
               value=""
               onChange={async (e) => {
@@ -435,7 +447,7 @@ export default function CPTypeWorkspace({
             </select>
           )}
 
-          {routingStage === "company-cp" && (
+          {row.routingStage === "company-cp" && (
             <select
               value=""
               onChange={async (e) => {
