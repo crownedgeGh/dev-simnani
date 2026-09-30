@@ -271,6 +271,9 @@ export default function PartnerPortalPage() {
     return sum + (Number.isFinite(n) ? n : 0);
   }, 0);
 
+  const displayedAssignments =
+    cpType === "digital" ? assignments.filter((a) => a.status === "In Progress" || a.status === "Completed") : assignments;
+
   return (
     <div>
       <button
@@ -342,15 +345,15 @@ export default function PartnerPortalPage() {
 
           <div className="flex flex-col gap-6">
             <Card
-              title={cpType === "digital" ? "Assigned / Joined Campaigns" : "Assigned Projects"}
-              count={assignments.length}
+              title={cpType === "digital" ? "Joined Campaigns" : "Assigned Projects"}
+              count={displayedAssignments.length}
               icon={MdAssignmentInd}
             >
-              {assignments.length === 0 ? (
-                <EmptyRow message="No projects assigned to this partner yet." />
+              {displayedAssignments.length === 0 ? (
+                <EmptyRow message={cpType === "digital" ? "This partner hasn't joined any campaigns yet." : "No projects assigned to this partner yet."} />
               ) : (
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {assignments.map((a) => (
+                  {displayedAssignments.map((a) => (
                     <div
                       key={a.id}
                       onClick={() => a.propertyId && router.push(`/admin/properties/${a.propertyId}`)}
