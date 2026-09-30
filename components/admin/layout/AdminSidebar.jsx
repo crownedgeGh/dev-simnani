@@ -16,6 +16,7 @@ import {
   MdInsights,
   MdAdminPanelSettings,
   MdCategory,
+  MdThumbUp,
 } from "react-icons/md";
 import { BiBuildingHouse } from "react-icons/bi";
 import { useState } from "react";
@@ -42,7 +43,8 @@ const NAV_ITEMS = [
       { href: "/admin/sg-users", label: "SG Users" },
     ],
   },
-  { href: "/admin/leads", label: "Leads", icon: MdLeaderboard },
+  { href: "/admin/leads", label: "Non User Leads", icon: MdLeaderboard },
+  { href: "/admin/interested", label: "Interested", icon: MdThumbUp },
   { href: "/admin/analytics", label: "Analytics", icon: MdInsights },
   { href: "/admin/plans", label: "Plans", icon: MdWorkspacePremium },
   {
@@ -65,9 +67,9 @@ const NAV_ITEMS = [
       { href: "/admin/freelancer-cp/field", label: "Field CP" },
     ],
   },
-  { href: "/admin/callbacks", label: "Callbacks", icon: MdPhone },
-  { href: "/admin/skills", label: "Skills", icon: MdCategory },
-  { href: "/admin/settings", label: "Settings", icon: MdSettings },
+  // { href: "/admin/callbacks", label: "Callbacks", icon: MdPhone },
+  // { href: "/admin/skills", label: "Skills", icon: MdCategory },
+  // { href: "/admin/settings", label: "Settings", icon: MdSettings },
 ];
 
 export default function AdminSidebar({ collapsed, onToggleCollapse }) {

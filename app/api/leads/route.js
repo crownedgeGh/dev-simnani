@@ -68,6 +68,7 @@ export async function POST(request) {
       interest: property.title,
       ownerId: property.ownerId,
       buyerId: sessionUser.accountId,
+      source: "Interested Button",
     });
 
     return NextResponse.json({ success: true, data: lead });

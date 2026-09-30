@@ -63,6 +63,7 @@ async function getOwnerSnapshot(accountId, { includeCommissions, user }) {
     const property = interestedPropertyById.get(lead.propertyId);
     return {
       id: lead.propertyId,
+      leadId: lead._id.toString(),
       title: property?.title || lead.interest || lead.propertyId,
       location: property?.location || "",
       price: property?.price || "",
@@ -113,6 +114,7 @@ async function getBuyerSnapshot(accountId, user) {
     const property = propertyById.get(lead.propertyId);
     return {
       id: lead.propertyId,
+      leadId: lead._id.toString(),
       title: property?.title || lead.interest || lead.propertyId,
       location: property?.location || "",
       price: property?.price || "",
@@ -171,6 +173,7 @@ async function getInvestorSnapshot(accountId, user) {
     const property = propertyById.get(lead.propertyId);
     return {
       id: lead.propertyId,
+      leadId: lead._id.toString(),
       title: property?.title || lead.interest || lead.propertyId,
       location: property?.location || "",
       price: property?.price || "",

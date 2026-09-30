@@ -434,7 +434,7 @@ function InterestedList({ leads }) {
     <div className="flex flex-col gap-2">
       {leads.map((lead) => (
         <Row
-          key={lead.id}
+          key={lead.leadId || lead.id}
           title={lead.title}
           subtitle={`${lead.location || "—"} · ${lead.price || "—"}`}
           meta={lead.date}
