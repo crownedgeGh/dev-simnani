@@ -1128,13 +1128,7 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
           <div>
             <div className="mb-4 flex items-center justify-between">
               <p className="tracked-label text-xs text-gold-400">My Listings</p>
-              <Link
-                href="/post-property"
-                className="tracked-label flex items-center gap-2 bg-gold-400 px-4 py-2 text-xs text-navy-950 transition hover:bg-gold-300"
-              >
-                <FiPlus className="h-3.5 w-3.5" />
-                Post Property
-              </Link>
+             
             </div>
             <PropertyGrid properties={myListings} emptyMessage="You haven't posted any properties yet." ownerView />
           </div>

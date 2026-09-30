@@ -79,9 +79,36 @@ export default function PropertyFilterBar({
   const [citySuggestions, setCitySuggestions] = useState([]);
   const [showCitySuggestions, setShowCitySuggestions] = useState(false);
   const [propertyType, setPropertyType] = useState("");
+  const [propertyTypeInput, setPropertyTypeInput] = useState("");
+  const [showTypeSuggestions, setShowTypeSuggestions] = useState(false);
   const [budget, setBudget] = useState("");
   const [bhk, setBhk] = useState("");
   const cityFieldRef = useRef(null);
+  const typeFieldRef = useRef(null);
+
+  const typeSuggestions = useMemo(() => {
+    const query = propertyTypeInput.trim().toLowerCase();
+    if (!query) return propertyTypeOptions;
+    return propertyTypeOptions.filter((option) => option.toLowerCase().includes(query));
+  }, [propertyTypeOptions, propertyTypeInput]);
+
+  function handleTypeInputChange(event) {
+    const value = event.target.value;
+    setPropertyTypeInput(value);
+    setShowTypeSuggestions(true);
+    if (!value.trim()) setPropertyType("");
+  }
+
+  function handleTypeSelect(option) {
+    setPropertyType(option);
+    setPropertyTypeInput(option);
+    setShowTypeSuggestions(false);
+  }
+
+  function clearPropertyType() {
+    setPropertyType("");
+    setPropertyTypeInput("");
+  }
 
   // Cities that actually have listings on this page — shown as quick picks
   // when the search box is focused but empty, before the user types anything.
@@ -94,6 +121,9 @@ export default function PropertyFilterBar({
     function handleClickOutside(event) {
       if (cityFieldRef.current && !cityFieldRef.current.contains(event.target)) {
         setShowCitySuggestions(false);
+      }
+      if (typeFieldRef.current && !typeFieldRef.current.contains(event.target)) {
+        setShowTypeSuggestions(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -151,6 +181,7 @@ export default function PropertyFilterBar({
     setCity(requestedCity);
     setCityInput(requestedCity ? getCityStateLabel(requestedCity) : "");
     setPropertyType(typeParam || "");
+    setPropertyTypeInput(typeParam || "");
     setBhk(bhkParam || "");
   }
 
@@ -251,7 +282,7 @@ export default function PropertyFilterBar({
       clear: clearCity,
     },
     showPropertyType &&
-      propertyType && { key: "propertyType", label: propertyType, clear: () => setPropertyType("") },
+      propertyType && { key: "propertyType", label: propertyType, clear: clearPropertyType },
     budget && { key: "budget", label: budget, clear: () => setBudget("") },
     bhkFilter && {
       key: "bhk",
@@ -263,7 +294,7 @@ export default function PropertyFilterBar({
   function clearAll() {
     setSearch("");
     clearCity();
-    setPropertyType("");
+    clearPropertyType();
     setBudget("");
     setBhk("");
   }
@@ -328,19 +359,52 @@ export default function PropertyFilterBar({
           </div>
 
           {showPropertyType && (
-            <select
-              value={propertyType}
-              onChange={(e) => setPropertyType(e.target.value)}
-              className={`${filterFieldClass} appearance-none`}
-              aria-label="Filter by property type"
-            >
-              <option value="">All Types</option>
-              {propertyTypeOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
+            <div ref={typeFieldRef} className="relative">
+              <FiSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+              <input
+                type="text"
+                value={propertyTypeInput}
+                onChange={handleTypeInputChange}
+                onFocus={() => setShowTypeSuggestions(true)}
+                placeholder="All Types"
+                autoComplete="off"
+                role="combobox"
+                aria-expanded={showTypeSuggestions}
+                aria-controls="filter-type-suggestions"
+                aria-autocomplete="list"
+                aria-label="Filter by property type"
+                className={`${filterFieldClass} pl-9 ${propertyTypeInput ? "pr-9" : ""}`}
+              />
+              {propertyTypeInput && (
+                <button
+                  type="button"
+                  onClick={clearPropertyType}
+                  aria-label="Clear property type"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted transition hover:text-cream"
+                >
+                  <FiX className="h-4 w-4" />
+                </button>
+              )}
+
+              {showTypeSuggestions && typeSuggestions.length > 0 && (
+                <ul
+                  id="filter-type-suggestions"
+                  className="gold-scrollbar absolute left-0 right-0 top-full z-20 mt-2 max-h-64 overflow-y-auto rounded-sm border border-navy-700/70 bg-navy-900 shadow-[0_20px_50px_-16px_rgba(0,0,0,0.9)]"
+                >
+                  {typeSuggestions.map((option) => (
+                    <li key={option}>
+                      <button
+                        type="button"
+                        onClick={() => handleTypeSelect(option)}
+                        className="flex w-full items-center px-4 py-2.5 text-left text-sm text-cream transition hover:bg-navy-800"
+                      >
+                        {option}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           )}
 
           {showBhk && (
