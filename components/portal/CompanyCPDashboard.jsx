@@ -141,6 +141,20 @@ export default function CompanyCPDashboard({
   const fieldPartners = network.filter((p) => p.cpType === "field");
   const digitalPartners = network.filter((p) => p.cpType === "digital");
 
+  const delegationsByParent = useMemo(() => {
+    const map = new Map();
+    for (const a of assignments) {
+      if (!a.parentAssignmentId) continue;
+      if (!map.has(a.parentAssignmentId)) map.set(a.parentAssignmentId, new Set());
+      map.get(a.parentAssignmentId).add(a.assignedToAccountId);
+    }
+    return map;
+  }, [assignments]);
+
+  function delegatedAccountIds(projectId) {
+    return delegationsByParent.get(projectId) || new Set();
+  }
+
   // Properties Head CP has handed down to this Company CP.
   const assignedProjects = assignments.filter(
     (a) => a.level === "head-to-company" && a.assignedToAccountId === partner?.accountId
@@ -342,33 +356,57 @@ export default function CompanyCPDashboard({
 
                         {!isSold && openPicker[project.id] === "field" && (
                           <div className="flex flex-col gap-1.5 border border-navy-700/60 bg-navy-950 p-2">
-                            {fieldPartners.map((p) => (
-                              <button
-                                key={p.accountId}
-                                type="button"
-                                onClick={() => handleDelegate(project.id, "field", p.accountId)}
-                                className="flex items-center justify-between px-2 py-2 text-left text-xs text-cream transition hover:bg-gold-500/10 hover:text-gold-400"
-                              >
-                                {formatCpLabel(p.name, p.city, p.state)}
-                                <FiArrowRight className="h-3.5 w-3.5 shrink-0" />
-                              </button>
-                            ))}
+                            {fieldPartners.map((p) => {
+                              const alreadySent = delegatedAccountIds(project.id).has(p.accountId);
+                              return (
+                                <button
+                                  key={p.accountId}
+                                  type="button"
+                                  disabled={alreadySent}
+                                  onClick={() => handleDelegate(project.id, "field", p.accountId)}
+                                  className={`flex items-center justify-between px-2 py-2 text-left text-xs transition ${
+                                    alreadySent
+                                      ? "cursor-not-allowed text-muted opacity-50"
+                                      : "text-cream hover:bg-gold-500/10 hover:text-gold-400"
+                                  }`}
+                                >
+                                  {formatCpLabel(p.name, p.city, p.state)}
+                                  {alreadySent ? (
+                                    <span className="tracked-label text-[10px] text-muted">Already Sent</span>
+                                  ) : (
+                                    <FiArrowRight className="h-3.5 w-3.5 shrink-0" />
+                                  )}
+                                </button>
+                              );
+                            })}
                           </div>
                         )}
 
                         {!isSold && openPicker[project.id] === "digital" && (
                           <div className="flex flex-col gap-1.5 border border-navy-700/60 bg-navy-950 p-2">
-                            {digitalPartners.map((p) => (
-                              <button
-                                key={p.accountId}
-                                type="button"
-                                onClick={() => handleDelegate(project.id, "digital", p.accountId)}
-                                className="flex items-center justify-between px-2 py-2 text-left text-xs text-cream transition hover:bg-gold-500/10 hover:text-gold-400"
-                              >
-                                {formatCpLabel(p.name, p.city, p.state)}
-                                <FiArrowRight className="h-3.5 w-3.5 shrink-0" />
-                              </button>
-                            ))}
+                            {digitalPartners.map((p) => {
+                              const alreadySent = delegatedAccountIds(project.id).has(p.accountId);
+                              return (
+                                <button
+                                  key={p.accountId}
+                                  type="button"
+                                  disabled={alreadySent}
+                                  onClick={() => handleDelegate(project.id, "digital", p.accountId)}
+                                  className={`flex items-center justify-between px-2 py-2 text-left text-xs transition ${
+                                    alreadySent
+                                      ? "cursor-not-allowed text-muted opacity-50"
+                                      : "text-cream hover:bg-gold-500/10 hover:text-gold-400"
+                                  }`}
+                                >
+                                  {formatCpLabel(p.name, p.city, p.state)}
+                                  {alreadySent ? (
+                                    <span className="tracked-label text-[10px] text-muted">Already Sent</span>
+                                  ) : (
+                                    <FiArrowRight className="h-3.5 w-3.5 shrink-0" />
+                                  )}
+                                </button>
+                              );
+                            })}
                           </div>
                         )}
                       </div>

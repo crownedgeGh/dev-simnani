@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef, useLayoutEffect } from "react";
+import { createPortal } from "react-dom";
 import {
   MdSearch,
   MdArrowUpward,
@@ -43,71 +44,120 @@ function ToggleSwitch({ checked, onChange, disabled }) {
 function RowActions({ actions, row }) {
   const [open, setOpen] = useState(false);
   const [submenuOpen, setSubmenuOpen] = useState(null);
+  const [menuStyle, setMenuStyle] = useState(null);
+  const btnRef = useRef(null);
+  const menuRef = useRef(null);
+
+  const closeAll = useCallback(() => {
+    setOpen(false);
+    setSubmenuOpen(null);
+  }, []);
+
+  const toggleOpen = useCallback(() => {
+    if (open) {
+      closeAll();
+      return;
+    }
+    const rect = btnRef.current.getBoundingClientRect();
+    const menuWidth = 160;
+    const estimatedHeight = Math.min(actions.length * 36 + 8, 280);
+    const openUpward = rect.bottom + estimatedHeight > window.innerHeight && rect.top > estimatedHeight;
+
+    setMenuStyle({
+      position: "fixed",
+      right: Math.max(8, window.innerWidth - rect.right),
+      minWidth: menuWidth,
+      ...(openUpward
+        ? { bottom: window.innerHeight - rect.top + 4 }
+        : { top: rect.bottom + 4 }),
+    });
+    setOpen(true);
+  }, [open, closeAll, actions.length]);
+
+  // Keep the menu pinned to the button while the page scrolls/resizes.
+  useLayoutEffect(() => {
+    if (!open) return;
+    window.addEventListener("scroll", closeAll, true);
+    window.addEventListener("resize", closeAll);
+    return () => {
+      window.removeEventListener("scroll", closeAll, true);
+      window.removeEventListener("resize", closeAll);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   if (!actions?.length) return null;
 
   return (
     <div className="relative" onClick={(e) => e.stopPropagation()}>
       <button
-        onClick={() => setOpen((v) => !v)}
+        ref={btnRef}
+        onClick={toggleOpen}
         className="flex h-8 w-8 items-center justify-center rounded-lg text-[#9ca3af] transition hover:bg-[#faf8f5] hover:text-[#6b7280]"
         aria-label="Row actions"
       >
         <MdMoreVert size={18} />
       </button>
 
-      {open && (
-        <>
-          <div className="fixed inset-0 z-10" onClick={() => { setOpen(false); setSubmenuOpen(null); }} />
-          <div className="absolute right-0 z-20 mt-1 min-w-[140px] rounded-xl border border-[#e8e0d5] bg-white py-1 shadow-lg">
-            {actions.map((action, i) =>
-              action.submenu?.length ? (
-                <div key={i} className="relative" onMouseEnter={() => setSubmenuOpen(i)} onMouseLeave={() => setSubmenuOpen(null)}>
+      {open &&
+        menuStyle &&
+        createPortal(
+          <>
+            <div className="fixed inset-0 z-40" onClick={closeAll} />
+            <div
+              ref={menuRef}
+              style={menuStyle}
+              className="z-50 rounded-xl border border-[#e8e0d5] bg-white py-1 shadow-lg"
+            >
+              {actions.map((action, i) =>
+                action.submenu?.length ? (
+                  <div key={i} className="relative" onMouseEnter={() => setSubmenuOpen(i)} onMouseLeave={() => setSubmenuOpen(null)}>
+                    <button
+                      onClick={() => setSubmenuOpen((v) => (v === i ? null : i))}
+                      className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm text-[#374151] transition hover:bg-[#faf8f5] hover:text-[#1a1a2e]"
+                    >
+                      {action.icon && <action.icon size={16} className="shrink-0" />}
+                      <span className="flex-1">{action.label}</span>
+                      <MdChevronRight size={16} className="shrink-0 text-[#9ca3af]" />
+                    </button>
+                    {submenuOpen === i && (
+                      <div className="absolute right-full top-0 z-10 min-w-[120px] rounded-xl border border-[#e8e0d5] bg-white py-1 shadow-lg">
+                        {action.submenu.map((sub, j) => (
+                          <button
+                            key={j}
+                            onClick={() => { closeAll(); sub.onClick(row); }}
+                            className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition hover:bg-[#faf8f5] ${
+                              sub.variant === "danger"
+                                ? "text-red-500 hover:text-red-600"
+                                : "text-[#374151] hover:text-[#1a1a2e]"
+                            }`}
+                          >
+                            {sub.icon && <sub.icon size={16} className="shrink-0" />}
+                            {sub.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
                   <button
-                    onClick={() => setSubmenuOpen((v) => (v === i ? null : i))}
-                    className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm text-[#374151] transition hover:bg-[#faf8f5] hover:text-[#1a1a2e]"
+                    key={i}
+                    onClick={() => { closeAll(); action.onClick(row); }}
+                    className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition hover:bg-[#faf8f5] ${
+                      action.variant === "danger"
+                        ? "text-red-500 hover:text-red-600"
+                        : "text-[#374151] hover:text-[#1a1a2e]"
+                    }`}
                   >
                     {action.icon && <action.icon size={16} className="shrink-0" />}
-                    <span className="flex-1">{action.label}</span>
-                    <MdChevronRight size={16} className="shrink-0 text-[#9ca3af]" />
+                    {action.label}
                   </button>
-                  {submenuOpen === i && (
-                    <div className="absolute right-full top-0 z-30 min-w-[120px] rounded-xl border border-[#e8e0d5] bg-white py-1 shadow-lg">
-                      {action.submenu.map((sub, j) => (
-                        <button
-                          key={j}
-                          onClick={() => { setOpen(false); setSubmenuOpen(null); sub.onClick(row); }}
-                          className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition hover:bg-[#faf8f5] ${
-                            sub.variant === "danger"
-                              ? "text-red-500 hover:text-red-600"
-                              : "text-[#374151] hover:text-[#1a1a2e]"
-                          }`}
-                        >
-                          {sub.icon && <sub.icon size={16} className="shrink-0" />}
-                          {sub.label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <button
-                  key={i}
-                  onClick={() => { setOpen(false); action.onClick(row); }}
-                  className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition hover:bg-[#faf8f5] ${
-                    action.variant === "danger"
-                      ? "text-red-500 hover:text-red-600"
-                      : "text-[#374151] hover:text-[#1a1a2e]"
-                  }`}
-                >
-                  {action.icon && <action.icon size={16} className="shrink-0" />}
-                  {action.label}
-                </button>
-              )
-            )}
-          </div>
-        </>
-      )}
+                )
+              )}
+            </div>
+          </>,
+          document.body
+        )}
     </div>
   );
 }
