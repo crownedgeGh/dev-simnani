@@ -77,14 +77,21 @@ export default function CompanyCPDashboard({
   });
 
   const loadAssignments = useCallback(async () => {
+    if (!partner?.accountId) return;
     try {
-      const res = await fetch("/api/assignments");
-      const json = await res.json();
-      setAssignments(json.success ? json.data : []);
+      const [receivedRes, delegatedRes] = await Promise.all([
+        fetch(`/api/assignments?assignedToAccountId=${partner.accountId}`),
+        fetch(`/api/assignments?assignedByAccountId=${partner.accountId}`),
+      ]);
+      const [receivedJson, delegatedJson] = await Promise.all([receivedRes.json(), delegatedRes.json()]);
+      const received = receivedJson.success ? receivedJson.data : [];
+      const delegated = delegatedJson.success ? delegatedJson.data : [];
+      const byId = new Map([...received, ...delegated].map((a) => [a.id, a]));
+      setAssignments([...byId.values()]);
     } catch {
       toast.error("Failed to load assigned projects");
     }
-  }, []);
+  }, [partner]);
 
   const digitalPartnerAccountIds = useMemo(
     () => new Set(network.filter((p) => p.cpType === "digital").map((p) => p.accountId)),
