@@ -13,6 +13,8 @@ import {
   FiArrowRight,
   FiNavigation,
   FiCamera,
+  FiChevronDown,
+  FiSearch,
 } from "react-icons/fi";
 import { MdSell, MdLockOpen, MdContentCopy, MdCheck, MdCall } from "react-icons/md";
 import Tabs from "./Tabs";
@@ -110,6 +112,46 @@ function VisitTimelineConnector({ done }) {
   return <span className={`mt-5 h-0.5 flex-1 shrink transition ${done ? "bg-gold-400" : "bg-navy-700/60"}`} />;
 }
 
+function PartnerChip({ label, sub, active, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex shrink-0 flex-col items-start gap-0.5 border px-3 py-2 text-left transition ${
+        active ? "border-gold-400 bg-gold-400/10" : "border-navy-700/60 bg-navy-900 hover:border-gold-500/50"
+      }`}
+    >
+      <span className={`tracked-label text-[10px] ${active ? "text-gold-400" : "text-cream"}`}>{label}</span>
+      {sub && <span className="text-[10px] text-muted">{sub}</span>}
+    </button>
+  );
+}
+
+function ShowMoreButton({ remaining, onClick }) {
+  if (remaining <= 0) return null;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="tracked-label self-start border border-navy-700/60 px-4 py-2 text-[10px] text-muted transition hover:border-gold-400/70 hover:text-gold-400"
+    >
+      Show More ({remaining} more)
+    </button>
+  );
+}
+
+const FIELD_SUBTABS = [
+  { key: "visits", label: "Site Visits" },
+  { key: "leads", label: "Leads" },
+  { key: "commissions", label: "Commissions" },
+];
+
+const DIGITAL_SUBTABS = [
+  { key: "adLinks", label: "Ad Links" },
+  { key: "leads", label: "Leads" },
+  { key: "commissions", label: "Commissions" },
+];
+
 const TABS = [
   { key: "overview", label: "Overview" },
   { key: "projects", label: "Assigned Projects" },
@@ -141,6 +183,25 @@ export default function CompanyCPDashboard({
   const [adLinks, setAdLinks] = useState([]);
   const [editingNoteId, setEditingNoteId] = useState(null);
   const [noteDraft, setNoteDraft] = useState("");
+
+  // Track Field CP / Track Digital CP — partner picker, sub-section tabs,
+  // expanded live-tracking row, and "show more" pagination so the view
+  // stays scannable as the network grows past a handful of partners.
+  const [fieldFilterId, setFieldFilterId] = useState("all");
+  const [digitalFilterId, setDigitalFilterId] = useState("all");
+  const [fieldPartnerQuery, setFieldPartnerQuery] = useState("");
+  const [digitalPartnerQuery, setDigitalPartnerQuery] = useState("");
+  const [fieldSubTab, setFieldSubTab] = useState("visits");
+  const [digitalSubTab, setDigitalSubTab] = useState("adLinks");
+  const [expandedVisitId, setExpandedVisitId] = useState(null);
+  const [shownCounts, setShownCounts] = useState({});
+
+  function shownFor(key) {
+    return shownCounts[key] ?? 8;
+  }
+  function showMoreFor(key) {
+    setShownCounts((prev) => ({ ...prev, [key]: shownFor(key) + 8 }));
+  }
 
   // Per-section refresh keys — incrementing these resets the section's local state
   const [refreshKeys, setRefreshKeys] = useState({
@@ -240,7 +301,10 @@ export default function CompanyCPDashboard({
       setRefreshKeys((prev) => ({ ...prev, [section]: prev[section] + 1 }));
       // Reset section-specific local state
       if (section === "projects") loadAssignments();
-      if (section === "trackField") loadTracking();
+      if (section === "trackField") {
+        setExpandedVisitId(null);
+        loadTracking();
+      }
       if (section === "trackDigital") {
         setEditingNoteId(null);
         setNoteDraft("");
@@ -270,6 +334,33 @@ export default function CompanyCPDashboard({
   function dealsClosedForPartner(accountId) {
     return leadsForPartner(accountId).filter((l) => l.status === "Converted").length;
   }
+  function partnerName(accountId) {
+    return network.find((p) => p.accountId === accountId)?.name || accountId || "—";
+  }
+
+  const fieldLeadsAll = delegatedLeads.filter((l) => l.submittedBy?.cpType === "field");
+  const digitalLeadsAll = delegatedLeads.filter((l) => l.submittedBy?.cpType === "digital");
+  const fieldCommissionsAll = cpCommissions.filter((c) => c.cpType === "field");
+  const digitalCommissionsAll = cpCommissions.filter((c) => c.cpType === "digital");
+
+  const filteredFieldPartners = fieldPartners.filter((p) => {
+    const q = fieldPartnerQuery.trim().toLowerCase();
+    if (!q) return true;
+    return p.name.toLowerCase().includes(q) || p.id.toLowerCase().includes(q);
+  });
+  const filteredDigitalPartners = digitalPartners.filter((p) => {
+    const q = digitalPartnerQuery.trim().toLowerCase();
+    if (!q) return true;
+    return p.name.toLowerCase().includes(q) || p.id.toLowerCase().includes(q);
+  });
+
+  const visibleFieldVisits = fieldFilterId === "all" ? siteVisits : visitsForPartner(fieldFilterId);
+  const visibleFieldLeads = fieldFilterId === "all" ? fieldLeadsAll : leadsForPartner(fieldFilterId);
+  const visibleFieldCommissions = fieldFilterId === "all" ? fieldCommissionsAll : commissionsForPartner(fieldFilterId);
+
+  const visibleDigitalAdLinks = digitalFilterId === "all" ? adLinks : adLinksForPartner(digitalFilterId);
+  const visibleDigitalLeads = digitalFilterId === "all" ? digitalLeadsAll : leadsForPartner(digitalFilterId);
+  const visibleDigitalCommissions = digitalFilterId === "all" ? digitalCommissionsAll : commissionsForPartner(digitalFilterId);
 
   const delegationsByParent = useMemo(() => {
     const map = new Map();
@@ -559,57 +650,98 @@ export default function CompanyCPDashboard({
             {fieldPartners.length === 0 ? (
               <EmptyState title="No Field CPs yet" message="Field Channel Partners in your network will appear here." />
             ) : (
-              fieldPartners.map((fp) => {
-                const visits = visitsForPartner(fp.accountId);
-                const partnerLeads = leadsForPartner(fp.accountId);
-                const partnerCommissions = commissionsForPartner(fp.accountId);
-                return (
-                  <div key={fp.id} className="border border-navy-700/60 bg-navy-900 p-5">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div>
-                        <p className="text-sm text-cream">{fp.name}</p>
-                        <p className="tracked-label mt-1 text-[10px] text-muted">{fp.id}</p>
-                      </div>
-                      <Badge tone="gold">{CP_TYPE_LABEL.field}</Badge>
-                    </div>
+              <>
+                {fieldPartners.length > 6 && (
+                  <div className="relative">
+                    <FiSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+                    <input
+                      type="text"
+                      value={fieldPartnerQuery}
+                      onChange={(e) => setFieldPartnerQuery(e.target.value)}
+                      placeholder="Search Field CPs by name or ID…"
+                      className="h-11 w-full border border-navy-700/60 bg-navy-950 pl-9 pr-3 text-sm text-cream outline-none transition placeholder:text-muted focus:border-gold-400"
+                    />
+                  </div>
+                )}
 
-                    <div className="mt-4 grid grid-cols-3 gap-3 border-t border-navy-700/60 pt-4">
-                      <div>
-                        <p className="tracked-label text-[10px] text-muted">Leads Submitted</p>
-                        <p className="mt-1 font-display text-lg text-cream">{partnerLeads.length}</p>
-                      </div>
-                      <div>
-                        <p className="tracked-label text-[10px] text-muted">Site Visits</p>
-                        <p className="mt-1 font-display text-lg text-cream">{visits.length}</p>
-                      </div>
-                      <div>
-                        <p className="tracked-label text-[10px] text-muted">Deals Closed</p>
-                        <p className="mt-1 font-display text-lg text-gold-400">{dealsClosedForPartner(fp.accountId)}</p>
-                      </div>
-                    </div>
+                <div className="flex max-h-48 flex-wrap gap-2 overflow-y-auto border border-navy-700/60 bg-navy-950 p-3">
+                  <PartnerChip
+                    label={`All Partners (${fieldPartners.length})`}
+                    active={fieldFilterId === "all"}
+                    onClick={() => setFieldFilterId("all")}
+                  />
+                  {filteredFieldPartners.map((fp) => (
+                    <PartnerChip
+                      key={fp.accountId}
+                      label={fp.name}
+                      sub={`${visitsForPartner(fp.accountId).length} visits · ${leadsForPartner(fp.accountId).length} leads`}
+                      active={fieldFilterId === fp.accountId}
+                      onClick={() => setFieldFilterId(fp.accountId)}
+                    />
+                  ))}
+                  {filteredFieldPartners.length === 0 && (
+                    <p className="px-1 py-1 text-xs text-muted">No Field CPs match your search.</p>
+                  )}
+                </div>
 
-                    <div className="mt-4 border-t border-navy-700/60 pt-4">
-                      <p className="tracked-label text-xs text-gold-400">Live Site Visit Tracking</p>
-                      {visits.length === 0 ? (
-                        <p className="mt-3 text-xs text-muted">No site visits logged yet.</p>
-                      ) : (
-                        <div className="mt-3 flex flex-col gap-4">
-                          {visits.map((v) => {
-                            const readyDone = !!v.movingAt;
-                            const photoDone = !!v.photoAt;
-                            const doneDone = !!v.doneAt;
-                            return (
-                              <div key={v.id} className="border border-navy-700/60 bg-navy-950 p-4">
-                                <div className="flex flex-wrap items-start justify-between gap-3">
-                                  <div>
-                                    <p className="text-sm text-cream">{v.customer || "—"}</p>
-                                    <p className="text-xs text-muted">For {v.project || "—"}</p>
-                                    <p className="mt-1 text-xs text-gold-400">{v.scheduledAt || "—"}</p>
-                                  </div>
-                                  <Badge tone={VISIT_STATUS_TONE[v.status] || "muted"}>{v.status}</Badge>
-                                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  <StatCard
+                    label="Leads Submitted"
+                    value={fieldFilterId === "all" ? fieldLeadsAll.length : leadsForPartner(fieldFilterId).length}
+                  />
+                  <StatCard
+                    label="Site Visits"
+                    value={fieldFilterId === "all" ? siteVisits.length : visitsForPartner(fieldFilterId).length}
+                  />
+                  <StatCard
+                    label="Deals Closed"
+                    value={
+                      fieldFilterId === "all"
+                        ? fieldLeadsAll.filter((l) => l.status === "Converted").length
+                        : dealsClosedForPartner(fieldFilterId)
+                    }
+                  />
+                </div>
 
-                                <div className="mt-5 flex items-start">
+                <Tabs tabs={FIELD_SUBTABS} active={fieldSubTab} onChange={setFieldSubTab} />
+
+                {fieldSubTab === "visits" && (
+                  visibleFieldVisits.length === 0 ? (
+                    <EmptyState title="No site visits yet" message="Site visits logged by this partner will appear here." />
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      {visibleFieldVisits.slice(0, shownFor("fieldVisits")).map((v) => {
+                        const readyDone = !!v.movingAt;
+                        const photoDone = !!v.photoAt;
+                        const doneDone = !!v.doneAt;
+                        const isOpen = expandedVisitId === v.id;
+                        return (
+                          <div key={v.id} className="border border-navy-700/60 bg-navy-900">
+                            <button
+                              type="button"
+                              onClick={() => setExpandedVisitId(isOpen ? null : v.id)}
+                              className="flex w-full flex-wrap items-center justify-between gap-3 px-4 py-3 text-left transition hover:bg-navy-950/60"
+                            >
+                              <div className="min-w-0">
+                                <p className="text-xs text-cream">
+                                  {v.customer || "—"} <span className="text-muted">· {v.project || "—"}</span>
+                                </p>
+                                <p className="mt-0.5 text-[10px] text-muted">
+                                  {fieldFilterId === "all" ? `${partnerName(v.fieldCpAccountId)} · ` : ""}
+                                  {v.scheduledAt || "—"}
+                                </p>
+                              </div>
+                              <div className="flex shrink-0 items-center gap-3">
+                                <Badge tone={VISIT_STATUS_TONE[v.status] || "muted"}>{v.status}</Badge>
+                                <FiChevronDown
+                                  className={`h-4 w-4 text-muted transition-transform ${isOpen ? "rotate-180" : ""}`}
+                                />
+                              </div>
+                            </button>
+
+                            {isOpen && (
+                              <div className="border-t border-navy-700/60 p-4">
+                                <div className="flex items-start">
                                   <VisitTimelineStep
                                     icon={FiNavigation}
                                     label="Ready to Move"
@@ -649,51 +781,110 @@ export default function CompanyCPDashboard({
                                   </div>
                                 )}
                               </div>
-                            );
-                          })}
-                        </div>
-                      )}
+                            )}
+                          </div>
+                        );
+                      })}
+                      <ShowMoreButton
+                        remaining={visibleFieldVisits.length - shownFor("fieldVisits")}
+                        onClick={() => showMoreFor("fieldVisits")}
+                      />
                     </div>
+                  )
+                )}
 
-                    <div className="mt-4 border-t border-navy-700/60 pt-4">
-                      <p className="tracked-label text-xs text-gold-400">Leads</p>
-                      {partnerLeads.length === 0 ? (
-                        <p className="mt-3 text-xs text-muted">No leads submitted yet.</p>
-                      ) : (
-                        <div className="mt-3 flex flex-col gap-2">
-                          {partnerLeads.map((l) => (
-                            <div key={l.id} className="flex flex-wrap items-center justify-between gap-3 border border-navy-700/60 bg-navy-950 p-3">
-                              <p className="text-xs text-cream">
-                                {l.customer} <span className="text-muted">· {l.project || "—"}</span>
-                              </p>
-                              <Badge tone={LEAD_STATUS_TONE[l.status] || "muted"}>{l.status}</Badge>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {partnerCommissions.length > 0 && (
-                      <div className="mt-4 border-t border-navy-700/60 pt-4">
-                        <p className="tracked-label text-xs text-gold-400">Commissions</p>
-                        <div className="mt-3 flex flex-col gap-2">
-                          {partnerCommissions.map((c) => (
-                            <div key={c.id} className="flex flex-wrap items-center justify-between gap-3 border border-navy-700/60 bg-navy-950 p-3">
-                              <p className="text-xs text-cream">
-                                {c.customer || "—"} <span className="text-muted">· {c.project || "—"}</span>
-                              </p>
-                              <div className="flex items-center gap-2">
-                                <span className="text-xs text-gold-400">{c.amount}</span>
-                                <Badge tone={APPROVAL_STATUS_TONE[c.approvalStatus] || "muted"}>{c.approvalStatus}</Badge>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
+                {fieldSubTab === "leads" && (
+                  <div className="overflow-x-auto border border-navy-700/60 bg-navy-900">
+                    <table className="w-full min-w-[640px] text-left text-sm">
+                      <thead>
+                        <tr className="tracked-label border-b border-navy-700/60 text-[10px] text-muted">
+                          <th className="px-4 py-3">Customer</th>
+                          <th className="px-4 py-3">Project</th>
+                          {fieldFilterId === "all" && <th className="px-4 py-3">Partner</th>}
+                          <th className="px-4 py-3">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {visibleFieldLeads.length === 0 ? (
+                          <tr>
+                            <td colSpan={fieldFilterId === "all" ? 4 : 3} className="px-4 py-10 text-center text-xs text-muted">
+                              No leads submitted yet.
+                            </td>
+                          </tr>
+                        ) : (
+                          visibleFieldLeads.slice(0, shownFor("fieldLeads")).map((l) => (
+                            <tr key={l.id} className="border-b border-navy-700/60 last:border-0">
+                              <td className="px-4 py-3 text-cream">{l.customer}</td>
+                              <td className="px-4 py-3 text-muted">{l.project || "—"}</td>
+                              {fieldFilterId === "all" && (
+                                <td className="px-4 py-3 text-muted">{partnerName(l.submittedBy?.accountId)}</td>
+                              )}
+                              <td className="px-4 py-3">
+                                <Badge tone={LEAD_STATUS_TONE[l.status] || "muted"}>{l.status}</Badge>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                    {visibleFieldLeads.length > shownFor("fieldLeads") && (
+                      <div className="border-t border-navy-700/60 p-3">
+                        <ShowMoreButton
+                          remaining={visibleFieldLeads.length - shownFor("fieldLeads")}
+                          onClick={() => showMoreFor("fieldLeads")}
+                        />
                       </div>
                     )}
                   </div>
-                );
-              })
+                )}
+
+                {fieldSubTab === "commissions" && (
+                  <div className="overflow-x-auto border border-navy-700/60 bg-navy-900">
+                    <table className="w-full min-w-[640px] text-left text-sm">
+                      <thead>
+                        <tr className="tracked-label border-b border-navy-700/60 text-[10px] text-muted">
+                          <th className="px-4 py-3">Customer</th>
+                          <th className="px-4 py-3">Project</th>
+                          {fieldFilterId === "all" && <th className="px-4 py-3">Partner</th>}
+                          <th className="px-4 py-3">Amount</th>
+                          <th className="px-4 py-3">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {visibleFieldCommissions.length === 0 ? (
+                          <tr>
+                            <td colSpan={fieldFilterId === "all" ? 5 : 4} className="px-4 py-10 text-center text-xs text-muted">
+                              No commissions yet.
+                            </td>
+                          </tr>
+                        ) : (
+                          visibleFieldCommissions.slice(0, shownFor("fieldCommissions")).map((c) => (
+                            <tr key={c.id} className="border-b border-navy-700/60 last:border-0">
+                              <td className="px-4 py-3 text-cream">{c.customer || "—"}</td>
+                              <td className="px-4 py-3 text-muted">{c.project || "—"}</td>
+                              {fieldFilterId === "all" && (
+                                <td className="px-4 py-3 text-muted">{partnerName(c.cpAccountId)}</td>
+                              )}
+                              <td className="px-4 py-3 text-gold-400">{c.amount}</td>
+                              <td className="px-4 py-3">
+                                <Badge tone={APPROVAL_STATUS_TONE[c.approvalStatus] || "muted"}>{c.approvalStatus}</Badge>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                    {visibleFieldCommissions.length > shownFor("fieldCommissions") && (
+                      <div className="border-t border-navy-700/60 p-3">
+                        <ShowMoreButton
+                          remaining={visibleFieldCommissions.length - shownFor("fieldCommissions")}
+                          onClick={() => showMoreFor("fieldCommissions")}
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
             )}
             </div>
           </div>
@@ -711,73 +902,123 @@ export default function CompanyCPDashboard({
               {digitalPartners.length === 0 ? (
                 <EmptyState title="No Digital CPs yet" message="Digital Channel Partners in your network will appear here." />
               ) : (
-                digitalPartners.map((dp) => {
-                  const partnerLeads = leadsForPartner(dp.accountId);
-                  const partnerCommissions = commissionsForPartner(dp.accountId);
-                  const partnerAdLinks = adLinksForPartner(dp.accountId);
-                  return (
-                    <div key={dp.id} className="border border-navy-700/60 bg-navy-900 p-5">
-                      <div className="flex flex-wrap items-center justify-between gap-3">
-                        <div>
-                          <p className="text-sm text-cream">{dp.name}</p>
-                          <p className="tracked-label mt-1 text-[10px] text-muted">{dp.id}</p>
-                        </div>
-                        <Badge tone="muted">{CP_TYPE_LABEL.digital}</Badge>
-                      </div>
+                <>
+                  {digitalPartners.length > 6 && (
+                    <div className="relative">
+                      <FiSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+                      <input
+                        type="text"
+                        value={digitalPartnerQuery}
+                        onChange={(e) => setDigitalPartnerQuery(e.target.value)}
+                        placeholder="Search Digital CPs by name or ID…"
+                        className="h-11 w-full border border-navy-700/60 bg-navy-950 pl-9 pr-3 text-sm text-cream outline-none transition placeholder:text-muted focus:border-gold-400"
+                      />
+                    </div>
+                  )}
 
-                      <div className="mt-4 grid grid-cols-2 gap-3 border-t border-navy-700/60 pt-4">
-                        <div>
-                          <p className="tracked-label text-[10px] text-muted">Leads Generated</p>
-                          <p className="mt-1 font-display text-lg text-cream">{partnerLeads.length}</p>
-                        </div>
-                        <div>
-                          <p className="tracked-label text-[10px] text-muted">Deals Closed</p>
-                          <p className="mt-1 font-display text-lg text-gold-400">{dealsClosedForPartner(dp.accountId)}</p>
-                        </div>
-                      </div>
+                  <div className="flex max-h-48 flex-wrap gap-2 overflow-y-auto border border-navy-700/60 bg-navy-950 p-3">
+                    <PartnerChip
+                      label={`All Partners (${digitalPartners.length})`}
+                      active={digitalFilterId === "all"}
+                      onClick={() => setDigitalFilterId("all")}
+                    />
+                    {filteredDigitalPartners.map((dp) => (
+                      <PartnerChip
+                        key={dp.accountId}
+                        label={dp.name}
+                        sub={`${adLinksForPartner(dp.accountId).length} links · ${leadsForPartner(dp.accountId).length} leads`}
+                        active={digitalFilterId === dp.accountId}
+                        onClick={() => setDigitalFilterId(dp.accountId)}
+                      />
+                    ))}
+                    {filteredDigitalPartners.length === 0 && (
+                      <p className="px-1 py-1 text-xs text-muted">No Digital CPs match your search.</p>
+                    )}
+                  </div>
 
-                      <div className="mt-4 border-t border-navy-700/60 pt-4">
-                        <p className="tracked-label text-xs text-gold-400">Ad Links</p>
-                        {partnerAdLinks.length === 0 ? (
-                          <p className="mt-3 text-xs text-muted">No ad links yet.</p>
-                        ) : (
-                          <div className="mt-3 flex flex-col gap-2">
-                            {partnerAdLinks.map((link) => (
-                              <div key={link.id} className="flex flex-wrap items-center justify-between gap-3 border border-navy-700/60 bg-navy-950 p-3">
-                                <div className="flex min-w-0 items-start gap-3">
-                                  <FiLink className="mt-0.5 h-4 w-4 shrink-0 text-gold-400" />
-                                  <div className="min-w-0">
-                                    <p className="text-xs text-cream">{link.platform}</p>
-                                    <a
-                                      href={link.link}
-                                      target="_blank"
-                                      rel="noreferrer"
-                                      className="mt-0.5 block truncate text-xs text-gold-400 hover:text-gold-300"
-                                    >
-                                      {link.link}
-                                    </a>
-                                  </div>
-                                </div>
-                                <span className="shrink-0 text-xs text-muted">{link.date}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <StatCard
+                      label="Leads Generated"
+                      value={digitalFilterId === "all" ? digitalLeadsAll.length : leadsForPartner(digitalFilterId).length}
+                    />
+                    <StatCard
+                      label="Deals Closed"
+                      value={
+                        digitalFilterId === "all"
+                          ? digitalLeadsAll.filter((l) => l.status === "Converted").length
+                          : dealsClosedForPartner(digitalFilterId)
+                      }
+                    />
+                  </div>
 
-                      <div className="mt-4 border-t border-navy-700/60 pt-4">
-                        <p className="tracked-label text-xs text-gold-400">Leads Submitted</p>
-                        {partnerLeads.length === 0 ? (
-                          <p className="mt-3 text-xs text-muted">No leads submitted yet.</p>
-                        ) : (
-                          <div className="mt-3 flex flex-col gap-2">
-                            {partnerLeads.map((l) => (
-                              <div key={l.id} className="flex flex-wrap items-center justify-between gap-3 border border-navy-700/60 bg-navy-950 p-3">
+                  <Tabs tabs={DIGITAL_SUBTABS} active={digitalSubTab} onChange={setDigitalSubTab} />
+
+                  {digitalSubTab === "adLinks" && (
+                    <div className="flex flex-col gap-2">
+                      {visibleDigitalAdLinks.length === 0 ? (
+                        <EmptyState title="No ad links yet" message="Trackable ad links added by this partner will appear here." />
+                      ) : (
+                        <>
+                          {visibleDigitalAdLinks.slice(0, shownFor("adLinks")).map((link) => (
+                            <div key={link.id} className="flex flex-wrap items-center justify-between gap-3 border border-navy-700/60 bg-navy-900 p-4">
+                              <div className="flex min-w-0 items-start gap-3">
+                                <FiLink className="mt-0.5 h-4 w-4 shrink-0 text-gold-400" />
                                 <div className="min-w-0">
                                   <p className="text-xs text-cream">
-                                    {l.customer} <span className="text-muted">· {l.project || "—"}</span>
+                                    {link.platform}
+                                    {digitalFilterId === "all" && (
+                                      <span className="text-muted"> · {partnerName(link.digitalCpAccountId)}</span>
+                                    )}
                                   </p>
-                                  <div className="mt-1 flex items-center gap-1.5 text-xs text-muted">
+                                  <a
+                                    href={link.link}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="mt-0.5 block truncate text-xs text-gold-400 hover:text-gold-300"
+                                  >
+                                    {link.link}
+                                  </a>
+                                </div>
+                              </div>
+                              <span className="shrink-0 text-xs text-muted">{link.date}</span>
+                            </div>
+                          ))}
+                          <ShowMoreButton
+                            remaining={visibleDigitalAdLinks.length - shownFor("adLinks")}
+                            onClick={() => showMoreFor("adLinks")}
+                          />
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  {digitalSubTab === "leads" && (
+                    <div className="overflow-x-auto border border-navy-700/60 bg-navy-900">
+                      <table className="w-full min-w-[640px] text-left text-sm">
+                        <thead>
+                          <tr className="tracked-label border-b border-navy-700/60 text-[10px] text-muted">
+                            <th className="px-4 py-3">Customer</th>
+                            <th className="px-4 py-3">Source / Phone</th>
+                            {digitalFilterId === "all" && <th className="px-4 py-3">Partner</th>}
+                            <th className="px-4 py-3">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {visibleDigitalLeads.length === 0 ? (
+                            <tr>
+                              <td colSpan={digitalFilterId === "all" ? 4 : 3} className="px-4 py-10 text-center text-xs text-muted">
+                                No leads submitted yet.
+                              </td>
+                            </tr>
+                          ) : (
+                            visibleDigitalLeads.slice(0, shownFor("digitalLeads")).map((l) => (
+                              <tr key={l.id} className="border-b border-navy-700/60 last:border-0">
+                                <td className="px-4 py-3 text-cream">
+                                  {l.customer}
+                                  <span className="tracked-label ml-2 text-[10px] text-muted">{l.project || ""}</span>
+                                </td>
+                                <td className="px-4 py-3 text-muted">
+                                  <div className="flex items-center gap-1.5">
                                     <span>{l.source || "—"}</span>
                                     {l.phone && (
                                       <>
@@ -786,35 +1027,76 @@ export default function CompanyCPDashboard({
                                       </>
                                     )}
                                   </div>
-                                </div>
-                                <Badge tone={LEAD_STATUS_TONE[l.status] || "muted"}>{l.status}</Badge>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      {partnerCommissions.length > 0 && (
-                        <div className="mt-4 border-t border-navy-700/60 pt-4">
-                          <p className="tracked-label text-xs text-gold-400">Commissions</p>
-                          <div className="mt-3 flex flex-col gap-2">
-                            {partnerCommissions.map((c) => (
-                              <div key={c.id} className="flex flex-wrap items-center justify-between gap-3 border border-navy-700/60 bg-navy-950 p-3">
-                                <p className="text-xs text-cream">
-                                  {c.customer || "—"} <span className="text-muted">· {c.project || "—"}</span>
-                                </p>
-                                <div className="flex items-center gap-2">
-                                  <span className="text-xs text-gold-400">{c.amount}</span>
-                                  <Badge tone={APPROVAL_STATUS_TONE[c.approvalStatus] || "muted"}>{c.approvalStatus}</Badge>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
+                                </td>
+                                {digitalFilterId === "all" && (
+                                  <td className="px-4 py-3 text-muted">{partnerName(l.submittedBy?.accountId)}</td>
+                                )}
+                                <td className="px-4 py-3">
+                                  <Badge tone={LEAD_STATUS_TONE[l.status] || "muted"}>{l.status}</Badge>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                      {visibleDigitalLeads.length > shownFor("digitalLeads") && (
+                        <div className="border-t border-navy-700/60 p-3">
+                          <ShowMoreButton
+                            remaining={visibleDigitalLeads.length - shownFor("digitalLeads")}
+                            onClick={() => showMoreFor("digitalLeads")}
+                          />
                         </div>
                       )}
                     </div>
-                  );
-                })
+                  )}
+
+                  {digitalSubTab === "commissions" && (
+                    <div className="overflow-x-auto border border-navy-700/60 bg-navy-900">
+                      <table className="w-full min-w-[640px] text-left text-sm">
+                        <thead>
+                          <tr className="tracked-label border-b border-navy-700/60 text-[10px] text-muted">
+                            <th className="px-4 py-3">Customer</th>
+                            <th className="px-4 py-3">Project</th>
+                            {digitalFilterId === "all" && <th className="px-4 py-3">Partner</th>}
+                            <th className="px-4 py-3">Amount</th>
+                            <th className="px-4 py-3">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {visibleDigitalCommissions.length === 0 ? (
+                            <tr>
+                              <td colSpan={digitalFilterId === "all" ? 5 : 4} className="px-4 py-10 text-center text-xs text-muted">
+                                No commissions yet.
+                              </td>
+                            </tr>
+                          ) : (
+                            visibleDigitalCommissions.slice(0, shownFor("digitalCommissions")).map((c) => (
+                              <tr key={c.id} className="border-b border-navy-700/60 last:border-0">
+                                <td className="px-4 py-3 text-cream">{c.customer || "—"}</td>
+                                <td className="px-4 py-3 text-muted">{c.project || "—"}</td>
+                                {digitalFilterId === "all" && (
+                                  <td className="px-4 py-3 text-muted">{partnerName(c.cpAccountId)}</td>
+                                )}
+                                <td className="px-4 py-3 text-gold-400">{c.amount}</td>
+                                <td className="px-4 py-3">
+                                  <Badge tone={APPROVAL_STATUS_TONE[c.approvalStatus] || "muted"}>{c.approvalStatus}</Badge>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                      {visibleDigitalCommissions.length > shownFor("digitalCommissions") && (
+                        <div className="border-t border-navy-700/60 p-3">
+                          <ShowMoreButton
+                            remaining={visibleDigitalCommissions.length - shownFor("digitalCommissions")}
+                            onClick={() => showMoreFor("digitalCommissions")}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
