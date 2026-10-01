@@ -191,6 +191,8 @@ export default function CompanyCPDashboard({
   const [digitalFilterId, setDigitalFilterId] = useState("all");
   const [fieldPartnerQuery, setFieldPartnerQuery] = useState("");
   const [digitalPartnerQuery, setDigitalPartnerQuery] = useState("");
+  const [fieldShowAllPartners, setFieldShowAllPartners] = useState(false);
+  const [digitalShowAllPartners, setDigitalShowAllPartners] = useState(false);
   const [fieldSubTab, setFieldSubTab] = useState("visits");
   const [digitalSubTab, setDigitalSubTab] = useState("adLinks");
   const [expandedVisitId, setExpandedVisitId] = useState(null);
@@ -337,22 +339,43 @@ export default function CompanyCPDashboard({
   function partnerName(accountId) {
     return network.find((p) => p.accountId === accountId)?.name || accountId || "—";
   }
+  function fieldLastActivityAt(accountId) {
+    const timestamps = [...visitsForPartner(accountId), ...leadsForPartner(accountId)]
+      .map((r) => (r.createdAt ? new Date(r.createdAt).getTime() : 0))
+      .filter(Boolean);
+    return timestamps.length ? Math.max(...timestamps) : 0;
+  }
+  function digitalLastActivityAt(accountId) {
+    const timestamps = [...adLinksForPartner(accountId), ...leadsForPartner(accountId)]
+      .map((r) => (r.createdAt ? new Date(r.createdAt).getTime() : 0))
+      .filter(Boolean);
+    return timestamps.length ? Math.max(...timestamps) : 0;
+  }
 
   const fieldLeadsAll = delegatedLeads.filter((l) => l.submittedBy?.cpType === "field");
   const digitalLeadsAll = delegatedLeads.filter((l) => l.submittedBy?.cpType === "digital");
   const fieldCommissionsAll = cpCommissions.filter((c) => c.cpType === "field");
   const digitalCommissionsAll = cpCommissions.filter((c) => c.cpType === "digital");
 
-  const filteredFieldPartners = fieldPartners.filter((p) => {
-    const q = fieldPartnerQuery.trim().toLowerCase();
-    if (!q) return true;
-    return p.name.toLowerCase().includes(q) || p.id.toLowerCase().includes(q);
-  });
-  const filteredDigitalPartners = digitalPartners.filter((p) => {
-    const q = digitalPartnerQuery.trim().toLowerCase();
-    if (!q) return true;
-    return p.name.toLowerCase().includes(q) || p.id.toLowerCase().includes(q);
-  });
+  const sortedFieldPartners = [...fieldPartners]
+    .filter((p) => {
+      const q = fieldPartnerQuery.trim().toLowerCase();
+      if (!q) return true;
+      return p.name.toLowerCase().includes(q) || p.id.toLowerCase().includes(q);
+    })
+    .sort((a, b) => fieldLastActivityAt(b.accountId) - fieldLastActivityAt(a.accountId));
+  const filteredFieldPartners =
+    fieldShowAllPartners || fieldPartnerQuery.trim() ? sortedFieldPartners : sortedFieldPartners.slice(0, 5);
+
+  const sortedDigitalPartners = [...digitalPartners]
+    .filter((p) => {
+      const q = digitalPartnerQuery.trim().toLowerCase();
+      if (!q) return true;
+      return p.name.toLowerCase().includes(q) || p.id.toLowerCase().includes(q);
+    })
+    .sort((a, b) => digitalLastActivityAt(b.accountId) - digitalLastActivityAt(a.accountId));
+  const filteredDigitalPartners =
+    digitalShowAllPartners || digitalPartnerQuery.trim() ? sortedDigitalPartners : sortedDigitalPartners.slice(0, 5);
 
   const visibleFieldVisits = fieldFilterId === "all" ? siteVisits : visitsForPartner(fieldFilterId);
   const visibleFieldLeads = fieldFilterId === "all" ? fieldLeadsAll : leadsForPartner(fieldFilterId);
@@ -684,6 +707,16 @@ export default function CompanyCPDashboard({
                   )}
                 </div>
 
+                {!fieldPartnerQuery.trim() && sortedFieldPartners.length > 5 && (
+                  <button
+                    type="button"
+                    onClick={() => setFieldShowAllPartners((prev) => !prev)}
+                    className="tracked-label self-start text-[10px] text-gold-400 transition hover:text-gold-300"
+                  >
+                    {fieldShowAllPartners ? "Show Recent Only" : `View All Partners (${fieldPartners.length})`}
+                  </button>
+                )}
+
                 <div className="grid grid-cols-3 gap-3">
                   <StatCard
                     label="Leads Submitted"
@@ -935,6 +968,16 @@ export default function CompanyCPDashboard({
                       <p className="px-1 py-1 text-xs text-muted">No Digital CPs match your search.</p>
                     )}
                   </div>
+
+                  {!digitalPartnerQuery.trim() && sortedDigitalPartners.length > 5 && (
+                    <button
+                      type="button"
+                      onClick={() => setDigitalShowAllPartners((prev) => !prev)}
+                      className="tracked-label self-start text-[10px] text-gold-400 transition hover:text-gold-300"
+                    >
+                      {digitalShowAllPartners ? "Show Recent Only" : `View All Partners (${digitalPartners.length})`}
+                    </button>
+                  )}
 
                   <div className="grid grid-cols-2 gap-3">
                     <StatCard
