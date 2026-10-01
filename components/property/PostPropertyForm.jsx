@@ -209,6 +209,22 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [form]);
 
+  // A drop that misses a drop-zone by even a few pixels lands on the
+  // document, and the browser's default action is to navigate the tab to
+  // the dropped file. Block that globally so a near-miss can't blow away
+  // an in-progress form instead of just being ignored.
+  useEffect(() => {
+    function suppressStrayDrop(e) {
+      e.preventDefault();
+    }
+    window.addEventListener("dragover", suppressStrayDrop);
+    window.addEventListener("drop", suppressStrayDrop);
+    return () => {
+      window.removeEventListener("dragover", suppressStrayDrop);
+      window.removeEventListener("drop", suppressStrayDrop);
+    };
+  }, []);
+
   useEffect(() => {
     if (editId) return;
     const timer = setTimeout(() => {
@@ -474,7 +490,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
         formattedPrice = `₹${(numericPrice / 100000).toFixed(2)} Lakh`;
       }
       if (form.purpose === "rent" || form.purpose === "lease") {
-        formattedPrice += " /mo";
+        formattedPrice += " /month";
       }
 
       const localityStr = (form.locality || "").trim();

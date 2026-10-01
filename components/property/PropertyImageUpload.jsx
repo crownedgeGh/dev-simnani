@@ -29,6 +29,7 @@ export function PhotosUpload({ id, label, hint, photos, onChange, optional, max 
 
   function handleDrop(event) {
     event.preventDefault();
+    event.stopPropagation();
     setIsDragging(false);
     addFiles(event.dataTransfer.files);
   }
@@ -56,8 +57,13 @@ export function PhotosUpload({ id, label, hint, photos, onChange, optional, max 
 
       <label
         htmlFor={id}
+        onDragEnter={(e) => {
+          e.preventDefault();
+          setIsDragging(true);
+        }}
         onDragOver={(e) => {
           e.preventDefault();
+          e.dataTransfer.dropEffect = "copy";
           setIsDragging(true);
         }}
         onDragLeave={() => setIsDragging(false)}
@@ -144,6 +150,7 @@ function PhotoThumb({ item, isCover, onSetCover, onRemove }) {
 export function VideoUpload({ id, label, hint, file, existingUrl, onRemoveExisting, onChange, optional }) {
   const objectUrl = useObjectUrl(file);
   const previewUrl = objectUrl || existingUrl || null;
+  const [isDragging, setIsDragging] = useState(false);
 
   function handleSelect(selected) {
     if (!selected) {
@@ -155,6 +162,13 @@ export function VideoUpload({ id, label, hint, file, existingUrl, onRemoveExisti
       return;
     }
     onChange(selected);
+  }
+
+  function handleDrop(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsDragging(false);
+    handleSelect(event.dataTransfer.files?.[0] || null);
   }
 
   return (
@@ -188,7 +202,20 @@ export function VideoUpload({ id, label, hint, file, existingUrl, onRemoveExisti
       ) : (
         <label
           htmlFor={id}
-          className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-sm border border-dashed border-navy-700/60 bg-navy-950 px-4 py-8 text-center transition hover:border-gold-400"
+          onDragEnter={(e) => {
+            e.preventDefault();
+            setIsDragging(true);
+          }}
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = "copy";
+            setIsDragging(true);
+          }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={handleDrop}
+          className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-sm border border-dashed px-4 py-8 text-center transition ${
+            isDragging ? "border-gold-400 bg-navy-900" : "border-navy-700/60 bg-navy-950 hover:border-gold-400"
+          }`}
         >
           <MdVideocam className="h-7 w-7 text-gold-400" />
           <span className="text-sm text-cream">Click to upload or drag and drop</span>

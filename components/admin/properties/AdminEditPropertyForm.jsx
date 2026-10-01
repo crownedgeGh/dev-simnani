@@ -263,7 +263,8 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
       prop.purpose ||
       (prop.type === "lease"
         ? "lease"
-        : prop.type === "rent" || (typeof prop.price === "string" && prop.price.includes("/mo"))
+        : prop.type === "rent" ||
+            (typeof prop.price === "string" && (prop.price.includes("/mo") || prop.price.includes("/month")))
           ? "rent"
           : "sale");
 
@@ -564,7 +565,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
         formattedPrice = `₹${(numericPrice / 100000).toFixed(2)} Lakh`;
       }
       if (form.purpose === "rent" || form.purpose === "lease") {
-        formattedPrice += " /mo";
+        formattedPrice += " /month";
       }
 
       const updatedPayload = {

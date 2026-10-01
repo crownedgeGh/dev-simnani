@@ -420,7 +420,7 @@ export default function AdminAddPropertyForm() {
         formattedPrice = `₹${(numericPrice / 100000).toFixed(2)} Lakh`;
       }
       if (form.purpose === "rent" || form.purpose === "lease") {
-        formattedPrice += " /mo";
+        formattedPrice += " /month";
       }
 
       const derivedType = isResidentialType
