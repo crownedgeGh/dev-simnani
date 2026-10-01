@@ -340,11 +340,11 @@ export default function DigitalCPDashboard({ stats, assets, partner, myListings 
                         <p className="mt-1 text-xs text-muted">{p.propertyLocation}</p>
                         <div className="mt-3 flex items-center justify-between">
                           {p.propertyStatus === "Sold" ? (
-                            <span className="tracked-label flex w-fit items-center gap-1 border border-red-500/70 px-3 py-1 text-xs text-red-400">
+                            <span className="tracked-label flex w-fit items-center gap-1 rounded-full border border-red-500/70 px-3 py-1 text-xs text-red-400">
                               Sold Out
                             </span>
                           ) : (
-                            <span className="tracked-label flex w-fit items-center gap-1 border border-gold-500/70 px-3 py-1 text-xs text-gold-400">
+                            <span className="tracked-label flex w-fit items-center gap-1 rounded-full border border-gold-500/70 px-3 py-1 text-xs text-gold-400">
                               <FiCheck className="h-3.5 w-3.5" />
                               Joined
                             </span>
@@ -398,17 +398,17 @@ export default function DigitalCPDashboard({ stats, assets, partner, myListings 
                           </div>
                         </Link>
                         {isSold ? (
-                          <span className="tracked-label mt-3 flex w-fit items-center gap-1.5 border border-red-500/70 px-3 py-2 text-[10px] text-red-400">
+                          <span className="tracked-label mt-3 flex w-fit items-center gap-1.5 rounded-full border border-red-500/70 px-3 py-2 text-[10px] text-red-400">
                             Sold Out
                           </span>
                         ) : (
                           <button
                             type="button"
                             onClick={() => handleCampaignButtonClick(property.id)}
-                            className={`tracked-label mt-3 flex w-fit items-center gap-1.5 px-3 py-2 text-[10px] transition ${
+                            className={`tracked-label mt-3 flex w-fit items-center gap-1.5 rounded-full px-3.5 py-2 text-[10px] transition active:scale-[0.98] ${
                               isJoined
                                 ? "border border-red-500/70 text-red-400 hover:bg-red-500/10"
-                                : "bg-gold-400 text-navy-950 hover:bg-gold-300"
+                                : "bg-gold-400 text-navy-950 shadow-lg shadow-gold-400/10 hover:bg-gold-300"
                             }`}
                           >
                             {isJoined ? (
@@ -520,7 +520,7 @@ export default function DigitalCPDashboard({ stats, assets, partner, myListings 
                   <div className="mt-2 flex justify-end">
                     <button
                       type="submit"
-                      className="tracked-label flex items-center justify-center gap-2 bg-gold-400 px-6 py-3 text-xs text-navy-950 transition hover:bg-gold-300"
+                      className="tracked-label flex items-center justify-center gap-2 rounded-full bg-gold-400 px-6 py-3 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 active:scale-[0.98]"
                     >
                       <FiPlus className="h-4 w-4" />
                       Add Link
@@ -587,7 +587,7 @@ export default function DigitalCPDashboard({ stats, assets, partner, myListings 
                             <button
                               type="button"
                               onClick={() => setOpenLeadFormFor(isFormOpen ? null : item.id)}
-                              className="tracked-label flex items-center gap-1.5 border border-gold-500/70 px-3 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10"
+                              className="tracked-label flex items-center gap-1.5 rounded-full border border-gold-500/70 px-3.5 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10 active:scale-[0.98]"
                             >
                               <FiPlus className="h-3.5 w-3.5" />
                               Add Lead
@@ -638,7 +638,7 @@ export default function DigitalCPDashboard({ stats, assets, partner, myListings 
                               <div className="flex justify-end">
                                 <button
                                   type="submit"
-                                  className="tracked-label flex items-center justify-center gap-2 bg-gold-400 px-6 py-3 text-xs text-navy-950 transition hover:bg-gold-300"
+                                  className="tracked-label flex items-center justify-center gap-2 rounded-full bg-gold-400 px-6 py-3 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 active:scale-[0.98]"
                                 >
                                   <FiPlus className="h-4 w-4" />
                                   Save Lead
@@ -662,7 +662,7 @@ export default function DigitalCPDashboard({ stats, assets, partner, myListings 
                                     {lead.notes && <p className="mt-1 text-xs text-muted">{lead.notes}</p>}
                                   </div>
                                   {lead.forwarded ? (
-                                    <span className="tracked-label flex w-fit shrink-0 items-center gap-2 border border-gold-500/70 px-4 py-2 text-xs text-gold-400">
+                                    <span className="tracked-label flex w-fit shrink-0 items-center gap-2 rounded-full border border-gold-500/70 px-4 py-2 text-xs text-gold-400">
                                       <FiCheck className="h-3.5 w-3.5" />
                                       Forwarded to Head CP
                                     </span>
@@ -671,7 +671,7 @@ export default function DigitalCPDashboard({ stats, assets, partner, myListings 
                                       type="button"
                                       disabled={leadSaving[lead.id]}
                                       onClick={() => handleForwardLinkLead(item.id, lead.id)}
-                                      className="tracked-label flex shrink-0 items-center justify-center gap-2 bg-gold-400 px-4 py-2 text-xs text-navy-950 transition hover:bg-gold-300 disabled:opacity-60"
+                                      className="tracked-label flex shrink-0 items-center justify-center gap-2 rounded-full bg-gold-400 px-4 py-2 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 active:scale-[0.98] disabled:opacity-60 disabled:active:scale-100"
                                     >
                                       <FiSend className="h-3.5 w-3.5" />
                                       {leadSaving[lead.id] ? "Forwarding…" : "Forward to Head CP"}
@@ -697,7 +697,7 @@ export default function DigitalCPDashboard({ stats, assets, partner, myListings 
               <p className="tracked-label text-xs text-gold-400">My Listings</p>
               <Link
                 href="/post-property"
-                className="tracked-label flex items-center gap-2 bg-gold-400 px-4 py-2 text-xs text-navy-950 transition hover:bg-gold-300"
+                className="tracked-label flex items-center gap-2 rounded-full bg-gold-400 px-5 py-2 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 active:scale-[0.98]"
               >
                 <FiPlus className="h-3.5 w-3.5" />
                 Post Property

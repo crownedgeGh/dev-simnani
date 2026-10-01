@@ -33,7 +33,7 @@ export default function VideoEditingGuidelines() {
       </p>
 
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <div className="flex flex-col gap-3 border border-navy-700/60 bg-navy-900 p-4 sm:p-5">
+        <div className="flex flex-col gap-3 rounded-2xl border border-navy-700/60 bg-navy-900 p-4 sm:p-5">
           <div className="flex items-center gap-2">
             <div className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500/15">
               <FiCheck className="h-3.5 w-3.5 text-emerald-400" />
@@ -49,7 +49,7 @@ export default function VideoEditingGuidelines() {
           </ul>
         </div>
 
-        <div className="flex flex-col gap-3 border border-navy-700/60 bg-navy-900 p-4 sm:p-5">
+        <div className="flex flex-col gap-3 rounded-2xl border border-navy-700/60 bg-navy-900 p-4 sm:p-5">
           <div className="flex items-center gap-2">
             <div className="flex h-7 w-7 items-center justify-center rounded-full bg-red-500/15">
               <FiX className="h-3.5 w-3.5 text-red-400" />

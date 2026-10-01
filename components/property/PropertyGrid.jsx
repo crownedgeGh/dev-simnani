@@ -27,7 +27,7 @@ export default function PropertyGrid({
 
   if (!properties || properties.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-4 rounded-sm border border-navy-700/60 bg-navy-900 px-6 py-16 text-center sm:py-24">
+      <div className="flex flex-col items-center gap-4 rounded-2xl border border-navy-700/60 bg-navy-900 px-6 py-16 text-center sm:py-24">
         <div className="flex h-16 w-16 items-center justify-center rounded-full border border-gold-500/40 bg-gold-400/10">
           <BiBuildingHouse className="h-7 w-7 text-gold-400" />
         </div>

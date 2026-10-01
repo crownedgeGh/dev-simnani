@@ -7,7 +7,7 @@ const TONES = {
 export default function EmployeeBadge({ children, tone = "neutral" }) {
   return (
     <span
-      className={`tracked-label inline-flex items-center gap-1.5 border px-3 py-1 text-[10px] ${TONES[tone]}`}
+      className={`tracked-label inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] ${TONES[tone]}`}
     >
       {children}
     </span>

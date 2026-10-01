@@ -12,7 +12,7 @@ export default function EmployeeTabs({ tabs, active, onChange }) {
             onClick={() => onChange(tab.key)}
             role="tab"
             aria-selected={isActive}
-            className={`tracked-label inline-flex shrink-0 items-center justify-center border px-4 py-2.5 sm:py-2 text-xs font-medium whitespace-nowrap transition cursor-pointer ${
+            className={`tracked-label inline-flex shrink-0 items-center justify-center rounded-full border px-4 py-2.5 sm:py-2 text-xs font-medium whitespace-nowrap transition cursor-pointer active:scale-[0.98] ${
               isActive
                 ? "border-cyan-600 bg-cyan-600 text-white shadow-sm"
                 : "border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300 hover:bg-white hover:text-gray-900"

@@ -33,7 +33,7 @@ function parseBhkValue(raw) {
 }
 
 const filterFieldClass =
-  "h-11 w-full rounded-sm border border-navy-700/60 bg-navy-950 px-3 text-sm text-cream outline-none transition focus:border-gold-400 sm:h-12";
+  "h-11 w-full rounded-full border border-navy-700/60 bg-navy-950 px-3 text-sm text-cream outline-none transition focus:border-gold-400 focus:ring-4 focus:ring-gold-400/10 sm:h-12";
 
 export default function PropertyFilterBar({
   properties,
@@ -337,7 +337,7 @@ export default function PropertyFilterBar({
 
   return (
     <div>
-      <div className="border border-navy-700/60 bg-navy-900 p-3 sm:p-4">
+      <div className="rounded-2xl border border-navy-700/60 bg-navy-900 p-3 sm:p-4">
         <div
           className={`grid grid-cols-1 gap-3 sm:grid-cols-2 ${
             showPropertyType
@@ -380,7 +380,7 @@ export default function PropertyFilterBar({
                   type="button"
                   onClick={clearPropertyType}
                   aria-label="Clear property type"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted transition hover:text-cream"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full text-muted transition hover:text-cream"
                 >
                   <FiX className="h-4 w-4" />
                 </button>
@@ -389,14 +389,14 @@ export default function PropertyFilterBar({
               {showTypeSuggestions && typeSuggestions.length > 0 && (
                 <ul
                   id="filter-type-suggestions"
-                  className="gold-scrollbar absolute left-0 right-0 top-full z-20 mt-2 max-h-64 overflow-y-auto rounded-sm border border-navy-700/70 bg-navy-900 shadow-[0_20px_50px_-16px_rgba(0,0,0,0.9)]"
+                  className="gold-scrollbar absolute left-0 right-0 top-full z-20 mt-2 max-h-64 overflow-y-auto rounded-2xl border border-navy-700/70 bg-navy-900 p-1.5 shadow-[0_20px_50px_-16px_rgba(0,0,0,0.9)]"
                 >
                   {typeSuggestions.map((option) => (
                     <li key={option}>
                       <button
                         type="button"
                         onClick={() => handleTypeSelect(option)}
-                        className="flex w-full items-center px-4 py-2.5 text-left text-sm text-cream transition hover:bg-navy-800"
+                        className="flex w-full items-center rounded-full px-4 py-2.5 text-left text-sm text-cream transition hover:bg-navy-800"
                       >
                         {option}
                       </button>
@@ -444,7 +444,7 @@ export default function PropertyFilterBar({
                 type="button"
                 onClick={clearCity}
                 aria-label="Clear city"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted transition hover:text-cream"
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full text-muted transition hover:text-cream"
               >
                 <FiX className="h-4 w-4" />
               </button>
@@ -453,14 +453,14 @@ export default function PropertyFilterBar({
             {showCitySuggestions && citySuggestions.length > 0 && (
               <ul
                 id="filter-city-suggestions"
-                className="gold-scrollbar absolute left-0 right-0 top-full z-20 mt-2 max-h-64 overflow-y-auto rounded-sm border border-navy-700/70 bg-navy-900 shadow-[0_20px_50px_-16px_rgba(0,0,0,0.9)]"
+                className="gold-scrollbar absolute left-0 right-0 top-full z-20 mt-2 max-h-64 overflow-y-auto rounded-2xl border border-navy-700/70 bg-navy-900 p-1.5 shadow-[0_20px_50px_-16px_rgba(0,0,0,0.9)]"
               >
                 {citySuggestions.map((entry) => (
                   <li key={entry.city}>
                     <button
                       type="button"
                       onClick={() => handleCitySelect(entry)}
-                      className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm text-cream transition hover:bg-navy-800"
+                      className="flex w-full items-center gap-2.5 rounded-full px-4 py-2.5 text-left text-sm text-cream transition hover:bg-navy-800"
                     >
                       <FiMapPin className="h-3.5 w-3.5 shrink-0 text-gold-400" />
                       <span>{entry.label}</span>
@@ -493,7 +493,7 @@ export default function PropertyFilterBar({
                 key={filter.key}
                 type="button"
                 onClick={filter.clear}
-                className="tracked-label flex items-center gap-1.5 border border-gold-500/40 bg-gold-400/10 px-3 py-1.5 text-[11px] text-gold-400 transition hover:bg-gold-400/15"
+                className="tracked-label flex items-center gap-1.5 rounded-full border border-gold-500/40 bg-gold-400/10 px-3 py-1.5 text-[11px] text-gold-400 transition hover:bg-gold-400/15 active:scale-[0.98]"
               >
                 {filter.label}
                 <FiX className="h-3 w-3" />
@@ -502,7 +502,7 @@ export default function PropertyFilterBar({
             <button
               type="button"
               onClick={clearAll}
-              className="tracked-label px-2 py-1.5 text-[11px] text-muted underline-offset-2 transition hover:text-cream hover:underline"
+              className="tracked-label rounded-full px-2 py-1.5 text-[11px] text-muted underline-offset-2 transition hover:text-cream hover:underline"
             >
               Clear All
             </button>

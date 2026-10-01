@@ -79,25 +79,31 @@ export default function AdminSidebar({ collapsed, onToggleCollapse }) {
   return (
     <aside
       className={`hidden lg:flex flex-col h-screen sticky top-0 bg-white border-r border-[#e8e0d5] transition-all duration-300 ${
-        collapsed ? "w-16" : "w-56"
+        collapsed ? "w-16" : "w-60"
       }`}
-      style={{ boxShadow: "2px 0 8px rgba(0,0,0,0.04)" }}
+      style={{ boxShadow: "1px 0 0 rgba(0,0,0,0.02), 4px 0 16px rgba(26,26,46,0.03)" }}
     >
       {/* Logo area */}
-      <div className="flex items-center gap-2.5 px-4 py-4 border-b border-[#e8e0d5] min-h-[64px]">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#f0b429] text-white font-bold text-sm">
+      <div className={`flex items-center gap-2.5 px-4 py-4 border-b border-[#e8e0d5] min-h-[64px] ${collapsed ? "justify-center px-2" : ""}`}>
+        <div
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-white font-bold text-base"
+          style={{
+            background: "linear-gradient(135deg, #f0b429 0%, #d97706 100%)",
+            boxShadow: "0 3px 8px rgba(240,180,41,0.35)",
+          }}
+        >
           S
         </div>
         {!collapsed && (
-          <div>
-            <p className="text-sm font-semibold text-[#1a1a2e] leading-tight">Simnani</p>
-            <p className="text-[10px] text-[#9ca3af] tracking-widest uppercase">Admin Panel</p>
+          <div className="min-w-0">
+            <p className="text-sm font-bold text-[#1a1a2e] leading-tight truncate">Simnani Estate</p>
+            <p className="text-[10px] font-medium text-[#9ca3af] tracking-widest uppercase">Admin Panel</p>
           </div>
         )}
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-3 px-2">
+      <nav className="flex-1 overflow-y-auto py-3 px-2.5 [scrollbar-width:thin]">
         {NAV_ITEMS.map(({ href, label, icon: Icon, children }) => {
           const isActive =
             pathname === href ||
@@ -114,11 +120,14 @@ export default function AdminSidebar({ collapsed, onToggleCollapse }) {
                     : "text-[#6b7280] hover:bg-[#faf8f5] hover:text-[#1a1a2e]"
                 }`}
               >
+                {isActive && (
+                  <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-[#f0b429]" />
+                )}
                 <Icon
                   className={`shrink-0 transition-colors ${
                     isActive ? "text-[#f0b429]" : "text-[#9ca3af] group-hover:text-[#6b7280]"
                   }`}
-                  size={20}
+                  size={19}
                 />
                 {!collapsed && (
                   <span className="text-sm truncate">{label}</span>
@@ -133,12 +142,9 @@ export default function AdminSidebar({ collapsed, onToggleCollapse }) {
                     {reviewCount}
                   </span>
                 )}
-                {isActive && !collapsed && !(href === "/admin/properties" && reviewCount > 0) && (
-                  <div className="ml-auto h-1.5 w-1.5 rounded-full bg-[#f0b429]" />
-                )}
               </Link>
               {children && isActive && !collapsed && (
-                <div className="mb-1 ml-4 flex flex-col gap-0.5 border-l border-[#e8e0d5] pl-3">
+                <div className="mb-1 ml-5 flex flex-col gap-0.5 border-l border-[#e8e0d5] pl-3">
                   {children.map((child) => {
                     const isChildActive = pathname === child.href;
                     return (
@@ -170,7 +176,7 @@ export default function AdminSidebar({ collapsed, onToggleCollapse }) {
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {collapsed ? <MdChevronRight size={20} /> : <MdChevronLeft size={20} />}
-          {!collapsed && <span className="text-xs">Collapse</span>}
+          {!collapsed && <span className="text-xs font-medium">Collapse</span>}
         </button>
       </div>
     </aside>

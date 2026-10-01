@@ -131,7 +131,7 @@ export default function AccountTypeSelect() {
   }
 
   return (
-    <div className="w-full max-w-4xl border border-navy-700/60 bg-navy-900 p-8 shadow-2xl sm:p-10">
+    <div className="w-full max-w-4xl rounded-3xl border border-navy-700/60 bg-navy-900 p-8 shadow-2xl sm:p-10">
       <div className="flex flex-col items-center gap-2 text-center">
         <span className="tracked-label text-xs text-gold-400">Simnani Estate</span>
         <div className="flex items-center gap-3">
@@ -151,7 +151,7 @@ export default function AccountTypeSelect() {
             key={value}
             type="button"
             onClick={() => router.push(`/auth/register/${value}`)}
-            className="flex flex-col items-center gap-2 border border-navy-700/60 p-4 text-center transition hover:border-gold-500 sm:gap-3 sm:p-6"
+            className="flex flex-col items-center gap-2 rounded-2xl border border-navy-700/60 p-4 text-center transition hover:border-gold-500 active:scale-[0.98] sm:gap-3 sm:p-6"
           >
             <Icon className="h-7 w-7 text-cream sm:h-9 sm:w-9" />
             <span className="tracked-label text-xs text-cream">{label}</span>
@@ -164,7 +164,7 @@ export default function AccountTypeSelect() {
             type="button"
             onClick={() => setTestModeOpen((open) => !open)}
             aria-pressed={testModeOpen}
-            className={`flex flex-col items-center gap-2 border p-4 text-center transition sm:gap-3 sm:p-6 ${
+            className={`flex flex-col items-center gap-2 rounded-2xl border p-4 text-center transition active:scale-[0.98] sm:gap-3 sm:p-6 ${
               testModeOpen
                 ? "border-gold-400 bg-gold-400/5"
                 : "border-navy-700/60 hover:border-navy-600"
@@ -178,7 +178,7 @@ export default function AccountTypeSelect() {
       </div>
 
       {TEST_MODE_ENABLED && testModeOpen && (
-        <div className="mt-6 border border-navy-700/60 bg-navy-950 p-6">
+        <div className="mt-6 rounded-2xl border border-navy-700/60 bg-navy-950 p-6">
           <p className="tracked-label text-xs text-gold-400">Test Mode — Bypass Registration</p>
           <div className="mt-4 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
             {TEST_MODE_DIRECT_OPTIONS.map((option) => (
@@ -187,7 +187,7 @@ export default function AccountTypeSelect() {
                 type="button"
                 disabled={bypassLoading !== null}
                 onClick={() => handleDirectBypass(option.key, option.profile, option.href)}
-                className="flex flex-col items-center gap-2 border border-navy-700/60 p-4 text-center transition hover:border-gold-500 disabled:opacity-60 sm:gap-3 sm:p-6"
+                className="flex flex-col items-center gap-2 rounded-2xl border border-navy-700/60 p-4 text-center transition hover:border-gold-500 active:scale-[0.98] disabled:opacity-60 sm:gap-3 sm:p-6"
               >
                 <option.Icon className="h-7 w-7 text-gold-400 sm:h-8 sm:w-8" />
                 <span className="tracked-label text-xs text-cream">
@@ -207,7 +207,7 @@ export default function AccountTypeSelect() {
                 type="button"
                 disabled={bypassLoading !== null}
                 onClick={() => handleDirectBypass(cpType, TEST_MODE_CP_PROFILES[cpType], `/portal/${cpType}-cp`)}
-                className="flex flex-col items-center gap-2 border border-navy-700/60 p-4 text-center transition hover:border-gold-500 disabled:opacity-60 sm:gap-3 sm:p-6"
+                className="flex flex-col items-center gap-2 rounded-2xl border border-navy-700/60 p-4 text-center transition hover:border-gold-500 active:scale-[0.98] disabled:opacity-60 sm:gap-3 sm:p-6"
               >
                 <Icon className="h-7 w-7 text-gold-400 sm:h-8 sm:w-8" />
                 <span className="tracked-label text-xs text-cream">

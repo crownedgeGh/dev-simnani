@@ -645,7 +645,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
               id="section"
               value={form.section}
               onChange={(e) => update("section", e.target.value)}
-              className={`${selectClass} rounded-sm pr-10`}
+              className={`${selectClass} pr-10`}
             >
               {SECTION_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -663,7 +663,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
                   id="propertyType"
                   value={form.propertyType}
                   onChange={(e) => update("propertyType", e.target.value)}
-                  className={errClass(`${selectClass} rounded-sm pr-10`, "propertyType")}
+                  className={errClass(`${selectClass} pr-10`, "propertyType")}
                 >
                   <option value="">Select type</option>
                   {RESIDENTIAL_PROPERTY_TYPES.map((type) => (
@@ -681,7 +681,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
                     id="beds"
                     value={form.beds}
                     onChange={(e) => update("beds", e.target.value)}
-                    className={errClass(`${selectClass} rounded-sm pr-10`, "beds")}
+                    className={errClass(`${selectClass} pr-10`, "beds")}
                   >
                     <option value="">Select BHK</option>
                     {BHK_OPTIONS.map((opt) => (
@@ -700,7 +700,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
                     id="genderPreference"
                     value={form.genderPreference}
                     onChange={(e) => update("genderPreference", e.target.value)}
-                    className={errClass(`${selectClass} rounded-sm pr-10`, "genderPreference")}
+                    className={errClass(`${selectClass} pr-10`, "genderPreference")}
                   >
                     <option value="">Select</option>
                     {GENDER_PREFERENCE_OPTIONS.map((opt) => (
@@ -720,7 +720,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
                 id="category"
                 value={form.category}
                 onChange={(e) => update("category", e.target.value)}
-                className={errClass(`${selectClass} rounded-sm pr-10`, "category")}
+                className={errClass(`${selectClass} pr-10`, "category")}
               >
                 <option value="">Select category</option>
                 {(CATEGORIES_BY_TYPE[form.section] || []).map((cat) => (
@@ -740,7 +740,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
             placeholder="Spacious 2BHK near City Center"
             value={form.title}
             onChange={(e) => update("title", e.target.value)}
-            className={errClass(`${inputClass} rounded-sm`, "title")}
+            className={errClass(`${inputClass}`, "title")}
           />
         </FormField>
         </fieldset>
@@ -759,7 +759,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
             options={STATES}
             placeholder="Select state"
             searchPlaceholder="Search state…"
-            className={errClass(`${selectClass} rounded-sm`, "state")}
+            className={errClass(`${selectClass}`, "state")}
           />
         </FormField>
         <FormField label="City" htmlFor="city" required>
@@ -771,7 +771,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
             disabled={!form.state}
             placeholder={form.state ? "Select city" : "Select state first"}
             searchPlaceholder="Search city…"
-            className={errClass(`${selectClass} rounded-sm`, "city")}
+            className={errClass(`${selectClass}`, "city")}
           />
         </FormField>
         <FormField label="Area / Locality" htmlFor="locality" required>
@@ -781,7 +781,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
             placeholder="Shankar Nagar"
             value={form.locality}
             onChange={(e) => update("locality", e.target.value)}
-            className={errClass(`${inputClass} rounded-sm`, "locality")}
+            className={errClass(`${inputClass}`, "locality")}
           />
         </FormField>
         <div className="sm:col-span-2">
@@ -792,7 +792,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
               placeholder="Near City Mall"
               value={form.landmark}
               onChange={(e) => update("landmark", e.target.value)}
-              className={`${inputClass} rounded-sm`}
+              className={`${inputClass}`}
             />
           </FormField>
         </div>
@@ -806,7 +806,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
         <FormField label="Price (₹)" htmlFor="price" required>
           <div
             className={errClass(
-              "flex items-center rounded-sm border border-navy-700/60 bg-navy-950 pl-4 transition focus-within:border-gold-400",
+              "flex items-center rounded-full border border-navy-700/60 bg-navy-950 pl-4 transition focus-within:border-gold-400",
               "price"
             )}
           >
@@ -838,13 +838,13 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
               autoComplete="off"
               value={form.areaSize}
               onChange={(e) => update("areaSize", e.target.value)}
-              className={errClass(`${inputClass} min-w-0 flex-1 rounded-sm`, "areaSize")}
+              className={errClass(`${inputClass} min-w-0 flex-1`, "areaSize")}
             />
             <SelectWrap className="w-28 shrink-0">
               <select
                 value={form.areaUnit}
                 onChange={(e) => update("areaUnit", e.target.value)}
-                className="h-14 w-full appearance-none rounded-sm border border-navy-700/60 bg-navy-950 px-3 text-cream outline-none transition focus:border-gold-400"
+                className="h-14 w-full appearance-none rounded-full border border-navy-700/60 bg-navy-950 px-3 text-cream outline-none transition focus:border-gold-400"
               >
                 {AREA_UNITS.map((unit) => (
                   <option key={unit} value={unit}>
@@ -864,7 +864,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
               autoComplete="off"
               value={form.beds}
               onChange={(e) => update("beds", e.target.value)}
-              className={errClass(`${inputClass} rounded-sm`, "beds")}
+              className={errClass(`${inputClass}`, "beds")}
             />
           </FormField>
         )}
@@ -877,7 +877,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
               autoComplete="off"
               value={form.halls}
               onChange={(e) => update("halls", e.target.value)}
-              className={errClass(`${inputClass} rounded-sm`, "halls")}
+              className={errClass(`${inputClass}`, "halls")}
             />
           </FormField>
         )}
@@ -890,7 +890,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
               autoComplete="off"
               value={form.baths}
               onChange={(e) => update("baths", e.target.value)}
-              className={errClass(`${inputClass} rounded-sm`, "baths")}
+              className={errClass(`${inputClass}`, "baths")}
             />
           </FormField>
         )}
@@ -901,7 +901,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
                 id="bathroomType"
                 value={form.bathroomType}
                 onChange={(e) => update("bathroomType", e.target.value)}
-                className={errClass(`${selectClass} rounded-sm pr-10`, "bathroomType")}
+                className={errClass(`${selectClass} pr-10`, "bathroomType")}
               >
                 <option value="">Select Bathroom</option>
                 {PG_HOSTEL_BATHROOM_OPTIONS.map((opt) => (
@@ -922,7 +922,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
                 placeholder="e.g. 3rd, Ground"
                 value={form.floorNo}
                 onChange={(e) => update("floorNo", e.target.value)}
-                className={`${inputClass} rounded-sm`}
+                className={`${inputClass}`}
               />
             </FormField>
             <FormField label="Total Floors in Building" htmlFor="totalFloors" optional>
@@ -933,7 +933,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
                 autoComplete="off"
                 value={form.totalFloors}
                 onChange={(e) => update("totalFloors", e.target.value)}
-                className={`${inputClass} rounded-sm`}
+                className={`${inputClass}`}
               />
             </FormField>
           </>
@@ -945,7 +945,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
                 id="furnishing"
                 value={form.furnishing}
                 onChange={(e) => update("furnishing", e.target.value)}
-                className={`${selectClass} rounded-sm pr-10`}
+                className={`${selectClass} pr-10`}
               >
                 <option value="">Select</option>
                 {FURNISHING_OPTIONS.map((opt) => (
@@ -973,7 +973,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
                 id="facing"
                 value={form.facing}
                 onChange={(e) => update("facing", e.target.value)}
-                className={`${selectClass} rounded-sm pr-10`}
+                className={`${selectClass} pr-10`}
               >
                 <option value="">Select</option>
                 {FACING_OPTIONS.map((opt) => (
@@ -993,7 +993,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
             min={minAvailableDate || undefined}
             max="2099-12-31"
             onChange={handleAvailableFromChange}
-            className={errClass(`${inputClass} rounded-sm`, "availableFrom")}
+            className={errClass(`${inputClass}`, "availableFrom")}
           />
           {availableFromError && (
             <p className="text-xs text-red-400">{availableFromError}</p>
@@ -1006,7 +1006,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
               id="preferredFor"
               value={form.preferredFor}
               onChange={(e) => update("preferredFor", e.target.value)}
-              className={`${selectClass} rounded-sm pr-10`}
+              className={`${selectClass} pr-10`}
             >
               <option value="">Select</option>
               {PREFERRED_FOR_OPTIONS.map((opt) => (
@@ -1060,13 +1060,13 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
             type="text"
             value={form.fullName}
             onChange={(e) => update("fullName", e.target.value)}
-            className={errClass(`${inputClass} rounded-sm`, "fullName")}
+            className={errClass(`${inputClass}`, "fullName")}
           />
         </FormField>
         <FormField label="Mobile Number" htmlFor="mobile" required>
           <div
             className={errClass(
-              "flex items-center rounded-sm border border-navy-700/60 bg-navy-950 pl-4 transition focus-within:border-gold-400",
+              "flex items-center rounded-full border border-navy-700/60 bg-navy-950 pl-4 transition focus-within:border-gold-400",
               "mobile"
             )}
           >
@@ -1101,7 +1101,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
               placeholder="Share key highlights — layout, nearby landmarks, amenities, condition…"
               value={form.description}
               onChange={(e) => update("description", limitToWords(e.target.value, MAX_DESCRIPTION_WORDS))}
-              className={`${textareaClass} rounded-sm`}
+              className={`${textareaClass}`}
             />
           </FormField>
         </div>
@@ -1109,7 +1109,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
       </fieldset>
 
       {error && (
-        <p className="rounded-sm border border-red-500/30 bg-red-500/5 px-4 py-3 text-center text-xs text-red-400">
+        <p className="rounded-2xl border border-red-500/30 bg-red-500/5 px-4 py-3 text-center text-xs text-red-400">
           {error}
         </p>
       )}
@@ -1117,7 +1117,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
       <button
         type="submit"
         disabled={submitting}
-        className="tracked-label flex items-center justify-center gap-2 rounded-sm bg-gold-400 px-6 py-4 text-xs text-navy-950 transition hover:bg-gold-300 disabled:cursor-not-allowed disabled:opacity-60"
+        className="tracked-label flex items-center justify-center gap-2 rounded-full bg-gold-400 px-6 py-4 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
       >
         {submitting ? "Saving..." : editId ? "Save Changes" : "Submit Property"}
         {!submitting && <MdArrowForward className="h-4 w-4" />}
@@ -1148,7 +1148,7 @@ export default PostPropertyForm;
 
 function Section({ icon, title, subtitle, children }) {
   return (
-    <div className="overflow-hidden rounded-sm border border-navy-700/60 bg-navy-900 shadow-[0_16px_40px_-24px_rgba(0,0,0,0.8)]">
+    <div className="overflow-hidden rounded-2xl border border-navy-700/60 bg-navy-900 shadow-[0_16px_40px_-24px_rgba(0,0,0,0.8)]">
       <div className="h-[3px] bg-gold-400" />
       <div className="flex items-center gap-3 border-b border-navy-700/60 bg-navy-950/40 px-5 py-4 sm:gap-4 sm:px-6">
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold-400/10 text-gold-400 sm:h-11 sm:w-11">
@@ -1183,7 +1183,7 @@ function ToggleTwo({ options, value, onChange }) {
           type="button"
           onClick={() => onChange(opt.value)}
           aria-pressed={value === opt.value}
-          className={`tracked-label flex h-14 items-center justify-center rounded-sm border text-xs transition disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-navy-700/60 disabled:hover:text-muted ${
+          className={`tracked-label flex h-14 items-center justify-center rounded-full border text-xs transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-navy-700/60 disabled:hover:text-muted ${
             value === opt.value
               ? "border-gold-400 bg-gold-400 text-navy-950"
               : "border-navy-700/60 text-muted hover:border-gold-400 hover:text-cream"

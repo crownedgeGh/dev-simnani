@@ -45,7 +45,7 @@ export default function TerritoryPropertiesTab({ properties }) {
           <button
             type="button"
             onClick={() => handleShare(property)}
-            className="tracked-label flex h-11 items-center justify-center gap-2 rounded-sm border border-gray-300 text-xs text-gray-700 transition hover:border-cyan-500 hover:text-cyan-600"
+            className="tracked-label flex h-11 items-center justify-center gap-2 rounded-full border border-gray-300 text-xs text-gray-700 transition hover:border-cyan-500 hover:text-cyan-600 active:scale-[0.98]"
           >
             <FiShare2 className="h-4 w-4" />
             {copiedId === property.id ? "Link Copied" : "Share with Customer"}

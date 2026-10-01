@@ -54,7 +54,7 @@ export default function ScheduleVisitForm({ title: propertyTitle, backHref }) {
           <p className="mt-2 text-sm text-muted">Our team will contact you to confirm the visit.</p>
         </div>
 
-        <div className="w-full border border-navy-700/60 bg-navy-950 p-4 text-left">
+        <div className="w-full rounded-2xl border border-navy-700/60 bg-navy-950 p-4 text-left">
           <Row label="Property" value={propertyTitle} />
           <Row label="Date" value={date} />
           <Row label="Time" value={time} />
@@ -65,13 +65,13 @@ export default function ScheduleVisitForm({ title: propertyTitle, backHref }) {
         <div className="flex w-full flex-col gap-3">
           <Link
             href={backHref}
-            className="tracked-label bg-gold-400 px-6 py-4 text-center text-xs text-navy-950 transition hover:bg-gold-300"
+            className="tracked-label rounded-full bg-gold-400 px-6 py-4 text-center text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 active:scale-[0.98]"
           >
             Back to Property
           </Link>
           <Link
             href="/account"
-            className="tracked-label border border-navy-700/60 px-6 py-4 text-center text-xs text-cream transition hover:border-gold-400"
+            className="tracked-label rounded-full border border-navy-700/60 px-6 py-4 text-center text-xs text-cream transition hover:border-gold-400 active:scale-[0.98]"
           >
             View My Account
           </Link>
@@ -133,7 +133,7 @@ export default function ScheduleVisitForm({ title: propertyTitle, backHref }) {
         <label htmlFor="mobile" className="tracked-label text-xs text-cream/80">
           Mobile Number <span className="text-gold-400">*</span>
         </label>
-        <div className="flex items-center border border-navy-700/60 bg-navy-950 px-4 transition focus-within:border-gold-400">
+        <div className="flex items-center rounded-full border border-navy-700/60 bg-navy-950 px-4 transition focus-within:border-gold-400 focus-within:ring-4 focus-within:ring-gold-400/10">
           <span className="text-sm text-muted">+91</span>
           <input
             id="mobile"
@@ -166,7 +166,7 @@ export default function ScheduleVisitForm({ title: propertyTitle, backHref }) {
       <button
         type="submit"
         disabled={submitting}
-        className="tracked-label mt-2 bg-gold-400 px-6 py-4 text-xs text-navy-950 transition hover:bg-gold-300 disabled:cursor-not-allowed disabled:opacity-60"
+        className="tracked-label mt-2 rounded-full bg-gold-400 px-6 py-4 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
       >
         {submitting ? "Requesting..." : "Confirm Site Visit"}
       </button>

@@ -85,12 +85,18 @@ export default function AdminMobileDrawer({ isOpen, onClose }) {
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[#e8e0d5] px-4 py-4">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#f0b429] text-white font-bold text-sm">
+            <div
+              className="flex h-9 w-9 items-center justify-center rounded-xl text-white font-bold text-base"
+              style={{
+                background: "linear-gradient(135deg, #f0b429 0%, #d97706 100%)",
+                boxShadow: "0 3px 8px rgba(240,180,41,0.35)",
+              }}
+            >
               S
             </div>
             <div>
-              <p className="text-sm font-semibold text-[#1a1a2e]">Simnani</p>
-              <p className="text-[10px] text-[#9ca3af] tracking-widest uppercase">Admin Panel</p>
+              <p className="text-sm font-bold text-[#1a1a2e]">Simnani Estate</p>
+              <p className="text-[10px] font-medium text-[#9ca3af] tracking-widest uppercase">Admin Panel</p>
             </div>
           </div>
           <div className="flex items-center gap-1">
@@ -123,12 +129,15 @@ export default function AdminMobileDrawer({ isOpen, onClose }) {
               <div key={href}>
                 <Link
                   href={href}
-                  className={`flex items-center gap-3 px-3 py-3 rounded-xl mb-0.5 transition-all ${
+                  className={`relative flex items-center gap-3 px-3 py-3 rounded-xl mb-0.5 transition-all ${
                     isActive
                       ? "bg-[#fff8e1] text-[#d97706] font-semibold"
                       : "text-[#6b7280] hover:bg-[#faf8f5] hover:text-[#1a1a2e]"
                   }`}
                 >
+                  {isActive && (
+                    <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-[#f0b429]" />
+                  )}
                   <Icon size={20} className={isActive ? "text-[#f0b429]" : "text-[#9ca3af]"} />
                   <span className="text-sm">{label}</span>
                   {href === "/admin/properties" && reviewCount > 0 && (

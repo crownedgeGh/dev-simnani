@@ -14,7 +14,7 @@ export default function ProjectsSection() {
           <Link
             key={project.id}
             href={`/projects/${project.id}`}
-            className="group block overflow-hidden border border-navy-700/60 bg-navy-900 transition active:border-gold-500/50 hover:border-gold-500/50"
+            className="group block overflow-hidden rounded-2xl border border-navy-700/60 bg-navy-900 transition active:border-gold-500/50 hover:border-gold-500/50"
           >
             <div className="relative aspect-[4/3] w-full overflow-hidden">
               <Image

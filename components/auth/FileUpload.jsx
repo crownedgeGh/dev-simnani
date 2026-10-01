@@ -10,7 +10,7 @@ export default function FileUpload({ id, label, hint, file, onChange, optional, 
       </label>
       <label
         htmlFor={id}
-        className="flex cursor-pointer flex-col items-center justify-center gap-1 border border-dashed border-navy-700/60 bg-navy-950 px-4 py-6 text-center transition hover:border-gold-400"
+        className="flex cursor-pointer flex-col items-center justify-center gap-1 rounded-2xl border border-dashed border-navy-700/60 bg-navy-950 px-4 py-6 text-center transition hover:border-gold-400"
       >
         <span className="text-sm text-cream">
           {file ? file.name : "Click to upload or drag and drop"}

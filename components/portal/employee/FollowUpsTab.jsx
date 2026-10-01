@@ -65,7 +65,7 @@ export default function FollowUpsTab({ leads, onAddNote, onReschedule }) {
             <div className="flex flex-wrap gap-2">
               <a
                 href={`tel:+91${digitsOnly(lead.phone)}`}
-                className="flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-sm border border-gray-300 px-3 text-xs text-gray-700 transition hover:border-cyan-500 hover:text-cyan-600"
+                className="flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-full border border-gray-300 px-3 text-xs text-gray-700 transition hover:border-cyan-500 hover:text-cyan-600 active:scale-[0.98]"
                 aria-label={`Call ${lead.name}`}
               >
                 <FiPhoneCall className="h-4 w-4" />
@@ -74,7 +74,7 @@ export default function FollowUpsTab({ leads, onAddNote, onReschedule }) {
                 href={`https://wa.me/91${digitsOnly(lead.phone)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-sm border border-gray-300 px-3 text-xs text-gray-700 transition hover:border-cyan-500 hover:text-cyan-600"
+                className="flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-full border border-gray-300 px-3 text-xs text-gray-700 transition hover:border-cyan-500 hover:text-cyan-600 active:scale-[0.98]"
                 aria-label={`WhatsApp ${lead.name}`}
               >
                 <FaWhatsapp className="h-4 w-4" />
@@ -82,14 +82,14 @@ export default function FollowUpsTab({ leads, onAddNote, onReschedule }) {
               <button
                 type="button"
                 onClick={() => togglePanel(lead.id, "note")}
-                className="tracked-label h-11 rounded-sm border border-gray-300 px-3 text-xs text-gray-700 transition hover:border-cyan-500 hover:text-cyan-600"
+                className="tracked-label h-11 rounded-full border border-gray-300 px-4 text-xs text-gray-700 transition hover:border-cyan-500 hover:text-cyan-600 active:scale-[0.98]"
               >
                 Add Note
               </button>
               <button
                 type="button"
                 onClick={() => togglePanel(lead.id, "reschedule")}
-                className="tracked-label h-11 rounded-sm border border-cyan-500 px-3 text-xs text-cyan-600 transition hover:bg-cyan-50"
+                className="tracked-label h-11 rounded-full border border-cyan-500 px-4 text-xs text-cyan-600 transition hover:bg-cyan-50 active:scale-[0.98]"
               >
                 Reschedule
               </button>
@@ -109,14 +109,14 @@ export default function FollowUpsTab({ leads, onAddNote, onReschedule }) {
                 <button
                   type="button"
                   onClick={() => setOpenPanel(null)}
-                  className="tracked-label border border-gray-300 px-4 py-2 text-xs text-gray-700 transition hover:border-cyan-500"
+                  className="tracked-label rounded-full border border-gray-300 px-4 py-2 text-xs text-gray-700 transition hover:border-cyan-500 active:scale-[0.98]"
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
                   onClick={() => submitNote(lead.id)}
-                  className="tracked-label bg-cyan-600 px-4 py-2 text-xs text-white transition hover:bg-cyan-500"
+                  className="tracked-label rounded-full bg-cyan-600 px-4 py-2 text-xs text-white shadow-lg shadow-cyan-600/10 transition hover:bg-cyan-500 active:scale-[0.98]"
                 >
                   Save Note
                 </button>
@@ -143,7 +143,7 @@ export default function FollowUpsTab({ leads, onAddNote, onReschedule }) {
               <button
                 type="button"
                 onClick={() => submitReschedule(lead.id)}
-                className="tracked-label shrink-0 bg-cyan-600 px-4 py-2 text-xs text-white transition hover:bg-cyan-500"
+                className="tracked-label shrink-0 rounded-full bg-cyan-600 px-4 py-2 text-xs text-white shadow-lg shadow-cyan-600/10 transition hover:bg-cyan-500 active:scale-[0.98]"
               >
                 Save New Follow-up
               </button>

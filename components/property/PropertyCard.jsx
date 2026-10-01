@@ -121,7 +121,7 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
     <Link
       href={ownerView ? `/portal/listing/${id}` : `/property/${id}`}
       onClick={handleCardClick}
-      className="group flex h-full flex-col overflow-hidden rounded-sm border border-navy-700/60 bg-navy-900 transition active:border-gold-500/50 active:shadow-[0_0_0_1px_var(--color-gold-500)] hover:border-gold-500/50 hover:shadow-[0_0_0_1px_var(--color-gold-500)]"
+      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-navy-700/60 bg-navy-900 transition active:border-gold-500/50 active:shadow-[0_0_0_1px_var(--color-gold-500)] hover:border-gold-500/50 hover:shadow-[0_0_0_1px_var(--color-gold-500)]"
     >
       <div className="relative aspect-[4/3] w-full overflow-hidden">
         <Image
@@ -132,28 +132,28 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
           className="object-cover transition duration-500 group-active:scale-105 group-hover:scale-105"
         />
         {onHold ? (
-          <span className="tracked-label absolute left-3 top-3 flex items-center gap-1 rounded-sm bg-gold-500 px-2 py-1 text-[10px] font-semibold text-navy-950">
+          <span className="tracked-label absolute left-3 top-3 flex items-center gap-1 rounded-full bg-gold-500 px-2.5 py-1 text-[10px] font-semibold text-navy-950">
             <MdReportProblem className="h-3 w-3 shrink-0" />
             On Hold
           </span>
         ) : underReview ? (
-          <span className="tracked-label absolute left-3 top-3 flex items-center gap-1 rounded-sm bg-gold-500 px-2 py-1 text-[10px] font-semibold text-navy-950">
+          <span className="tracked-label absolute left-3 top-3 flex items-center gap-1 rounded-full bg-gold-500 px-2.5 py-1 text-[10px] font-semibold text-navy-950">
             <MdHourglassTop className="h-3 w-3 shrink-0" />
             In Review
           </span>
         ) : pendingApproval ? (
-          <span className="tracked-label absolute left-3 top-3 flex items-center gap-1 rounded-sm bg-gold-500 px-2 py-1 text-[10px] font-semibold text-navy-950">
+          <span className="tracked-label absolute left-3 top-3 flex items-center gap-1 rounded-full bg-gold-500 px-2.5 py-1 text-[10px] font-semibold text-navy-950">
             <MdHourglassTop className="h-3 w-3 shrink-0" />
             Under Review
           </span>
         ) : approved ? (
-          <span className="tracked-label absolute left-3 top-3 flex items-center gap-1 rounded-sm bg-gold-400 px-2 py-1 text-[10px] font-semibold text-navy-950">
+          <span className="tracked-label absolute left-3 top-3 flex items-center gap-1 rounded-full bg-gold-400 px-2.5 py-1 text-[10px] font-semibold text-navy-950">
             <MdCheckCircle className="h-3 w-3 shrink-0" />
             Approved
           </span>
         ) : (
           badge && (
-            <span className="tracked-label absolute left-3 top-3 rounded-sm bg-gold-500 px-2 py-1 text-[10px] font-semibold text-navy-950">
+            <span className="tracked-label absolute left-3 top-3 rounded-full bg-gold-500 px-2.5 py-1 text-[10px] font-semibold text-navy-950">
               {badge}
             </span>
           )
@@ -238,7 +238,7 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
 
         {showViewProperty && (
           <div className="mt-auto pt-5">
-            <span className="tracked-label flex min-h-[44px] w-full items-center justify-center border border-gold-500/70 py-2.5 text-center text-xs text-gold-400 transition group-active:bg-gold-500 group-active:text-navy-950 group-hover:bg-gold-500 group-hover:text-navy-950">
+            <span className="tracked-label flex min-h-[44px] w-full items-center justify-center rounded-full border border-gold-500/70 py-2.5 text-center text-xs text-gold-400 transition group-active:bg-gold-500 group-active:text-navy-950 group-hover:bg-gold-500 group-hover:text-navy-950">
               View Property
             </span>
           </div>
@@ -252,7 +252,7 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
                 <button
                   type="button"
                   onClick={handleCallPerson}
-                  className="tracked-label flex min-h-[44px] w-full items-center justify-center gap-2 border border-gold-500/70 py-2.5 text-center text-xs text-gold-400 transition active:bg-gold-500 active:text-navy-950 hover:bg-gold-500 hover:text-navy-950 sm:hidden"
+                  className="tracked-label flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full border border-gold-500/70 py-2.5 text-center text-xs text-gold-400 transition active:bg-gold-500 active:text-navy-950 hover:bg-gold-500 hover:text-navy-950 sm:hidden"
                 >
                   <MdCall className="h-4 w-4 shrink-0" />
                   Call Person
@@ -264,14 +264,14 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
                     <button
                       type="button"
                       onClick={handleShowNumber}
-                      className="tracked-label flex min-h-[44px] w-full items-center justify-center gap-2 border border-gold-500/70 py-2.5 text-center text-xs text-gold-400 transition active:bg-gold-500 active:text-navy-950 hover:bg-gold-500 hover:text-navy-950"
+                      className="tracked-label flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full border border-gold-500/70 py-2.5 text-center text-xs text-gold-400 transition active:bg-gold-500 active:text-navy-950 hover:bg-gold-500 hover:text-navy-950"
                     >
                       <MdCall className="h-4 w-4 shrink-0" />
                       Show Number
                     </button>
                   ) : (
                     <div
-                      className={`flex min-h-[44px] items-center gap-2 border border-gold-500/70 bg-navy-950 py-2 pl-4 pr-2 transition-all duration-300 ease-out ${
+                      className={`flex min-h-[44px] items-center gap-2 rounded-full border border-gold-500/70 bg-navy-950 py-2 pl-4 pr-2 transition-all duration-300 ease-out ${
                         numberEntered ? "scale-100 opacity-100" : "scale-95 opacity-0"
                       }`}
                     >
@@ -280,7 +280,7 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
                         type="button"
                         onClick={handleCopyNumber}
                         aria-label="Copy phone number"
-                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border transition active:scale-95 ${
+                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition active:scale-95 ${
                           copied
                             ? "border-gold-400 bg-gold-400 text-navy-950"
                             : "border-navy-700/60 text-gold-400 hover:border-gold-400"
@@ -296,7 +296,7 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
               <button
                 type="button"
                 onClick={handleContactClick}
-                className="tracked-label flex min-h-[44px] w-full items-center justify-center border border-gold-500/70 py-2.5 text-center text-xs text-gold-400 transition active:bg-gold-500 active:text-navy-950 hover:bg-gold-500 hover:text-navy-950"
+                className="tracked-label flex min-h-[44px] w-full items-center justify-center rounded-full border border-gold-500/70 py-2.5 text-center text-xs text-gold-400 transition active:bg-gold-500 active:text-navy-950 hover:bg-gold-500 hover:text-navy-950"
               >
                 Contact Person
               </button>
@@ -307,7 +307,7 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
 
       {showToast && (
         <div className="fixed inset-x-0 bottom-6 z-50 flex justify-center px-4 sm:bottom-8">
-          <div className="tracked-label rounded-sm border border-gold-500/70 bg-navy-900 px-5 py-3 text-xs text-cream shadow-lg">
+          <div className="tracked-label rounded-full border border-gold-500/70 bg-navy-900 px-5 py-3 text-xs text-cream shadow-lg">
             The person will contact you soon.
           </div>
         </div>

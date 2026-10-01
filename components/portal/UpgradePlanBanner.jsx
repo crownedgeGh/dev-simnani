@@ -25,12 +25,12 @@ export default function UpgradePlanBanner({ planName, isPremium = false }) {
   if (dismissed || isPremium) return null;
 
   return (
-    <div className="relative mt-6 flex flex-col gap-4 rounded-sm border border-gold-500/70 bg-gradient-to-r from-gold-500/15 via-gold-400/10 to-transparent px-5 py-4 pr-12 sm:flex-row sm:items-center sm:justify-between">
+    <div className="relative mt-6 flex flex-col gap-4 rounded-2xl border border-gold-500/70 bg-gradient-to-r from-gold-500/15 via-gold-400/10 to-transparent px-5 py-4 pr-12 shadow-lg shadow-gold-400/5 sm:flex-row sm:items-center sm:justify-between">
       <button
         type="button"
         onClick={handleDismiss}
         aria-label="Dismiss"
-        className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center text-muted transition hover:text-cream"
+        className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full text-muted transition hover:bg-navy-950/40 hover:text-cream"
       >
         <FiX className="h-4 w-4" />
       </button>
@@ -50,7 +50,7 @@ export default function UpgradePlanBanner({ planName, isPremium = false }) {
 
       <Link
         href="/pricing"
-        className="tracked-label flex items-center gap-2 self-start bg-gold-400 px-4 py-3 text-xs text-navy-950 transition hover:bg-gold-300 sm:self-auto"
+        className="tracked-label flex items-center gap-2 self-start rounded-full bg-gold-400 px-4 py-3 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 active:scale-[0.98] sm:self-auto"
       >
         Upgrade Plan
         <FiArrowRight className="h-4 w-4" />

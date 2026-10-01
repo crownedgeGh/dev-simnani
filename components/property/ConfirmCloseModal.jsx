@@ -57,7 +57,7 @@ export default function ConfirmCloseModal({ isOpen, onCancel, onConfirm }) {
         .cc-card { animation: ccSlideUp 0.26s cubic-bezier(0.34,1.5,0.64,1); }
       `}</style>
 
-      <div className="cc-card relative w-full max-w-[420px] overflow-hidden rounded-2xl border border-gold-400/20 bg-navy-900 shadow-2xl">
+      <div className="cc-card relative w-full max-w-[420px] overflow-hidden rounded-3xl border border-gold-400/20 bg-navy-900 shadow-2xl">
         <div
           className="h-0.5"
           style={{
@@ -90,14 +90,14 @@ export default function ConfirmCloseModal({ isOpen, onCancel, onConfirm }) {
             <button
               type="button"
               onClick={onConfirm}
-              className="tracked-label flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg border border-red-500/40 px-5 py-3.5 text-center text-xs font-semibold text-red-400 transition hover:bg-red-500/10"
+              className="tracked-label flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full border border-red-500/40 px-5 py-3.5 text-center text-xs font-semibold text-red-400 transition hover:bg-red-500/10 active:scale-[0.98]"
             >
               Yes, Close Form
             </button>
             <button
               type="button"
               onClick={onCancel}
-              className="tracked-label flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg bg-gold-400 px-5 py-3.5 text-center text-xs font-bold text-navy-950 transition hover:bg-gold-300"
+              className="tracked-label flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full bg-gold-400 px-5 py-3.5 text-center text-xs font-bold text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 active:scale-[0.98]"
             >
               Continue filling form
             </button>

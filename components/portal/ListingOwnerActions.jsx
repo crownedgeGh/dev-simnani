@@ -68,7 +68,7 @@ export default function ListingOwnerActions({ property }) {
       <div className="mt-5 flex flex-col gap-3">
         <Link
           href={`/post-property/edit/${property.id}`}
-          className="tracked-label flex min-h-11 items-center justify-center gap-1.5 border border-gold-500/70 py-2.5 text-xs text-gold-400 transition hover:bg-gold-500/10"
+          className="tracked-label flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-gold-500/70 py-2.5 text-xs text-gold-400 transition hover:bg-gold-500/10 active:scale-[0.98]"
         >
           <MdEdit className="h-4 w-4" />
           Edit Listing
@@ -78,7 +78,7 @@ export default function ListingOwnerActions({ property }) {
           href={`/property/${property.id}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="tracked-label flex min-h-11 items-center justify-center gap-1.5 border border-navy-700/60 py-2.5 text-xs text-cream transition hover:border-gold-500/50 hover:text-gold-400"
+          className="tracked-label flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-navy-700/60 py-2.5 text-xs text-cream transition hover:border-gold-500/50 hover:text-gold-400 active:scale-[0.98]"
         >
           <MdVisibility className="h-4 w-4" />
           View Public Page
@@ -89,7 +89,7 @@ export default function ListingOwnerActions({ property }) {
             type="button"
             disabled={busy}
             onClick={() => updateStatus("Active", "Listing reopened.")}
-            className="tracked-label flex min-h-11 items-center justify-center gap-1.5 border border-navy-700/60 py-2.5 text-xs text-cream transition hover:border-gold-500/50 hover:text-gold-400 disabled:cursor-not-allowed disabled:opacity-50"
+            className="tracked-label flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-navy-700/60 py-2.5 text-xs text-cream transition hover:border-gold-500/50 hover:text-gold-400 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
           >
             <MdLockOpen className="h-4 w-4" />
             Reopen Listing
@@ -109,7 +109,7 @@ export default function ListingOwnerActions({ property }) {
                 cancel: { label: "Cancel", onClick: () => {} },
               })
             }
-            className="tracked-label flex min-h-11 items-center justify-center gap-1.5 border border-navy-700/60 py-2.5 text-xs text-muted transition hover:border-gold-500/50 hover:text-gold-400 disabled:cursor-not-allowed disabled:opacity-50"
+            className="tracked-label flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-navy-700/60 py-2.5 text-xs text-muted transition hover:border-gold-500/50 hover:text-gold-400 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
           >
             <MdLockOutline className="h-4 w-4" />
             Close Listing
@@ -120,7 +120,7 @@ export default function ListingOwnerActions({ property }) {
           type="button"
           disabled={busy}
           onClick={confirmDelete}
-          className="tracked-label flex min-h-11 items-center justify-center gap-1.5 border border-navy-700/60 py-2.5 text-xs text-cream transition hover:border-red-400 hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-50"
+          className="tracked-label flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-navy-700/60 py-2.5 text-xs text-cream transition hover:border-red-400 hover:text-red-400 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
         >
           <MdDeleteOutline className="h-4 w-4" />
           Delete Listing

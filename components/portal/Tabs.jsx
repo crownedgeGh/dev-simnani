@@ -12,7 +12,7 @@ export default function Tabs({ tabs, active, onChange }) {
             onClick={() => onChange(tab.key)}
             role="tab"
             aria-selected={isActive}
-            className={`tracked-label inline-flex shrink-0 items-center justify-center border px-4 py-2.5 sm:py-2 text-xs font-medium whitespace-nowrap transition cursor-pointer ${
+            className={`tracked-label inline-flex shrink-0 items-center justify-center rounded-full border px-4 py-2.5 sm:py-2 text-xs font-medium whitespace-nowrap transition cursor-pointer active:scale-[0.98] ${
               isActive
                 ? "border-gold-400 bg-gold-400 text-navy-950 shadow-sm"
                 : "border-navy-700/70 bg-navy-900/80 text-muted hover:border-gold-400/60 hover:bg-navy-800 hover:text-cream"

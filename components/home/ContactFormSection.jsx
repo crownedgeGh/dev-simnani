@@ -20,7 +20,7 @@ export default function ContactFormSection({
     <section className="border-t border-navy-800 bg-navy-900">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
         {/* Card */}
-        <div className="mx-auto max-w-2xl border border-navy-700/60 bg-navy-950 p-6 sm:p-8">
+        <div className="mx-auto max-w-2xl rounded-2xl border border-navy-700/60 bg-navy-950 p-6 sm:p-8">
           <p className="font-display text-xl text-cream">Send Us an Enquiry</p>
           <p className="mt-1 text-sm text-muted">
             Our team will call you back shortly after receiving your details.

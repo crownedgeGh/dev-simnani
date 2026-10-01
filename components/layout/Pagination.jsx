@@ -38,7 +38,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
         onClick={() => goTo(currentPage - 1)}
         disabled={currentPage === 1}
         aria-label="Previous page"
-        className="flex h-11 w-11 items-center justify-center border border-navy-700/60 text-cream transition hover:border-gold-500/60 hover:text-gold-400 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-navy-700/60 disabled:hover:text-cream"
+        className="flex h-11 w-11 items-center justify-center rounded-full border border-navy-700/60 text-cream transition hover:border-gold-500/60 hover:text-gold-400 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-navy-700/60 disabled:hover:text-cream"
       >
         <FiChevronLeft className="h-4 w-4" />
       </button>
@@ -51,7 +51,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
             onClick={() => goTo(page)}
             aria-label={`Page ${page}`}
             aria-current={page === currentPage ? "page" : undefined}
-            className={`flex h-11 min-w-11 items-center justify-center px-3 text-sm transition ${
+            className={`flex h-11 min-w-11 items-center justify-center rounded-full px-3 text-sm transition active:scale-[0.98] ${
               page === currentPage
                 ? "border border-gold-400 bg-gold-400/10 text-gold-400"
                 : "border border-navy-700/60 text-cream hover:border-gold-500/60 hover:text-gold-400"
@@ -74,7 +74,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
         onClick={() => goTo(currentPage + 1)}
         disabled={currentPage === totalPages}
         aria-label="Next page"
-        className="flex h-11 w-11 items-center justify-center border border-navy-700/60 text-cream transition hover:border-gold-500/60 hover:text-gold-400 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-navy-700/60 disabled:hover:text-cream"
+        className="flex h-11 w-11 items-center justify-center rounded-full border border-navy-700/60 text-cream transition hover:border-gold-500/60 hover:text-gold-400 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-navy-700/60 disabled:hover:text-cream"
       >
         <FiChevronRight className="h-4 w-4" />
       </button>

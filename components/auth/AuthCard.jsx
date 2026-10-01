@@ -312,7 +312,7 @@ export default function AuthCard() {
   }
 
   return (
-    <div className="w-full max-w-md border border-navy-700/60 bg-navy-900 p-8 shadow-2xl sm:p-10">
+    <div className="w-full max-w-md rounded-3xl border border-navy-700/60 bg-navy-900 p-8 shadow-2xl sm:p-10">
       <div className="flex flex-col items-center gap-2 text-center">
         <span className="tracked-label text-xs text-gold-400">
           Simnani Estate
@@ -323,7 +323,7 @@ export default function AuthCard() {
               type="button"
               onClick={() => router.push("/")}
               aria-label="Close"
-              className="flex h-12 w-12 shrink-0 items-center justify-center border border-navy-700/60 bg-navy-900 text-cream transition hover:border-gold-400 hover:text-gold-400"
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-navy-700/60 bg-navy-900 text-cream transition hover:border-gold-400 hover:text-gold-400 active:scale-[0.98]"
             >
               <FiX className="h-6 w-6" />
             </button>
@@ -332,7 +332,7 @@ export default function AuthCard() {
               type="button"
               onClick={handleChangeNumber}
               aria-label="Back to login"
-              className="flex h-11 w-11 shrink-0 items-center justify-center border border-navy-700/60 bg-navy-900 text-cream transition hover:border-gold-400 hover:text-gold-400"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-navy-700/60 bg-navy-900 text-cream transition hover:border-gold-400 hover:text-gold-400 active:scale-[0.98]"
             >
               <FiArrowLeft className="h-5 w-5" />
             </button>
@@ -380,7 +380,7 @@ export default function AuthCard() {
               <label htmlFor="mobile" className="tracked-label text-xs text-cream/80">
                 Mobile Number
               </label>
-              <div className="flex items-center border border-navy-700/60 bg-navy-950 px-4 transition focus-within:border-gold-400">
+              <div className="flex items-center rounded-full border border-navy-700/60 bg-navy-950 px-4 transition focus-within:border-gold-400 focus-within:ring-4 focus-within:ring-gold-400/10">
                 <span className="text-sm text-muted">+91</span>
                 <input
                   id="mobile"
@@ -413,7 +413,7 @@ export default function AuthCard() {
                     Forgot Password?
                   </button>
                 </div>
-                <div className="relative flex items-center border border-navy-700/60 bg-navy-950 px-4 transition focus-within:border-gold-400">
+                <div className="relative flex items-center rounded-full border border-navy-700/60 bg-navy-950 px-4 transition focus-within:border-gold-400 focus-within:ring-4 focus-within:ring-gold-400/10">
                   <input
                     id="password"
                     type={showPassword ? "text" : "password"}
@@ -430,7 +430,7 @@ export default function AuthCard() {
                     type="button"
                     onClick={() => setShowPassword((s) => !s)}
                     aria-label={showPassword ? "Hide password" : "Show password"}
-                    className="absolute right-3 text-muted transition hover:text-gold-400"
+                    className="absolute right-3 flex h-9 w-9 items-center justify-center rounded-full text-muted transition hover:text-gold-400"
                   >
                     {showPassword ? <FiEyeOff className="h-5 w-5" /> : <FiEye className="h-5 w-5" />}
                   </button>
@@ -449,7 +449,7 @@ export default function AuthCard() {
                 </p>
                 <Link
                   href="/auth/register"
-                  className="tracked-label mt-2 flex items-center justify-center gap-2 bg-gold-400 px-6 py-4 text-xs text-navy-950 transition hover:bg-gold-300"
+                  className="tracked-label mt-2 flex items-center justify-center gap-2 rounded-full bg-gold-400 px-6 py-4 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 hover:shadow-gold-400/20 active:scale-[0.98]"
                 >
                   Create Account
                 </Link>
@@ -458,7 +458,7 @@ export default function AuthCard() {
               <button
                 type="submit"
                 disabled={mode === "password" ? !mobileValid || !password || loading : !mobileValid || loading}
-                className="tracked-label mt-2 flex items-center justify-center gap-2 bg-gold-400 px-6 py-4 text-xs text-navy-950 transition hover:bg-gold-300 disabled:cursor-not-allowed disabled:opacity-50"
+                className="tracked-label mt-2 flex items-center justify-center gap-2 rounded-full bg-gold-400 px-6 py-4 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 hover:shadow-gold-400/20 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {mode === "password"
                   ? loading ? "Logging in..." : "Login"
@@ -473,7 +473,7 @@ export default function AuthCard() {
                 <button
                   type="button"
                   onClick={() => switchMode("otp")}
-                  className="tracked-label w-full border border-gold-500/70 px-6 py-3.5 text-xs text-gold-400 transition hover:bg-gold-500/10"
+                  className="tracked-label w-full rounded-full border border-gold-500/70 px-6 py-3.5 text-xs text-gold-400 transition hover:bg-gold-500/10 active:scale-[0.98]"
                 >
                   Or Login via OTP
                 </button>
@@ -481,7 +481,7 @@ export default function AuthCard() {
                 <button
                   type="button"
                   onClick={() => switchMode("password")}
-                  className="tracked-label w-full border border-gold-500/70 px-6 py-3.5 text-xs text-gold-400 transition hover:bg-gold-500/10"
+                  className="tracked-label w-full rounded-full border border-gold-500/70 px-6 py-3.5 text-xs text-gold-400 transition hover:bg-gold-500/10 active:scale-[0.98]"
                 >
                   Or Login with Password
                 </button>
@@ -503,7 +503,7 @@ export default function AuthCard() {
                 type="button"
                 onClick={handleTesterLogin}
                 disabled={loading}
-                className="group flex w-full items-center justify-between border border-gold-400/30 bg-gold-400/5 p-4 text-left transition hover:border-gold-400 hover:bg-gold-400/10 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
+                className="group flex w-full items-center justify-between rounded-2xl border border-gold-400/30 bg-gold-400/5 p-4 text-left transition hover:border-gold-400 hover:bg-gold-400/10 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <div className="flex items-center gap-3.5">
                   <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gold-400/30 bg-gold-400/10 text-gold-400 transition group-hover:border-gold-400 group-hover:bg-gold-400/20">
@@ -554,7 +554,7 @@ export default function AuthCard() {
                 onChange={(event) => handleOtpChange(index, event.target.value)}
                 onKeyDown={(event) => handleOtpKeyDown(index, event)}
                 onPaste={handleOtpPaste}
-                className={`h-14 w-12 border bg-navy-950 text-center text-lg text-cream outline-none transition focus:border-gold-400 ${
+                className={`h-14 w-12 rounded-full border bg-navy-950 text-center text-lg text-cream outline-none transition focus:border-gold-400 focus:ring-4 focus:ring-gold-400/10 ${
                   error ? "border-red-500" : "border-navy-700/60"
                 }`}
               />
@@ -567,7 +567,7 @@ export default function AuthCard() {
             type="button"
             onClick={handleVerify}
             disabled={loading}
-            className="tracked-label flex items-center justify-center gap-2 bg-gold-400 px-6 py-4 text-xs text-navy-950 transition hover:bg-gold-300 disabled:cursor-not-allowed disabled:opacity-60"
+            className="tracked-label flex items-center justify-center gap-2 rounded-full bg-gold-400 px-6 py-4 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 hover:shadow-gold-400/20 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading && !isTesterLogin ? "Verifying..." : "Verify"}
           </button>
@@ -630,7 +630,7 @@ export default function AuthCard() {
                 onChange={(event) => handleOtpChange(index, event.target.value)}
                 onKeyDown={(event) => handleOtpKeyDown(index, event)}
                 onPaste={handleOtpPaste}
-                className={`h-14 w-12 border bg-navy-950 text-center text-lg text-cream outline-none transition focus:border-gold-400 ${
+                className={`h-14 w-12 rounded-full border bg-navy-950 text-center text-lg text-cream outline-none transition focus:border-gold-400 focus:ring-4 focus:ring-gold-400/10 ${
                   error ? "border-red-500" : "border-navy-700/60"
                 }`}
               />
@@ -643,7 +643,7 @@ export default function AuthCard() {
             type="button"
             onClick={handleForgotOtpVerify}
             disabled={loading}
-            className="tracked-label flex items-center justify-center gap-2 bg-gold-400 px-6 py-4 text-xs text-navy-950 transition hover:bg-gold-300 disabled:cursor-not-allowed disabled:opacity-60"
+            className="tracked-label flex items-center justify-center gap-2 rounded-full bg-gold-400 px-6 py-4 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 hover:shadow-gold-400/20 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
           >
             Verify &amp; Set New Password
           </button>
@@ -684,7 +684,7 @@ export default function AuthCard() {
               </label>
               <span className="text-[11px] text-muted">Min. 8 characters</span>
             </div>
-            <div className="relative flex items-center border border-navy-700/60 bg-navy-950 px-4 transition focus-within:border-gold-400">
+            <div className="relative flex items-center rounded-full border border-navy-700/60 bg-navy-950 px-4 transition focus-within:border-gold-400 focus-within:ring-4 focus-within:ring-gold-400/10">
               <input
                 id="new-password"
                 type={showNewPassword ? "text" : "password"}
@@ -701,7 +701,7 @@ export default function AuthCard() {
                 type="button"
                 onClick={() => setShowNewPassword((s) => !s)}
                 aria-label={showNewPassword ? "Hide password" : "Show password"}
-                className="absolute right-3 text-muted transition hover:text-gold-400"
+                className="absolute right-3 flex h-9 w-9 items-center justify-center rounded-full text-muted transition hover:text-gold-400"
               >
                 {showNewPassword ? <FiEyeOff className="h-5 w-5" /> : <FiEye className="h-5 w-5" />}
               </button>
@@ -712,7 +712,7 @@ export default function AuthCard() {
             <label htmlFor="confirm-password" className="tracked-label text-xs text-cream/80">
               Confirm Password
             </label>
-            <div className="relative flex items-center border border-navy-700/60 bg-navy-950 px-4 transition focus-within:border-gold-400">
+            <div className="relative flex items-center rounded-full border border-navy-700/60 bg-navy-950 px-4 transition focus-within:border-gold-400 focus-within:ring-4 focus-within:ring-gold-400/10">
               <input
                 id="confirm-password"
                 type={showConfirmPassword ? "text" : "password"}
@@ -729,7 +729,7 @@ export default function AuthCard() {
                 type="button"
                 onClick={() => setShowConfirmPassword((s) => !s)}
                 aria-label={showConfirmPassword ? "Hide password" : "Show password"}
-                className="absolute right-3 text-muted transition hover:text-gold-400"
+                className="absolute right-3 flex h-9 w-9 items-center justify-center rounded-full text-muted transition hover:text-gold-400"
               >
                 {showConfirmPassword ? <FiEyeOff className="h-5 w-5" /> : <FiEye className="h-5 w-5" />}
               </button>
@@ -738,7 +738,7 @@ export default function AuthCard() {
 
           {error && <p className="text-xs text-red-400">{error}</p>}
           {successMessage && (
-            <div className="flex items-center gap-2 border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs text-emerald-400">
+            <div className="flex items-center gap-2 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs text-emerald-400">
               <MdCheckCircle className="h-4 w-4 shrink-0" />
               <span>{successMessage}</span>
             </div>
@@ -747,7 +747,7 @@ export default function AuthCard() {
           <button
             type="submit"
             disabled={!newPassword || !confirmPassword || loading || Boolean(successMessage)}
-            className="tracked-label mt-2 flex items-center justify-center gap-2 bg-gold-400 px-6 py-4 text-xs text-navy-950 transition hover:bg-gold-300 disabled:cursor-not-allowed disabled:opacity-50"
+            className="tracked-label mt-2 flex items-center justify-center gap-2 rounded-full bg-gold-400 px-6 py-4 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 hover:shadow-gold-400/20 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading ? "Updating Password..." : "Update Password & Login"}
           </button>

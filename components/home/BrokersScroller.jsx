@@ -23,14 +23,14 @@ function BrokerActions({ accountId, mobile }) {
         <Link
           href={`/agent/${accountId}`}
           aria-label="View profile"
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-navy-700/60 text-cream transition hover:border-gold-500/50 hover:text-gold-400"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-navy-700/60 text-cream transition active:scale-[0.98] hover:border-gold-500/50 hover:text-gold-400"
         >
           <FiEye size={16} />
         </Link>
       ) : (
         <Link
           href={`/agent/${accountId}`}
-          className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-navy-700/60 py-2.5 text-sm font-semibold text-cream transition hover:border-gold-500/50 hover:text-gold-400"
+          className="flex flex-1 items-center justify-center gap-2 rounded-full border border-navy-700/60 py-2.5 text-sm font-semibold text-cream transition active:scale-[0.98] hover:border-gold-500/50 hover:text-gold-400"
         >
           <FiEye size={16} />
           View
@@ -115,7 +115,7 @@ export default function BrokersScroller({ brokers }) {
           type="button"
           onClick={() => scrollByAmount(-SCROLL_STEP)}
           aria-label="Scroll left"
-          className="absolute left-0 top-1/2 z-10 hidden h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-gold-500/70 bg-navy-950 text-gold-400 transition hover:bg-gold-500/10 sm:flex"
+          className="absolute left-0 top-1/2 z-10 hidden h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-gold-500/70 bg-navy-950 text-gold-400 shadow-lg shadow-gold-400/10 transition active:scale-[0.98] hover:bg-gold-500/10 sm:flex"
         >
           <FiChevronLeft size={20} />
         </button>
@@ -126,7 +126,7 @@ export default function BrokersScroller({ brokers }) {
           type="button"
           onClick={handleRightClick}
           aria-label="Scroll right"
-          className="absolute right-0 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full border border-gold-500/70 bg-navy-950 text-gold-400 transition hover:bg-gold-500/10 sm:flex"
+          className="absolute right-0 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full border border-gold-500/70 bg-navy-950 text-gold-400 shadow-lg shadow-gold-400/10 transition active:scale-[0.98] hover:bg-gold-500/10 sm:flex"
         >
           <FiChevronRight size={20} />
         </button>
@@ -140,7 +140,7 @@ export default function BrokersScroller({ brokers }) {
         {brokers.map((broker) => (
           <div
             key={broker.accountId}
-            className="broker-card relative flex w-[85%] shrink-0 snap-start flex-col rounded-xl p-5 transition-all duration-300 sm:w-[280px] lg:w-[300px]"
+            className="broker-card relative flex w-[85%] shrink-0 snap-start flex-col rounded-2xl p-5 transition-all duration-300 sm:w-[280px] lg:w-[300px]"
             style={{
               background: "linear-gradient(145deg, #0f1628 0%, #0a0e1a 100%)",
               border: "1px solid rgba(27,39,64,0.8)",
@@ -149,7 +149,7 @@ export default function BrokersScroller({ brokers }) {
           >
             {/* Gold top accent bar */}
             <div
-              className="absolute inset-x-0 top-0 h-0.5 rounded-t-xl"
+              className="absolute inset-x-0 top-0 h-0.5 rounded-t-2xl"
               style={{
                 background: "linear-gradient(90deg, transparent, rgba(255,198,51,0.6), transparent)",
               }}

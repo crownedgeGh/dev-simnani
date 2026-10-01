@@ -8,7 +8,7 @@ const MAX_WIDTH = {
 export default function AuthShell({ children, size = "md" }) {
   return (
     <div
-      className={`w-full ${MAX_WIDTH[size] || MAX_WIDTH.md} border border-navy-700/60 bg-navy-900 p-8 shadow-2xl sm:p-10`}
+      className={`w-full ${MAX_WIDTH[size] || MAX_WIDTH.md} rounded-3xl border border-navy-700/60 bg-navy-900 p-8 shadow-2xl sm:p-10`}
     >
       {children}
     </div>

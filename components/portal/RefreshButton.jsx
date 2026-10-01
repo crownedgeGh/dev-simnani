@@ -28,7 +28,7 @@ export default function RefreshButton({ onRefresh, label = "Refresh section", cl
       onClick={handleClick}
       aria-label={label}
       title={label}
-      className={`tracked-label flex items-center gap-1.5 rounded-sm border border-gold-500/40 bg-gold-500/10 px-3 py-1.5 text-[10px] text-gold-400 font-semibold transition hover:bg-gold-500/20 hover:border-gold-400 ${className}`}
+      className={`tracked-label flex items-center gap-1.5 rounded-full border border-gold-500/40 bg-gold-500/10 px-3.5 py-1.5 text-[10px] text-gold-400 font-semibold transition hover:bg-gold-500/20 hover:border-gold-400 active:scale-[0.98] ${className}`}
     >
       <FiRefreshCw
         className={`h-3.5 w-3.5 text-gold-400 transition-transform ${spinning ? "animate-spin" : ""}`}

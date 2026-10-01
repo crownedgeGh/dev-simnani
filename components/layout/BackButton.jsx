@@ -23,7 +23,7 @@ export default function BackButton({ href, className = "", onClick }) {
       type="button"
       onClick={handleClick}
       aria-label="Go back"
-      className={`flex h-11 w-11 shrink-0 items-center justify-center border border-navy-700/60 bg-navy-900 text-cream transition hover:border-gold-400 hover:text-gold-400 ${className}`}
+      className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-navy-700/60 bg-navy-900 text-cream transition hover:border-gold-400 hover:text-gold-400 active:scale-[0.98] ${className}`}
     >
       <FiArrowLeft className="h-5 w-5" />
     </button>

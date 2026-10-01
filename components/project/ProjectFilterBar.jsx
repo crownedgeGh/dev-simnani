@@ -163,7 +163,7 @@ export default function ProjectFilterBar({ projects, emptyMessage }) {
                 type="button"
                 onClick={clearCity}
                 aria-label="Clear city"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted transition hover:text-cream"
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full text-muted transition active:scale-[0.98] hover:text-cream"
               >
                 <FiX className="h-4 w-4" />
               </button>
@@ -212,7 +212,7 @@ export default function ProjectFilterBar({ projects, emptyMessage }) {
                 key={filter.key}
                 type="button"
                 onClick={filter.clear}
-                className="tracked-label flex items-center gap-1.5 border border-gold-500/40 bg-gold-400/10 px-3 py-1.5 text-[11px] text-gold-400 transition hover:bg-gold-400/15"
+                className="tracked-label flex items-center gap-1.5 rounded-full border border-gold-500/40 bg-gold-400/10 px-3.5 py-1.5 text-[11px] text-gold-400 transition active:scale-[0.98] hover:bg-gold-400/15"
               >
                 {filter.label}
                 <FiX className="h-3 w-3" />
@@ -221,7 +221,7 @@ export default function ProjectFilterBar({ projects, emptyMessage }) {
             <button
               type="button"
               onClick={clearAll}
-              className="tracked-label px-2 py-1.5 text-[11px] text-muted underline-offset-2 transition hover:text-cream hover:underline"
+              className="tracked-label rounded-full px-2 py-1.5 text-[11px] text-muted underline-offset-2 transition active:scale-[0.98] hover:text-cream hover:underline"
             >
               Clear All
             </button>

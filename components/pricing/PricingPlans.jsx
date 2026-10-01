@@ -110,13 +110,13 @@ export default function PricingPlans() {
 
         {/* Current membership status */}
         {currentPlan && currentStatus && (
-          <div className="mx-auto mt-6 flex max-w-xl flex-col items-center gap-2 rounded-sm border border-navy-700/60 bg-navy-900 px-5 py-4 text-center sm:flex-row sm:justify-between sm:text-left">
+          <div className="mx-auto mt-6 flex max-w-xl flex-col items-center gap-2 rounded-2xl border border-navy-700/60 bg-navy-900 px-5 py-4 text-center sm:flex-row sm:justify-between sm:text-left">
             <div>
               <p className="tracked-label text-[11px] text-muted">Your Current Plan</p>
               <p className="font-display text-lg text-cream">{currentPlan.name} Member</p>
             </div>
             <span
-              className={`tracked-label inline-flex items-center gap-1.5 rounded-sm border px-3 py-1.5 text-[11px] ${currentStatus.className}`}
+              className={`tracked-label inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] ${currentStatus.className}`}
             >
               <currentStatus.icon className="h-3.5 w-3.5" />
               {currentStatus.label}
@@ -136,20 +136,20 @@ export default function PricingPlans() {
             return (
               <div
                 key={plan.id}
-                className={`relative flex flex-col rounded-sm border bg-navy-900 p-6 sm:p-7 transition ${
+                className={`relative flex flex-col rounded-2xl border bg-navy-900 p-6 sm:p-7 transition ${
                   plan.highlight
                     ? "border-gold-400/60 shadow-[0_0_0_1px_rgba(255,198,51,0.15)]"
                     : "border-navy-700/60 hover:border-navy-600"
                 }`}
               >
                 {plan.highlight && (
-                  <span className="tracked-label absolute -top-3 left-1/2 -translate-x-1/2 rounded-sm bg-gold-400 px-3 py-1 text-[10px] text-navy-950">
+                  <span className="tracked-label absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gold-400 px-3 py-1 text-[10px] text-navy-950 shadow-lg shadow-gold-400/20">
                     Most Popular
                   </span>
                 )}
 
                 <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-sm border border-gold-400/20 bg-gold-400/10 text-gold-400">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-gold-400/20 bg-gold-400/10 text-gold-400">
                     <Icon className="h-5 w-5" />
                   </div>
                   <div>
@@ -181,9 +181,9 @@ export default function PricingPlans() {
                   type="button"
                   onClick={() => handlePurchase(plan)}
                   disabled={isDisabled}
-                  className={`tracked-label mt-8 flex min-h-[44px] w-full items-center justify-center rounded-sm px-4 py-3 text-xs transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                  className={`tracked-label mt-8 flex min-h-[44px] w-full items-center justify-center rounded-full px-4 py-3 text-xs transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100 ${
                     plan.highlight
-                      ? "bg-gold-400 text-navy-950 hover:bg-gold-300"
+                      ? "bg-gold-400 text-navy-950 shadow-lg shadow-gold-400/10 hover:bg-gold-300 hover:shadow-gold-400/20"
                       : "border border-gold-500/70 text-gold-400 hover:bg-gold-500/10"
                   }`}
                 >
@@ -201,7 +201,7 @@ export default function PricingPlans() {
         </div>
 
         {/* Testing-period note */}
-        <div className="mx-auto mt-14 max-w-3xl rounded-sm border border-navy-700/60 bg-navy-900 px-5 py-5 text-center sm:px-8">
+        <div className="mx-auto mt-14 max-w-3xl rounded-2xl border border-navy-700/60 bg-navy-900 px-5 py-5 text-center sm:px-8">
           <p className="tracked-label text-[11px] text-gold-400">Please Note</p>
           
         </div>

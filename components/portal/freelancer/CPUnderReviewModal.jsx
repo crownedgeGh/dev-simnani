@@ -10,7 +10,7 @@ export default function CPUnderReviewModal({
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy-950/90 px-4 py-8 backdrop-blur-sm">
-      <div className="w-full max-w-md border border-navy-700/60 bg-navy-900 p-8 text-center shadow-2xl sm:p-10">
+      <div className="w-full max-w-md rounded-3xl border border-navy-700/60 bg-navy-900 p-8 text-center shadow-2xl sm:p-10">
         <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gold-400/10 text-gold-400">
           <MdHourglassTop className="h-8 w-8" />
         </span>
@@ -25,7 +25,7 @@ export default function CPUnderReviewModal({
               type="button"
               onClick={onRefresh}
               disabled={refreshing}
-              className="tracked-label inline-flex h-12 w-full items-center justify-center gap-2 border border-navy-700/60 px-6 text-xs text-cream transition hover:border-gold-400 hover:text-gold-400 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:px-8"
+              className="tracked-label inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-navy-700/60 px-6 text-xs text-cream transition hover:border-gold-400 hover:text-gold-400 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:px-8"
             >
               <MdRefresh className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
               {refreshing ? "Checking..." : "Check Status"}
@@ -34,7 +34,7 @@ export default function CPUnderReviewModal({
           <button
             type="button"
             onClick={onGoHome}
-            className="tracked-label inline-flex h-12 w-full items-center justify-center bg-gold-400 px-6 text-xs text-navy-950 transition hover:bg-gold-300 sm:w-auto sm:px-8"
+            className="tracked-label inline-flex h-12 w-full items-center justify-center rounded-full bg-gold-400 px-6 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 sm:w-auto sm:px-8"
           >
             {actionLabel}
           </button>

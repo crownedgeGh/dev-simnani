@@ -24,7 +24,7 @@ export default async function SellPage() {
         </div>
         <Link
           href="/post-property"
-          className="tracked-label w-full shrink-0 bg-gold-400 px-6 py-3.5 text-center text-xs text-navy-950 transition hover:bg-gold-300 sm:w-auto"
+          className="tracked-label w-full shrink-0 rounded-full bg-gold-400 px-6 py-3.5 text-center text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 active:scale-[0.98] sm:w-auto"
         >
           Post Your Property
         </Link>

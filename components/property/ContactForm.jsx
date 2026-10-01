@@ -80,7 +80,7 @@ export default function ContactForm({
   if (submitted) {
     return (
       <div className="flex flex-col items-center gap-4 p-6 text-center sm:p-8">
-        <div className="flex h-14 w-14 items-center justify-center border border-gold-400/60 bg-gold-400/10">
+        <div className="flex h-14 w-14 items-center justify-center rounded-full border border-gold-400/60 bg-gold-400/10">
           <MdCheckCircle className="h-7 w-7 text-gold-400" />
         </div>
         <div>
@@ -106,7 +106,7 @@ export default function ContactForm({
               );
               setUserType("");
             }}
-            className="tracked-label text-xs text-gold-400 transition hover:text-gold-300"
+            className="tracked-label rounded-full px-4 py-2 text-xs text-gold-400 transition hover:text-gold-300 active:scale-[0.98]"
           >
             Submit Another Enquiry
           </button>
@@ -127,7 +127,7 @@ export default function ContactForm({
           placeholder="Your Name *"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="h-12 w-full border border-navy-700/60 bg-navy-950 pl-10 pr-4 text-sm text-cream placeholder:text-muted transition focus:border-gold-400 focus:outline-none"
+          className="h-12 w-full rounded-full border border-navy-700/60 bg-navy-950 pl-10 pr-4 text-sm text-cream placeholder:text-muted transition focus:border-gold-400 focus:outline-none focus:ring-4 focus:ring-gold-400/10"
         />
       </div>
 
@@ -141,7 +141,7 @@ export default function ContactForm({
           placeholder="Phone Number *"
           value={phone}
           onChange={(e) => setPhone(formatMobile(e.target.value))}
-          className="h-12 w-full border border-navy-700/60 bg-navy-950 pl-10 pr-4 text-sm text-cream placeholder:text-muted transition focus:border-gold-400 focus:outline-none"
+          className="h-12 w-full rounded-full border border-navy-700/60 bg-navy-950 pl-10 pr-4 text-sm text-cream placeholder:text-muted transition focus:border-gold-400 focus:outline-none focus:ring-4 focus:ring-gold-400/10"
         />
       </div>
 
@@ -155,7 +155,7 @@ export default function ContactForm({
             placeholder="Email Address (optional)"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="h-12 w-full border border-navy-700/60 bg-navy-950 pl-10 pr-4 text-sm text-cream placeholder:text-muted transition focus:border-gold-400 focus:outline-none"
+            className="h-12 w-full rounded-full border border-navy-700/60 bg-navy-950 pl-10 pr-4 text-sm text-cream placeholder:text-muted transition focus:border-gold-400 focus:outline-none focus:ring-4 focus:ring-gold-400/10"
           />
         </div>
       )}
@@ -169,7 +169,7 @@ export default function ContactForm({
           placeholder="Your message..."
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          className="w-full resize-none border border-navy-700/60 bg-navy-950 pb-3 pl-10 pr-4 pt-3 text-sm text-cream placeholder:text-muted transition focus:border-gold-400 focus:outline-none"
+          className="w-full resize-none rounded-2xl border border-navy-700/60 bg-navy-950 pb-3 pl-10 pr-4 pt-3 text-sm text-cream placeholder:text-muted transition focus:border-gold-400 focus:outline-none focus:ring-4 focus:ring-gold-400/10"
         />
       </div>
 
@@ -179,7 +179,7 @@ export default function ContactForm({
           id="cf-user-type"
           value={userType}
           onChange={(e) => setUserType(e.target.value)}
-          className="h-12 w-full appearance-none border border-navy-700/60 bg-navy-950 px-4 text-sm text-cream transition focus:border-gold-400 focus:outline-none"
+          className="h-12 w-full appearance-none rounded-full border border-navy-700/60 bg-navy-950 px-4 text-sm text-cream transition focus:border-gold-400 focus:outline-none focus:ring-4 focus:ring-gold-400/10"
           style={{ colorScheme: "dark" }}
         >
           <option value="" className="bg-navy-950 text-muted">
@@ -202,7 +202,7 @@ export default function ContactForm({
       <button
         type="submit"
         disabled={submitting}
-        className="tracked-label flex w-full items-center justify-center gap-2 bg-gold-400 px-6 py-3.5 text-xs font-semibold text-navy-950 transition hover:bg-gold-300 disabled:cursor-not-allowed disabled:opacity-60"
+        className="tracked-label flex w-full items-center justify-center gap-2 rounded-full bg-gold-400 px-6 py-3.5 text-xs font-semibold text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
       >
         {submitting ? (
           "Sending..."

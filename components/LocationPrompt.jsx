@@ -69,7 +69,7 @@ export default function LocationPrompt() {
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 px-4 pb-4 sm:bottom-4 sm:left-4 sm:right-auto sm:max-w-sm sm:px-0 sm:pb-0">
-      <div className="flex items-start gap-3 rounded-sm border border-navy-700/60 bg-navy-900 p-4 shadow-2xl">
+      <div className="flex items-start gap-3 rounded-2xl border border-navy-700/60 bg-navy-900 p-4 shadow-2xl">
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gold-500/40 bg-gold-400/10">
           <FiMapPin className="h-4 w-4 text-gold-400" />
         </span>
@@ -84,13 +84,13 @@ export default function LocationPrompt() {
             <button
               onClick={handleAllow}
               disabled={requesting}
-              className="tracked-label bg-gold-400 px-3 py-2 text-[11px] text-navy-950 transition hover:bg-gold-300 disabled:cursor-not-allowed disabled:opacity-60"
+              className="tracked-label rounded-full bg-gold-400 px-4 py-2 text-[11px] text-navy-950 shadow-lg shadow-gold-400/10 transition active:scale-[0.98] hover:bg-gold-300 hover:shadow-gold-400/20 disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100"
             >
               {requesting ? "Requesting…" : "Allow Location"}
             </button>
             <button
               onClick={dismiss}
-              className="tracked-label border border-navy-700/60 px-3 py-2 text-[11px] text-cream transition hover:border-gold-500/60 hover:text-gold-400"
+              className="tracked-label rounded-full border border-navy-700/60 px-4 py-2 text-[11px] text-cream transition active:scale-[0.98] hover:border-gold-500/60 hover:text-gold-400"
             >
               Not Now
             </button>
@@ -99,7 +99,7 @@ export default function LocationPrompt() {
         <button
           onClick={dismiss}
           aria-label="Dismiss"
-          className="shrink-0 text-muted transition hover:text-cream"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted transition active:scale-[0.98] hover:text-cream"
         >
           <FiX className="h-4 w-4" />
         </button>

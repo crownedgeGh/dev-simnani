@@ -35,16 +35,16 @@ const PROPERTY_TYPE_OPTIONS = {
 };
 
 const SELECT_CLASS =
-  "w-full appearance-none rounded-md border bg-navy-900/80 px-4 py-3.5 text-sm text-cream transition focus:border-gold-500 focus:outline-none";
+  "w-full appearance-none rounded-full border bg-navy-900/80 px-5 py-3.5 text-sm text-cream transition focus:border-gold-500 focus:outline-none";
 
 function ValidationBubble({ message }) {
   return (
-    <div className="absolute left-0 top-full z-30 mt-2 flex items-center gap-2 rounded-md border border-gold-500/60 bg-navy-900 px-3 py-2 text-xs text-cream shadow-[0_20px_50px_-16px_rgba(0,0,0,0.9)]">
+    <div className="absolute left-0 top-full z-30 mt-2 flex items-center gap-2 rounded-xl border border-gold-500/60 bg-navy-900 px-3 py-2 text-xs text-cream shadow-[0_20px_50px_-16px_rgba(0,0,0,0.9)]">
       <span
         aria-hidden="true"
         className="absolute -top-[5px] left-4 h-2.5 w-2.5 rotate-45 border-l border-t border-gold-500/60 bg-navy-900"
       />
-      <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-sm bg-gold-500 text-navy-950">
+      <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-gold-500 text-navy-950">
         <FiAlertCircle className="h-3 w-3" />
       </span>
       <span className="whitespace-nowrap font-medium text-cream">{message}</span>
@@ -266,7 +266,7 @@ export default function SearchBar() {
 
         <div ref={locationFieldRef} className="relative flex-1">
           <div
-            className={`flex items-center gap-2.5 rounded-md border bg-navy-900/80 px-4 transition focus-within:border-gold-500 ${
+            className={`flex items-center gap-2.5 rounded-full border bg-navy-900/80 px-5 transition focus-within:border-gold-500 ${
               locationInvalid ? "border-gold-500" : "border-navy-700/70"
             }`}
           >
@@ -309,7 +309,7 @@ export default function SearchBar() {
           {showSuggestions && dropdownEntries.length > 0 && (
             <ul
               id="city-suggestions-list"
-              className="gold-scrollbar absolute left-0 right-0 top-full z-30 mt-2 max-h-64 overflow-y-auto rounded-md border border-navy-700/70 bg-navy-900 shadow-[0_20px_50px_-16px_rgba(0,0,0,0.9)] sm:max-h-72"
+              className="gold-scrollbar absolute left-0 right-0 top-full z-30 mt-2 max-h-64 overflow-y-auto rounded-2xl border border-navy-700/70 bg-navy-900 shadow-[0_20px_50px_-16px_rgba(0,0,0,0.9)] sm:max-h-72"
             >
               {showingRecent && (
                 <li className="sticky top-0 bg-navy-900 px-4 py-2">
@@ -347,7 +347,7 @@ export default function SearchBar() {
 
         <button
           type="submit"
-          className="tracked-label flex items-center justify-center gap-2.5 rounded-md bg-gold-400 px-8 py-3.5 text-xs font-semibold text-navy-950 transition hover:bg-gold-300 lg:w-auto"
+          className="tracked-label flex items-center justify-center gap-2.5 rounded-full bg-gold-400 px-8 py-3.5 text-xs font-semibold text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 active:scale-[0.98] lg:w-auto"
         >
           Search Properties
           <MdSearch className="h-4 w-4" />

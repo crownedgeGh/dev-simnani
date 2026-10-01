@@ -167,7 +167,7 @@ export default function OwnerDashboard({
               <h2 className="font-display text-xl text-cream">My Listings</h2>
               <Link
                 href={addPropertyHref}
-                className="tracked-label bg-gold-400 px-4 py-2 text-xs text-navy-950 transition hover:bg-gold-300"
+                className="tracked-label rounded-full bg-gold-400 px-5 py-2 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 hover:shadow-gold-400/20 active:scale-[0.98]"
               >
                 Add Property
               </Link>
@@ -258,7 +258,7 @@ function LeadCard({ lead, converting, onConvert, onAddNote, onToggleCallDone, on
             type="button"
             onClick={handleCopy}
             aria-label="Copy phone number"
-            className={`hidden h-6 w-6 shrink-0 items-center justify-center rounded-sm border transition active:scale-95 sm:inline-flex ${
+            className={`hidden h-6 w-6 shrink-0 items-center justify-center rounded-full border transition active:scale-95 sm:inline-flex ${
               copied
                 ? "border-gold-400 bg-gold-400 text-navy-950"
                 : "border-navy-700/60 text-gold-400 hover:border-gold-400"
@@ -269,7 +269,7 @@ function LeadCard({ lead, converting, onConvert, onAddNote, onToggleCallDone, on
           <a
             href={`tel:${lead.phone.replace(/\s+/g, "")}`}
             aria-label="Call now"
-            className="flex h-9 min-w-[44px] items-center justify-center gap-1.5 rounded-sm border border-navy-700/60 px-3 text-xs text-gold-400 transition hover:border-gold-400 sm:hidden"
+            className="flex h-9 min-w-[44px] items-center justify-center gap-1.5 rounded-full border border-navy-700/60 px-3 text-xs text-gold-400 transition hover:border-gold-400 active:scale-[0.98] sm:hidden"
           >
             <MdCall className="h-4 w-4 shrink-0" />
             Call Now
@@ -295,7 +295,7 @@ function LeadCard({ lead, converting, onConvert, onAddNote, onToggleCallDone, on
           type="button"
           onClick={onConvert}
           disabled={converting}
-          className="tracked-label flex min-h-[44px] items-center justify-center gap-1.5 border border-gold-500/70 px-3 py-2 text-[10px] text-gold-400 transition hover:bg-gold-500/10 disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-0 sm:py-2"
+          className="tracked-label flex min-h-[44px] items-center justify-center gap-1.5 rounded-full border border-gold-500/70 px-4 py-2 text-[10px] text-gold-400 transition hover:bg-gold-500/10 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-0 sm:py-2"
         >
           <MdPersonAddAlt1 className="h-4 w-4 shrink-0" />
           {converting ? "Converting…" : "Convert to Client"}
@@ -328,7 +328,7 @@ function ClientCard({ client, onAddNote, onToggleCallDone, onClearNotes }) {
             type="button"
             onClick={handleCopy}
             aria-label="Copy phone number"
-            className={`hidden h-6 w-6 shrink-0 items-center justify-center rounded-sm border transition active:scale-95 sm:inline-flex ${
+            className={`hidden h-6 w-6 shrink-0 items-center justify-center rounded-full border transition active:scale-95 sm:inline-flex ${
               copied
                 ? "border-gold-400 bg-gold-400 text-navy-950"
                 : "border-navy-700/60 text-gold-400 hover:border-gold-400"
@@ -339,7 +339,7 @@ function ClientCard({ client, onAddNote, onToggleCallDone, onClearNotes }) {
           <a
             href={`tel:${client.phone.replace(/\s+/g, "")}`}
             aria-label="Call now"
-            className="flex h-9 min-w-[44px] items-center justify-center gap-1.5 rounded-sm border border-navy-700/60 px-3 text-xs text-gold-400 transition hover:border-gold-400 sm:hidden"
+            className="flex h-9 min-w-[44px] items-center justify-center gap-1.5 rounded-full border border-navy-700/60 px-3 text-xs text-gold-400 transition hover:border-gold-400 active:scale-[0.98] sm:hidden"
           >
             <MdCall className="h-4 w-4 shrink-0" />
             Call Now
@@ -360,7 +360,7 @@ function ClientCard({ client, onAddNote, onToggleCallDone, onClearNotes }) {
       <div className="flex flex-row items-center justify-between gap-2 sm:flex-col sm:items-end">
         <a
           href={`tel:${client.phone.replace(/\s+/g, "")}`}
-          className="tracked-label hidden min-h-[44px] items-center justify-center gap-1.5 border border-navy-700/60 px-3 py-2 text-[10px] text-gold-400 transition hover:border-gold-400 sm:inline-flex sm:min-h-0"
+          className="tracked-label hidden min-h-[44px] items-center justify-center gap-1.5 rounded-full border border-navy-700/60 px-4 py-2 text-[10px] text-gold-400 transition hover:border-gold-400 active:scale-[0.98] sm:inline-flex sm:min-h-0"
         >
           <MdCall className="h-4 w-4 shrink-0" />
           Call
@@ -418,7 +418,7 @@ function NoteSection({ callDone, notes, onAddNote, onToggleCallDone, onClearNote
       <button
         type="button"
         onClick={onToggleCallDone}
-        className={`tracked-label inline-flex w-fit items-center gap-1.5 border px-2.5 py-1.5 text-[10px] transition ${
+        className={`tracked-label inline-flex w-fit items-center gap-1.5 rounded-full border px-3 py-1.5 text-[10px] transition active:scale-[0.98] ${
           callDone
             ? "border-gold-400 bg-gold-400/10 text-gold-400"
             : "border-navy-700/60 text-muted hover:border-navy-600"
@@ -472,7 +472,7 @@ function NoteSection({ callDone, notes, onAddNote, onToggleCallDone, onClearNote
           type="button"
           onClick={handleAdd}
           disabled={saving || !draft.trim()}
-          className="tracked-label shrink-0 border border-gold-500/70 px-4 text-[10px] text-gold-400 transition hover:bg-gold-500/10 disabled:cursor-not-allowed disabled:opacity-40"
+          className="tracked-label shrink-0 rounded-full border border-gold-500/70 px-4 text-[10px] text-gold-400 transition hover:bg-gold-500/10 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
         >
           {saving ? "…" : "Add"}
         </button>
@@ -507,7 +507,7 @@ function PropertyLink({ propertyId, title, prefix }) {
       href={`/property/${propertyId}`}
       target="_blank"
       rel="noopener noreferrer"
-      className="mt-1.5 inline-flex max-w-full items-center gap-1.5 border border-navy-700/60 bg-navy-950/60 px-2.5 py-1.5 text-xs text-gold-400 transition hover:border-gold-400 hover:bg-gold-400/5"
+      className="mt-1.5 inline-flex max-w-full items-center gap-1.5 rounded-full border border-navy-700/60 bg-navy-950/60 px-3 py-1.5 text-xs text-gold-400 transition hover:border-gold-400 hover:bg-gold-400/5 active:scale-[0.98]"
     >
       <BiBuildingHouse className="h-3.5 w-3.5 shrink-0" />
       <span className="truncate">{title}</span>

@@ -84,7 +84,7 @@ export default function ContactSupportForm({ onSubmitted }) {
       <button
         type="submit"
         disabled={submitting}
-        className="tracked-label bg-gold-400 px-6 py-4 text-xs text-navy-950 transition hover:bg-gold-300 disabled:cursor-not-allowed disabled:opacity-60"
+        className="tracked-label rounded-full bg-gold-400 px-6 py-4 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
       >
         {submitting ? "Submitting..." : "Submit Request"}
       </button>

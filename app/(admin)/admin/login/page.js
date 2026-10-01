@@ -54,9 +54,9 @@ export default function AdminLoginPage() {
   if (isAdminAuthenticated) return null;
 
   return (
-    <div className={`admin-shell admin-theme-celestial relative flex min-h-screen items-center justify-center ${isDark ? "admin-dark dark" : "light"} px-4`}>
+    <div className={`admin-shell admin-theme-celestial relative flex min-h-screen ${isDark ? "admin-dark dark" : "light"}`}>
       {/* Dark / Light mode toggle */}
-      <div className="absolute top-4 right-4 sm:top-6 sm:right-6">
+      <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-10">
         <button
           id="admin-login-theme-toggle-btn"
           type="button"
@@ -69,16 +69,58 @@ export default function AdminLoginPage() {
         </button>
       </div>
 
+      {/* Brand panel — desktop only */}
+      <div
+        className="relative hidden lg:flex lg:w-1/2 flex-col justify-between p-12 overflow-hidden"
+        style={{ background: "linear-gradient(145deg, #1a1a2e 0%, #121224 60%, #0d0d1a 100%)" }}
+      >
+        <div
+          className="absolute -top-24 -right-24 h-80 w-80 rounded-full opacity-20 blur-3xl"
+          style={{ background: "radial-gradient(circle, #f0b429 0%, transparent 70%)" }}
+        />
+        <div
+          className="absolute bottom-0 left-0 h-64 w-64 rounded-full opacity-10 blur-3xl"
+          style={{ background: "radial-gradient(circle, #f0b429 0%, transparent 70%)" }}
+        />
+
+        <div className="relative flex items-center gap-2.5">
+          <div
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-base font-bold text-white"
+            style={{ background: "linear-gradient(135deg, #f0b429 0%, #d97706 100%)" }}
+          >
+            S
+          </div>
+          <span className="text-lg font-bold text-white">Simnani Estate</span>
+        </div>
+
+        <div className="relative max-w-md">
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-[#f0b429]">Admin Panel</p>
+          <h2 className="mt-3 font-display text-3xl font-bold leading-tight text-white">
+            Manage listings, leads & partners from one place.
+          </h2>
+          <p className="mt-4 text-sm leading-relaxed text-white/50">
+            Properties, users, channel partners and analytics — the full control room for the Simnani Estate platform.
+          </p>
+        </div>
+
+        <p className="relative text-xs text-white/35">© {new Date().getFullYear()} Simnani Estate. All rights reserved.</p>
+      </div>
+
+      {/* Form panel */}
+      <div className="flex flex-1 items-center justify-center px-4 py-16">
       <div className="w-full max-w-md">
         {/* Card */}
-        <div className="rounded-2xl border border-[#e8e0d5] bg-white p-8 shadow-sm">
+        <div className="rounded-2xl border border-[#e8e0d5] bg-white p-8 shadow-sm lg:border-0 lg:shadow-none lg:p-0">
           {/* Logo */}
-          <div className="mb-8 flex flex-col items-center gap-2">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#f0b429] shadow-md">
+          <div className="mb-8 flex flex-col items-center gap-2 lg:items-start">
+            <div
+              className="flex h-14 w-14 items-center justify-center rounded-2xl shadow-md lg:hidden"
+              style={{ background: "linear-gradient(135deg, #f0b429 0%, #d97706 100%)" }}
+            >
               <span className="text-2xl font-bold text-white">S</span>
             </div>
-            <div className="text-center">
-              <h1 className="text-xl font-bold text-[#1a1a2e]">Simnani Admin</h1>
+            <div className="text-center lg:text-left">
+              <h1 className="text-xl font-bold text-[#1a1a2e] lg:text-2xl">Welcome back</h1>
               <p className="text-sm text-[#9ca3af]">Sign in to your admin account</p>
             </div>
           </div>
@@ -143,9 +185,10 @@ export default function AdminLoginPage() {
           </form>
         </div>
 
-        <p className="mt-4 text-center text-xs text-[#9ca3af]">
+        <p className="mt-4 text-center text-xs text-[#9ca3af] lg:text-left">
           Simnani Estate Admin Panel · For authorized personnel only
         </p>
+      </div>
       </div>
     </div>
   );

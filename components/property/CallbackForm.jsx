@@ -51,7 +51,7 @@ export default function CallbackForm() {
         <p className="tracked-label text-xs text-gold-400">Reference ID: {requestId}</p>
         <Link
           href="/"
-          className="tracked-label w-full bg-gold-400 px-6 py-4 text-center text-xs text-navy-950 transition hover:bg-gold-300"
+          className="tracked-label w-full rounded-full bg-gold-400 px-6 py-4 text-center text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 active:scale-[0.98]"
         >
           Return Home
         </Link>
@@ -92,7 +92,7 @@ export default function CallbackForm() {
         <label htmlFor="mobile" className="tracked-label text-xs text-cream/80">
           Mobile Number <span className="text-gold-400">*</span>
         </label>
-        <div className="flex items-center border border-navy-700/60 bg-navy-950 px-4 transition focus-within:border-gold-400">
+        <div className="flex items-center rounded-full border border-navy-700/60 bg-navy-950 px-4 transition focus-within:border-gold-400 focus-within:ring-4 focus-within:ring-gold-400/10">
           <span className="text-sm text-muted">+91</span>
           <input
             id="mobile"
@@ -131,7 +131,7 @@ export default function CallbackForm() {
       <button
         type="submit"
         disabled={submitting}
-        className="tracked-label mt-2 bg-gold-400 px-6 py-4 text-xs text-navy-950 transition hover:bg-gold-300 disabled:cursor-not-allowed disabled:opacity-60"
+        className="tracked-label mt-2 rounded-full bg-gold-400 px-6 py-4 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
       >
         {submitting ? "Submitting..." : "Request Callback"}
       </button>

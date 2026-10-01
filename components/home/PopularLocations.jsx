@@ -15,7 +15,7 @@ export default function PopularLocations() {
             <Link
               key={location.city}
               href={`/buy?location=${encodeURIComponent(location.city)}`}
-              className="group relative aspect-square overflow-hidden border border-transparent transition duration-300 active:border-gold-500/40 hover:border-gold-500/40"
+              className="group relative aspect-square overflow-hidden rounded-2xl border border-transparent transition duration-300 active:scale-[0.98] active:border-gold-500/40 hover:border-gold-500/40"
             >
               <Image
                 src={location.image}

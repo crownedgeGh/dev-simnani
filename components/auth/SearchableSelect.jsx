@@ -81,7 +81,7 @@ export default function SearchableSelect({
               setOpen(false);
               setQuery("");
             }}
-            className="absolute right-3 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center text-muted transition hover:text-cream"
+            className="absolute right-3 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-muted transition hover:text-cream"
             aria-label="Close"
           >
             <MdClose className="h-4 w-4" />
@@ -90,7 +90,7 @@ export default function SearchableSelect({
       )}
 
       {open && (
-        <div className="absolute z-20 mt-1.5 max-h-60 w-full overflow-y-auto border border-navy-700/60 bg-navy-900 p-1.5 shadow-2xl">
+        <div className="absolute z-20 mt-1.5 max-h-60 w-full overflow-y-auto rounded-2xl border border-navy-700/60 bg-navy-900 p-1.5 shadow-2xl">
           {filtered.length === 0 ? (
             <p className="px-3 py-3 text-center text-xs text-muted">{emptyMessage}</p>
           ) : (
@@ -99,7 +99,7 @@ export default function SearchableSelect({
                 key={option}
                 type="button"
                 onClick={() => selectOption(option)}
-                className={`flex min-h-[44px] w-full items-center px-3 text-left text-sm transition ${
+                className={`flex min-h-[44px] w-full items-center rounded-full px-3 text-left text-sm transition ${
                   option === value ? "bg-gold-400/10 text-gold-400" : "text-cream hover:bg-navy-800"
                 }`}
               >

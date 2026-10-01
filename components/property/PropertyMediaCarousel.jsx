@@ -100,7 +100,7 @@ export default function PropertyMediaCarousel({ image, galleryImages, video, tit
               type="button"
               onClick={() => goTo(index - 1)}
               aria-label="Previous media"
-              className="absolute left-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center bg-navy-950/70 text-cream transition hover:bg-navy-950 hover:text-gold-400 sm:left-4"
+              className="absolute left-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-navy-950/70 text-cream transition hover:bg-navy-950 hover:text-gold-400 active:scale-[0.98] sm:left-4"
             >
               <MdChevronLeft size={26} />
             </button>
@@ -108,7 +108,7 @@ export default function PropertyMediaCarousel({ image, galleryImages, video, tit
               type="button"
               onClick={() => goTo(index + 1)}
               aria-label="Next media"
-              className="absolute right-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center bg-navy-950/70 text-cream transition hover:bg-navy-950 hover:text-gold-400 sm:right-4"
+              className="absolute right-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-navy-950/70 text-cream transition hover:bg-navy-950 hover:text-gold-400 active:scale-[0.98] sm:right-4"
             >
               <MdChevronRight size={26} />
             </button>
@@ -135,7 +135,7 @@ export default function PropertyMediaCarousel({ image, galleryImages, video, tit
               type="button"
               onClick={() => goTo(i)}
               aria-label={`Show media ${i + 1}`}
-              className={`relative aspect-square overflow-hidden border transition ${
+              className={`relative aspect-square overflow-hidden rounded-2xl border transition active:scale-[0.98] ${
                 i === index ? "border-gold-400" : "border-navy-700/60 hover:border-navy-600"
               }`}
             >
@@ -158,7 +158,7 @@ export default function PropertyMediaCarousel({ image, galleryImages, video, tit
             type="button"
             onClick={handleDownloadImages}
             disabled={downloadingImages}
-            className="tracked-label flex min-h-11 items-center gap-2 border border-gold-500/70 px-4 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10 active:scale-95 disabled:cursor-wait disabled:opacity-70"
+            className="tracked-label flex min-h-11 items-center gap-2 rounded-full border border-gold-500/70 px-4 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10 active:scale-[0.98] disabled:cursor-wait disabled:opacity-70"
           >
             {downloadingImages ? (
               <FiLoader className="h-3.5 w-3.5 animate-spin" />
@@ -173,7 +173,7 @@ export default function PropertyMediaCarousel({ image, galleryImages, video, tit
             type="button"
             onClick={handleDownloadVideo}
             disabled={downloadingVideo}
-            className="tracked-label flex min-h-11 items-center gap-2 border border-gold-500/70 px-4 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10 active:scale-95 disabled:cursor-wait disabled:opacity-70"
+            className="tracked-label flex min-h-11 items-center gap-2 rounded-full border border-gold-500/70 px-4 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10 active:scale-[0.98] disabled:cursor-wait disabled:opacity-70"
           >
             {downloadingVideo ? (
               <FiLoader className="h-3.5 w-3.5 animate-spin" />

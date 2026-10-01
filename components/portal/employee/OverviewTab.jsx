@@ -40,7 +40,7 @@ export default function OverviewTab({ stats, onViewLeads }) {
           <button
             type="button"
             onClick={onViewLeads}
-            className="tracked-label flex items-center gap-1.5 text-xs text-cyan-600 transition hover:text-cyan-700"
+            className="tracked-label flex items-center gap-1.5 rounded-full text-xs text-cyan-600 transition hover:text-cyan-700 active:scale-[0.98]"
           >
             View My Leads
             <FiArrowRight className="h-3.5 w-3.5" />

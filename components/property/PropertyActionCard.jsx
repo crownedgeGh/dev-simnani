@@ -53,12 +53,12 @@ export default function PropertyActionCard({
 
   if (isAuthenticated && user?.accountType === "broker") {
     return (
-      <div className="border border-navy-700/60 bg-navy-900 p-6">
+      <div className="rounded-2xl border border-navy-700/60 bg-navy-900 p-6">
         <p className="tracked-label flex items-center gap-2 text-xs text-muted">
           <MdShare className="h-4 w-4 shrink-0 text-gold-400" />
           Share This Property
         </p>
-        <div className="mt-3 flex items-center gap-2 border border-navy-700/60 bg-navy-950 p-2">
+        <div className="mt-3 flex items-center gap-2 rounded-full border border-navy-700/60 bg-navy-950 p-2">
           <span className="min-w-0 flex-1 truncate px-2 text-xs text-cream/80">
             {shareUrl || "Generating link…"}
           </span>
@@ -66,7 +66,7 @@ export default function PropertyActionCard({
             type="button"
             onClick={handleCopy}
             aria-label="Copy property link"
-            className={`flex h-10 w-10 shrink-0 items-center justify-center border transition ${
+            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition active:scale-[0.98] ${
               copied
                 ? "border-gold-400 bg-gold-400 text-navy-950"
                 : "border-navy-700/60 text-cream hover:border-gold-400 hover:text-gold-400"
@@ -89,7 +89,7 @@ export default function PropertyActionCard({
             }
             trackEvent("share", { method: "whatsapp", item_id: propertyId });
           }}
-          className="tracked-label mt-3 flex min-h-[44px] w-full items-center justify-center gap-2 border border-navy-700/60 px-6 py-3 text-center text-xs text-cream transition hover:border-gold-400 hover:text-gold-400"
+          className="tracked-label mt-3 flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full border border-navy-700/60 px-6 py-3 text-center text-xs text-cream transition hover:border-gold-400 hover:text-gold-400 active:scale-[0.98]"
         >
           <FaWhatsapp className="h-4 w-4 shrink-0 text-gold-400" />
           Share on WhatsApp
@@ -171,7 +171,7 @@ export default function PropertyActionCard({
   }
 
   return (
-    <div className="border border-navy-700/60 bg-navy-900 p-6">
+    <div className="rounded-2xl border border-navy-700/60 bg-navy-900 p-6">
       <h3 className="font-display text-lg text-cream">Interested?</h3>
       <p className="mt-2 text-sm text-muted">
         Our advisory team will get back to you within 24 hours.
@@ -182,10 +182,10 @@ export default function PropertyActionCard({
           type="button"
           onClick={handleInterested}
           disabled={alreadyInterested}
-          className={`tracked-label px-6 py-4 text-center text-xs transition ${
+          className={`tracked-label rounded-full px-6 py-4 text-center text-xs transition active:scale-[0.98] ${
             alreadyInterested
               ? "cursor-not-allowed border border-navy-700/60 bg-navy-950 text-muted"
-              : "bg-gold-400 text-navy-950 hover:bg-gold-300"
+              : "bg-gold-400 text-navy-950 shadow-lg shadow-gold-400/10 hover:bg-gold-300"
           }`}
         >
           {alreadyInterested ? "Interest Sent" : "I'm Interested"}
@@ -194,7 +194,7 @@ export default function PropertyActionCard({
         <a
           href={`tel:${phone.replace(/\s+/g, "")}`}
           onClick={handleCallPerson}
-          className="tracked-label flex min-h-[44px] items-center justify-center gap-2 border border-navy-700/60 px-6 py-4 text-center text-xs text-cream transition hover:border-gold-400 sm:hidden"
+          className="tracked-label flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-navy-700/60 px-6 py-4 text-center text-xs text-cream transition hover:border-gold-400 active:scale-[0.98] sm:hidden"
         >
           <MdCall className="h-4 w-4 shrink-0 text-gold-400" />
           Call Now
@@ -206,14 +206,14 @@ export default function PropertyActionCard({
             <button
               type="button"
               onClick={handleShowNumber}
-              className="tracked-label flex min-h-[44px] w-full items-center justify-center gap-2 border border-navy-700/60 px-6 py-4 text-center text-xs text-cream transition hover:border-gold-400"
+              className="tracked-label flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full border border-navy-700/60 px-6 py-4 text-center text-xs text-cream transition hover:border-gold-400 active:scale-[0.98]"
             >
               <MdCall className="h-4 w-4 shrink-0 text-gold-400" />
               Call Now
             </button>
           ) : (
             <div
-              className={`flex min-h-[44px] items-center gap-2 border border-navy-700/60 bg-navy-950 py-2 pl-4 pr-2 transition-all duration-300 ease-out ${
+              className={`flex min-h-[44px] items-center gap-2 rounded-full border border-navy-700/60 bg-navy-950 py-2 pl-4 pr-2 transition-all duration-300 ease-out ${
                 numberEntered ? "scale-100 opacity-100" : "scale-95 opacity-0"
               }`}
             >
@@ -222,7 +222,7 @@ export default function PropertyActionCard({
                 type="button"
                 onClick={handleCopyNumber}
                 aria-label="Copy phone number"
-                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border transition active:scale-95 ${
+                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition active:scale-95 ${
                   numberCopied
                     ? "border-gold-400 bg-gold-400 text-navy-950"
                     : "border-navy-700/60 text-gold-400 hover:border-gold-400"
@@ -240,7 +240,7 @@ export default function PropertyActionCard({
           <MdShare className="h-4 w-4 shrink-0 text-gold-400" />
           Share This Property
         </p>
-        <div className="mt-3 flex items-center gap-2 border border-navy-700/60 bg-navy-950 p-2">
+        <div className="mt-3 flex items-center gap-2 rounded-full border border-navy-700/60 bg-navy-950 p-2">
           <span className="min-w-0 flex-1 truncate px-2 text-xs text-cream/80">
             {shareUrl || "Generating link…"}
           </span>
@@ -248,7 +248,7 @@ export default function PropertyActionCard({
             type="button"
             onClick={handleCopy}
             aria-label="Copy property link"
-            className={`flex h-10 w-10 shrink-0 items-center justify-center border transition ${
+            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition active:scale-[0.98] ${
               copied
                 ? "border-gold-400 bg-gold-400 text-navy-950"
                 : "border-navy-700/60 text-cream hover:border-gold-400 hover:text-gold-400"
@@ -271,7 +271,7 @@ export default function PropertyActionCard({
             }
             trackEvent("share", { method: "whatsapp", item_id: propertyId });
           }}
-          className="tracked-label mt-3 flex min-h-[44px] w-full items-center justify-center gap-2 border border-navy-700/60 px-6 py-3 text-center text-xs text-cream transition hover:border-gold-400 hover:text-gold-400"
+          className="tracked-label mt-3 flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full border border-navy-700/60 px-6 py-3 text-center text-xs text-cream transition hover:border-gold-400 hover:text-gold-400 active:scale-[0.98]"
         >
           <FaWhatsapp className="h-4 w-4 shrink-0 text-gold-400" />
           Share on WhatsApp
@@ -290,7 +290,7 @@ export default function PropertyActionCard({
 
       {showToast && (
         <div className="fixed inset-x-0 bottom-6 z-50 flex justify-center px-4 sm:bottom-8">
-          <div className="tracked-label rounded-sm border border-gold-500/70 bg-navy-900 px-5 py-3 text-xs text-cream shadow-lg">
+          <div className="tracked-label rounded-full border border-gold-500/70 bg-navy-900 px-5 py-3 text-xs text-cream shadow-lg">
             You will get a callback soon.
           </div>
         </div>

@@ -32,7 +32,7 @@ export default function SupportPanel({ tickets }) {
         <button
           type="button"
           onClick={() => setShowForm((v) => !v)}
-          className="tracked-label bg-gold-400 px-4 py-2 text-xs text-navy-950 transition hover:bg-gold-300"
+          className="tracked-label rounded-full bg-gold-400 px-4 py-2 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 active:scale-[0.98]"
         >
           {showForm ? "Close" : "+ New Request"}
         </button>

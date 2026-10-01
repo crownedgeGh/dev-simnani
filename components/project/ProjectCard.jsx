@@ -7,7 +7,7 @@ export default function ProjectCard({ project }) {
   return (
     <Link
       href={`/projects/${id}`}
-      className="group block overflow-hidden border border-navy-700/60 bg-navy-900 transition active:border-gold-500/50 hover:border-gold-500/50"
+      className="group block overflow-hidden rounded-2xl border border-navy-700/60 bg-navy-900 transition active:border-gold-500/50 hover:border-gold-500/50"
     >
       <div className="relative aspect-[4/3] w-full overflow-hidden">
         <Image
@@ -17,7 +17,7 @@ export default function ProjectCard({ project }) {
           sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
           className="object-cover transition duration-500 group-active:scale-105 group-hover:scale-105"
         />
-        <span className="tracked-label absolute left-3 top-3 bg-gold-500 px-2 py-1 text-[10px] font-semibold text-navy-950">
+        <span className="tracked-label absolute left-3 top-3 rounded-full bg-gold-500 px-2.5 py-1 text-[10px] font-semibold text-navy-950">
           {status}
         </span>
       </div>
@@ -29,7 +29,7 @@ export default function ProjectCard({ project }) {
         <p className="mt-3 font-sans text-xl font-semibold text-gold-400">{startingPrice}</p>
 
         <span
-          className="tracked-label mt-5 block w-full border border-gold-500/70 py-2.5 text-center text-xs text-gold-400 transition group-active:bg-gold-500 group-active:text-navy-950 group-hover:bg-gold-500 group-hover:text-navy-950"
+          className="tracked-label mt-5 block w-full rounded-full border border-gold-500/70 py-2.5 text-center text-xs text-gold-400 transition group-active:bg-gold-500 group-active:text-navy-950 group-hover:bg-gold-500 group-hover:text-navy-950"
         >
           View Project
         </span>

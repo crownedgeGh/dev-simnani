@@ -3,7 +3,7 @@ import { FiAward } from "react-icons/fi";
 export default function MyEarningsBadge({ amount, achievementPct }) {
   return (
     <div
-      className="relative flex items-center gap-3 overflow-hidden rounded-sm border border-cyan-400 bg-white px-5 py-3"
+      className="relative flex items-center gap-3 overflow-hidden rounded-full border border-cyan-400 bg-white px-5 py-3"
       style={{ boxShadow: "0 0 24px -10px rgba(34,211,238,0.45)" }}
     >
       <span className="pointer-events-none absolute -right-6 -top-6 h-20 w-20 rounded-full bg-cyan-100 blur-2xl" />

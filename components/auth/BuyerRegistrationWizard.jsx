@@ -239,7 +239,7 @@ export default function BuyerRegistrationWizard() {
           </FormField>
 
           <FormField label="Mobile Number" htmlFor="mobile" required>
-            <div className="flex items-center border border-navy-700/60 bg-navy-950 px-4 transition focus-within:border-gold-400">
+            <div className="flex items-center rounded-full border border-navy-700/60 bg-navy-950 px-4 transition focus-within:border-gold-400 focus-within:ring-4 focus-within:ring-gold-400/10">
               <span className="text-sm text-muted">+91</span>
               <input
                 id="mobile"
@@ -336,7 +336,7 @@ export default function BuyerRegistrationWizard() {
 
       {step === 3 && (
         <div className="flex flex-col gap-6">
-          <div className="grid grid-cols-1 gap-4 border border-navy-700/60 bg-navy-950 p-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 rounded-2xl border border-navy-700/60 bg-navy-950 p-4 sm:grid-cols-2">
             <ReviewItem label="Full Name" value={form.fullName} />
             <ReviewItem label="Mobile" value={`+91 ${form.mobile}`} />
             <ReviewItem label="Email" value={form.email || "Not provided"} />
@@ -384,7 +384,7 @@ export default function BuyerRegistrationWizard() {
           <button
             type="button"
             onClick={goBack}
-            className="tracked-label border border-navy-700/60 px-6 py-4 text-xs text-cream transition hover:border-gold-400"
+            className="tracked-label rounded-full border border-navy-700/60 px-6 py-4 text-xs text-cream transition hover:border-gold-400 active:scale-[0.98]"
           >
             Back
           </button>
@@ -408,7 +408,7 @@ export default function BuyerRegistrationWizard() {
               type="button"
               onClick={goNext}
               disabled={submitting}
-              className="tracked-label bg-gold-400 px-6 py-4 text-xs text-navy-950 transition hover:bg-gold-300 disabled:cursor-not-allowed disabled:opacity-60"
+              className="tracked-label rounded-full bg-gold-400 px-6 py-4 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 hover:shadow-gold-400/20 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {submitting && step === 1 ? "Please wait..." : "Continue"}
             </button>
@@ -417,7 +417,7 @@ export default function BuyerRegistrationWizard() {
               type="button"
               onClick={handleSubmit}
               disabled={submitting}
-              className="tracked-label bg-gold-400 px-6 py-4 text-xs text-navy-950 transition hover:bg-gold-300 disabled:cursor-not-allowed disabled:opacity-60"
+              className="tracked-label rounded-full bg-gold-400 px-6 py-4 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 hover:shadow-gold-400/20 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {submitting ? "Creating Account..." : "Create Buyer Account"}
             </button>

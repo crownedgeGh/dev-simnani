@@ -117,7 +117,7 @@ export default function FreelancerPortalClient({
                 id="cp-post-property-btn"
                 type="button"
                 onClick={() => router.push("/post-property")}
-                className="tracked-label flex h-11 w-full items-center justify-center gap-2 bg-gold-400 px-3 text-xs text-navy-950 transition hover:bg-gold-300 sm:w-auto sm:px-4"
+                className="tracked-label flex h-11 w-full items-center justify-center gap-2 rounded-full bg-gold-400 px-4 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 hover:shadow-gold-400/20 active:scale-[0.98] sm:w-auto sm:px-5"
               >
                 <FiPlusSquare className="h-4 w-4 shrink-0" />
                 <span>Post Property</span>
@@ -126,7 +126,7 @@ export default function FreelancerPortalClient({
                 type="button"
                 onClick={handleToggleTheme}
                 aria-label={isLight ? "Switch to dark mode" : "Switch to light mode"}
-                className="tracked-label flex h-11 w-full items-center justify-center gap-2 border border-navy-700/60 px-3 text-xs text-cream transition hover:border-gold-400 hover:text-gold-400 sm:w-auto sm:px-4"
+                className="tracked-label flex h-11 w-full items-center justify-center gap-2 rounded-full border border-navy-700/60 px-4 text-xs text-cream transition hover:border-gold-400 hover:text-gold-400 active:scale-[0.98] sm:w-auto sm:px-5"
               >
                 {isLight ? <FiMoon className="h-4 w-4 shrink-0" /> : <FiSun className="h-4 w-4 shrink-0" />}
                 <span>{isLight ? "Dark Mode" : "Light Mode"}</span>

@@ -189,7 +189,7 @@ export default function CampaignDetailPage({ project, assets, backHref }) {
           {/* overlay gradient */}
           <div className="absolute inset-0 bg-gradient-to-t from-navy-900 via-navy-900/40 to-transparent" />
           {/* Campaign badge */}
-          <div className="absolute left-4 top-4 flex items-center gap-2 border border-gold-500/70 bg-navy-950/80 px-3 py-1.5 backdrop-blur-sm">
+          <div className="absolute left-4 top-4 flex items-center gap-2 rounded-full border border-gold-500/70 bg-navy-950/80 px-3 py-1.5 backdrop-blur-sm">
             <MdCampaign className="h-4 w-4 text-gold-400" />
             <span className="tracked-label text-[10px] text-gold-400">Active Campaign</span>
           </div>
@@ -217,10 +217,10 @@ export default function CampaignDetailPage({ project, assets, backHref }) {
               <button
                 type="button"
                 onClick={() => setJoined((v) => !v)}
-                className={`tracked-label flex w-fit items-center gap-2 px-6 py-3 text-xs transition ${
+                className={`tracked-label flex w-fit items-center gap-2 rounded-full px-6 py-3 text-xs transition active:scale-[0.98] ${
                   joined
                     ? "border border-gold-500/70 text-gold-400 hover:bg-gold-500/10"
-                    : "bg-gold-400 text-navy-950 hover:bg-gold-300"
+                    : "bg-gold-400 text-navy-950 shadow-lg shadow-gold-400/10 hover:bg-gold-300 hover:shadow-gold-400/20"
                 }`}
               >
                 {joined ? (
@@ -241,7 +241,7 @@ export default function CampaignDetailPage({ project, assets, backHref }) {
                   type="button"
                   onClick={handleDownloadImages}
                   disabled={downloadingImages}
-                  className="tracked-label flex w-fit items-center gap-2 border border-gold-500/70 px-6 py-3 text-xs text-gold-400 transition hover:bg-gold-500/10 active:scale-95 disabled:cursor-wait disabled:opacity-70"
+                  className="tracked-label flex w-fit items-center gap-2 rounded-full border border-gold-500/70 px-6 py-3 text-xs text-gold-400 transition hover:bg-gold-500/10 active:scale-[0.98] disabled:cursor-wait disabled:opacity-70"
                 >
                   {downloadingImages ? (
                     <FiLoader className="h-4 w-4 animate-spin" />
@@ -257,7 +257,7 @@ export default function CampaignDetailPage({ project, assets, backHref }) {
                   type="button"
                   onClick={handleDownloadVideos}
                   disabled={downloadingVideos}
-                  className="tracked-label flex w-fit items-center gap-2 border border-gold-500/70 px-6 py-3 text-xs text-gold-400 transition hover:bg-gold-500/10 active:scale-95 disabled:cursor-wait disabled:opacity-70"
+                  className="tracked-label flex w-fit items-center gap-2 rounded-full border border-gold-500/70 px-6 py-3 text-xs text-gold-400 transition hover:bg-gold-500/10 active:scale-[0.98] disabled:cursor-wait disabled:opacity-70"
                 >
                   {downloadingVideos ? (
                     <FiLoader className="h-4 w-4 animate-spin" />
@@ -418,7 +418,7 @@ export default function CampaignDetailPage({ project, assets, backHref }) {
                         type="button"
                         onClick={() => handleDownloadSingle(`video-${name}`, videoLink, slugify(name), "Video downloaded")}
                         disabled={downloadingKey === `video-${name}`}
-                        className="tracked-label flex shrink-0 items-center justify-center gap-2 border border-gold-500/70 px-4 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10 active:scale-95 disabled:cursor-wait disabled:opacity-70"
+                        className="tracked-label flex shrink-0 items-center justify-center gap-2 rounded-full border border-gold-500/70 px-4 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10 active:scale-[0.98] disabled:cursor-wait disabled:opacity-70"
                       >
                         {downloadingKey === `video-${name}` ? (
                           <FiLoader className="h-3.5 w-3.5 animate-spin" />
@@ -456,7 +456,7 @@ export default function CampaignDetailPage({ project, assets, backHref }) {
                     )
                   }
                   disabled={downloadingKey === "brochure"}
-                  className="tracked-label flex shrink-0 items-center justify-center gap-2 border border-gold-500/70 px-4 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10 active:scale-95 disabled:cursor-wait disabled:opacity-70"
+                  className="tracked-label flex shrink-0 items-center justify-center gap-2 rounded-full border border-gold-500/70 px-4 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10 active:scale-[0.98] disabled:cursor-wait disabled:opacity-70"
                 >
                   {downloadingKey === "brochure" ? (
                     <FiLoader className="h-3.5 w-3.5 animate-spin" />

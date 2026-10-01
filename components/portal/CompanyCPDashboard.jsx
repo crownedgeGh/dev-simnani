@@ -63,7 +63,7 @@ function PhoneActions({ phone }) {
         type="button"
         onClick={handleCopy}
         aria-label="Copy phone number"
-        className={`inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-sm border transition active:scale-95 ${
+        className={`inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border transition active:scale-95 ${
           copied
             ? "border-gold-400 bg-gold-400 text-navy-950"
             : "border-navy-700/60 text-gold-400 hover:border-gold-400"
@@ -74,7 +74,7 @@ function PhoneActions({ phone }) {
       <a
         href={`tel:${phone.replace(/\s+/g, "")}`}
         aria-label="Call now"
-        className="hidden h-9 min-w-[44px] items-center justify-center gap-1.5 rounded-sm border border-navy-700/60 px-3 text-xs text-gold-400 transition hover:border-gold-400 sm:inline-flex"
+        className="hidden h-9 min-w-[44px] items-center justify-center gap-1.5 rounded-full border border-navy-700/60 px-3 text-xs text-gold-400 transition hover:border-gold-400 active:scale-[0.98] sm:inline-flex"
       >
         <MdCall className="h-4 w-4 shrink-0" />
         Call
@@ -117,7 +117,7 @@ function PartnerChip({ label, sub, active, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className={`flex shrink-0 flex-col items-start gap-0.5 border px-3 py-2 text-left transition ${
+      className={`flex shrink-0 flex-col items-start gap-0.5 rounded-full border px-4 py-2 text-left transition active:scale-[0.98] ${
         active ? "border-gold-400 bg-gold-400/10" : "border-navy-700/60 bg-navy-900 hover:border-gold-500/50"
       }`}
     >
@@ -133,7 +133,7 @@ function ShowMoreButton({ remaining, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="tracked-label self-start border border-navy-700/60 px-4 py-2 text-[10px] text-muted transition hover:border-gold-400/70 hover:text-gold-400"
+      className="tracked-label self-start rounded-full border border-navy-700/60 px-4 py-2 text-[10px] text-muted transition hover:border-gold-400/70 hover:text-gold-400 active:scale-[0.98]"
     >
       Show More ({remaining} more)
     </button>
@@ -546,7 +546,7 @@ export default function CompanyCPDashboard({
                             <FiArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
                           </div>
                           {isSold && (
-                            <span className="tracked-label flex items-center gap-1 border border-red-500/70 px-2 py-1 text-[10px] text-red-400">
+                            <span className="tracked-label flex items-center gap-1 rounded-full border border-red-500/70 px-2.5 py-1 text-[10px] text-red-400">
                               Sold Out
                             </span>
                           )}
@@ -559,7 +559,7 @@ export default function CompanyCPDashboard({
                             type="button"
                             disabled={fieldPartners.length === 0 || isSold}
                             onClick={() => togglePicker(project.id, "field")}
-                            className="tracked-label flex h-11 items-center justify-center gap-2 border border-gold-500/70 px-3 text-[10px] text-gold-400 transition hover:bg-gold-500/10 disabled:cursor-not-allowed disabled:opacity-40"
+                            className="tracked-label flex h-11 items-center justify-center gap-2 rounded-full border border-gold-500/70 px-3 text-[10px] text-gold-400 transition hover:bg-gold-500/10 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100"
                           >
                             <FiSend className="h-3.5 w-3.5" />
                             Forward to Field CP
@@ -568,7 +568,7 @@ export default function CompanyCPDashboard({
                             type="button"
                             disabled={digitalPartners.length === 0 || isSold}
                             onClick={() => togglePicker(project.id, "digital")}
-                            className="tracked-label flex h-11 items-center justify-center gap-2 bg-gold-400 px-3 text-[10px] text-navy-950 transition hover:bg-gold-300 disabled:cursor-not-allowed disabled:opacity-40"
+                            className="tracked-label flex h-11 items-center justify-center gap-2 rounded-full bg-gold-400 px-3 text-[10px] text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100"
                           >
                             <FiSend className="h-3.5 w-3.5" />
                             Forward to Digital CP
@@ -579,7 +579,7 @@ export default function CompanyCPDashboard({
                           type="button"
                           disabled={soldBusyId === project.id}
                           onClick={() => toggleSold(project)}
-                          className={`tracked-label flex h-11 items-center justify-center gap-2 px-3 text-[10px] transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                          className={`tracked-label flex h-11 items-center justify-center gap-2 rounded-full px-3 text-[10px] transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100 ${
                             isSold
                               ? "border border-navy-700/60 text-cream hover:border-gold-500/50 hover:text-gold-400"
                               : "border border-red-500/70 text-red-400 hover:bg-red-500/10"
@@ -1164,7 +1164,7 @@ export default function CompanyCPDashboard({
                       <button
                         type="button"
                         onClick={() => updateVideoStatus(video.id, "Approved")}
-                        className="tracked-label flex items-center gap-1.5 border border-gold-400/70 px-3 py-2 text-[10px] text-gold-400 transition hover:bg-gold-400/10"
+                        className="tracked-label flex items-center gap-1.5 rounded-full border border-gold-400/70 px-3.5 py-2 text-[10px] text-gold-400 transition hover:bg-gold-400/10 active:scale-[0.98]"
                       >
                         <FiCheck className="h-3.5 w-3.5" />
                         Approve
@@ -1172,7 +1172,7 @@ export default function CompanyCPDashboard({
                       <button
                         type="button"
                         onClick={() => startSuggestEdit(video)}
-                        className="tracked-label flex items-center gap-1.5 border border-navy-700/60 px-3 py-2 text-[10px] text-muted transition hover:border-gold-400/70 hover:text-gold-400"
+                        className="tracked-label flex items-center gap-1.5 rounded-full border border-navy-700/60 px-3.5 py-2 text-[10px] text-muted transition hover:border-gold-400/70 hover:text-gold-400 active:scale-[0.98]"
                       >
                         <FiEdit3 className="h-3.5 w-3.5" />
                         Suggest Edit
@@ -1180,7 +1180,7 @@ export default function CompanyCPDashboard({
                       <button
                         type="button"
                         onClick={() => updateVideoStatus(video.id, "Rejected")}
-                        className="tracked-label flex items-center gap-1.5 border border-navy-700/60 px-3 py-2 text-[10px] text-muted transition hover:border-red-500/50 hover:text-red-400"
+                        className="tracked-label flex items-center gap-1.5 rounded-full border border-navy-700/60 px-3.5 py-2 text-[10px] text-muted transition hover:border-red-500/50 hover:text-red-400 active:scale-[0.98]"
                       >
                         <FiX className="h-3.5 w-3.5" />
                         Reject
@@ -1200,7 +1200,7 @@ export default function CompanyCPDashboard({
                           <button
                             type="button"
                             onClick={() => submitSuggestEdit(video.id)}
-                            className="tracked-label bg-gold-400 px-4 py-2 text-[10px] text-navy-950 transition hover:bg-gold-300"
+                            className="tracked-label rounded-full bg-gold-400 px-4 py-2 text-[10px] text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 active:scale-[0.98]"
                           >
                             Save Note
                           </button>
@@ -1300,7 +1300,7 @@ export default function CompanyCPDashboard({
               <p className="tracked-label text-xs text-gold-400">My Listings</p>
               <Link
                 href="/post-property"
-                className="tracked-label flex items-center gap-2 bg-gold-400 px-4 py-2 text-xs text-navy-950 transition hover:bg-gold-300"
+                className="tracked-label flex items-center gap-2 rounded-full bg-gold-400 px-5 py-2 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 active:scale-[0.98]"
               >
                 <FiPlus className="h-3.5 w-3.5" />
                 Post Property

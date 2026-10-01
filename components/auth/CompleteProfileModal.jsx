@@ -73,7 +73,7 @@ export default function CompleteProfileModal({
       `}</style>
 
       {/* Card */}
-      <div className="cp-card relative w-full max-w-[440px] overflow-hidden rounded-2xl border border-gold-400/20 bg-navy-900 shadow-2xl">
+      <div className="cp-card relative w-full max-w-[440px] overflow-hidden rounded-3xl border border-gold-400/20 bg-navy-900 shadow-2xl">
         {/* Gold accent bar */}
         <div
           className="h-0.5"
@@ -91,7 +91,7 @@ export default function CompleteProfileModal({
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="absolute right-3.5 top-3.5 z-10 flex h-9 w-9 items-center justify-center rounded-lg border border-navy-700/60 bg-navy-950/60 text-muted transition hover:border-navy-600 hover:bg-navy-800 hover:text-cream"
+          className="absolute right-3.5 top-3.5 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-navy-700/60 bg-navy-950/60 text-muted transition hover:border-navy-600 hover:bg-navy-800 hover:text-cream"
         >
           <MdClose className="h-4 w-4" />
         </button>
@@ -125,7 +125,7 @@ export default function CompleteProfileModal({
               href={resumeHref}
               onClick={onClose}
               id="complete-profile-resume-btn"
-              className="tracked-label flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg bg-gold-400 px-5 py-3.5 text-center text-xs font-bold text-navy-950 transition hover:bg-gold-300"
+              className="tracked-label flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full bg-gold-400 px-5 py-3.5 text-center text-xs font-bold text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 hover:shadow-gold-400/20 active:scale-[0.98]"
             >
               <MdEditNote className="h-[17px] w-[17px]" />
               Complete Your Profile
@@ -136,7 +136,7 @@ export default function CompleteProfileModal({
               href="/"
               onClick={onClose}
               id="complete-profile-home-btn"
-              className="tracked-label flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg border border-navy-700/60 px-5 py-3 text-center text-xs font-semibold text-cream transition hover:border-gold-500/40 hover:bg-gold-500/10 hover:text-gold-400"
+              className="tracked-label flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full border border-navy-700/60 px-5 py-3 text-center text-xs font-semibold text-cream transition hover:border-gold-500/40 hover:bg-gold-500/10 hover:text-gold-400 active:scale-[0.98]"
             >
               <MdOutlineHome className="h-[17px] w-[17px]" />
               Back to Home

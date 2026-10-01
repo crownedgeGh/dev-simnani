@@ -65,7 +65,7 @@ export default function CommercialCategories({ categories, propertiesByCategory,
           <Link
             key={category.key}
             href={category.href ?? `${basePath}/${category.key}`}
-            className="group flex min-h-[44px] flex-col items-start gap-3 border border-navy-700/60 bg-navy-900 p-4 text-left transition active:border-gold-500/50 hover:border-gold-500/50"
+            className="group flex min-h-[44px] flex-col items-start gap-3 rounded-2xl border border-navy-700/60 bg-navy-900 p-4 text-left transition active:scale-[0.98] active:border-gold-500/50 hover:border-gold-500/50"
           >
             <span className="flex h-10 w-10 items-center justify-center rounded-full border border-navy-700/60 text-gold-400 transition group-active:border-gold-500/50 group-hover:border-gold-500/50">
               <Icon className="h-5 w-5" />

@@ -68,7 +68,7 @@ export function PhotosUpload({ id, label, hint, photos, onChange, optional, max 
         }}
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
-        className={`flex min-h-[7rem] cursor-pointer flex-col items-center justify-center gap-2 rounded-sm border border-dashed px-4 py-8 text-center transition sm:py-10 ${
+        className={`flex min-h-[7rem] cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed px-4 py-8 text-center transition sm:py-10 ${
           isDragging ? "border-gold-400 bg-navy-900" : "border-navy-700/60 bg-navy-950 hover:border-gold-400"
         }`}
       >
@@ -113,7 +113,7 @@ function PhotoThumb({ item, isCover, onSetCover, onRemove }) {
 
   return (
     <div
-      className={`relative aspect-square overflow-hidden rounded-sm border bg-navy-950 ${
+      className={`relative aspect-square overflow-hidden rounded-2xl border bg-navy-950 ${
         isCover ? "border-gold-400" : "border-navy-700/60"
       }`}
     >
@@ -122,7 +122,7 @@ function PhotoThumb({ item, isCover, onSetCover, onRemove }) {
         <img src={src} alt="" className="h-full w-full object-cover" />
       )}
       {isCover && (
-        <span className="tracked-label absolute left-1.5 top-1.5 bg-gold-400 px-1.5 py-1 text-[10px] text-navy-950">
+        <span className="tracked-label absolute left-1.5 top-1.5 rounded-full bg-gold-400 px-1.5 py-1 text-[10px] text-navy-950">
           Cover
         </span>
       )}
@@ -130,7 +130,7 @@ function PhotoThumb({ item, isCover, onSetCover, onRemove }) {
         type="button"
         onClick={onRemove}
         aria-label="Remove photo"
-        className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center bg-navy-950/80 text-sm text-cream transition hover:bg-red-500/80"
+        className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-navy-950/80 text-sm text-cream transition hover:bg-red-500/80 active:scale-[0.98]"
       >
         ×
       </button>
@@ -181,7 +181,7 @@ export function VideoUpload({ id, label, hint, file, existingUrl, onRemoveExisti
       </label>
 
       {previewUrl ? (
-        <div className="relative overflow-hidden rounded-sm border border-navy-700/60 bg-navy-950">
+        <div className="relative overflow-hidden rounded-2xl border border-navy-700/60 bg-navy-950">
           <video src={previewUrl} controls className="h-48 w-full object-cover" />
           <div className="flex items-center justify-between border-t border-navy-700/60 bg-navy-950 px-4 py-2">
             <span className="truncate text-xs text-muted">
@@ -193,7 +193,7 @@ export function VideoUpload({ id, label, hint, file, existingUrl, onRemoveExisti
                 onChange(null);
                 onRemoveExisting?.();
               }}
-              className="tracked-label ml-3 shrink-0 text-xs text-cream/80 transition hover:text-gold-400"
+              className="tracked-label ml-3 shrink-0 rounded-full px-3 py-1.5 text-xs text-cream/80 transition hover:text-gold-400 active:scale-[0.98]"
             >
               Remove
             </button>
@@ -213,7 +213,7 @@ export function VideoUpload({ id, label, hint, file, existingUrl, onRemoveExisti
           }}
           onDragLeave={() => setIsDragging(false)}
           onDrop={handleDrop}
-          className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-sm border border-dashed px-4 py-8 text-center transition ${
+          className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed px-4 py-8 text-center transition ${
             isDragging ? "border-gold-400 bg-navy-900" : "border-navy-700/60 bg-navy-950 hover:border-gold-400"
           }`}
         >

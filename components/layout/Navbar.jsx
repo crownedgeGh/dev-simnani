@@ -708,7 +708,7 @@ export default function Navbar() {
                 type="button"
                 onClick={handlePostProperty}
                 id="navbar-post-property-btn"
-                className="tracked-label flex shrink-0 items-center gap-2 whitespace-nowrap rounded-md bg-gold-400 px-3.5 py-2 text-xs text-navy-950 transition hover:bg-gold-300"
+                className="tracked-label flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full bg-gold-400 px-3.5 py-2 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 active:scale-[0.98]"
               >
                 Post Property
                 <span className="flex h-5 w-5 items-center justify-center rounded-full bg-navy-950/15 text-navy-950">
@@ -787,7 +787,7 @@ export default function Navbar() {
                 </Link>
                 <Link
                   href="/auth/register"
-                  className="tracked-label shrink-0 whitespace-nowrap rounded-md border border-gold-500/70 px-3.5 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10"
+                  className="tracked-label shrink-0 whitespace-nowrap rounded-full border border-gold-500/70 px-3.5 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10 active:scale-[0.98]"
                 >
                   Sign Up
                 </Link>
@@ -927,7 +927,7 @@ export default function Navbar() {
                     padding: "14px 20px",
                     background: "linear-gradient(135deg, #ffc633, #ffde85 60%, #ffc633)",
                     backgroundSize: "200% 100%",
-                    borderRadius: 12,
+                    borderRadius: 999,
                     fontSize: 12, fontWeight: 700,
                     letterSpacing: "0.14em", textTransform: "uppercase",
                     color: "#05070c",

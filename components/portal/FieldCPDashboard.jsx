@@ -66,7 +66,7 @@ function PhoneActions({ phone }) {
         type="button"
         onClick={handleCopy}
         aria-label="Copy phone number"
-        className={`hidden h-6 w-6 shrink-0 items-center justify-center rounded-sm border transition active:scale-95 sm:inline-flex ${
+        className={`hidden h-6 w-6 shrink-0 items-center justify-center rounded-full border transition active:scale-95 sm:inline-flex ${
           copied
             ? "border-gold-400 bg-gold-400 text-navy-950"
             : "border-navy-700/60 text-gold-400 hover:border-gold-400"
@@ -77,7 +77,7 @@ function PhoneActions({ phone }) {
       <a
         href={`tel:${phone.replace(/\s+/g, "")}`}
         aria-label="Call now"
-        className="flex h-9 min-w-[44px] items-center justify-center gap-1.5 rounded-sm border border-navy-700/60 px-3 text-xs text-gold-400 transition hover:border-gold-400 sm:hidden"
+        className="flex h-9 min-w-[44px] items-center justify-center gap-1.5 rounded-full border border-navy-700/60 px-3 text-xs text-gold-400 transition hover:border-gold-400 active:scale-[0.98] sm:hidden"
       >
         <MdCall className="h-4 w-4 shrink-0" />
         Call
@@ -558,7 +558,7 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
                           {project.startingPrice} · {project.developer}
                         </p>
                         <div className="mt-3 flex flex-wrap items-center gap-3">
-                          <span className="tracked-label flex w-fit items-center gap-1 border border-gold-500/70 px-3 py-1 text-xs text-gold-400">
+                          <span className="tracked-label flex w-fit items-center gap-1 rounded-full border border-gold-500/70 px-3 py-1 text-xs text-gold-400">
                             {project.status}
                           </span>
                           <Link
@@ -613,7 +613,7 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
                 <button
                   type="button"
                   onClick={() => setShowAddVisit((prev) => !prev)}
-                  className="tracked-label flex items-center gap-2 bg-gold-400 px-4 py-2 text-xs text-navy-950 transition hover:bg-gold-300"
+                  className="tracked-label flex items-center gap-2 rounded-full bg-gold-400 px-5 py-2 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 hover:shadow-gold-400/20 active:scale-[0.98]"
                 >
                   <FiPlus className="h-3.5 w-3.5" />
                   Add Site Visit
@@ -652,7 +652,7 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
                   <button
                     type="submit"
                     disabled={!newVisitProject}
-                    className="tracked-label flex items-center justify-center gap-2 bg-gold-400 px-6 py-3 text-xs text-navy-950 transition hover:bg-gold-300 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="tracked-label flex items-center justify-center gap-2 rounded-full bg-gold-400 px-6 py-3 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 hover:shadow-gold-400/20 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <FiPlus className="h-4 w-4" />
                     Schedule Visit
@@ -830,7 +830,7 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
                                 e.stopPropagation();
                                 editVisit(visit.leadId);
                               }}
-                              className="tracked-label flex items-center gap-1.5 border border-gold-500/70 px-3 py-1.5 text-[10px] text-gold-400 transition hover:bg-gold-500/10"
+                              className="tracked-label flex items-center gap-1.5 rounded-full border border-gold-500/70 px-3 py-1.5 text-[10px] text-gold-400 transition hover:bg-gold-500/10 active:scale-[0.98]"
                             >
                               <FiEdit2 className="h-3 w-3" />
                               Edit
@@ -954,7 +954,7 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
                           <button
                             type="button"
                             onClick={() => submitVisit(visit.leadId)}
-                            className="tracked-label flex items-center gap-1.5 bg-gold-400 px-4 py-2 text-xs text-navy-950 transition hover:bg-gold-300"
+                            className="tracked-label flex items-center gap-1.5 rounded-full bg-gold-400 px-5 py-2 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 hover:shadow-gold-400/20 active:scale-[0.98]"
                           >
                             <FiCheck className="h-3.5 w-3.5" />
                             Submit Visit
@@ -985,7 +985,7 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
                         <button
                           type="button"
                           onClick={() => addFollowUp(visit.leadId)}
-                          className="tracked-label border border-gold-400/70 px-4 py-2 text-xs text-gold-400 transition hover:bg-gold-400/10 sm:shrink-0"
+                          className="tracked-label rounded-full border border-gold-400/70 px-4 py-2 text-xs text-gold-400 transition hover:bg-gold-400/10 active:scale-[0.98] sm:shrink-0"
                         >
                           Add
                         </button>
@@ -1063,7 +1063,7 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
               <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:justify-end">
                 <button
                   type="submit"
-                  className="tracked-label flex items-center justify-center gap-2 bg-gold-400 px-6 py-3 text-xs text-navy-950 transition hover:bg-gold-300"
+                  className="tracked-label flex items-center justify-center gap-2 rounded-full bg-gold-400 px-6 py-3 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 hover:shadow-gold-400/20 active:scale-[0.98]"
                 >
                   <FiPlus className="h-4 w-4" />
                   Add Lead
@@ -1088,7 +1088,7 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
                       {lead.notes && <p className="mt-1 text-xs text-muted">{lead.notes}</p>}
                     </div>
                     {lead.forwarded ? (
-                      <span className="tracked-label flex w-fit shrink-0 items-center gap-2 border border-gold-500/70 px-4 py-2 text-xs text-gold-400">
+                      <span className="tracked-label flex w-fit shrink-0 items-center gap-2 rounded-full border border-gold-500/70 px-4 py-2 text-xs text-gold-400">
                         <FiCheck className="h-3.5 w-3.5" />
                         Forwarded to Head CP
                       </span>
@@ -1097,7 +1097,7 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
                         type="button"
                         disabled={directSaving[lead.id]}
                         onClick={() => handleForwardDirectLead(lead.id)}
-                        className="tracked-label flex shrink-0 items-center justify-center gap-2 bg-gold-400 px-4 py-2 text-xs text-navy-950 transition hover:bg-gold-300 disabled:opacity-60"
+                        className="tracked-label flex shrink-0 items-center justify-center gap-2 rounded-full bg-gold-400 px-4 py-2 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 hover:shadow-gold-400/20 active:scale-[0.98] disabled:opacity-60"
                       >
                         <FiSend className="h-3.5 w-3.5" />
                         {directSaving[lead.id] ? "Forwarding…" : "Forward to Head CP"}

@@ -58,15 +58,15 @@ export default function RootLayout({ children }) {
             },
             classNames: {
               toast:
-                "!rounded-sm !border !border-navy-700/60 !bg-navy-900 !p-4 !shadow-2xl",
+                "!rounded-2xl !border !border-navy-700/60 !bg-navy-900 !p-4 !shadow-2xl",
               title: "!font-display !text-[15px] !leading-snug !text-cream",
               description: "!mt-1.5 !text-xs !leading-relaxed !text-muted",
               actionButton:
-                "!tracked-label !ml-2 !rounded-sm !bg-gold-400 !px-4 !py-2.5 !text-[11px] !font-semibold !text-navy-950 !transition hover:!bg-gold-300",
+                "!tracked-label !ml-2 !rounded-full !bg-gold-400 !px-4 !py-2.5 !text-[11px] !font-semibold !text-navy-950 !transition hover:!bg-gold-300",
               cancelButton:
-                "!tracked-label !rounded-sm !border !border-navy-700/60 !bg-transparent !px-4 !py-2.5 !text-[11px] !text-cream !transition hover:!border-gold-400 hover:!text-gold-400",
+                "!tracked-label !rounded-full !border !border-navy-700/60 !bg-transparent !px-4 !py-2.5 !text-[11px] !text-cream !transition hover:!border-gold-400 hover:!text-gold-400",
               closeButton:
-                "!border-navy-700/60 !bg-navy-800 !text-cream hover:!bg-navy-700",
+                "!rounded-full !border-navy-700/60 !bg-navy-800 !text-cream hover:!bg-navy-700",
               success: "!border-gold-500/40",
               error: "!border-red-500/40",
             },

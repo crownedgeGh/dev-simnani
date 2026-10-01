@@ -88,7 +88,7 @@ export default function SiteVisitsTab({ siteVisits, leads, onSchedule, onUpdateO
           <button
             type="button"
             onClick={() => setShowForm((v) => !v)}
-            className="tracked-label bg-cyan-600 px-4 py-2 text-xs text-white transition hover:bg-cyan-500"
+            className="tracked-label rounded-full bg-cyan-600 px-4 py-2 text-xs text-white shadow-lg shadow-cyan-600/10 transition hover:bg-cyan-500 active:scale-[0.98]"
           >
             {showForm ? "Close" : "Schedule Visit"}
           </button>
@@ -134,7 +134,7 @@ export default function SiteVisitsTab({ siteVisits, leads, onSchedule, onUpdateO
             />
             <button
               type="submit"
-              className="tracked-label bg-cyan-600 px-4 py-2 text-xs text-white transition hover:bg-cyan-500"
+              className="tracked-label rounded-full bg-cyan-600 px-4 py-2 text-xs text-white shadow-lg shadow-cyan-600/10 transition hover:bg-cyan-500 active:scale-[0.98]"
             >
               Confirm Schedule
             </button>
@@ -154,7 +154,7 @@ export default function SiteVisitsTab({ siteVisits, leads, onSchedule, onUpdateO
               >
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-4">
-                    <span className="flex h-11 min-w-16 shrink-0 items-center justify-center rounded-sm bg-cyan-100 px-2 font-display text-sm text-cyan-700">
+                    <span className="flex h-11 min-w-16 shrink-0 items-center justify-center rounded-full bg-cyan-100 px-3 font-display text-sm text-cyan-700">
                       {visit.time}
                     </span>
                     <div>
@@ -168,7 +168,7 @@ export default function SiteVisitsTab({ siteVisits, leads, onSchedule, onUpdateO
                       <button
                         type="button"
                         onClick={() => openOutcome(visit)}
-                        className="tracked-label border border-cyan-500 px-3 py-2 text-xs text-cyan-600 transition hover:bg-cyan-50"
+                        className="tracked-label rounded-full border border-cyan-500 px-4 py-2 text-xs text-cyan-600 transition hover:bg-cyan-50 active:scale-[0.98]"
                       >
                         Mark Done
                       </button>
@@ -219,14 +219,14 @@ export default function SiteVisitsTab({ siteVisits, leads, onSchedule, onUpdateO
                       <button
                         type="button"
                         onClick={() => setOutcomeOpenId(null)}
-                        className="tracked-label border border-gray-300 px-4 py-2 text-xs text-gray-700 transition hover:border-cyan-500"
+                        className="tracked-label rounded-full border border-gray-300 px-4 py-2 text-xs text-gray-700 transition hover:border-cyan-500 active:scale-[0.98]"
                       >
                         Cancel
                       </button>
                       <button
                         type="button"
                         onClick={() => saveOutcome(visit.id)}
-                        className="tracked-label bg-cyan-600 px-4 py-2 text-xs text-white transition hover:bg-cyan-500"
+                        className="tracked-label rounded-full bg-cyan-600 px-4 py-2 text-xs text-white shadow-lg shadow-cyan-600/10 transition hover:bg-cyan-500 active:scale-[0.98]"
                       >
                         Save Outcome
                       </button>

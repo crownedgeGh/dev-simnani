@@ -35,7 +35,7 @@ export default function LegalPage() {
           <Link
             key={doc.title}
             href={doc.href}
-            className="border border-navy-700/60 bg-navy-900 p-6 transition hover:border-gold-400"
+            className="rounded-2xl border border-navy-700/60 bg-navy-900 p-6 transition hover:border-gold-400 active:scale-[0.98]"
           >
             <h3 className="font-display text-lg text-cream">{doc.title}</h3>
             <p className="mt-2 text-sm text-muted">{doc.desc}</p>

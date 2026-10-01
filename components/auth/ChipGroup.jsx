@@ -65,7 +65,7 @@ export default function ChipGroup({ options, value, onChange, multi = false, lay
           type="button"
           onClick={() => handleClick(opt.value)}
           aria-pressed={isSelected(opt.value)}
-          className={`tracked-label rounded-sm border px-4 py-2 text-xs transition ${
+          className={`tracked-label rounded-full border px-4 py-2 text-xs transition active:scale-[0.98] ${
             isSelected(opt.value)
               ? "border-gold-400 bg-gold-400 text-navy-950"
               : "border-navy-700/60 text-muted hover:text-cream"

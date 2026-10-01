@@ -35,7 +35,7 @@ export default async function ProjectDetailPage({ params }) {
           priority
           className="object-cover"
         />
-        <span className="tracked-label absolute left-4 top-4 bg-gold-500 px-3 py-1.5 text-[10px] font-semibold text-navy-950">
+        <span className="tracked-label absolute left-4 top-4 rounded-full bg-gold-500 px-3.5 py-1.5 text-[10px] font-semibold text-navy-950">
           {project.status}
         </span>
       </div>
@@ -69,7 +69,7 @@ export default async function ProjectDetailPage({ params }) {
               {AMENITIES.map((amenity) => (
                 <span
                   key={amenity}
-                  className="tracked-label border border-navy-700/60 px-3 py-2 text-xs text-cream/80"
+                  className="tracked-label rounded-full border border-navy-700/60 px-3.5 py-2 text-xs text-cream/80"
                 >
                   {amenity}
                 </span>
@@ -79,7 +79,7 @@ export default async function ProjectDetailPage({ params }) {
         </div>
 
         <div className="lg:col-span-1">
-          <div className="border border-navy-700/60 bg-navy-900 p-6 lg:sticky lg:top-24">
+          <div className="rounded-2xl border border-navy-700/60 bg-navy-900 p-6 lg:sticky lg:top-24">
             <h3 className="font-display text-lg text-cream">Interested in this project?</h3>
             <p className="mt-2 text-sm text-muted">
               Speak with our investment advisory team to learn more.
@@ -87,13 +87,13 @@ export default async function ProjectDetailPage({ params }) {
             <div className="mt-5 flex flex-col gap-3">
               <Link
                 href={`/projects/${project.id}/enquire`}
-                className="tracked-label bg-gold-400 px-6 py-4 text-center text-xs text-navy-950 transition hover:bg-gold-300"
+                className="tracked-label rounded-full bg-gold-400 px-6 py-4 text-center text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition active:scale-[0.98] hover:bg-gold-300 hover:shadow-gold-400/20"
               >
                 Enquire Now
               </Link>
               <Link
                 href={`/projects/${project.id}/schedule-visit`}
-                className="tracked-label border border-navy-700/60 px-6 py-4 text-center text-xs text-cream transition hover:border-gold-400"
+                className="tracked-label rounded-full border border-navy-700/60 px-6 py-4 text-center text-xs text-cream transition active:scale-[0.98] hover:border-gold-400"
               >
                 Schedule Site Visit
               </Link>

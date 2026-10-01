@@ -69,14 +69,14 @@ export default function PrivacyPanel() {
               <button
                 type="button"
                 onClick={() => setConfirmingLogout(false)}
-                className="tracked-label border border-navy-700/60 px-5 py-3 text-xs text-cream transition hover:border-gold-400"
+                className="tracked-label rounded-full border border-navy-700/60 px-5 py-3 text-xs text-cream transition hover:border-gold-400 active:scale-[0.98]"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={() => setLoggedOut(true)}
-                className="tracked-label bg-gold-400 px-5 py-3 text-xs text-navy-950 transition hover:bg-gold-300"
+                className="tracked-label rounded-full bg-gold-400 px-5 py-3 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 active:scale-[0.98]"
               >
                 Logout
               </button>
@@ -86,7 +86,7 @@ export default function PrivacyPanel() {
           <button
             type="button"
             onClick={() => setConfirmingLogout(true)}
-            className="tracked-label border border-navy-700/60 px-5 py-3 text-xs text-cream transition hover:border-gold-400"
+            className="tracked-label rounded-full border border-navy-700/60 px-5 py-3 text-xs text-cream transition hover:border-gold-400 active:scale-[0.98]"
           >
             Logout
           </button>
@@ -110,14 +110,14 @@ export default function PrivacyPanel() {
               <button
                 type="button"
                 onClick={() => setConfirmingDelete(false)}
-                className="tracked-label border border-navy-700/60 px-5 py-3 text-xs text-cream transition hover:border-gold-400"
+                className="tracked-label rounded-full border border-navy-700/60 px-5 py-3 text-xs text-cream transition hover:border-gold-400 active:scale-[0.98]"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={() => setDeleted(true)}
-                className="tracked-label border border-red-500 px-5 py-3 text-xs text-red-400 transition hover:bg-red-500 hover:text-navy-950"
+                className="tracked-label rounded-full border border-red-500 px-5 py-3 text-xs text-red-400 transition hover:bg-red-500 hover:text-navy-950 active:scale-[0.98]"
               >
                 Confirm Delete
               </button>
@@ -134,7 +134,7 @@ export default function PrivacyPanel() {
             <button
               type="button"
               onClick={() => setConfirmingDelete(true)}
-              className="tracked-label mt-4 border border-red-500 px-5 py-3 text-xs text-red-400 transition hover:bg-red-500 hover:text-navy-950"
+              className="tracked-label mt-4 rounded-full border border-red-500 px-5 py-3 text-xs text-red-400 transition hover:bg-red-500 hover:text-navy-950 active:scale-[0.98]"
             >
               Delete Account
             </button>

@@ -30,7 +30,7 @@ export default function InsightsSection() {
           {INSIGHTS.map((insight) => (
             <div
               key={insight.title}
-              className="border border-navy-700/60 bg-navy-950 p-6 transition hover:border-gold-500/50"
+              className="rounded-2xl border border-navy-700/60 bg-navy-950 p-6 transition hover:border-gold-500/50"
             >
               <p className="tracked-label text-[10px] text-gold-400">
                 {insight.category}
@@ -41,7 +41,7 @@ export default function InsightsSection() {
               <p className="mt-2 text-sm text-muted">{insight.excerpt}</p>
               <button
                 type="button"
-                className="tracked-label mt-5 text-xs text-gold-400 transition hover:text-gold-300"
+                className="tracked-label mt-5 rounded-full text-xs text-gold-400 transition active:scale-[0.98] hover:text-gold-300"
               >
                 Read More →
               </button>

@@ -8,7 +8,7 @@ export default function EmptyState({ title, message, actionHref, actionLabel }) 
       {actionHref && actionLabel && (
         <Link
           href={actionHref}
-          className="tracked-label mt-2 bg-gold-400 px-6 py-3 text-xs text-navy-950 transition hover:bg-gold-300"
+          className="tracked-label mt-2 rounded-full bg-gold-400 px-6 py-3 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 active:scale-[0.98]"
         >
           {actionLabel}
         </Link>

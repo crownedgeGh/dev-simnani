@@ -32,7 +32,7 @@ export default function PasswordFields({
             type="button"
             onClick={() => setShow((s) => !s)}
             aria-label={show ? "Hide password" : "Show password"}
-            className="absolute right-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center text-muted transition hover:text-gold-400"
+            className="absolute right-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full text-muted transition hover:text-gold-400"
           >
             {show ? <FiEyeOff className="h-5 w-5" /> : <FiEye className="h-5 w-5" />}
           </button>

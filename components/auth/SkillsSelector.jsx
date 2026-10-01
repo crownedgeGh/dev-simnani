@@ -222,7 +222,7 @@ export default function SkillsSelector({ value = [], onChange }) {
   }
 
   return (
-    <div className="flex flex-col gap-5 border border-navy-700/60 bg-navy-900/40 p-4 sm:p-6">
+    <div className="flex flex-col gap-5 rounded-2xl border border-navy-700/60 bg-navy-900/40 p-4 sm:p-6">
       {/* 1. Skill Category Selection */}
       <div ref={catContainerRef} className="relative flex flex-col gap-2">
         <div className="flex items-center justify-between">
@@ -281,7 +281,7 @@ export default function SkillsSelector({ value = [], onChange }) {
                 setSelectedCategory("");
                 setIsCatOpen(true);
               }}
-              className="absolute right-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center text-muted transition hover:text-cream"
+              className="absolute right-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-muted transition hover:text-cream"
               aria-label="Clear category"
             >
               <MdClose className="h-4 w-4" />
@@ -293,7 +293,7 @@ export default function SkillsSelector({ value = [], onChange }) {
 
         {/* Category Dropdown */}
         {isCatOpen && (
-          <div className="absolute left-0 right-0 top-full z-40 mt-1 max-h-64 overflow-y-auto border border-navy-700/80 bg-navy-900 p-2 shadow-2xl">
+          <div className="absolute left-0 right-0 top-full z-40 mt-1 max-h-64 overflow-y-auto rounded-2xl border border-navy-700/80 bg-navy-900 p-2 shadow-2xl">
             {filteredCategories.length === 0 ? (
               <p className="px-4 py-3 text-center text-xs text-muted">
                 No matching categories found
@@ -306,7 +306,7 @@ export default function SkillsSelector({ value = [], onChange }) {
                     key={c._id || c.name}
                     type="button"
                     onClick={() => handleSelectCategory(c.name)}
-                    className={`flex min-h-[46px] w-full items-center justify-between px-3.5 text-left text-sm transition ${
+                    className={`flex min-h-[46px] w-full items-center justify-between rounded-full px-3.5 text-left text-sm transition ${
                       isSelected
                         ? "bg-gold-400/15 font-medium text-gold-400"
                         : "text-cream hover:bg-navy-800"
@@ -352,14 +352,14 @@ export default function SkillsSelector({ value = [], onChange }) {
                 return isSelected ? (
                   <span
                     key={skill}
-                    className="inline-flex items-center gap-1.5 border border-gold-400/80 bg-gold-400/10 px-3 py-1.5 text-xs font-medium text-cream shadow-xs transition"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-gold-400/80 bg-gold-400/10 px-3 py-1.5 text-xs font-medium text-cream shadow-xs transition"
                   >
                     <MdCheck className="h-3.5 w-3.5 text-gold-400 shrink-0" />
                     <span>{skill}</span>
                     <button
                       type="button"
                       onClick={() => handleToggleSkill(skill, selectedCategory)}
-                      className="ml-1 text-muted transition hover:text-red-400 p-0.5"
+                      className="ml-1 rounded-full p-0.5 text-muted transition hover:text-red-400"
                       title={`Remove "${skill}"`}
                       aria-label={`Remove ${skill}`}
                     >
@@ -371,7 +371,7 @@ export default function SkillsSelector({ value = [], onChange }) {
                     key={skill}
                     type="button"
                     onClick={() => handleToggleSkill(skill, selectedCategory)}
-                    className="inline-flex items-center gap-1.5 border border-navy-700 bg-navy-950/80 px-3 py-1.5 text-xs text-muted transition hover:border-gold-400/60 hover:text-cream"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-navy-700 bg-navy-950/80 px-3 py-1.5 text-xs text-muted transition hover:border-gold-400/60 hover:text-cream active:scale-[0.98]"
                     title={`Add "${skill}"`}
                   >
                     <MdAdd className="h-3.5 w-3.5 text-gold-400/70" />
@@ -412,7 +412,7 @@ export default function SkillsSelector({ value = [], onChange }) {
                 <button
                   type="button"
                   onClick={handleConfirmAddOwn}
-                  className="tracked-label flex h-14 shrink-0 items-center justify-center gap-1.5 bg-gold-400 px-5 text-xs font-semibold text-navy-950 transition hover:bg-gold-300"
+                  className="tracked-label flex h-14 shrink-0 items-center justify-center gap-1.5 rounded-full bg-gold-400 px-5 text-xs font-semibold text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 hover:shadow-gold-400/20 active:scale-[0.98]"
                 >
                   <MdAdd className="h-4 w-4" /> Add
                 </button>
@@ -422,7 +422,7 @@ export default function SkillsSelector({ value = [], onChange }) {
                     setIsAddingOwn(false);
                     setCustomSkillInput("");
                   }}
-                  className="flex h-14 w-14 shrink-0 items-center justify-center border border-navy-700/60 text-muted transition hover:text-cream"
+                  className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-navy-700/60 text-muted transition hover:text-cream active:scale-[0.98]"
                   aria-label="Cancel"
                 >
                   <MdClose className="h-4 w-4" />
@@ -435,7 +435,7 @@ export default function SkillsSelector({ value = [], onChange }) {
                   setIsAddingOwn(true);
                   requestAnimationFrame(() => customInputRef.current?.focus());
                 }}
-                className="tracked-label flex w-fit items-center gap-1.5 border border-dashed border-gold-500/60 bg-gold-500/5 px-4 py-2.5 text-xs text-gold-400 transition hover:border-gold-400 hover:bg-gold-500/15"
+                className="tracked-label flex w-fit items-center gap-1.5 rounded-full border border-dashed border-gold-500/60 bg-gold-500/5 px-4 py-2.5 text-xs text-gold-400 transition hover:border-gold-400 hover:bg-gold-500/15 active:scale-[0.98]"
               >
                 <MdAdd className="h-4 w-4" /> Add your own skill
               </button>
@@ -459,14 +459,14 @@ export default function SkillsSelector({ value = [], onChange }) {
             {value.map((skill, i) => (
               <span
                 key={`${skill.category}-${skill.subcategory}-${i}`}
-                className="inline-flex items-center gap-2 border border-gold-500/40 bg-navy-950 px-3.5 py-2 text-xs text-cream shadow-sm"
+                className="inline-flex items-center gap-2 rounded-full border border-gold-500/40 bg-navy-950 px-3.5 py-2 text-xs text-cream shadow-sm"
               >
                 <span className="font-medium text-cream">{skill.subcategory}</span>
                 <button
                   type="button"
                   onClick={() => removeSkill(i)}
                   aria-label={`Remove ${skill.subcategory}`}
-                  className="ml-1 text-muted transition hover:text-red-400"
+                  className="ml-1 rounded-full text-muted transition hover:text-red-400"
                 >
                   <MdClose className="h-3.5 w-3.5" />
                 </button>

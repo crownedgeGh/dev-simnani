@@ -128,7 +128,7 @@ export default function AddPropertyWizard() {
           <div className="flex w-full flex-col gap-3">
             <Link
               href="/portal/broker"
-              className="tracked-label bg-gold-400 px-6 py-4 text-center text-xs text-navy-950 transition hover:bg-gold-300"
+              className="tracked-label rounded-full bg-gold-400 px-6 py-4 text-center text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition active:scale-[0.98] hover:bg-gold-300 hover:shadow-gold-400/20"
             >
               Go to Dashboard
             </Link>
@@ -139,7 +139,7 @@ export default function AddPropertyWizard() {
                 setStep(1);
                 setPropertyId("");
               }}
-              className="tracked-label border border-navy-700/60 px-6 py-4 text-xs text-cream transition hover:border-gold-400"
+              className="tracked-label rounded-full border border-navy-700/60 px-6 py-4 text-xs text-cream transition active:scale-[0.98] hover:border-gold-400"
             >
               List Another Property
             </button>
@@ -365,7 +365,7 @@ export default function AddPropertyWizard() {
           <button
             type="button"
             onClick={goBack}
-            className="tracked-label border border-navy-700/60 px-6 py-4 text-xs text-cream transition hover:border-gold-400"
+            className="tracked-label rounded-full border border-navy-700/60 px-6 py-4 text-xs text-cream transition active:scale-[0.98] hover:border-gold-400"
           >
             Back
           </button>
@@ -377,7 +377,7 @@ export default function AddPropertyWizard() {
           <button
             type="button"
             onClick={goNext}
-            className="tracked-label bg-gold-400 px-6 py-4 text-xs text-navy-950 transition hover:bg-gold-300"
+            className="tracked-label rounded-full bg-gold-400 px-6 py-4 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition active:scale-[0.98] hover:bg-gold-300 hover:shadow-gold-400/20"
           >
             Continue
           </button>
@@ -386,7 +386,7 @@ export default function AddPropertyWizard() {
             type="button"
             onClick={handleSubmit}
             disabled={submitting}
-            className="tracked-label bg-gold-400 px-6 py-4 text-xs text-navy-950 transition hover:bg-gold-300 disabled:cursor-not-allowed disabled:opacity-60"
+            className="tracked-label rounded-full bg-gold-400 px-6 py-4 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition active:scale-[0.98] hover:bg-gold-300 hover:shadow-gold-400/20 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {submitting ? "Submitting..." : "Submit Property"}
           </button>

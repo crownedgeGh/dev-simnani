@@ -88,7 +88,7 @@ export default function AccountProfile({ user }) {
           </div>
           <Link
             href={`/auth/register/${authUser.accountType}?step=${authUser.registrationStep || 1}`}
-            className="tracked-label shrink-0 border border-gold-500/70 px-4 py-3 text-xs text-gold-400 transition hover:bg-gold-500/10"
+            className="tracked-label shrink-0 rounded-full border border-gold-500/70 px-5 py-3 text-xs text-gold-400 transition active:scale-[0.98] hover:bg-gold-500/10"
           >
             Complete Your Profile
           </Link>
@@ -108,7 +108,7 @@ export default function AccountProfile({ user }) {
               {authUser?.accountType === "broker" && authUser?.plan !== "premium" && (
                 <Link
                   href="/pricing"
-                  className="tracked-label ml-1 flex items-center gap-1.5 bg-gold-400 px-3 py-1.5 text-[11px] text-navy-950 transition hover:bg-gold-300"
+                  className="tracked-label ml-1 flex items-center gap-1.5 rounded-full bg-gold-400 px-3.5 py-1.5 text-[11px] text-navy-950 shadow-lg shadow-gold-400/10 transition active:scale-[0.98] hover:bg-gold-300 hover:shadow-gold-400/20"
                 >
                   <FiArrowUpCircle className="h-3.5 w-3.5" />
                   Upgrade Plan
@@ -180,14 +180,14 @@ export default function AccountProfile({ user }) {
               <button
                 type="button"
                 onClick={() => setEditing(false)}
-                className="tracked-label border border-navy-700/60 px-6 py-3 text-xs text-cream transition hover:border-gold-400"
+                className="tracked-label rounded-full border border-navy-700/60 px-6 py-3 text-xs text-cream transition active:scale-[0.98] hover:border-gold-400"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleSave}
-                className="tracked-label bg-gold-400 px-6 py-3 text-xs text-navy-950 transition hover:bg-gold-300"
+                className="tracked-label rounded-full bg-gold-400 px-6 py-3 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition active:scale-[0.98] hover:bg-gold-300 hover:shadow-gold-400/20"
               >
                 Save Changes
               </button>
