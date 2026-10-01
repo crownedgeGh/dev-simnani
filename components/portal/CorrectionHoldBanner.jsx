@@ -1,5 +1,12 @@
 import Link from "next/link";
-import { MdReportProblem, MdEdit, MdHourglassTop, MdErrorOutline, MdOutlineChatBubble } from "react-icons/md";
+import {
+  MdReportProblem,
+  MdEdit,
+  MdHourglassTop,
+  MdErrorOutline,
+  MdOutlineChatBubble,
+  MdCheckCircle,
+} from "react-icons/md";
 
 function formatDate(value) {
   return value
@@ -11,8 +18,51 @@ function formatDate(value) {
     : "";
 }
 
-export default function CorrectionHoldBanner({ correctionRequest, propertyId }) {
-  if (!correctionRequest?.active && !correctionRequest?.underReview) return null;
+export default function CorrectionHoldBanner({ correctionRequest, propertyId, status }) {
+  if (!correctionRequest?.active && !correctionRequest?.underReview) {
+    if (status === "Pending Review") {
+      return (
+        <div className="mx-auto mb-6 max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="border border-gold-500/60 bg-gold-400/10 p-5">
+            <div className="flex items-start gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold-400/20 text-gold-400">
+                <MdHourglassTop className="h-5 w-5" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="tracked-label text-xs text-gold-400">Under Review</p>
+                <p className="mt-1 text-sm text-cream">
+                  This listing is awaiting admin approval and isn&apos;t visible on the public portal yet.
+                  We&apos;ll notify you once it goes live.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (status === "Active") {
+      return (
+        <div className="mx-auto mb-6 max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="border border-gold-500/60 bg-gold-400/10 p-5">
+            <div className="flex items-start gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold-400/20 text-gold-400">
+                <MdCheckCircle className="h-5 w-5" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="tracked-label text-xs text-gold-400">Approved</p>
+                <p className="mt-1 text-sm text-cream">
+                  This listing has been approved by our team and is now live on the public portal.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return null;
+  }
 
   if (correctionRequest.underReview) {
     return (

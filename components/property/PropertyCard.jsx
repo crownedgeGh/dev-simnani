@@ -16,6 +16,7 @@ import {
   MdCheck,
   MdReportProblem,
   MdHourglassTop,
+  MdCheckCircle,
 } from "react-icons/md";
 import { formatPostedDate, getPropertyCategoryLabels, formatBhkLabel } from "@/lib/properties";
 import { useSavedPropertyIds } from "@/lib/savedProperties";
@@ -40,6 +41,8 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
   const { typeLabel, categoryLabel } = getPropertyCategoryLabels(property);
   const onHold = ownerView && property.correctionRequest?.active;
   const underReview = ownerView && !property.correctionRequest?.active && property.correctionRequest?.underReview;
+  const pendingApproval = ownerView && property.status === "Pending Review" && !onHold && !underReview;
+  const approved = ownerView && property.status === "Active" && !onHold && !underReview;
   const { isSaved, toggle } = useSavedPropertyIds();
   const { isAuthenticated, user } = useAuth();
   const saved = isSaved(id);
@@ -137,6 +140,16 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
           <span className="tracked-label absolute left-3 top-3 flex items-center gap-1 rounded-sm bg-gold-500 px-2 py-1 text-[10px] font-semibold text-navy-950">
             <MdHourglassTop className="h-3 w-3 shrink-0" />
             In Review
+          </span>
+        ) : pendingApproval ? (
+          <span className="tracked-label absolute left-3 top-3 flex items-center gap-1 rounded-sm bg-gold-500 px-2 py-1 text-[10px] font-semibold text-navy-950">
+            <MdHourglassTop className="h-3 w-3 shrink-0" />
+            Under Review
+          </span>
+        ) : approved ? (
+          <span className="tracked-label absolute left-3 top-3 flex items-center gap-1 rounded-sm bg-gold-400 px-2 py-1 text-[10px] font-semibold text-navy-950">
+            <MdCheckCircle className="h-3 w-3 shrink-0" />
+            Approved
           </span>
         ) : (
           badge && (

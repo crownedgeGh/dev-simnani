@@ -42,7 +42,11 @@ export default async function OwnerListingPage({ params }) {
   return (
     <>
       <ForceBackRedirect href="/portal/common-person" />
-      <CorrectionHoldBanner correctionRequest={property.correctionRequest} propertyId={property.id} />
+      <CorrectionHoldBanner
+        correctionRequest={property.correctionRequest}
+        propertyId={property.id}
+        status={property.status}
+      />
       <PropertyDetailContent
         property={property}
         eyebrow="Private Listing View"
