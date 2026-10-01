@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import CpLead from "@/models/CpLead";
+import Assignment from "@/models/Assignment";
 import { getSessionUser } from "@/lib/session";
 import { isAdminRequest } from "@/lib/adminSession";
 
@@ -8,20 +9,41 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 // The admin panel needs to query across any CP's leads by routingStage; the
-// portal always scopes its own query by submittedByAccountId. Anyone else —
-// including a logged-in CP passing someone else's accountId or a bare
-// routingStage query — is rejected.
+// portal always scopes its own query by submittedByAccountId. A Company CP
+// may pass `delegatedByAccountId=<self>` to see leads submitted by every
+// Field/Digital CP it has delegated a project to (verified via the
+// Assignment table). Anyone else — including a logged-in CP passing someone
+// else's accountId or a bare routingStage query — is rejected.
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const routingStage = searchParams.get("routingStage");
     const submittedByAccountId = searchParams.get("submittedByAccountId");
+    const delegatedByAccountId = searchParams.get("delegatedByAccountId");
     const adLinkId = searchParams.get("adLinkId");
     const forwarded = searchParams.get("forwarded");
 
+    let submittedByAccountIds = null;
+
     if (!isAdminRequest(request)) {
       const sessionUser = await getSessionUser(request);
-      if (!sessionUser || !submittedByAccountId || submittedByAccountId !== sessionUser.accountId) {
+      if (!sessionUser) {
+        return NextResponse.json({ success: false, error: "Not authorized" }, { status: 403 });
+      }
+
+      if (delegatedByAccountId) {
+        if (delegatedByAccountId !== sessionUser.accountId) {
+          return NextResponse.json({ success: false, error: "Not authorized" }, { status: 403 });
+        }
+        await dbConnect();
+        const delegations = await Assignment.find({
+          level: { $in: ["company-to-field", "company-to-digital"] },
+          assignedByAccountId: delegatedByAccountId,
+        })
+          .select("assignedToAccountId")
+          .lean();
+        submittedByAccountIds = [...new Set(delegations.map((d) => d.assignedToAccountId))];
+      } else if (!submittedByAccountId || submittedByAccountId !== sessionUser.accountId) {
         return NextResponse.json({ success: false, error: "Not authorized" }, { status: 403 });
       }
     }
@@ -30,7 +52,8 @@ export async function GET(request) {
 
     const query = {};
     if (routingStage) query.routingStage = routingStage;
-    if (submittedByAccountId) query["submittedBy.accountId"] = submittedByAccountId;
+    if (submittedByAccountIds) query["submittedBy.accountId"] = { $in: submittedByAccountIds };
+    else if (submittedByAccountId) query["submittedBy.accountId"] = submittedByAccountId;
     if (adLinkId) query.adLinkId = adLinkId;
     if (forwarded !== null && forwarded !== undefined && forwarded !== "") {
       query.forwarded = forwarded === "true";

@@ -1,20 +1,43 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import AdLink from "@/models/AdLink";
+import Assignment from "@/models/Assignment";
 import { getSessionUser } from "@/lib/session";
 import { isAdminRequest } from "@/lib/adminSession";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+// A Company CP may pass `delegatedByAccountId=<self>` to see ad links from
+// every Digital CP it has delegated a project to (verified via the
+// Assignment table).
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const digitalCpAccountId = searchParams.get("digitalCpAccountId");
+    const delegatedByAccountId = searchParams.get("delegatedByAccountId");
+
+    let digitalCpAccountIds = null;
 
     if (!isAdminRequest(request)) {
       const sessionUser = await getSessionUser(request);
-      if (!sessionUser || !digitalCpAccountId || digitalCpAccountId !== sessionUser.accountId) {
+      if (!sessionUser) {
+        return NextResponse.json({ success: false, error: "Not authorized" }, { status: 403 });
+      }
+
+      if (delegatedByAccountId) {
+        if (delegatedByAccountId !== sessionUser.accountId) {
+          return NextResponse.json({ success: false, error: "Not authorized" }, { status: 403 });
+        }
+        await dbConnect();
+        const delegations = await Assignment.find({
+          level: "company-to-digital",
+          assignedByAccountId: delegatedByAccountId,
+        })
+          .select("assignedToAccountId")
+          .lean();
+        digitalCpAccountIds = [...new Set(delegations.map((d) => d.assignedToAccountId))];
+      } else if (!digitalCpAccountId || digitalCpAccountId !== sessionUser.accountId) {
         return NextResponse.json({ success: false, error: "Not authorized" }, { status: 403 });
       }
     }
@@ -22,7 +45,8 @@ export async function GET(request) {
     await dbConnect();
 
     const query = {};
-    if (digitalCpAccountId) query.digitalCpAccountId = digitalCpAccountId;
+    if (digitalCpAccountIds) query.digitalCpAccountId = { $in: digitalCpAccountIds };
+    else if (digitalCpAccountId) query.digitalCpAccountId = digitalCpAccountId;
 
     const links = await AdLink.find(query).sort({ createdAt: -1 }).lean();
 

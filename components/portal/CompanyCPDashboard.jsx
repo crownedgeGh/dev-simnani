@@ -7,21 +7,20 @@ import {
   FiCheck,
   FiX,
   FiEdit3,
-  FiMapPin,
-  FiCamera,
-  FiPhoneCall,
   FiLink,
   FiPlus,
   FiSend,
   FiArrowRight,
+  FiNavigation,
+  FiCamera,
 } from "react-icons/fi";
-import { MdSell, MdLockOpen } from "react-icons/md";
+import { MdSell, MdLockOpen, MdContentCopy, MdCheck, MdCall } from "react-icons/md";
 import Tabs from "./Tabs";
 import StatCard from "./StatCard";
 import Badge from "./Badge";
 import EmptyState from "./EmptyState";
 import PropertyGrid from "@/components/property/PropertyGrid";
-import { CP_TYPE_LABEL, VIDEO_STATUS_TONE } from "./channel-partner/tones";
+import { CP_TYPE_LABEL, VIDEO_STATUS_TONE, VISIT_STATUS_TONE, LEAD_STATUS_TONE, APPROVAL_STATUS_TONE } from "./channel-partner/tones";
 import RefreshButton from "./RefreshButton";
 import { usePersistentTab } from "@/lib/usePersistentTab";
 import { toast } from "sonner";
@@ -29,6 +28,86 @@ import { toast } from "sonner";
 function formatCpLabel(name, city, state) {
   const place = [city, state].filter(Boolean).join(", ");
   return place ? `${name} — ${place}` : name;
+}
+
+function formatDateTime(value) {
+  if (!value) return "";
+  return new Date(value).toLocaleString("en-IN", {
+    day: "numeric",
+    month: "short",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+}
+
+function PhoneActions({ phone }) {
+  const [copied, setCopied] = useState(false);
+  if (!phone) return null;
+
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(phone);
+    } catch {
+      // Clipboard API unavailable — silently ignore
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <button
+        type="button"
+        onClick={handleCopy}
+        aria-label="Copy phone number"
+        className={`inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-sm border transition active:scale-95 ${
+          copied
+            ? "border-gold-400 bg-gold-400 text-navy-950"
+            : "border-navy-700/60 text-gold-400 hover:border-gold-400"
+        }`}
+      >
+        {copied ? <MdCheck className="h-3.5 w-3.5" /> : <MdContentCopy className="h-3.5 w-3.5" />}
+      </button>
+      <a
+        href={`tel:${phone.replace(/\s+/g, "")}`}
+        aria-label="Call now"
+        className="hidden h-9 min-w-[44px] items-center justify-center gap-1.5 rounded-sm border border-navy-700/60 px-3 text-xs text-gold-400 transition hover:border-gold-400 sm:inline-flex"
+      >
+        <MdCall className="h-4 w-4 shrink-0" />
+        Call
+      </a>
+    </span>
+  );
+}
+
+function VisitTimelineStep({ icon: Icon, label, state, timestamp }) {
+  const circleClass =
+    state === "done"
+      ? "border-gold-400 bg-gold-400 text-navy-950"
+      : state === "active"
+      ? "border-gold-400 bg-navy-950 text-gold-400 shadow-[0_0_0_4px_rgba(255,198,51,0.15)]"
+      : "border-navy-700/60 bg-navy-950 text-muted";
+
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition ${circleClass}`}>
+        {state === "done" ? <FiCheck className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
+      </span>
+      <span
+        className={`tracked-label w-24 text-center text-[10px] leading-tight ${
+          state === "upcoming" ? "text-muted" : "text-cream"
+        }`}
+      >
+        {label}
+      </span>
+      {timestamp && <span className="w-24 text-center text-[9px] leading-tight text-muted">{timestamp}</span>}
+    </div>
+  );
+}
+
+function VisitTimelineConnector({ done }) {
+  return <span className={`mt-5 h-0.5 flex-1 shrink transition ${done ? "bg-gold-400" : "bg-navy-700/60"}`} />;
 }
 
 const TABS = [
@@ -40,17 +119,9 @@ const TABS = [
   { key: "listings", label: "My Listings" },
 ];
 
-const ACTIVITY_ICON = {
-  "Property Visit": FiMapPin,
-  "Photo Live": FiCamera,
-  "Follow-up": FiPhoneCall,
-};
-
 export default function CompanyCPDashboard({
   stats,
   network,
-  fieldActivity,
-  digitalCampaigns,
   partner,
   myListings = [],
 }) {
@@ -64,6 +135,10 @@ export default function CompanyCPDashboard({
   const [soldBusyId, setSoldBusyId] = useState(null);
   const [videos, setVideos] = useState([]);
   const [leads, setLeads] = useState([]);
+  const [siteVisits, setSiteVisits] = useState([]);
+  const [delegatedLeads, setDelegatedLeads] = useState([]);
+  const [cpCommissions, setCpCommissions] = useState([]);
+  const [adLinks, setAdLinks] = useState([]);
   const [editingNoteId, setEditingNoteId] = useState(null);
   const [noteDraft, setNoteDraft] = useState("");
 
@@ -119,6 +194,35 @@ export default function CompanyCPDashboard({
     }
   }, [partner]);
 
+  // Real-time tracking of every Field/Digital CP this company has delegated
+  // a project to — mirrors what the admin panel's Head CP tracking shows.
+  const loadTracking = useCallback(async () => {
+    if (!partner?.accountId) return;
+    try {
+      const [visitsRes, leadsRes, commRes, adLinksRes] = await Promise.all([
+        fetch(`/api/site-visits?delegatedByAccountId=${partner.accountId}`),
+        fetch(`/api/cp-leads?delegatedByAccountId=${partner.accountId}`),
+        fetch(`/api/commissions?delegatedByAccountId=${partner.accountId}`),
+        fetch(`/api/ad-links?delegatedByAccountId=${partner.accountId}`),
+      ]);
+      const [visitsJson, leadsJson, commJson, adLinksJson] = await Promise.all([
+        visitsRes.json(),
+        leadsRes.json(),
+        commRes.json(),
+        adLinksRes.json(),
+      ]);
+      setSiteVisits(visitsJson.success ? visitsJson.data : []);
+      setDelegatedLeads(leadsJson.success ? leadsJson.data : []);
+      setCpCommissions(commJson.success ? commJson.data : []);
+      setAdLinks(adLinksJson.success ? adLinksJson.data : []);
+    } catch {
+      setSiteVisits([]);
+      setDelegatedLeads([]);
+      setCpCommissions([]);
+      setAdLinks([]);
+    }
+  }, [partner]);
+
   useEffect(() => {
     let active = true;
     Promise.resolve().then(() => {
@@ -126,27 +230,46 @@ export default function CompanyCPDashboard({
       loadAssignments();
       loadVideos();
       loadLeads();
+      loadTracking();
     });
     return () => { active = false; };
-  }, [loadAssignments, loadVideos, loadLeads]);
+  }, [loadAssignments, loadVideos, loadLeads, loadTracking]);
 
   const refreshSection = useCallback(
     (section) => {
       setRefreshKeys((prev) => ({ ...prev, [section]: prev[section] + 1 }));
       // Reset section-specific local state
       if (section === "projects") loadAssignments();
+      if (section === "trackField") loadTracking();
       if (section === "trackDigital") {
         setEditingNoteId(null);
         setNoteDraft("");
         loadVideos();
+        loadTracking();
       }
       if (section === "freelancerLeads") loadLeads();
     },
-    [loadAssignments, loadVideos, loadLeads]
+    [loadAssignments, loadVideos, loadLeads, loadTracking]
   );
 
   const fieldPartners = network.filter((p) => p.cpType === "field");
   const digitalPartners = network.filter((p) => p.cpType === "digital");
+
+  function visitsForPartner(accountId) {
+    return siteVisits.filter((v) => v.fieldCpAccountId === accountId);
+  }
+  function leadsForPartner(accountId) {
+    return delegatedLeads.filter((l) => l.submittedBy?.accountId === accountId);
+  }
+  function commissionsForPartner(accountId) {
+    return cpCommissions.filter((c) => c.cpAccountId === accountId);
+  }
+  function adLinksForPartner(accountId) {
+    return adLinks.filter((l) => l.digitalCpAccountId === accountId);
+  }
+  function dealsClosedForPartner(accountId) {
+    return leadsForPartner(accountId).filter((l) => l.status === "Converted").length;
+  }
 
   const delegationsByParent = useMemo(() => {
     const map = new Map();
@@ -436,44 +559,138 @@ export default function CompanyCPDashboard({
             {fieldPartners.length === 0 ? (
               <EmptyState title="No Field CPs yet" message="Field Channel Partners in your network will appear here." />
             ) : (
-              fieldPartners.map((partner) => {
-                const activity = fieldActivity.find((a) => a.partnerName === partner.name);
+              fieldPartners.map((fp) => {
+                const visits = visitsForPartner(fp.accountId);
+                const partnerLeads = leadsForPartner(fp.accountId);
+                const partnerCommissions = commissionsForPartner(fp.accountId);
                 return (
-                  <div key={partner.id} className="border border-navy-700/60 bg-navy-900 p-5">
+                  <div key={fp.id} className="border border-navy-700/60 bg-navy-900 p-5">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
-                        <p className="text-sm text-cream">{partner.name}</p>
-                        <p className="tracked-label mt-1 text-[10px] text-muted">{partner.id}</p>
+                        <p className="text-sm text-cream">{fp.name}</p>
+                        <p className="tracked-label mt-1 text-[10px] text-muted">{fp.id}</p>
                       </div>
                       <Badge tone="gold">{CP_TYPE_LABEL.field}</Badge>
                     </div>
 
+                    <div className="mt-4 grid grid-cols-3 gap-3 border-t border-navy-700/60 pt-4">
+                      <div>
+                        <p className="tracked-label text-[10px] text-muted">Leads Submitted</p>
+                        <p className="mt-1 font-display text-lg text-cream">{partnerLeads.length}</p>
+                      </div>
+                      <div>
+                        <p className="tracked-label text-[10px] text-muted">Site Visits</p>
+                        <p className="mt-1 font-display text-lg text-cream">{visits.length}</p>
+                      </div>
+                      <div>
+                        <p className="tracked-label text-[10px] text-muted">Deals Closed</p>
+                        <p className="mt-1 font-display text-lg text-gold-400">{dealsClosedForPartner(fp.accountId)}</p>
+                      </div>
+                    </div>
+
                     <div className="mt-4 border-t border-navy-700/60 pt-4">
-                      <p className="tracked-label text-xs text-gold-400">Today&apos;s Activity</p>
-                      {!activity || activity.activities.length === 0 ? (
-                        <p className="mt-3 text-xs text-muted">No activity logged today.</p>
+                      <p className="tracked-label text-xs text-gold-400">Live Site Visit Tracking</p>
+                      {visits.length === 0 ? (
+                        <p className="mt-3 text-xs text-muted">No site visits logged yet.</p>
                       ) : (
-                        <div className="mt-3 flex flex-col gap-2">
-                          {activity.activities.map((item, i) => {
-                            const Icon = ACTIVITY_ICON[item.type] || FiMapPin;
+                        <div className="mt-3 flex flex-col gap-4">
+                          {visits.map((v) => {
+                            const readyDone = !!v.movingAt;
+                            const photoDone = !!v.photoAt;
+                            const doneDone = !!v.doneAt;
                             return (
-                              <div
-                                key={i}
-                                className="flex items-start gap-3 border border-navy-700/60 bg-navy-950 p-3"
-                              >
-                                <Icon className="mt-0.5 h-4 w-4 shrink-0 text-gold-400" />
-                                <div className="min-w-0">
-                                  <p className="text-xs text-cream">
-                                    {item.type} <span className="text-muted">· {item.time}</span>
-                                  </p>
-                                  <p className="mt-1 text-xs text-muted">{item.detail}</p>
+                              <div key={v.id} className="border border-navy-700/60 bg-navy-950 p-4">
+                                <div className="flex flex-wrap items-start justify-between gap-3">
+                                  <div>
+                                    <p className="text-sm text-cream">{v.customer || "—"}</p>
+                                    <p className="text-xs text-muted">For {v.project || "—"}</p>
+                                    <p className="mt-1 text-xs text-gold-400">{v.scheduledAt || "—"}</p>
+                                  </div>
+                                  <Badge tone={VISIT_STATUS_TONE[v.status] || "muted"}>{v.status}</Badge>
                                 </div>
+
+                                <div className="mt-5 flex items-start">
+                                  <VisitTimelineStep
+                                    icon={FiNavigation}
+                                    label="Ready to Move"
+                                    state={readyDone ? "done" : "active"}
+                                    timestamp={readyDone ? formatDateTime(v.movingAt) : ""}
+                                  />
+                                  <VisitTimelineConnector done={readyDone} />
+                                  <VisitTimelineStep
+                                    icon={FiCamera}
+                                    label={photoDone ? `Live Photo (${v.livePhotos?.length || 0})` : "Live Photo"}
+                                    state={photoDone ? "done" : readyDone ? "active" : "upcoming"}
+                                    timestamp={photoDone ? formatDateTime(v.photoAt) : ""}
+                                  />
+                                  <VisitTimelineConnector done={photoDone} />
+                                  <VisitTimelineStep
+                                    icon={FiCheck}
+                                    label="Visit Done"
+                                    state={doneDone ? "done" : photoDone ? "active" : "upcoming"}
+                                    timestamp={doneDone ? formatDateTime(v.doneAt) : ""}
+                                  />
+                                </div>
+
+                                {v.status === "No Show" && (
+                                  <p className="mt-4 text-right text-xs text-red-400">Marked as No Show</p>
+                                )}
+
+                                {(v.phone || v.notes) && (
+                                  <div className="mt-4 border-t border-navy-700/60 pt-4">
+                                    <p className="tracked-label text-xs text-gold-400">Customer Details</p>
+                                    {v.phone && (
+                                      <div className="mt-2 flex items-center justify-between text-xs text-cream">
+                                        <span>{v.phone}</span>
+                                        <PhoneActions phone={v.phone} />
+                                      </div>
+                                    )}
+                                    {v.notes && <p className="mt-2 text-xs text-muted">{v.notes}</p>}
+                                  </div>
+                                )}
                               </div>
                             );
                           })}
                         </div>
                       )}
                     </div>
+
+                    <div className="mt-4 border-t border-navy-700/60 pt-4">
+                      <p className="tracked-label text-xs text-gold-400">Leads</p>
+                      {partnerLeads.length === 0 ? (
+                        <p className="mt-3 text-xs text-muted">No leads submitted yet.</p>
+                      ) : (
+                        <div className="mt-3 flex flex-col gap-2">
+                          {partnerLeads.map((l) => (
+                            <div key={l.id} className="flex flex-wrap items-center justify-between gap-3 border border-navy-700/60 bg-navy-950 p-3">
+                              <p className="text-xs text-cream">
+                                {l.customer} <span className="text-muted">· {l.project || "—"}</span>
+                              </p>
+                              <Badge tone={LEAD_STATUS_TONE[l.status] || "muted"}>{l.status}</Badge>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {partnerCommissions.length > 0 && (
+                      <div className="mt-4 border-t border-navy-700/60 pt-4">
+                        <p className="tracked-label text-xs text-gold-400">Commissions</p>
+                        <div className="mt-3 flex flex-col gap-2">
+                          {partnerCommissions.map((c) => (
+                            <div key={c.id} className="flex flex-wrap items-center justify-between gap-3 border border-navy-700/60 bg-navy-950 p-3">
+                              <p className="text-xs text-cream">
+                                {c.customer || "—"} <span className="text-muted">· {c.project || "—"}</span>
+                              </p>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-gold-400">{c.amount}</span>
+                                <Badge tone={APPROVAL_STATUS_TONE[c.approvalStatus] || "muted"}>{c.approvalStatus}</Badge>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })
@@ -490,35 +707,111 @@ export default function CompanyCPDashboard({
             </div>
             <div key={refreshKeys.trackDigital} className="flex flex-col gap-8">
             <div className="flex flex-col gap-4">
-              <h3 className="font-display text-lg text-cream">Campaign Participation</h3>
+              <h3 className="font-display text-lg text-cream">Digital Channel Partners</h3>
               {digitalPartners.length === 0 ? (
                 <EmptyState title="No Digital CPs yet" message="Digital Channel Partners in your network will appear here." />
               ) : (
-                digitalPartners.map((partner) => {
-                  const joins = digitalCampaigns.find((c) => c.partnerName === partner.name);
+                digitalPartners.map((dp) => {
+                  const partnerLeads = leadsForPartner(dp.accountId);
+                  const partnerCommissions = commissionsForPartner(dp.accountId);
+                  const partnerAdLinks = adLinksForPartner(dp.accountId);
                   return (
-                    <div key={partner.id} className="border border-navy-700/60 bg-navy-900 p-5">
+                    <div key={dp.id} className="border border-navy-700/60 bg-navy-900 p-5">
                       <div className="flex flex-wrap items-center justify-between gap-3">
                         <div>
-                          <p className="text-sm text-cream">{partner.name}</p>
-                          <p className="tracked-label mt-1 text-[10px] text-muted">{partner.id}</p>
+                          <p className="text-sm text-cream">{dp.name}</p>
+                          <p className="tracked-label mt-1 text-[10px] text-muted">{dp.id}</p>
                         </div>
                         <Badge tone="muted">{CP_TYPE_LABEL.digital}</Badge>
                       </div>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {joins && joins.campaigns.length > 0 ? (
-                          joins.campaigns.map((c) => (
-                            <span
-                              key={c}
-                              className="tracked-label border border-navy-700/60 px-3 py-1 text-[10px] text-muted"
-                            >
-                              {c}
-                            </span>
-                          ))
+
+                      <div className="mt-4 grid grid-cols-2 gap-3 border-t border-navy-700/60 pt-4">
+                        <div>
+                          <p className="tracked-label text-[10px] text-muted">Leads Generated</p>
+                          <p className="mt-1 font-display text-lg text-cream">{partnerLeads.length}</p>
+                        </div>
+                        <div>
+                          <p className="tracked-label text-[10px] text-muted">Deals Closed</p>
+                          <p className="mt-1 font-display text-lg text-gold-400">{dealsClosedForPartner(dp.accountId)}</p>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 border-t border-navy-700/60 pt-4">
+                        <p className="tracked-label text-xs text-gold-400">Ad Links</p>
+                        {partnerAdLinks.length === 0 ? (
+                          <p className="mt-3 text-xs text-muted">No ad links yet.</p>
                         ) : (
-                          <p className="text-xs text-muted">No campaigns joined yet.</p>
+                          <div className="mt-3 flex flex-col gap-2">
+                            {partnerAdLinks.map((link) => (
+                              <div key={link.id} className="flex flex-wrap items-center justify-between gap-3 border border-navy-700/60 bg-navy-950 p-3">
+                                <div className="flex min-w-0 items-start gap-3">
+                                  <FiLink className="mt-0.5 h-4 w-4 shrink-0 text-gold-400" />
+                                  <div className="min-w-0">
+                                    <p className="text-xs text-cream">{link.platform}</p>
+                                    <a
+                                      href={link.link}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="mt-0.5 block truncate text-xs text-gold-400 hover:text-gold-300"
+                                    >
+                                      {link.link}
+                                    </a>
+                                  </div>
+                                </div>
+                                <span className="shrink-0 text-xs text-muted">{link.date}</span>
+                              </div>
+                            ))}
+                          </div>
                         )}
                       </div>
+
+                      <div className="mt-4 border-t border-navy-700/60 pt-4">
+                        <p className="tracked-label text-xs text-gold-400">Leads Submitted</p>
+                        {partnerLeads.length === 0 ? (
+                          <p className="mt-3 text-xs text-muted">No leads submitted yet.</p>
+                        ) : (
+                          <div className="mt-3 flex flex-col gap-2">
+                            {partnerLeads.map((l) => (
+                              <div key={l.id} className="flex flex-wrap items-center justify-between gap-3 border border-navy-700/60 bg-navy-950 p-3">
+                                <div className="min-w-0">
+                                  <p className="text-xs text-cream">
+                                    {l.customer} <span className="text-muted">· {l.project || "—"}</span>
+                                  </p>
+                                  <div className="mt-1 flex items-center gap-1.5 text-xs text-muted">
+                                    <span>{l.source || "—"}</span>
+                                    {l.phone && (
+                                      <>
+                                        <span>· {l.phone}</span>
+                                        <PhoneActions phone={l.phone} />
+                                      </>
+                                    )}
+                                  </div>
+                                </div>
+                                <Badge tone={LEAD_STATUS_TONE[l.status] || "muted"}>{l.status}</Badge>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {partnerCommissions.length > 0 && (
+                        <div className="mt-4 border-t border-navy-700/60 pt-4">
+                          <p className="tracked-label text-xs text-gold-400">Commissions</p>
+                          <div className="mt-3 flex flex-col gap-2">
+                            {partnerCommissions.map((c) => (
+                              <div key={c.id} className="flex flex-wrap items-center justify-between gap-3 border border-navy-700/60 bg-navy-950 p-3">
+                                <p className="text-xs text-cream">
+                                  {c.customer || "—"} <span className="text-muted">· {c.project || "—"}</span>
+                                </p>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs text-gold-400">{c.amount}</span>
+                                  <Badge tone={APPROVAL_STATUS_TONE[c.approvalStatus] || "muted"}>{c.approvalStatus}</Badge>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   );
                 })

@@ -1,30 +1,50 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Commission from "@/models/Commission";
+import Assignment from "@/models/Assignment";
+import { getSessionUser } from "@/lib/session";
 import { isAdminRequest } from "@/lib/adminSession";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-// Admin-only surface, managed from the CP Management Commissions tab —
-// gated by the real server-side admin session.
+// Admin-managed from the CP Management Commissions tab — gated by the real
+// server-side admin session. A Company CP may instead pass
+// `delegatedByAccountId=<self>` to see commissions earned by every
+// Field/Digital CP it has delegated a project to (verified via the
+// Assignment table).
 export async function GET(request) {
   try {
-    if (!isAdminRequest(request)) {
-      return NextResponse.json({ success: false, error: "Admin access required" }, { status: 401 });
-    }
-
-    await dbConnect();
-
     const { searchParams } = new URL(request.url);
     const cpType = searchParams.get("cpType");
     const leadId = searchParams.get("leadId");
     const cpAccountId = searchParams.get("cpAccountId");
+    const delegatedByAccountId = searchParams.get("delegatedByAccountId");
+
+    let cpAccountIds = null;
+
+    if (!isAdminRequest(request)) {
+      const sessionUser = await getSessionUser(request);
+      if (!sessionUser || !delegatedByAccountId || delegatedByAccountId !== sessionUser.accountId) {
+        return NextResponse.json({ success: false, error: "Not authorized" }, { status: 403 });
+      }
+      await dbConnect();
+      const delegations = await Assignment.find({
+        level: { $in: ["company-to-field", "company-to-digital"] },
+        assignedByAccountId: delegatedByAccountId,
+      })
+        .select("assignedToAccountId")
+        .lean();
+      cpAccountIds = [...new Set(delegations.map((d) => d.assignedToAccountId))];
+    }
+
+    await dbConnect();
 
     const query = {};
     if (cpType) query.cpType = cpType;
     if (leadId) query.leadId = leadId;
-    if (cpAccountId) query.cpAccountId = cpAccountId;
+    if (cpAccountIds) query.cpAccountId = { $in: cpAccountIds };
+    else if (cpAccountId) query.cpAccountId = cpAccountId;
 
     const commissions = await Commission.find(query).sort({ createdAt: -1 }).lean();
 

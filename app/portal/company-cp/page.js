@@ -10,8 +10,6 @@ import {
   CP_COMMISSIONS,
   CP_SITE_VISITS,
   CP_PROMOTION_ASSETS,
-  CP_FIELD_ACTIVITY_TODAY,
-  CP_DIGITAL_CAMPAIGN_JOINS,
   CP_CAMPAIGN_VIDEOS,
 } from "@/lib/demoPortal";
 
@@ -39,8 +37,6 @@ export default async function CompanyCPPortalPage() {
         siteVisits={CP_SITE_VISITS}
         projects={PROJECTS}
         promotionAssets={CP_PROMOTION_ASSETS}
-        fieldActivity={CP_FIELD_ACTIVITY_TODAY}
-        digitalCampaigns={CP_DIGITAL_CAMPAIGN_JOINS}
         campaignVideos={CP_CAMPAIGN_VIDEOS}
         myListings={myListings}
         forcedCpType="company"
