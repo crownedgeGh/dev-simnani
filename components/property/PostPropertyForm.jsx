@@ -171,6 +171,8 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
   const [originalCorrectionRequest, setOriginalCorrectionRequest] = useState(null);
   const [invalidFields, setInvalidFields] = useState(new Set());
   const [pendingLeave, setPendingLeave] = useState(null);
+  const [minAvailableDate, setMinAvailableDate] = useState("");
+  const [availableFromError, setAvailableFromError] = useState("");
   const submittedRef = useRef(false);
   const initialSnapshotRef = useRef(INITIAL_FORM);
 
@@ -214,6 +216,42 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
     }, 0);
     return () => clearTimeout(timer);
   }, [editId]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const today = new Date();
+      const iso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(
+        today.getDate()
+      ).padStart(2, "0")}`;
+      setMinAvailableDate(iso);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
+
+  function handleAvailableFromChange(e) {
+    const raw = e.target.value;
+    // Some browsers let the year sub-field keep accepting digits past 4
+    // (e.g. "261111") before the control reports a valid value — reject
+    // anything whose year segment isn't exactly 4 digits rather than
+    // letting it reach form state.
+    if (raw) {
+      const [yearStr] = raw.split("-");
+      if (yearStr.length !== 4) return;
+    }
+    update("availableFrom", raw);
+    if (raw && minAvailableDate && raw < minAvailableDate) {
+      setAvailableFromError("Date cannot be in the past.");
+      setInvalidFields((prev) => new Set(prev).add("availableFrom"));
+    } else {
+      setAvailableFromError("");
+      setInvalidFields((prev) => {
+        if (!prev.has("availableFrom")) return prev;
+        const next = new Set(prev);
+        next.delete("availableFrom");
+        return next;
+      });
+    }
+  }
 
   useEffect(() => {
     if (!editId) return;
@@ -379,6 +417,10 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
       { id: "price", invalid: !form.price },
       { id: "areaSize", invalid: !form.areaSize },
       { id: "photos", invalid: !form.photos.length },
+      {
+        id: "availableFrom",
+        invalid: !!form.availableFrom && !!minAvailableDate && form.availableFrom < minAvailableDate,
+      },
       ...(isPgHostelType ? [{ id: "genderPreference", invalid: !form.genderPreference }] : []),
       ...(isPgHostelType ? [{ id: "bathroomType", invalid: !form.bathroomType }] : []),
       ...(showBedsHallsFields ? [{ id: "beds", invalid: !form.beds || Number(form.beds) < 1 }] : []),
@@ -932,9 +974,14 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
             id="availableFrom"
             type="date"
             value={form.availableFrom}
-            onChange={(e) => update("availableFrom", e.target.value)}
-            className={`${inputClass} rounded-sm`}
+            min={minAvailableDate || undefined}
+            max="2099-12-31"
+            onChange={handleAvailableFromChange}
+            className={errClass(`${inputClass} rounded-sm`, "availableFrom")}
           />
+          {availableFromError && (
+            <p className="text-xs text-red-400">{availableFromError}</p>
+          )}
         </FormField>
         {showPreferredForField && (
         <FormField label="Preferred For" htmlFor="preferredFor" optional>
@@ -990,7 +1037,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
         )}
       </Section>
 
-      <Section icon={<MdPerson className="h-5 w-5" />} title="Contact Details" subtitle="So our team can reach you">
+      <Section icon={<MdPerson className="h-5 w-5" />} title="Contact Details To Show" subtitle="So the customers will reach you">
         <FormField label="Full Name" htmlFor="fullName" required>
           <input
             id="fullName"
