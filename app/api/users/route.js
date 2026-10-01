@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import User from "@/models/User";
-import { isPasswordValid } from "@/lib/auth";
+import { isPasswordValid, isMobileValid } from "@/lib/auth";
 import { hashPassword } from "@/lib/password";
 import { isAdminRequest } from "@/lib/adminSession";
 
@@ -69,6 +69,13 @@ export async function POST(request) {
     if (!body.fullName || !body.mobile || !body.accountType) {
       return NextResponse.json(
         { success: false, error: "fullName, mobile and accountType are required" },
+        { status: 400 }
+      );
+    }
+
+    if (!isMobileValid(body.mobile)) {
+      return NextResponse.json(
+        { success: false, error: "Enter a valid 10-digit mobile number" },
         { status: 400 }
       );
     }

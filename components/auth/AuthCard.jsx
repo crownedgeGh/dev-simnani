@@ -6,10 +6,15 @@ import { useRouter } from "next/navigation";
 import { MdScience, MdCheckCircle } from "react-icons/md";
 import { FiEye, FiEyeOff, FiArrowLeft, FiX } from "react-icons/fi";
 import { useAuth } from "@/context/AuthContext";
+import { isMobileValid } from "@/lib/auth";
 
 // Must match OTP_LENGTH in lib/otp.js — the apitxt.com template currently
 // only supports a 4-digit code.
 const OTP_LENGTH = parseInt(process.env.NEXT_PUBLIC_OTP_LENGTH || "4", 10);
+
+// "Login as Tester" fast-track is a dev/staging-only convenience — never
+// reachable in production. Gate it behind an env flag set only outside prod.
+const TEST_MODE_ENABLED = process.env.NEXT_PUBLIC_ENABLE_TEST_MODE === "true";
 
 function formatMobile(value) {
   const digits = value.replace(/\D/g, "").slice(0, 10);
@@ -43,7 +48,7 @@ export default function AuthCard() {
 
   useEffect(() => () => clearInterval(timerRef.current), []);
 
-  const mobileValid = mobile.replace(/\D/g, "").length === 10;
+  const mobileValid = isMobileValid(mobile);
 
   function startResendTimer() {
     clearInterval(timerRef.current);
@@ -484,37 +489,41 @@ export default function AuthCard() {
             </div>
           )}
 
-          {/* Tester Login Divider & Button */}
-          <div className="relative my-6 flex items-center justify-center">
-            <div className="w-full border-t border-navy-700/60" />
-            <span className="absolute bg-navy-900 px-3 text-[10px] font-semibold uppercase tracking-widest text-muted">
-              Or Fast Track
-            </span>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleTesterLogin}
-            disabled={loading}
-            className="group flex w-full items-center justify-between border border-gold-400/30 bg-gold-400/5 p-4 text-left transition hover:border-gold-400 hover:bg-gold-400/10 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <div className="flex items-center gap-3.5">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gold-400/30 bg-gold-400/10 text-gold-400 transition group-hover:border-gold-400 group-hover:bg-gold-400/20">
-                <MdScience className="h-5 w-5" />
-              </span>
-              <div>
-                <span className="tracked-label block text-xs font-semibold text-cream group-hover:text-gold-300">
-                  {loading && isTesterLogin ? "Logging in..." : "Login as Tester"}
+          {TEST_MODE_ENABLED && (
+            <>
+              {/* Tester Login Divider & Button */}
+              <div className="relative my-6 flex items-center justify-center">
+                <div className="w-full border-t border-navy-700/60" />
+                <span className="absolute bg-navy-900 px-3 text-[10px] font-semibold uppercase tracking-widest text-muted">
+                  Or Fast Track
                 </span>
-                <p className="mt-0.5 text-[11px] text-muted">
-                  Instant login as Common Person
-                </p>
               </div>
-            </div>
-            <span className="rounded border border-gold-400/30 bg-gold-400/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-gold-400">
-              Common Person
-            </span>
-          </button>
+
+              <button
+                type="button"
+                onClick={handleTesterLogin}
+                disabled={loading}
+                className="group flex w-full items-center justify-between border border-gold-400/30 bg-gold-400/5 p-4 text-left transition hover:border-gold-400 hover:bg-gold-400/10 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <div className="flex items-center gap-3.5">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gold-400/30 bg-gold-400/10 text-gold-400 transition group-hover:border-gold-400 group-hover:bg-gold-400/20">
+                    <MdScience className="h-5 w-5" />
+                  </span>
+                  <div>
+                    <span className="tracked-label block text-xs font-semibold text-cream group-hover:text-gold-300">
+                      {loading && isTesterLogin ? "Logging in..." : "Login as Tester"}
+                    </span>
+                    <p className="mt-0.5 text-[11px] text-muted">
+                      Instant login as Common Person
+                    </p>
+                  </div>
+                </div>
+                <span className="rounded border border-gold-400/30 bg-gold-400/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-gold-400">
+                  Common Person
+                </span>
+              </button>
+            </>
+          )}
         </>
       )}
 
@@ -578,17 +587,19 @@ export default function AuthCard() {
             )}
           </div>
 
-          <div className="border-t border-navy-700/60 pt-4 text-center">
-            <button
-              type="button"
-              onClick={handleTesterLogin}
-              disabled={loading}
-              className="inline-flex items-center gap-1.5 text-xs text-muted transition hover:text-gold-400 disabled:opacity-50"
-            >
-              <MdScience className="h-3.5 w-3.5 text-gold-400" />
-              <span>Or skip OTP &amp; <strong className="font-semibold text-gold-400">Login as Tester</strong></span>
-            </button>
-          </div>
+          {TEST_MODE_ENABLED && (
+            <div className="border-t border-navy-700/60 pt-4 text-center">
+              <button
+                type="button"
+                onClick={handleTesterLogin}
+                disabled={loading}
+                className="inline-flex items-center gap-1.5 text-xs text-muted transition hover:text-gold-400 disabled:opacity-50"
+              >
+                <MdScience className="h-3.5 w-3.5 text-gold-400" />
+                <span>Or skip OTP &amp; <strong className="font-semibold text-gold-400">Login as Tester</strong></span>
+              </button>
+            </div>
+          )}
         </div>
       )}
 

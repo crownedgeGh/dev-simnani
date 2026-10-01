@@ -50,6 +50,11 @@ const PropertySchema = new mongoose.Schema(
       trim: true,
       index: true,
     },
+    state: {
+      type: String,
+      trim: true,
+      index: true,
+    },
     beds: {
       type: Number,
       default: 0,

@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import PublicShell from "@/components/layout/PublicShell";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
+import LocationPrompt from "@/components/LocationPrompt";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -42,6 +43,7 @@ export default function RootLayout({ children }) {
         <GoogleAnalytics />
         <AuthProvider>
           <PublicShell>{children}</PublicShell>
+          <LocationPrompt />
         </AuthProvider>
         <Toaster
           position="top-right"

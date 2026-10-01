@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { MdPerson, MdPhone, MdEmail, MdMessage, MdCheckCircle, MdSend } from "react-icons/md";
+import { formatMobile, isMobileValid } from "@/lib/auth";
 
 const USER_TYPE_OPTIONS = [
   { value: "buyer", label: "I'm a Buyer" },
@@ -10,10 +11,6 @@ const USER_TYPE_OPTIONS = [
   { value: "investor", label: "I'm an Investor" },
   { value: "other", label: "Other" },
 ];
-
-function isValidPhone(phone) {
-  return /^\+?[0-9\s\-]{8,15}$/.test(phone.trim());
-}
 
 export default function ContactForm({
   propertyTitle = "",
@@ -41,8 +38,8 @@ export default function ContactForm({
       setError("Please enter your name.");
       return;
     }
-    if (!isValidPhone(phone)) {
-      setError("Please enter a valid phone number.");
+    if (!isMobileValid(phone)) {
+      setError("Please enter a valid 10-digit mobile number.");
       return;
     }
 
@@ -143,7 +140,7 @@ export default function ContactForm({
           inputMode="numeric"
           placeholder="Phone Number *"
           value={phone}
-          onChange={(e) => setPhone(e.target.value)}
+          onChange={(e) => setPhone(formatMobile(e.target.value))}
           className="h-12 w-full border border-navy-700/60 bg-navy-950 pl-10 pr-4 text-sm text-cream placeholder:text-muted transition focus:border-gold-400 focus:outline-none"
         />
       </div>

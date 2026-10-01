@@ -7,6 +7,7 @@ import AdminPageHeader from "@/components/admin/layout/AdminPageHeader";
 import AdminTable from "@/components/admin/ui/AdminTable";
 import AdminPhoneCell from "@/components/admin/ui/AdminPhoneCell";
 import AdminKpiCard from "@/components/admin/ui/AdminKpiCard";
+import FeaturedLocationModal from "@/components/admin/ui/FeaturedLocationModal";
 
 const POSITIONS = Array.from({ length: 10 }, (_, i) => i + 1);
 
@@ -15,6 +16,8 @@ export default function AdminFeaturedBrokersPage() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [savingId, setSavingId] = useState(null);
+  const [featuredModalRow, setFeaturedModalRow] = useState(null);
+  const [featuredSaving, setFeaturedSaving] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -96,14 +99,33 @@ export default function AdminFeaturedBrokersPage() {
           toast.error("All 10 featured slots are taken — free one up first");
           return;
         }
-        const ok = await persist(row.accountId, { isFeaturedBroker: true, featuredPosition: position });
-        if (ok) toast.success(`${row.fullName} is now featured at position ${position}`);
+        // Ask which state/city this broker should be featured for.
+        setFeaturedModalRow({ ...row, _position: position });
       } else {
         const ok = await persist(row.accountId, { isFeaturedBroker: false, featuredPosition: null });
         if (ok) toast.success(`${row.fullName} removed from featured brokers`);
       }
     },
     [nextFreePosition, persist]
+  );
+
+  const handleFeaturedLocationConfirm = useCallback(
+    async ({ state, city }) => {
+      if (!featuredModalRow) return;
+      setFeaturedSaving(true);
+      const ok = await persist(featuredModalRow.accountId, {
+        isFeaturedBroker: true,
+        featuredPosition: featuredModalRow._position,
+        state,
+        city,
+      });
+      setFeaturedSaving(false);
+      if (ok) {
+        toast.success(`${featuredModalRow.fullName} is now featured at position ${featuredModalRow._position}`);
+        setFeaturedModalRow(null);
+      }
+    },
+    [featuredModalRow, persist]
   );
 
   const handlePositionChange = useCallback(
@@ -220,6 +242,17 @@ export default function AdminFeaturedBrokersPage() {
         loading={loading}
         emptyMessage="No premium-plan brokers yet"
         pageSize={10}
+      />
+
+      <FeaturedLocationModal
+        isOpen={!!featuredModalRow}
+        onClose={() => setFeaturedModalRow(null)}
+        onConfirm={handleFeaturedLocationConfirm}
+        isLoading={featuredSaving}
+        title="Feature this broker"
+        description="Choose the state and city this broker should be featured for."
+        initialState={featuredModalRow?.state}
+        initialCity={featuredModalRow?.city}
       />
     </div>
   );

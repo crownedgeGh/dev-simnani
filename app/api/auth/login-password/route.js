@@ -6,6 +6,7 @@ import Session from "@/models/Session";
 import { verifyPassword } from "@/lib/password";
 import { SESSION_MAX_AGE, setSessionCookie } from "@/lib/session";
 import { isRateLimited, rateLimitResponse } from "@/lib/rateLimit";
+import { isMobileValid } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,7 @@ export async function POST(request) {
     const { mobile, password } = await request.json();
     const digits = (mobile || "").replace(/\D/g, "").slice(-10);
 
-    if (digits.length !== 10) {
+    if (!isMobileValid(digits)) {
       return NextResponse.json(
         { success: false, error: "Enter a valid 10-digit mobile number" },
         { status: 400 }

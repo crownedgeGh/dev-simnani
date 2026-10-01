@@ -3,7 +3,7 @@ import crypto from "crypto";
 import dbConnect from "@/lib/mongodb";
 import User from "@/models/User";
 import Session from "@/models/Session";
-import { generateAccountId } from "@/lib/auth";
+import { generateAccountId, isMobileValid } from "@/lib/auth";
 import { SESSION_MAX_AGE, setSessionCookie } from "@/lib/session";
 import { verifyOtp } from "@/lib/otp";
 import { isRateLimited, rateLimitResponse } from "@/lib/rateLimit";
@@ -24,7 +24,7 @@ export async function POST(request) {
     const { mobile, otp } = await request.json();
     const digits = (mobile || "").replace(/\D/g, "").slice(-10);
 
-    if (digits.length !== 10) {
+    if (!isMobileValid(digits)) {
       return NextResponse.json(
         { success: false, error: "Enter a valid 10-digit mobile number" },
         { status: 400 }

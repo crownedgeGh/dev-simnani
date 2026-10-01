@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import ContactInquiry from "@/models/ContactInquiry";
+import { isMobileValid } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -15,6 +16,13 @@ export async function POST(request) {
     if (!name?.trim() || !phone?.trim()) {
       return NextResponse.json(
         { success: false, error: "Name and phone are required" },
+        { status: 400 }
+      );
+    }
+
+    if (!isMobileValid(phone)) {
+      return NextResponse.json(
+        { success: false, error: "Enter a valid 10-digit mobile number" },
         { status: 400 }
       );
     }

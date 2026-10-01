@@ -9,6 +9,10 @@ import BackButton from "@/components/layout/BackButton";
 import { useAuth } from "@/context/AuthContext";
 import { TEST_MODE_CP_PROFILES } from "@/lib/testModeCp";
 
+// Test Mode (registration bypass) is a dev/staging-only convenience — never
+// reachable in production. Gate it behind an env flag set only outside prod.
+const TEST_MODE_ENABLED = process.env.NEXT_PUBLIC_ENABLE_TEST_MODE === "true";
+
 const TEST_MODE_CP_OPTIONS = [
   { cpType: "field", label: "Field CP", description: "Field Channel Partner demo dashboard.", Icon: FiMapPin },
   { cpType: "digital", label: "Digital CP", description: "Digital Channel Partner demo dashboard.", Icon: FiSmartphone },
@@ -155,23 +159,25 @@ export default function AccountTypeSelect() {
           </button>
         ))}
 
-        <button
-          type="button"
-          onClick={() => setTestModeOpen((open) => !open)}
-          aria-pressed={testModeOpen}
-          className={`flex flex-col items-center gap-2 border p-4 text-center transition sm:gap-3 sm:p-6 ${
-            testModeOpen
-              ? "border-gold-400 bg-gold-400/5"
-              : "border-navy-700/60 hover:border-navy-600"
-          }`}
-        >
-          <MdScience className={`h-7 w-7 sm:h-9 sm:w-9 ${testModeOpen ? "text-gold-400" : "text-cream"}`} />
-          <span className="tracked-label text-xs text-cream">Test Mode</span>
-          <p className="text-xs text-muted">Preview a Channel Partner dashboard with demo data — no form required.</p>
-        </button>
+        {TEST_MODE_ENABLED && (
+          <button
+            type="button"
+            onClick={() => setTestModeOpen((open) => !open)}
+            aria-pressed={testModeOpen}
+            className={`flex flex-col items-center gap-2 border p-4 text-center transition sm:gap-3 sm:p-6 ${
+              testModeOpen
+                ? "border-gold-400 bg-gold-400/5"
+                : "border-navy-700/60 hover:border-navy-600"
+            }`}
+          >
+            <MdScience className={`h-7 w-7 sm:h-9 sm:w-9 ${testModeOpen ? "text-gold-400" : "text-cream"}`} />
+            <span className="tracked-label text-xs text-cream">Test Mode</span>
+            <p className="text-xs text-muted">Preview a Channel Partner dashboard with demo data — no form required.</p>
+          </button>
+        )}
       </div>
 
-      {testModeOpen && (
+      {TEST_MODE_ENABLED && testModeOpen && (
         <div className="mt-6 border border-navy-700/60 bg-navy-950 p-6">
           <p className="tracked-label text-xs text-gold-400">Test Mode — Bypass Registration</p>
           <div className="mt-4 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">

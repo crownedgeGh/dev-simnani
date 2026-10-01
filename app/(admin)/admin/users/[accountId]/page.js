@@ -2,12 +2,16 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { MdArrowBack } from "react-icons/md";
+import { toast } from "sonner";
+import { MdArrowBack, MdStar, MdStarBorder } from "react-icons/md";
 import AdminStatusBadge from "@/components/admin/ui/AdminStatusBadge";
 import AdminPhoneCell from "@/components/admin/ui/AdminPhoneCell";
+import FeaturedLocationModal from "@/components/admin/ui/FeaturedLocationModal";
 import UserPortalSnapshot from "@/components/admin/users/UserPortalSnapshot";
 import { ADMIN_KEYS, readCollection } from "@/lib/adminStorage";
 import { PROPERTY_CATEGORIES } from "@/lib/propertyCategories";
+
+const MAX_FEATURED_POSITIONS = 10;
 
 const INVESTOR_BUDGET_LABELS = {
   "under-50l": "Under ₹50 Lakh",
@@ -29,6 +33,9 @@ export default function UserDetailPage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [featuredModalOpen, setFeaturedModalOpen] = useState(false);
+  const [featuredSaving, setFeaturedSaving] = useState(false);
+  const [pendingPosition, setPendingPosition] = useState(null);
 
   useEffect(() => {
     if (!accountId) return;
@@ -69,6 +76,69 @@ export default function UserDetailPage() {
       <button onClick={() => router.push("/admin/users")} className="text-sm text-[#f0b429] hover:underline">← Back to Users</button>
     </div>
   );
+
+  async function handleUnfeature() {
+    setFeaturedSaving(true);
+    try {
+      const res = await fetch(`/api/users/${user.accountId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isFeaturedBroker: false, featuredPosition: null }),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || "Failed to update");
+      setUser((prev) => ({ ...prev, isFeaturedBroker: false, featuredPosition: null }));
+      toast.success(`${user.fullName} removed from featured brokers`);
+    } catch (err) {
+      toast.error(err.message || "Failed to update featured status");
+    } finally {
+      setFeaturedSaving(false);
+    }
+  }
+
+  async function handleFeatureClick() {
+    try {
+      const res = await fetch("/api/admin/brokers/featured", { cache: "no-store" });
+      const json = await res.json();
+      const taken = new Set(
+        (json.data || [])
+          .filter((b) => b.isFeaturedBroker && b.featuredPosition && b.accountId !== user.accountId)
+          .map((b) => b.featuredPosition)
+      );
+      const freePosition = Array.from({ length: MAX_FEATURED_POSITIONS }, (_, i) => i + 1).find(
+        (p) => !taken.has(p)
+      );
+      if (!freePosition) {
+        toast.error("All 10 featured slots are taken — free one up first");
+        return;
+      }
+      setPendingPosition(freePosition);
+      setFeaturedModalOpen(true);
+    } catch {
+      toast.error("Failed to check featured slots");
+    }
+  }
+
+  async function handleFeaturedLocationConfirm({ state, city }) {
+    setFeaturedSaving(true);
+    try {
+      const position = pendingPosition || user.featuredPosition;
+      const res = await fetch(`/api/users/${user.accountId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isFeaturedBroker: true, featuredPosition: position, state, city }),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || "Failed to update");
+      setUser((prev) => ({ ...prev, isFeaturedBroker: true, featuredPosition: position, state, city }));
+      toast.success(`${user.fullName} is now featured at position ${position}`);
+      setFeaturedModalOpen(false);
+    } catch (err) {
+      toast.error(err.message || "Failed to update featured status");
+    } finally {
+      setFeaturedSaving(false);
+    }
+  }
 
   const fields = [
     ["Account ID", user.accountId],
@@ -125,6 +195,23 @@ export default function UserDetailPage() {
                 <AdminStatusBadge status={user.status} />
               </div>
             </div>
+
+            {user.accountType === "broker" && (
+              <button
+                onClick={user.isFeaturedBroker ? handleUnfeature : handleFeatureClick}
+                disabled={featuredSaving}
+                className={`flex h-9 shrink-0 items-center gap-1.5 rounded-xl border px-3 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                  user.isFeaturedBroker
+                    ? "border-[#f0b429] bg-[#fff8e1] text-[#d97706] hover:bg-[#fff2cc]"
+                    : "border-[#e8e0d5] text-[#6b7280] hover:border-[#f0b429] hover:text-[#d97706]"
+                }`}
+              >
+                {user.isFeaturedBroker ? <MdStar size={16} /> : <MdStarBorder size={16} />}
+                {user.isFeaturedBroker
+                  ? `Featured (#${user.featuredPosition ?? "—"})`
+                  : "Feature on Homepage"}
+              </button>
+            )}
           </div>
 
           <table className="w-full text-sm">
@@ -188,6 +275,17 @@ export default function UserDetailPage() {
 
         <UserPortalSnapshot accountId={user.accountId} />
       </div>
+
+      <FeaturedLocationModal
+        isOpen={featuredModalOpen}
+        onClose={() => setFeaturedModalOpen(false)}
+        onConfirm={handleFeaturedLocationConfirm}
+        isLoading={featuredSaving}
+        title="Feature this broker"
+        description="Choose the state and city this broker should be featured for."
+        initialState={user.state}
+        initialCity={user.city}
+      />
     </div>
   );
 }
