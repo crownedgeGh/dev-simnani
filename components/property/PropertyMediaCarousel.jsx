@@ -21,13 +21,32 @@ export default function PropertyMediaCarousel({ image, galleryImages, video, tit
   const [index, setIndex] = useState(0);
   const [downloadingImages, setDownloadingImages] = useState(false);
   const [downloadingVideo, setDownloadingVideo] = useState(false);
+  const [frameRatio, setFrameRatio] = useState(4 / 3);
   const touchStartX = useRef(null);
 
   const hasMultiple = slides.length > 1;
   const active = slides[index] || slides[0];
 
+  const MIN_RATIO = 9 / 16; // tallest frame allowed (portrait, phone-shot media)
+  const MAX_RATIO = 16 / 9; // widest frame allowed (landscape)
+
+  function handleImageLoad(e) {
+    const { naturalWidth, naturalHeight } = e.target;
+    if (!naturalWidth || !naturalHeight) return;
+    const ratio = naturalWidth / naturalHeight;
+    setFrameRatio(Math.min(MAX_RATIO, Math.max(MIN_RATIO, ratio)));
+  }
+
+  function handleVideoLoad(e) {
+    const { videoWidth, videoHeight } = e.target;
+    if (!videoWidth || !videoHeight) return;
+    const ratio = videoWidth / videoHeight;
+    setFrameRatio(Math.min(MAX_RATIO, Math.max(MIN_RATIO, ratio)));
+  }
+
   function goTo(next) {
     setIndex((next + slides.length) % slides.length);
+    setFrameRatio(4 / 3);
   }
 
   async function handleDownloadImages() {
@@ -64,7 +83,8 @@ export default function PropertyMediaCarousel({ image, galleryImages, video, tit
   return (
     <div className="w-full">
       <div
-        className="relative aspect-[4/3] w-full overflow-hidden border border-navy-700/60 bg-navy-900 sm:aspect-[16/10] lg:aspect-[16/9]"
+        className="relative w-full overflow-hidden border border-navy-700/60 bg-navy-950 transition-[aspect-ratio] duration-200 sm:max-h-[480px] lg:max-h-[560px]"
+        style={{ aspectRatio: frameRatio }}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
@@ -74,29 +94,20 @@ export default function PropertyMediaCarousel({ image, galleryImages, video, tit
             src={active.src}
             controls
             playsInline
+            onLoadedMetadata={handleVideoLoad}
             className="h-full w-full object-contain bg-navy-950"
           />
         ) : (
-          <>
-            <Image
-              key={`${active.src}-bg`}
-              src={active.src}
-              alt=""
-              aria-hidden="true"
-              fill
-              sizes="100vw"
-              className="scale-110 object-cover opacity-60 blur-2xl"
-            />
-            <Image
-              key={active.src}
-              src={active.src}
-              alt={title}
-              fill
-              sizes="100vw"
-              priority={index === 0}
-              className="relative object-contain"
-            />
-          </>
+          <Image
+            key={active.src}
+            src={active.src}
+            alt={title}
+            fill
+            sizes="100vw"
+            priority={index === 0}
+            onLoad={handleImageLoad}
+            className="object-contain"
+          />
         )}
 
         {badge && (
