@@ -39,7 +39,7 @@ export default function AboutPage() {
         {LEADERSHIP.map(({ initials, role, name, title }) => (
           <div
             key={name}
-            className="flex items-center gap-5 rounded-sm border border-navy-700/60 bg-navy-900 px-6 py-6"
+            className="flex items-center gap-5 rounded-xl border border-navy-700/60 bg-navy-900 px-6 py-6"
           >
             <div className="flex h-20 w-20 shrink-0 flex-col items-center justify-center rounded-full border border-gold-500/60 px-1 text-center">
               <span className="font-display text-lg text-cream">{initials}</span>

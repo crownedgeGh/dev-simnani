@@ -67,7 +67,7 @@ export default async function PropertiesPage() {
             <Link
               key={href}
               href={href}
-              className="group relative flex min-h-[190px] flex-col justify-between overflow-hidden rounded-sm border border-navy-700/60 bg-navy-900 p-6 shadow-lg shadow-black/20 transition duration-300 active:-translate-y-1 active:border-gold-500/70 active:shadow-xl active:shadow-gold-400/5 hover:-translate-y-1 hover:border-gold-500/70 hover:shadow-xl hover:shadow-gold-400/5 sm:min-h-[210px] sm:p-8"
+              className="group relative flex min-h-[190px] flex-col justify-between overflow-hidden rounded-xl border border-navy-700/60 bg-navy-900 p-6 shadow-lg shadow-black/20 transition duration-300 active:-translate-y-1 active:border-gold-500/70 active:shadow-xl active:shadow-gold-400/5 hover:-translate-y-1 hover:border-gold-500/70 hover:shadow-xl hover:shadow-gold-400/5 sm:min-h-[210px] sm:p-8"
             >
               <div
                 className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-gold-400/5 transition duration-300 group-active:bg-gold-400/10 group-hover:bg-gold-400/10"

@@ -69,7 +69,7 @@ export default function LocationPrompt() {
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 px-4 pb-4 sm:bottom-4 sm:left-4 sm:right-auto sm:max-w-sm sm:px-0 sm:pb-0">
-      <div className="flex items-start gap-3 rounded-2xl border border-navy-700/60 bg-navy-900 p-4 shadow-2xl">
+      <div className="flex items-start gap-3 rounded-2xl border border-cream bg-navy-900 p-4 shadow-2xl">
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gold-500/40 bg-gold-400/10">
           <FiMapPin className="h-4 w-4 text-gold-400" />
         </span>

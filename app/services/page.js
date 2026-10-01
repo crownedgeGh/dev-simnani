@@ -97,7 +97,7 @@ export default function ServicesPage() {
         {SERVICES.map(({ icon: Icon, title, desc }) => (
           <div
             key={title}
-            className="border border-navy-700/60 bg-navy-900 rounded-sm p-6 transition hover:border-gold-400"
+            className="border border-navy-700/60 bg-navy-900 rounded-xl p-6 transition hover:border-gold-400"
           >
             <div className="flex h-12 w-12 items-center justify-center rounded-sm border border-gold-500/40 bg-gold-500/10 text-gold-400">
               <Icon className="h-6 w-6" />
