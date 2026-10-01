@@ -4,11 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prod": "dotenv -e prod.env -- next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "copy:ffmpeg": "node scripts/copy-ffmpeg-core.mjs",
     "predev": "npm run copy:ffmpeg",
+    "preprod": "npm run copy:ffmpeg",
     "prebuild": "npm run copy:ffmpeg"
   },
   "dependencies": {
@@ -30,6 +32,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "dotenv-cli": "^11.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.3.2",
     "tailwindcss": "^4"
