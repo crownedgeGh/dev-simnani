@@ -35,7 +35,7 @@ const PROPERTY_TYPE_OPTIONS = {
 };
 
 const SELECT_CLASS =
-  "w-full appearance-none rounded-full border bg-navy-900/80 px-5 py-3.5 text-sm text-cream transition focus:border-gold-500 focus:outline-none";
+  "w-full appearance-none rounded-lg border bg-navy-900/80 px-4 py-2.5 text-sm text-cream transition focus:border-gold-500 focus:outline-none";
 
 function ValidationBubble({ message }) {
   return (
@@ -190,8 +190,8 @@ export default function SearchBar() {
   }
 
   return (
-    <div className="rounded-3xl border border-cream/12 bg-navy-950/92 p-5 shadow-[0_32px_80px_-24px_rgba(0,0,0,0.95)] backdrop-blur-md sm:p-8 lg:px-10 lg:py-9">
-      <p className="tracked-label mb-5 text-[11px] font-medium text-gold-400">
+    <div className="rounded-2xl border border-cream/12 bg-navy-950/92 p-4 shadow-[0_32px_80px_-24px_rgba(0,0,0,0.95)] backdrop-blur-md sm:p-5 lg:px-6 lg:py-5">
+      <p className="tracked-label mb-3 text-[11px] font-medium text-gold-400">
         Start Your Search
       </p>
 
@@ -201,7 +201,7 @@ export default function SearchBar() {
             key={item.slug}
             type="button"
             onClick={() => handleModeChange(item.slug)}
-            className={`tracked-label shrink-0 whitespace-nowrap border-b-2 px-3 py-2.5 text-xs font-medium transition ${
+            className={`tracked-label shrink-0 whitespace-nowrap border-b-2 px-3 py-2 text-xs font-medium transition ${
               mode === item.slug
                 ? "border-gold-400 text-gold-400"
                 : "border-transparent text-muted hover:text-cream"
@@ -215,7 +215,7 @@ export default function SearchBar() {
       <form
         onSubmit={handleSubmit}
         noValidate
-        className="mt-5 flex flex-col gap-3 lg:flex-row"
+        className="mt-3 flex flex-col gap-2.5 lg:flex-row"
       >
         <div className="relative lg:w-52">
           <select
@@ -266,7 +266,7 @@ export default function SearchBar() {
 
         <div ref={locationFieldRef} className="relative flex-1">
           <div
-            className={`flex items-center gap-2.5 rounded-full border bg-navy-900/80 px-5 transition focus-within:border-gold-500 ${
+            className={`flex items-center gap-2.5 rounded-lg border bg-navy-900/80 px-4 transition focus-within:border-gold-500 ${
               locationInvalid ? "border-gold-500" : "border-navy-700/70"
             }`}
           >
@@ -286,7 +286,7 @@ export default function SearchBar() {
               aria-expanded={showSuggestions}
               aria-controls="city-suggestions-list"
               aria-autocomplete="list"
-              className="w-full bg-transparent py-3.5 text-sm text-cream placeholder:text-muted focus:outline-none"
+              className="w-full bg-transparent py-2.5 text-sm text-cream placeholder:text-muted focus:outline-none"
             />
             {location && (
               <button
@@ -309,7 +309,7 @@ export default function SearchBar() {
           {showSuggestions && dropdownEntries.length > 0 && (
             <ul
               id="city-suggestions-list"
-              className="gold-scrollbar absolute left-0 right-0 top-full z-30 mt-2 max-h-64 overflow-y-auto rounded-2xl border border-navy-700/70 bg-navy-900 shadow-[0_20px_50px_-16px_rgba(0,0,0,0.9)] sm:max-h-72"
+              className="gold-scrollbar absolute left-0 right-0 top-full z-30 mt-2 max-h-64 overflow-y-auto rounded-lg border border-navy-700/70 bg-navy-900 shadow-[0_20px_50px_-16px_rgba(0,0,0,0.9)] sm:max-h-72"
             >
               {showingRecent && (
                 <li className="sticky top-0 bg-navy-900 px-4 py-2">
@@ -347,7 +347,7 @@ export default function SearchBar() {
 
         <button
           type="submit"
-          className="tracked-label flex items-center justify-center gap-2.5 rounded-full bg-gold-400 px-8 py-3.5 text-xs font-semibold text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 active:scale-[0.98] lg:w-auto"
+          className="tracked-label flex items-center justify-center gap-2.5 rounded-lg bg-gold-400 px-6 py-2.5 text-xs font-semibold text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 active:scale-[0.98] lg:w-auto"
         >
           Search Properties
           <MdSearch className="h-4 w-4" />
