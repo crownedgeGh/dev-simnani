@@ -41,12 +41,15 @@ import {
   MdWc,
   MdReportProblem,
   MdRemoveCircleOutline,
+  MdBusiness,
+  MdArrowForward,
 } from "react-icons/md";
 import AdminStatusBadge from "@/components/admin/ui/AdminStatusBadge";
 import AdminConfirmModal from "@/components/admin/ui/AdminConfirmModal";
 import AdminPhoneCell from "@/components/admin/ui/AdminPhoneCell";
 import PropertyFormDialog from "@/components/admin/properties/PropertyFormDialog";
 import CorrectionRequestDialog from "@/components/admin/properties/CorrectionRequestDialog";
+import CompanyCPAssignmentDialog from "@/components/admin/freelancer-cp/CompanyCPAssignmentDialog";
 import { ADMIN_KEYS, readCollection } from "@/lib/adminStorage";
 import {
   formatPostedDate,
@@ -77,6 +80,12 @@ export default function PropertyDetailPage() {
   const [statusUpdating, setStatusUpdating] = useState(false);
   const [correctionOpen, setCorrectionOpen] = useState(false);
   const [clearingHold, setClearingHold] = useState(false);
+  const [companyAssignments, setCompanyAssignments] = useState([]);
+  const [assignmentDetailTarget, setAssignmentDetailTarget] = useState(null);
+  const [assignmentDetailCp, setAssignmentDetailCp] = useState(null);
+  const [loadingAssignmentDetail, setLoadingAssignmentDetail] = useState(false);
+  const [unassignTarget, setUnassignTarget] = useState(null);
+  const [unassigning, setUnassigning] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -108,6 +117,55 @@ export default function PropertyDetailPage() {
       active = false;
     };
   }, [id]);
+
+  useEffect(() => {
+    let active = true;
+    async function loadAssignments() {
+      try {
+        const res = await fetch(`/api/assignments?propertyId=${id}&level=head-to-company`);
+        const json = await res.json();
+        if (active && json.success) setCompanyAssignments(json.data || []);
+      } catch {
+        // ignore — section just won't render
+      }
+    }
+    loadAssignments();
+    return () => {
+      active = false;
+    };
+  }, [id]);
+
+  const handleOpenAssignmentDetail = async (assignment) => {
+    setAssignmentDetailTarget(assignment);
+    setAssignmentDetailCp(null);
+    setLoadingAssignmentDetail(true);
+    try {
+      const res = await fetch(`/api/users/${assignment.assignedToAccountId}`);
+      const json = await res.json();
+      if (json.success) setAssignmentDetailCp(json.data);
+    } catch {
+      // dialog falls back to the denormalized assignment fields
+    } finally {
+      setLoadingAssignmentDetail(false);
+    }
+  };
+
+  const handleUnassign = async (assignment) => {
+    setUnassigning(true);
+    try {
+      const res = await fetch(`/api/assignments/${assignment.id}`, { method: "DELETE" });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || "Failed to unassign");
+      setCompanyAssignments((prev) => prev.filter((a) => a.id !== assignment.id));
+      setAssignmentDetailTarget(null);
+      setUnassignTarget(null);
+      toast.success(`Unassigned from ${assignment.assignedToName} — removed from their portal`);
+    } catch (err) {
+      toast.error(err.message || "Failed to unassign");
+    } finally {
+      setUnassigning(false);
+    }
+  };
 
   const handleEdit = async (formData) => {
     const res = await fetch(`/api/admin/properties/${formData.id}`, {
@@ -451,6 +509,39 @@ export default function PropertyDetailPage() {
                 ))}
             </div>
           </section>
+
+          {companyAssignments.length > 0 && (
+            <section className="mt-10">
+              <h2 className="text-xl font-bold text-[#1a1a2e]">
+                Assigned Company CP{companyAssignments.length > 1 ? "s" : ""}
+              </h2>
+              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {companyAssignments.map((assignment) => {
+                  const place = [assignment.assignedToCity, assignment.assignedToState].filter(Boolean).join(", ");
+                  return (
+                    <button
+                      key={assignment.id}
+                      type="button"
+                      onClick={() => handleOpenAssignmentDetail(assignment)}
+                      className="flex items-center gap-3 rounded-2xl border border-[#e8e0d5] bg-white p-4 text-left transition hover:border-[#f0b429]/50"
+                    >
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#fff8e1] text-[#d97706]">
+                        <MdBusiness size={18} />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold text-[#1a1a2e]">{assignment.assignedToName}</p>
+                        <p className="mt-0.5 truncate text-xs text-[#9ca3af]">
+                          {place || "—"}
+                          {assignment.createdAt ? ` · ${new Date(assignment.createdAt).toLocaleDateString("en-IN")}` : ""}
+                        </p>
+                      </div>
+                      <MdArrowForward size={16} className="shrink-0 text-[#9ca3af]" />
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          )}
         </div>
 
         <div className="lg:col-span-1">
@@ -530,6 +621,24 @@ export default function PropertyDetailPage() {
         </div>
       </div>
 
+      <CompanyCPAssignmentDialog
+        isOpen={!!assignmentDetailTarget}
+        onClose={() => setAssignmentDetailTarget(null)}
+        assignment={assignmentDetailTarget}
+        cp={assignmentDetailCp}
+        loading={loadingAssignmentDetail}
+        onUnassign={setUnassignTarget}
+      />
+      <AdminConfirmModal
+        isOpen={!!unassignTarget}
+        onClose={() => setUnassignTarget(null)}
+        onConfirm={() => handleUnassign(unassignTarget)}
+        title="Unassign Company CP"
+        message={`This will remove "${property.title}" from ${unassignTarget?.assignedToName || "this Company CP"}'s portal, along with anything they further delegated downstream. This cannot be undone.`}
+        confirmLabel="Unassign"
+        confirmVariant="danger"
+        isLoading={unassigning}
+      />
       <PropertyFormDialog isOpen={editOpen} onClose={() => setEditOpen(false)} property={property} onSave={handleEdit} />
       <CorrectionRequestDialog
         isOpen={correctionOpen}

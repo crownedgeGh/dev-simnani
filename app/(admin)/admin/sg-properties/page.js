@@ -54,6 +54,7 @@ export default function AdminSgPropertiesPage() {
   const [companyPartners, setCompanyPartners] = useState([]);
   const [assignments, setAssignments] = useState([]);
   const [assignTarget, setAssignTarget] = useState(null);
+  const [activeTab, setActiveTab] = useState("all");
 
   const loadCpData = useCallback(async () => {
     try {
@@ -164,6 +165,18 @@ export default function AdminSgPropertiesPage() {
     () => properties.filter((p) => NON_PUBLIC_POSTED_BY_ROLES.includes(p.postedByRole)),
     [properties]
   );
+
+  const assignedPropertyIds = useMemo(
+    () => new Set(assignments.filter((a) => a.level === "head-to-company").map((a) => a.propertyId)),
+    [assignments]
+  );
+
+  const assignedProjects = useMemo(
+    () => sgProperties.filter((p) => assignedPropertyIds.has(p.id)),
+    [sgProperties, assignedPropertyIds]
+  );
+
+  const visibleProperties = activeTab === "assigned" ? assignedProjects : sgProperties;
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -300,25 +313,6 @@ export default function AdminSgPropertiesPage() {
         filterOptions: ["Active", "Pending Review", "Rejected", "Closed", "Sold"],
       },
       {
-        key: "cpAssignment",
-        label: "CP Assignment",
-        searchable: false,
-        render: (_, row) => {
-          const assignment = assignments.find((a) => a.propertyId === row.id && a.level === "head-to-company");
-          if (!assignment) return (
-            <span className="inline-flex items-center gap-1 rounded-full border border-[#e8e0d5] bg-[#faf8f5] px-2 py-0.5 text-xs font-medium text-[#9ca3af] whitespace-nowrap">
-              Not Forwarded
-            </span>
-          );
-          const place = [assignment.assignedToCity, assignment.assignedToState].filter(Boolean).join(", ");
-          return (
-            <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 whitespace-nowrap">
-              Forwarded: {assignment.assignedToName}{place ? ` — ${place}` : ""}
-            </span>
-          );
-        },
-      },
-      {
         key: "actions",
         label: "",
         type: "actions",
@@ -359,7 +353,7 @@ export default function AdminSgPropertiesPage() {
         },
       },
     ],
-    [cityOptions, router, assignments, handleToggleSold]
+    [cityOptions, router, handleToggleSold]
   );
 
   return (
@@ -381,12 +375,39 @@ export default function AdminSgPropertiesPage() {
         }
       />
 
+      <div className="mb-4 flex items-center gap-2 border-b border-[#e8e0d5]">
+        <button
+          type="button"
+          onClick={() => setActiveTab("all")}
+          className={`relative px-1 pb-3 text-sm font-semibold transition ${
+            activeTab === "all" ? "text-[#1a1a2e]" : "text-[#9ca3af] hover:text-[#1a1a2e]"
+          }`}
+        >
+          All Properties
+          {activeTab === "all" && <span className="absolute inset-x-0 -bottom-px h-0.5 bg-[#f0b429]" />}
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("assigned")}
+          className={`relative ml-4 px-1 pb-3 text-sm font-semibold transition ${
+            activeTab === "assigned" ? "text-[#1a1a2e]" : "text-[#9ca3af] hover:text-[#1a1a2e]"
+          }`}
+        >
+          Assigned Projects ({assignedProjects.length})
+          {activeTab === "assigned" && <span className="absolute inset-x-0 -bottom-px h-0.5 bg-[#f0b429]" />}
+        </button>
+      </div>
+
       <AdminTable
         columns={COLUMNS}
-        data={sgProperties}
+        data={visibleProperties}
         loading={loading}
         onRowClick={(row) => router.push(`/admin/properties/${row.id}`)}
-        emptyMessage="No properties posted by CPs or Super Admin yet."
+        emptyMessage={
+          activeTab === "assigned"
+            ? "No properties have been forwarded to a Company CP yet."
+            : "No properties posted by CPs or Super Admin yet."
+        }
         pageSize={10}
       />
 

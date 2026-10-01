@@ -20,6 +20,7 @@ import {
 import AdminPageHeader from "@/components/admin/layout/AdminPageHeader";
 import AdminTable from "@/components/admin/ui/AdminTable";
 import AdminConfirmModal from "@/components/admin/ui/AdminConfirmModal";
+import CPRegistrationDetailDialog from "@/components/admin/freelancer-cp/CPRegistrationDetailDialog";
 
 // CP type segments — each has its own dedicated management page with full
 // CRUD, mirroring the three public dashboards at
@@ -80,6 +81,7 @@ export default function FreelancerCPPage() {
   const [updatingId, setUpdatingId] = useState(null);
   const [rejectTarget, setRejectTarget] = useState(null);
   const [rejecting, setRejecting] = useState(false);
+  const [detailTarget, setDetailTarget] = useState(null);
 
   const load = useCallback(async () => {
     try {
@@ -201,7 +203,10 @@ export default function FreelancerCPPage() {
         const busy = updatingId === row.accountId;
         const isHold = row.cpApprovalStatus === "hold";
         return (
-          <div className="flex flex-wrap items-center gap-1.5">
+          <div
+            className="flex flex-wrap items-center gap-1.5"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
               type="button"
               disabled={busy}
@@ -290,6 +295,13 @@ export default function FreelancerCPPage() {
         loading={loading}
         emptyMessage="No channel partner registrations yet"
         pageSize={10}
+        onRowClick={(row) => setDetailTarget(row)}
+      />
+
+      <CPRegistrationDetailDialog
+        isOpen={!!detailTarget}
+        onClose={() => setDetailTarget(null)}
+        cp={detailTarget}
       />
 
       <AdminConfirmModal

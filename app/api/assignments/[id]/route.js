@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Assignment from "@/models/Assignment";
 import { getSessionUser } from "@/lib/session";
+import { isAdminRequest } from "@/lib/adminSession";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -41,6 +42,37 @@ export async function PATCH(request, { params }) {
     console.error("PATCH /api/assignments/[id] error:", error);
     return NextResponse.json(
       { success: false, error: error.message || "Failed to update assignment" },
+      { status: 500 }
+    );
+  }
+}
+
+// Unassigning a head-to-company forward must also remove whatever the
+// Company CP delegated downstream from it (company-to-field /
+// company-to-digital assignments chained via parentAssignmentId), so the
+// property disappears from every portal it was forwarded into.
+export async function DELETE(request, { params }) {
+  try {
+    if (!isAdminRequest(request)) {
+      return NextResponse.json({ success: false, error: "Not authorized" }, { status: 403 });
+    }
+
+    await dbConnect();
+    const { id } = await params;
+
+    const existing = await Assignment.findOne({ id }).lean();
+    if (!existing) {
+      return NextResponse.json({ success: false, error: "Assignment not found" }, { status: 404 });
+    }
+
+    await Assignment.deleteMany({ parentAssignmentId: id });
+    await Assignment.deleteOne({ id });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("DELETE /api/assignments/[id] error:", error);
+    return NextResponse.json(
+      { success: false, error: error.message || "Failed to remove assignment" },
       { status: 500 }
     );
   }
