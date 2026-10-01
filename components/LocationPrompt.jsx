@@ -13,9 +13,10 @@ export default function LocationPrompt() {
   const [expanded, setExpanded] = useState(false);
 
   const isAdminRoute = pathname?.startsWith("/admin");
+  const isHomePage = pathname === "/";
 
   useEffect(() => {
-    if (isAdminRoute) return;
+    if (isAdminRoute || !isHomePage) return;
     try {
       if (!localStorage.getItem(STORAGE_KEY)) {
         // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time check of localStorage, a client-only external store
@@ -24,7 +25,7 @@ export default function LocationPrompt() {
     } catch {
       // localStorage unavailable — skip the prompt rather than nag every load
     }
-  }, [isAdminRoute]);
+  }, [isAdminRoute, isHomePage]);
 
   function dismiss() {
     setVisible(false);
@@ -70,7 +71,7 @@ export default function LocationPrompt() {
     );
   }
 
-  if (!visible || isAdminRoute) return null;
+  if (!visible || isAdminRoute || !isHomePage) return null;
 
   return (
     <>
