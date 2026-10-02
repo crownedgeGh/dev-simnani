@@ -680,14 +680,14 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop nav links */}
-          <nav className="hidden min-w-0 flex-1 items-center justify-center gap-2.5 xl:flex xl:gap-4 2xl:gap-6">
+          <nav className="hidden min-w-0 flex-1 items-center justify-center gap-2.5 2xl:flex 2xl:gap-4">
             {visibleNavLinks.map((link) => {
               const active = isNavLinkActive(link, pathname);
               return (
                 <Link
                   key={link.label}
                   href={link.href}
-                  className={`tracked-label relative whitespace-nowrap pb-1 text-[11px] transition hover:text-gold-400 xl:text-xs ${
+                  className={`tracked-label relative whitespace-nowrap pb-1 text-[11px] transition hover:text-gold-400 2xl:text-xs ${
                     active ? "text-gold-400" : "text-cream/80"
                   }`}
                 >
@@ -701,7 +701,7 @@ export default function Navbar() {
           </nav>
 
           {/* Desktop right section */}
-          <div className="hidden shrink-0 items-center gap-3 xl:flex">
+          <div className="hidden shrink-0 items-center gap-3 2xl:flex">
             {/* Post Property button */}
             {canPostProperty && (
               <button
@@ -801,7 +801,7 @@ export default function Navbar() {
             onClick={() => setMobileOpen((v) => !v)}
             aria-label="Toggle navigation menu"
             aria-expanded={mobileOpen}
-            className="flex h-9 w-9 items-center justify-center text-cream xl:hidden"
+            className="flex h-9 w-9 items-center justify-center text-cream 2xl:hidden"
           >
             {mobileOpen ? <FiX className="h-6 w-6" /> : <FiMenu className="h-6 w-6" />}
           </button>
@@ -815,7 +815,7 @@ export default function Navbar() {
           which would confine this overlay to the header's own height instead of
           the full viewport. */}
       {mobileOpen && (
-        <div className="xl:hidden" style={{ position: "fixed", inset: 0, zIndex: 9999 }}>
+        <div className="2xl:hidden" style={{ position: "fixed", inset: 0, zIndex: 9999 }}>
           <style>{`
             @keyframes sidebarBackdropFadeIn { from { opacity: 0; } to { opacity: 1; } }
             @keyframes sidebarSlideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
