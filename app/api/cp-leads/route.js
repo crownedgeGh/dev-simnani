@@ -71,10 +71,9 @@ export async function GET(request) {
   }
 }
 
-// Creates a draft lead — a Digital CP logging a lead under an ad link, or a
+// Creates a lead — a Digital CP logging a lead under an ad link, or a
 // Field CP logging a direct lead. Requires a logged-in Digital/Field CP
-// session; the lead starts unforwarded and only enters the shared pipeline
-// once PATCHed with forwarded:true.
+// session; the lead enters the shared pipeline at Head CP immediately.
 export async function POST(request) {
   try {
     await dbConnect();
@@ -107,8 +106,8 @@ export async function POST(request) {
         name: sessionUser.fullName,
         accountId: sessionUser.accountId,
       },
-      routingStage: `${sessionUser.cpType}-cp`,
-      forwarded: false,
+      routingStage: "head-cp",
+      forwarded: true,
       adLinkId: adLinkId || "",
       notes: notes || "",
       date: new Date().toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" }),

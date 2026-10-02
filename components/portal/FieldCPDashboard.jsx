@@ -188,7 +188,6 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
   const [directForm, setDirectForm] = useState(INITIAL_DIRECT_FORM);
   const [directError, setDirectError] = useState("");
   const [directLeads, setDirectLeads] = useState([]);
-  const [directSaving, setDirectSaving] = useState({});
 
   const loadDirectLeads = useCallback(() => {
     if (!partner?.accountId) return;
@@ -431,27 +430,6 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
       setDirectForm(INITIAL_DIRECT_FORM);
     } catch (error) {
       setDirectError(error.message || "Couldn't add the lead — please try again.");
-    }
-  }
-
-  async function handleForwardDirectLead(id) {
-    const lead = directLeads.find((l) => l.id === id);
-    if (!lead || lead.forwarded) return;
-    setDirectSaving((prev) => ({ ...prev, [id]: true }));
-    try {
-      const res = await fetch(`/api/cp-leads/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ forward: true }),
-      });
-      const json = await res.json();
-      if (!json.success) throw new Error(json.error || "Failed to forward lead");
-      setDirectLeads((prev) => prev.map((l) => (l.id === id ? json.data : l)));
-      toast.success("Lead forwarded to Head CP");
-    } catch (error) {
-      toast.error(error.message || "Couldn't forward the lead — please try again");
-    } finally {
-      setDirectSaving((prev) => ({ ...prev, [id]: false }));
     }
   }
 
@@ -1072,7 +1050,7 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
             </form>
 
             {directLeads.length === 0 ? (
-              <EmptyState title="No direct leads yet" message="Add a lead's name, phone, project and notes, then forward it to the Head CP." />
+              <EmptyState title="No direct leads yet" message="Add a lead's name, phone, project and notes — it goes straight to the Head CP." />
             ) : (
               <div className="flex flex-col gap-3">
                 {directLeads.map((lead) => (
@@ -1087,22 +1065,10 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
                       </p>
                       {lead.notes && <p className="mt-1 text-xs text-muted">{lead.notes}</p>}
                     </div>
-                    {lead.forwarded ? (
-                      <span className="tracked-label flex w-fit shrink-0 items-center gap-2 rounded-full border border-gold-500/70 px-4 py-2 text-xs text-gold-400">
-                        <FiCheck className="h-3.5 w-3.5" />
-                        Forwarded to Head CP
-                      </span>
-                    ) : (
-                      <button
-                        type="button"
-                        disabled={directSaving[lead.id]}
-                        onClick={() => handleForwardDirectLead(lead.id)}
-                        className="tracked-label flex shrink-0 items-center justify-center gap-2 rounded-full bg-gold-400 px-4 py-2 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 hover:shadow-gold-400/20 active:scale-[0.98] disabled:opacity-60"
-                      >
-                        <FiSend className="h-3.5 w-3.5" />
-                        {directSaving[lead.id] ? "Forwarding…" : "Forward to Head CP"}
-                      </button>
-                    )}
+                    <span className="tracked-label flex w-fit shrink-0 items-center gap-2 rounded-full border border-gold-500/70 px-4 py-2 text-xs text-gold-400">
+                      <FiCheck className="h-3.5 w-3.5" />
+                      Forwarded to Head CP
+                    </span>
                   </div>
                 ))}
               </div>

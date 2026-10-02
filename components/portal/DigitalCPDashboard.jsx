@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { FiPlus, FiLink, FiCheck, FiSend, FiArrowRight, FiChevronDown, FiChevronUp, FiUsers, FiX } from "react-icons/fi";
+import { FiPlus, FiLink, FiCheck, FiArrowRight, FiChevronDown, FiChevronUp, FiUsers, FiX } from "react-icons/fi";
 import { MdCampaign } from "react-icons/md";
 import { FaInstagram, FaFacebook, FaYoutube, FaWhatsapp } from "react-icons/fa6";
 import Tabs from "./Tabs";
@@ -96,7 +96,6 @@ export default function DigitalCPDashboard({ stats, assets, partner, myListings 
   const [leadsByLink, setLeadsByLink] = useState({});
   const [leadDrafts, setLeadDrafts] = useState({});
   const [leadDraftErrors, setLeadDraftErrors] = useState({});
-  const [leadSaving, setLeadSaving] = useState({});
   const [openLeadFormFor, setOpenLeadFormFor] = useState(null);
   const [expandedLinkIds, setExpandedLinkIds] = useState([]);
   const [isAddLinkOpen, setIsAddLinkOpen] = useState(false);
@@ -223,30 +222,6 @@ export default function DigitalCPDashboard({ stats, assets, partner, myListings 
       setLeadDrafts((prev) => ({ ...prev, [linkId]: INITIAL_LEAD_FORM }));
     } catch (error) {
       setLeadDraftErrors((prev) => ({ ...prev, [linkId]: error.message || "Couldn't save the lead — please try again." }));
-    }
-  }
-
-  async function handleForwardLinkLead(linkId, leadId) {
-    const lead = (leadsByLink[linkId] || []).find((l) => l.id === leadId);
-    if (!lead || lead.forwarded) return;
-    setLeadSaving((prev) => ({ ...prev, [leadId]: true }));
-    try {
-      const res = await fetch(`/api/cp-leads/${leadId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ forward: true }),
-      });
-      const json = await res.json();
-      if (!json.success) throw new Error(json.error || "Failed to forward lead");
-      setLeadsByLink((prev) => ({
-        ...prev,
-        [linkId]: prev[linkId].map((l) => (l.id === leadId ? json.data : l)),
-      }));
-      toast.success("Lead forwarded to Head CP");
-    } catch (error) {
-      toast.error(error.message || "Couldn't forward the lead — please try again");
-    } finally {
-      setLeadSaving((prev) => ({ ...prev, [leadId]: false }));
     }
   }
 
@@ -661,22 +636,10 @@ export default function DigitalCPDashboard({ stats, assets, partner, myListings 
                                     <p className="mt-1 text-xs text-muted">{lead.phone}</p>
                                     {lead.notes && <p className="mt-1 text-xs text-muted">{lead.notes}</p>}
                                   </div>
-                                  {lead.forwarded ? (
-                                    <span className="tracked-label flex w-fit shrink-0 items-center gap-2 rounded-full border border-gold-500/70 px-4 py-2 text-xs text-gold-400">
-                                      <FiCheck className="h-3.5 w-3.5" />
-                                      Forwarded to Head CP
-                                    </span>
-                                  ) : (
-                                    <button
-                                      type="button"
-                                      disabled={leadSaving[lead.id]}
-                                      onClick={() => handleForwardLinkLead(item.id, lead.id)}
-                                      className="tracked-label flex shrink-0 items-center justify-center gap-2 rounded-full bg-gold-400 px-4 py-2 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 active:scale-[0.98] disabled:opacity-60 disabled:active:scale-100"
-                                    >
-                                      <FiSend className="h-3.5 w-3.5" />
-                                      {leadSaving[lead.id] ? "Forwarding…" : "Forward to Head CP"}
-                                    </button>
-                                  )}
+                                  <span className="tracked-label flex w-fit shrink-0 items-center gap-2 rounded-full border border-gold-500/70 px-4 py-2 text-xs text-gold-400">
+                                    <FiCheck className="h-3.5 w-3.5" />
+                                    Forwarded to Head CP
+                                  </span>
                                 </div>
                               ))}
                             </div>
