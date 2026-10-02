@@ -832,6 +832,7 @@ export default function CompanyCPDashboard({
                       <thead>
                         <tr className="tracked-label border-b border-navy-700/60 text-[10px] text-muted">
                           <th className="px-4 py-3">Customer</th>
+                          <th className="px-4 py-3">Phone</th>
                           <th className="px-4 py-3">Project</th>
                           {fieldFilterId === "all" && <th className="px-4 py-3">Partner</th>}
                           <th className="px-4 py-3">Status</th>
@@ -840,7 +841,7 @@ export default function CompanyCPDashboard({
                       <tbody>
                         {visibleFieldLeads.length === 0 ? (
                           <tr>
-                            <td colSpan={fieldFilterId === "all" ? 4 : 3} className="px-4 py-10 text-center text-xs text-muted">
+                            <td colSpan={fieldFilterId === "all" ? 5 : 4} className="px-4 py-10 text-center text-xs text-muted">
                               No leads submitted yet.
                             </td>
                           </tr>
@@ -848,6 +849,16 @@ export default function CompanyCPDashboard({
                           visibleFieldLeads.slice(0, shownFor("fieldLeads")).map((l) => (
                             <tr key={l.id} className="border-b border-navy-700/60 last:border-0">
                               <td className="px-4 py-3 text-cream">{l.customer}</td>
+                              <td className="px-4 py-3 text-muted">
+                                {l.phone ? (
+                                  <div className="flex items-center gap-1.5">
+                                    <span>{l.phone}</span>
+                                    <PhoneActions phone={l.phone} />
+                                  </div>
+                                ) : (
+                                  "—"
+                                )}
+                              </td>
                               <td className="px-4 py-3 text-muted">{l.project || "—"}</td>
                               {fieldFilterId === "all" && (
                                 <td className="px-4 py-3 text-muted">{partnerName(l.submittedBy?.accountId)}</td>

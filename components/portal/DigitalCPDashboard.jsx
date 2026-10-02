@@ -629,17 +629,13 @@ export default function DigitalCPDashboard({ stats, assets, partner, myListings 
                               {leads.map((lead) => (
                                 <div
                                   key={lead.id}
-                                  className="flex flex-col gap-3 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
+                                  className="flex flex-col gap-3 py-3 first:pt-0 last:pb-0"
                                 >
                                   <div className="min-w-0">
                                     <p className="text-sm text-cream">{lead.customer}</p>
                                     <p className="mt-1 text-xs text-muted">{lead.phone}</p>
                                     {lead.notes && <p className="mt-1 text-xs text-muted">{lead.notes}</p>}
                                   </div>
-                                  <span className="tracked-label flex w-fit shrink-0 items-center gap-2 rounded-full border border-gold-500/70 px-4 py-2 text-xs text-gold-400">
-                                    <FiCheck className="h-3.5 w-3.5" />
-                                    Forwarded to Head CP
-                                  </span>
                                 </div>
                               ))}
                             </div>
