@@ -441,7 +441,6 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
       ...(isPgHostelType ? [{ id: "bathroomType", invalid: !form.bathroomType }] : []),
       ...(showBedsHallsFields ? [{ id: "beds", invalid: !form.beds || Number(form.beds) < 1 }] : []),
       ...(showBedsHallsFields ? [{ id: "halls", invalid: !form.halls || Number(form.halls) < 1 }] : []),
-      ...(showBathsField ? [{ id: "baths", invalid: !form.baths || Number(form.baths) < 1 }] : []),
       { id: "fullName", invalid: !form.fullName.trim() },
       { id: "mobile", invalid: !isMobileValid(form.mobile) },
     ];
@@ -882,7 +881,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
           </FormField>
         )}
         {showBathsField && (
-          <FormField label="No. of Bathrooms" htmlFor="baths" required>
+          <FormField label="No. of Bathrooms" htmlFor="baths">
             <input
               id="baths"
               type="number"
