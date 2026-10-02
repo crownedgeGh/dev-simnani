@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { MdPerson, MdPhone, MdEmail, MdMessage, MdCheckCircle, MdSend } from "react-icons/md";
 import { formatMobile, isMobileValid } from "@/lib/auth";
+import Turnstile from "@/components/shared/Turnstile";
 
 const USER_TYPE_OPTIONS = [
   { value: "buyer", label: "I'm a Buyer" },
@@ -30,6 +31,7 @@ export default function ContactForm({
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState("");
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -58,6 +60,7 @@ export default function ContactForm({
           userType: userType || "buyer",
           source,
           propertyTitle,
+          turnstileToken,
         }),
       });
 
@@ -105,6 +108,7 @@ export default function ContactForm({
                   : "Hello, I am interested in a property."
               );
               setUserType("");
+              setTurnstileToken("");
             }}
             className="tracked-label rounded-full px-4 py-2 text-xs text-gold-400 transition hover:text-gold-300 active:scale-[0.98]"
           >
@@ -196,6 +200,8 @@ export default function ContactForm({
           ▾
         </span>
       </div>
+
+      <Turnstile onVerify={setTurnstileToken} onExpire={() => setTurnstileToken("")} />
 
       {error && <p className="text-xs text-red-400">{error}</p>}
 

@@ -4,6 +4,7 @@ import User from "@/models/User";
 import { sendOtp } from "@/lib/otp";
 import { isRateLimited, rateLimitResponse } from "@/lib/rateLimit";
 import { isMobileValid } from "@/lib/auth";
+import { verifyTurnstile } from "@/lib/turnstile";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +18,15 @@ export async function POST(request) {
     }
 
     await dbConnect();
-    const { mobile } = await request.json();
+    const { mobile, turnstileToken } = await request.json();
+
+    if (!(await verifyTurnstile(turnstileToken, request))) {
+      return NextResponse.json(
+        { success: false, error: "Verification failed. Please try again." },
+        { status: 400 }
+      );
+    }
+
     const digits = (mobile || "").replace(/\D/g, "").slice(-10);
 
     if (!isMobileValid(digits)) {

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import ContactInquiry from "@/models/ContactInquiry";
 import { isMobileValid } from "@/lib/auth";
+import { isRateLimited, rateLimitResponse } from "@/lib/rateLimit";
+import { verifyTurnstile } from "@/lib/turnstile";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -9,9 +11,20 @@ export const revalidate = 0;
 // POST — public form submission (no auth required)
 export async function POST(request) {
   try {
+    if (isRateLimited(request, { limit: 10, windowMs: 10 * 60 * 1000, key: "contact-inquiry" })) {
+      return rateLimitResponse();
+    }
+
     await dbConnect();
     const body = await request.json();
-    const { name, phone, email, message, userType, source, propertyTitle } = body;
+    const { name, phone, email, message, userType, source, propertyTitle, turnstileToken } = body;
+
+    if (!(await verifyTurnstile(turnstileToken, request))) {
+      return NextResponse.json(
+        { success: false, error: "Verification failed. Please try again." },
+        { status: 400 }
+      );
+    }
 
     if (!name?.trim() || !phone?.trim()) {
       return NextResponse.json(

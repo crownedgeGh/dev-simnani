@@ -7,6 +7,7 @@ import { MdScience, MdCheckCircle } from "react-icons/md";
 import { FiEye, FiEyeOff, FiArrowLeft, FiX } from "react-icons/fi";
 import { useAuth } from "@/context/AuthContext";
 import { isMobileValid } from "@/lib/auth";
+import Turnstile from "@/components/shared/Turnstile";
 
 // Must match OTP_LENGTH in lib/otp.js — the apitxt.com template currently
 // only supports a 4-digit code.
@@ -43,6 +44,7 @@ export default function AuthCard() {
   const [loading, setLoading] = useState(false);
   const [isTesterLogin, setIsTesterLogin] = useState(false);
   const [resendIn, setResendIn] = useState(59);
+  const [turnstileToken, setTurnstileToken] = useState("");
   const otpRefs = useRef([]);
   const timerRef = useRef(null);
 
@@ -95,7 +97,7 @@ export default function AuthCard() {
     const res = await fetch("/api/auth/send-otp", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ mobile }),
+      body: JSON.stringify({ mobile, turnstileToken }),
     });
     const data = await res.json();
     if (!data.success) {
@@ -435,6 +437,8 @@ export default function AuthCard() {
                 </div>
               </div>
             )}
+
+            <Turnstile onVerify={setTurnstileToken} onExpire={() => setTurnstileToken("")} />
 
             {error && !notRegistered && (
               <p className="text-xs text-red-400">{error}</p>
