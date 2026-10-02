@@ -312,38 +312,36 @@ export default function AuthCard() {
   }
 
   return (
-    <div className="w-full max-w-md rounded-3xl border border-navy-700/60 bg-navy-900 p-8 shadow-2xl sm:p-10">
-      <div className="flex flex-col items-center gap-2 text-center">
+    <div className="relative w-full max-w-md rounded-2xl border border-navy-700/60 bg-navy-900 p-5 shadow-2xl sm:rounded-3xl sm:p-10">
+      {step === "mobile" ? (
+        <button
+          type="button"
+          onClick={() => router.push("/")}
+          aria-label="Close"
+          className="absolute right-4 top-4 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-navy-700/60 bg-navy-900 text-cream transition hover:border-gold-400 hover:text-gold-400 active:scale-[0.98] sm:right-5 sm:top-5 sm:h-12 sm:w-12"
+        >
+          <FiX className="h-5 w-5 sm:h-6 sm:w-6" />
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={handleChangeNumber}
+          aria-label="Back to login"
+          className="absolute left-4 top-4 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-navy-700/60 bg-navy-900 text-cream transition hover:border-gold-400 hover:text-gold-400 active:scale-[0.98] sm:left-5 sm:top-5 sm:h-11 sm:w-11"
+        >
+          <FiArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+        </button>
+      )}
+      <div className="flex flex-col items-center gap-2 pt-7 text-center sm:pt-0">
         <span className="tracked-label text-xs text-gold-400">
           Simnani Estate
         </span>
-        <div className="flex items-center gap-3">
-          {step === "mobile" ? (
-            <button
-              type="button"
-              onClick={() => router.push("/")}
-              aria-label="Close"
-              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-navy-700/60 bg-navy-900 text-cream transition hover:border-gold-400 hover:text-gold-400 active:scale-[0.98]"
-            >
-              <FiX className="h-6 w-6" />
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={handleChangeNumber}
-              aria-label="Back to login"
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-navy-700/60 bg-navy-900 text-cream transition hover:border-gold-400 hover:text-gold-400 active:scale-[0.98]"
-            >
-              <FiArrowLeft className="h-5 w-5" />
-            </button>
-          )}
-          <h1 className="font-display text-3xl text-cream sm:text-4xl">
-            {step === "mobile" && "Welcome Back"}
-            {step === "otp" && "Verify Your Number"}
-            {step === "forgot-otp" && "Reset Password"}
-            {step === "new-password" && "New Password"}
-          </h1>
-        </div>
+        <h1 className="font-display text-2xl text-cream sm:text-4xl">
+          {step === "mobile" && "Welcome Back"}
+          {step === "otp" && "Verify Your Number"}
+          {step === "forgot-otp" && "Reset Password"}
+          {step === "new-password" && "New Password"}
+        </h1>
         <p className="text-sm text-muted">
           {step === "mobile" && mode === "password" &&
             "Login with your mobile number and password."}
@@ -374,7 +372,7 @@ export default function AuthCard() {
         <>
           <form
             onSubmit={mode === "password" ? handlePasswordSubmit : handleMobileSubmit}
-            className="mt-8 flex flex-col gap-4"
+            className="mt-6 flex flex-col gap-4 sm:mt-8"
           >
             <div className="flex flex-col gap-2">
               <label htmlFor="mobile" className="tracked-label text-xs text-cream/80">
@@ -528,7 +526,7 @@ export default function AuthCard() {
       )}
 
       {step === "otp" && (
-        <div className="mt-8 flex flex-col gap-6">
+        <div className="mt-6 flex flex-col gap-6 sm:mt-8">
           <div className="flex items-center justify-center gap-2">
             <span className="text-sm text-muted">Wrong number?</span>
             <button
@@ -604,7 +602,7 @@ export default function AuthCard() {
       )}
 
       {step === "forgot-otp" && (
-        <div className="mt-8 flex flex-col gap-6">
+        <div className="mt-6 flex flex-col gap-6 sm:mt-8">
           <div className="flex items-center justify-center gap-2">
             <span className="text-sm text-muted">Wrong number?</span>
             <button
@@ -676,7 +674,7 @@ export default function AuthCard() {
       )}
 
       {step === "new-password" && (
-        <form onSubmit={handleNewPasswordSubmit} className="mt-8 flex flex-col gap-4">
+        <form onSubmit={handleNewPasswordSubmit} className="mt-6 flex flex-col gap-4 sm:mt-8">
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
               <label htmlFor="new-password" className="tracked-label text-xs text-cream/80">
@@ -762,7 +760,7 @@ export default function AuthCard() {
         </form>
       )}
 
-      <footer className="mt-8 flex flex-col items-center gap-2 border-t border-navy-700/60 pt-6">
+      <footer className="mt-6 flex flex-col items-center gap-2 border-t border-navy-700/60 pt-6 sm:mt-8">
         <p className="text-xs text-muted">
           New to Simnani Estate?{" "}
           <Link href="/auth/register" className="tracked-label text-gold-400 hover:text-gold-300">

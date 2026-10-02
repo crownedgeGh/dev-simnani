@@ -914,6 +914,28 @@ export default function Navbar() {
               </button>
             </div>
 
+            {/* Guest: Register + Login, shown above the Post Property CTA */}
+            {!isLoading && !isAuthenticated && (
+              <div className="px-4 pt-4">
+                <div className="flex flex-col gap-1">
+                  <MobileNavRow icon={MdPersonAdd} label="Register" href="/auth/register" tone="accent" onClick={() => setMobileOpen(false)} />
+                  <MobileNavRow icon={FiUser} label="Login" href="/auth" onClick={() => setMobileOpen(false)} />
+                  {TEST_MODE_ENABLED && (
+                    <MobileTestModeAccordion
+                      isOpen={mobileTestModeOpen}
+                      onToggle={() => setMobileTestModeOpen((open) => !open)}
+                      onSelect={() => {
+                        setMobileTestModeOpen(false);
+                        setMobileOpen(false);
+                      }}
+                      onSelectCp={handleTestModeSelectCp}
+                      tone="accent"
+                    />
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Post Property CTA */}
             {canPostProperty && (
               <div className="px-4 pt-4 pb-4">
@@ -1000,25 +1022,8 @@ export default function Navbar() {
                   />
                 ))}
 
-                {isLoading && !isAuthenticated ? null : isAuthenticated ? (
+                {isAuthenticated && (
                   <MobileNavRow icon={FiLogOut} label="Sign Out" tone="danger" onClick={handleLogout} />
-                ) : (
-                  <>
-                    <MobileNavRow icon={FiUser} label="Login" href="/auth" onClick={() => setMobileOpen(false)} />
-                    <MobileNavRow icon={MdPersonAdd} label="Sign Up" href="/auth/register" tone="accent" onClick={() => setMobileOpen(false)} />
-                    {TEST_MODE_ENABLED && (
-                      <MobileTestModeAccordion
-                        isOpen={mobileTestModeOpen}
-                        onToggle={() => setMobileTestModeOpen((open) => !open)}
-                        onSelect={() => {
-                          setMobileTestModeOpen(false);
-                          setMobileOpen(false);
-                        }}
-                        onSelectCp={handleTestModeSelectCp}
-                        tone="accent"
-                      />
-                    )}
-                  </>
                 )}
               </div>
             </div>

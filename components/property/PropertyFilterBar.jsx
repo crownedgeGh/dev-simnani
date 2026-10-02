@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { FiSearch, FiX, FiMapPin } from "react-icons/fi";
+import { FiSearch, FiX, FiMapPin, FiSliders } from "react-icons/fi";
 import PropertyGrid from "./PropertyGrid";
 import {
   getLocationCity,
@@ -85,6 +85,15 @@ export default function PropertyFilterBar({
   const [bhk, setBhk] = useState("");
   const cityFieldRef = useRef(null);
   const typeFieldRef = useRef(null);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
+  useEffect(() => {
+    if (!mobileFiltersOpen) return;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileFiltersOpen]);
 
   const typeSuggestions = useMemo(() => {
     const query = propertyTypeInput.trim().toLowerCase();
@@ -338,8 +347,47 @@ export default function PropertyFilterBar({
   return (
     <div>
       <div className="rounded-2xl border border-navy-700/60 bg-navy-900 p-3 sm:p-4">
+        <button
+          type="button"
+          onClick={() => setMobileFiltersOpen(true)}
+          className="flex h-12 w-full items-center justify-between gap-2 rounded-full border border-navy-700/60 bg-navy-950 px-4 text-sm text-cream transition hover:border-gold-400 sm:hidden"
+        >
+          <span className="flex items-center gap-2">
+            <FiSliders className="h-4 w-4 text-gold-400" />
+            Filters
+          </span>
+          {activeFilters.length > 0 && (
+            <span className="tracked-label rounded-full bg-gold-400 px-2 py-0.5 text-[10px] text-navy-950">
+              {activeFilters.length}
+            </span>
+          )}
+        </button>
+
+        {mobileFiltersOpen && (
+          <div
+            onClick={() => setMobileFiltersOpen(false)}
+            aria-hidden="true"
+            className="sm:hidden"
+            style={{
+              position: "fixed",
+              inset: 0,
+              zIndex: 60,
+              background: "rgba(2,3,6,0.72)",
+              backdropFilter: "blur(4px)",
+              WebkitBackdropFilter: "blur(4px)",
+            }}
+          />
+        )}
+
         <div
-          className={`grid grid-cols-1 gap-3 sm:grid-cols-2 ${
+          role={mobileFiltersOpen ? "dialog" : undefined}
+          aria-modal={mobileFiltersOpen ? "true" : undefined}
+          aria-label="Filters"
+          className={`${
+            mobileFiltersOpen
+              ? "fixed inset-y-0 right-0 z-[61] flex w-[85%] max-w-sm flex-col gap-4 overflow-y-auto border-l border-gold-400/15 bg-navy-900 p-4 shadow-2xl"
+              : "hidden"
+          } sm:static sm:z-auto sm:w-auto sm:max-w-none sm:overflow-visible sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:grid sm:grid-cols-2 sm:gap-3 ${
             showPropertyType
               ? showBhk
                 ? "lg:grid-cols-[2fr_1fr_1fr_1.3fr_1fr]"
@@ -347,7 +395,19 @@ export default function PropertyFilterBar({
               : "lg:grid-cols-[2fr_1.3fr_1fr]"
           }`}
         >
-          <div className="relative sm:col-span-2 lg:col-span-1">
+          <div className="flex items-center justify-between sm:hidden">
+            <span className="font-display text-lg text-cream">Filters</span>
+            <button
+              type="button"
+              onClick={() => setMobileFiltersOpen(false)}
+              aria-label="Close filters"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-navy-700/60 text-cream transition hover:border-gold-400 hover:text-gold-400"
+            >
+              <FiX className="h-5 w-5" />
+            </button>
+          </div>
+
+          <div className="relative w-full sm:col-span-2 lg:col-span-1">
             <FiSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
             <input
               type="text"
@@ -359,7 +419,7 @@ export default function PropertyFilterBar({
           </div>
 
           {showPropertyType && (
-            <div ref={typeFieldRef} className="relative">
+            <div ref={typeFieldRef} className="relative w-full">
               <FiSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
               <input
                 type="text"
@@ -423,7 +483,7 @@ export default function PropertyFilterBar({
             </select>
           )}
 
-          <div ref={cityFieldRef} className="relative">
+          <div ref={cityFieldRef} className="relative w-full">
             <FiMapPin className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
             <input
               type="text"
@@ -484,6 +544,23 @@ export default function PropertyFilterBar({
               </option>
             ))}
           </select>
+
+          <div className="mt-auto flex gap-2 pt-2 sm:hidden">
+            <button
+              type="button"
+              onClick={clearAll}
+              className="tracked-label flex-1 rounded-full border border-navy-700/60 px-4 py-3 text-xs text-muted transition hover:text-cream"
+            >
+              Clear All
+            </button>
+            <button
+              type="button"
+              onClick={() => setMobileFiltersOpen(false)}
+              className="tracked-label flex-1 rounded-full bg-gold-400 px-4 py-3 text-xs text-navy-950 transition hover:bg-gold-300"
+            >
+              Show {filtered.length}
+            </button>
+          </div>
         </div>
 
         {activeFilters.length > 0 && (

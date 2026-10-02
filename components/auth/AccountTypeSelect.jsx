@@ -131,12 +131,13 @@ export default function AccountTypeSelect() {
   }
 
   return (
-    <div className="w-full max-w-4xl rounded-3xl border border-navy-700/60 bg-navy-900 p-8 shadow-2xl sm:p-10">
-      <div className="flex flex-col items-center gap-2 text-center">
+    <div className="relative w-full max-w-4xl rounded-2xl border border-navy-700/60 bg-navy-900 p-5 shadow-2xl sm:rounded-3xl sm:p-10">
+      <BackButton className="absolute left-4 top-4 h-10 w-10 sm:hidden" />
+      <div className="flex flex-col items-center gap-2 pt-7 text-center sm:pt-0">
         <span className="tracked-label text-xs text-gold-400">Simnani Estate</span>
         <div className="flex items-center gap-3">
-          <BackButton />
-          <h1 className="font-display text-3xl text-cream sm:text-4xl">
+          <BackButton className="hidden sm:flex" />
+          <h1 className="font-display text-2xl text-cream sm:text-4xl">
             How would you like to use Simnani Estate?
           </h1>
         </div>
@@ -145,7 +146,7 @@ export default function AccountTypeSelect() {
         </p>
       </div>
 
-      <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
+      <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:gap-4 lg:grid-cols-3">
         {ACCOUNT_TYPES.map(({ value, label, description, Icon }) => (
           <button
             key={value}
