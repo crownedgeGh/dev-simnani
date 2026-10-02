@@ -4,13 +4,13 @@ import { LOCATIONS } from "@/lib/locations";
 
 export default function PopularLocations() {
   return (
-    <section className="bg-navy-900/40 py-20">
+    <section className="bg-navy-900/40 py-16 sm:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <h2 className="text-center font-display text-2xl text-cream sm:text-3xl">
           Explore Popular Locations
         </h2>
 
-        <div className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="mt-8 grid grid-cols-2 gap-3 sm:mt-12 sm:gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {LOCATIONS.map((location) => (
             <Link
               key={location.city}

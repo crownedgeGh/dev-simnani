@@ -35,7 +35,7 @@ const PROPERTY_TYPE_OPTIONS = {
 };
 
 const SELECT_CLASS =
-  "w-full appearance-none rounded-lg border bg-navy-900/80 px-4 py-2 text-sm text-cream transition focus:border-gold-500 focus:outline-none";
+  "w-full appearance-none rounded-lg border bg-navy-900/80 px-4 py-3.5 text-sm sm:py-2 text-cream transition focus:border-gold-500 focus:outline-none";
 
 function ValidationBubble({ message }) {
   return (
@@ -190,18 +190,18 @@ export default function SearchBar() {
   }
 
   return (
-    <div className="rounded-2xl border border-cream/12 bg-navy-950/92 p-3.5 shadow-[0_32px_80px_-24px_rgba(0,0,0,0.95)] backdrop-blur-md sm:p-4 lg:px-5 lg:py-3.5">
+    <div className="rounded-2xl border border-cream/12 bg-navy-950/92 p-4 sm:p-3.5 shadow-[0_32px_80px_-24px_rgba(0,0,0,0.95)] backdrop-blur-md sm:p-4 lg:px-5 lg:py-3.5">
       <p className="tracked-label mb-2.5 text-[11px] font-medium text-gold-400">
         Start Your Search
       </p>
 
-      <div className="gold-scrollbar -mx-1 flex gap-2 overflow-x-scroll px-1 lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0 lg:pb-0">
+      <div className="gold-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1 lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0 lg:pb-0">
         {MODES.map((item) => (
           <button
             key={item.slug}
             type="button"
             onClick={() => handleModeChange(item.slug)}
-            className={`tracked-label shrink-0 whitespace-nowrap border-b-2 px-3 py-1.5 text-xs font-medium transition ${
+            className={`tracked-label shrink-0 whitespace-nowrap border-b-2 px-3 py-2.5 text-xs sm:py-1.5 font-medium transition ${
               mode === item.slug
                 ? "border-gold-400 text-gold-400"
                 : "border-transparent text-muted hover:text-cream"
@@ -215,7 +215,7 @@ export default function SearchBar() {
       <form
         onSubmit={handleSubmit}
         noValidate
-        className="mt-2.5 flex flex-col gap-2 lg:flex-row"
+        className="mt-3 flex flex-col gap-2.5 sm:mt-2.5 sm:gap-2 lg:flex-row"
       >
         <div className="relative lg:w-52">
           <select
@@ -286,7 +286,7 @@ export default function SearchBar() {
               aria-expanded={showSuggestions}
               aria-controls="city-suggestions-list"
               aria-autocomplete="list"
-              className="w-full bg-transparent py-2 text-sm text-cream placeholder:text-muted focus:outline-none"
+              className="w-full bg-transparent py-3.5 text-sm text-cream sm:py-2 placeholder:text-muted focus:outline-none"
             />
             {location && (
               <button
@@ -347,7 +347,7 @@ export default function SearchBar() {
 
         <button
           type="submit"
-          className="tracked-label flex items-center justify-center gap-2.5 rounded-lg bg-gold-400 px-7 py-2 text-xs font-semibold text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 active:scale-[0.98] lg:w-auto"
+          className="tracked-label flex items-center justify-center gap-2.5 rounded-lg bg-gold-400 px-7 py-4 text-xs font-semibold sm:py-2 text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 active:scale-[0.98] lg:w-auto"
         >
           Search Properties
           <MdSearch className="h-4 w-4" />

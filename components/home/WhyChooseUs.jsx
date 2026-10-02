@@ -26,12 +26,12 @@ const VALUES = [
 
 export default function WhyChooseUs() {
   return (
-    <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+    <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
       <h2 className="text-center font-display text-2xl text-cream sm:text-3xl">
         What Sets Us <span className="text-gold-400">Apart</span>
       </h2>
 
-      <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-8 grid grid-cols-2 gap-x-5 gap-y-8 sm:mt-12 sm:gap-8 sm:grid-cols-2 lg:grid-cols-4">
         {VALUES.map(({ title, description, Icon }) => (
           <div key={title} className="text-center">
             <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-gold-500/50 text-gold-400">

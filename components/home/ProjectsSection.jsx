@@ -4,12 +4,12 @@ import { PROJECTS } from "@/lib/projects";
 
 export default function ProjectsSection() {
   return (
-    <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+    <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
       <h2 className="text-center font-display text-2xl text-cream sm:text-3xl">
         New &amp; Upcoming Projects
       </h2>
 
-      <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-8 grid grid-cols-1 gap-4 sm:mt-12 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {PROJECTS.map((project) => (
           <Link
             key={project.id}

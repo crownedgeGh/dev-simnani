@@ -10,7 +10,7 @@ const FEATURES = [
 
 export default function Hero({ children }) {
   return (
-    <section className="relative flex w-full flex-col min-h-[480px] sm:min-h-[560px] lg:min-h-[860px]">
+    <section className="relative flex w-full flex-col min-h-[620px] sm:min-h-[560px] lg:min-h-[860px]">
       <div className="absolute inset-0 overflow-hidden">
         <div className="relative aspect-[3/2] w-full overflow-hidden lg:absolute lg:left-1/4 lg:right-0 lg:top-0 lg:w-auto lg:rounded-bl-[3.5rem] lg:bg-navy-950 lg:shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)]">
           <Image
@@ -32,10 +32,10 @@ export default function Hero({ children }) {
         <div className="pointer-events-none absolute -bottom-24 left-1/3 hidden h-[320px] w-[320px] rounded-full bg-gold-600/10 blur-[110px] lg:block" />
       </div>
 
-      <div className="relative z-10 mx-auto w-full max-w-[1400px] px-4 pt-2 sm:px-6 sm:pt-16 lg:px-8 lg:pt-24">
+      <div className="relative z-10 mx-auto w-full max-w-[1400px] px-4 pt-0 sm:px-6 sm:pt-16 lg:px-8 lg:pt-24">
         <div className="max-w-2xl">
 
-          <h1 className="mt-5 font-display text-3xl font-semibold leading-[1.15] text-cream drop-shadow-[0_4px_24px_rgba(0,0,0,0.7)] sm:mt-6 sm:text-5xl lg:text-[64px]">
+          <h1 className="hidden font-display font-semibold leading-[1.15] text-cream drop-shadow-[0_4px_24px_rgba(0,0,0,0.7)] sm:mt-6 sm:block sm:text-5xl lg:text-[64px]">
             Find a Place
             <br />
             You&apos;ll Love to
@@ -60,7 +60,7 @@ export default function Hero({ children }) {
         </div>
       </div>
 
-      <div className="relative z-20 mx-auto mt-auto w-full max-w-[1400px] px-4 pb-6 pt-10 sm:px-6 sm:pb-8 sm:pt-12 lg:px-8">
+      <div className="relative z-20 mx-auto mt-auto w-full max-w-[1400px] px-4 pb-10 pt-56 sm:px-6 sm:pb-8 sm:pt-12 lg:px-8">
         {children}
       </div>
     </section>

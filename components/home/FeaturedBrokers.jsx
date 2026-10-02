@@ -12,7 +12,7 @@ export default async function FeaturedBrokers() {
 
   return (
     <section
-      className="relative overflow-hidden py-20 sm:py-24 lg:py-28"
+      className="relative overflow-hidden py-16 sm:py-24 lg:py-28"
       style={{
         background: "linear-gradient(180deg, #05070c 0%, #0c1020 40%, #0a0e1a 70%, #05070c 100%)",
       }}
@@ -52,7 +52,7 @@ export default async function FeaturedBrokers() {
           >
             Our Top Professionals
           </span>
-          <h2 className="font-display text-4xl text-cream sm:text-5xl">
+          <h2 className="font-display text-3xl text-cream sm:text-5xl">
             Preferred Agents
           </h2>
           {/* Gold accent underline */}

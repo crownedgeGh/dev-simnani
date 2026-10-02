@@ -20,13 +20,13 @@ const INSIGHTS = [
 
 export default function InsightsSection() {
   return (
-    <section className="bg-navy-900/40 py-20">
+    <section className="bg-navy-900/40 py-16 sm:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <h2 className="text-center font-display text-2xl text-cream sm:text-3xl">
           Real Estate Insights
         </h2>
 
-        <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-8 grid grid-cols-1 gap-4 sm:mt-12 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {INSIGHTS.map((insight) => (
             <div
               key={insight.title}

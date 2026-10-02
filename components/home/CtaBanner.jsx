@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function CtaBanner() {
   return (
-    <section className="mx-auto max-w-5xl px-4 py-20 text-center sm:px-6 lg:px-8">
+    <section className="mx-auto max-w-5xl px-4 py-16 text-center sm:px-6 sm:py-20 lg:px-8">
       <h2 className="font-display text-2xl text-cream sm:text-3xl">
         Ready to Find Your Next Property?
       </h2>
