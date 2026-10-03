@@ -37,6 +37,7 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
   const [numberEntered, setNumberEntered] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showAuthGate, setShowAuthGate] = useState(false);
+  const [contactClicked, setContactClicked] = useState(false);
   const postedLabel = formatPostedDate(property);
   const { typeLabel, categoryLabel } = getPropertyCategoryLabels(property);
   const onHold = ownerView && property.correctionRequest?.active;
@@ -66,6 +67,7 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
       // best-effort — still show the callback confirmation
     }
     trackEvent("generate_lead", { form_name: "contact_person_card", item_id: id });
+    setContactClicked(true);
     setShowToast(true);
     setTimeout(() => setShowToast(false), 2500);
   }
@@ -296,9 +298,10 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
               <button
                 type="button"
                 onClick={handleContactClick}
-                className="tracked-label flex min-h-[44px] w-full items-center justify-center rounded-full border border-gold-500/70 py-2.5 text-center text-xs text-gold-400 transition active:bg-gold-500 active:text-navy-950 hover:bg-gold-500 hover:text-navy-950"
+                disabled={contactClicked}
+                className="tracked-label flex min-h-[44px] w-full items-center justify-center rounded-full border border-gold-500/70 py-2.5 text-center text-xs text-gold-400 transition active:bg-gold-500 active:text-navy-950 hover:bg-gold-500 hover:text-navy-950 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-gold-400"
               >
-                Contact Person
+                {contactClicked ? "Requested" : "Contact Person"}
               </button>
             )}
           </div>
