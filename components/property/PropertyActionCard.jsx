@@ -14,10 +14,12 @@ export default function PropertyActionCard({
   propertyTitle,
   propertyPrice,
   propertyType,
+  propertyPurpose,
   contactName,
   contactMobile,
+  ownerId,
 }) {
-  const showNumber = propertyType === "rent";
+  const showNumber = propertyType === "rent" || (propertyPurpose || "").toLowerCase() === "rent";
   const [shareUrl, setShareUrl] = useState("");
   const [copied, setCopied] = useState(false);
   const [showToast, setShowToast] = useState(false);
@@ -27,6 +29,7 @@ export default function PropertyActionCard({
   const [numberCopied, setNumberCopied] = useState(false);
   const [alreadyInterested, setAlreadyInterested] = useState(false);
   const { isAuthenticated, user } = useAuth();
+  const isOwnListing = isAuthenticated && !!ownerId && ownerId === user?.accountId;
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -101,6 +104,7 @@ export default function PropertyActionCard({
   }
 
   async function handleInterested() {
+    if (isOwnListing) return;
     if (!isAuthenticated) {
       setShowAuthGate(true);
       return;
@@ -133,6 +137,10 @@ export default function PropertyActionCard({
   }
 
   function handleCallPerson(e) {
+    if (isOwnListing) {
+      e.preventDefault();
+      return;
+    }
     if (!isAuthenticated) {
       e.preventDefault();
       setShowAuthGate(true);
@@ -142,6 +150,7 @@ export default function PropertyActionCard({
   }
 
   function handleShowNumber() {
+    if (isOwnListing) return;
     if (!isAuthenticated) {
       setShowAuthGate(true);
       return;
@@ -152,6 +161,7 @@ export default function PropertyActionCard({
   }
 
   async function handleRequestCallback() {
+    if (isOwnListing) return;
     if (!isAuthenticated) {
       setShowAuthGate(true);
       return;
@@ -202,25 +212,31 @@ export default function PropertyActionCard({
         <button
           type="button"
           onClick={handleInterested}
-          disabled={alreadyInterested}
+          disabled={alreadyInterested || isOwnListing}
+          title={isOwnListing ? "This is your own listing" : undefined}
           className={`tracked-label rounded-full px-6 py-4 text-center text-xs transition active:scale-[0.98] ${
-            alreadyInterested
+            alreadyInterested || isOwnListing
               ? "cursor-not-allowed border border-navy-700/60 bg-navy-950 text-muted"
               : "bg-gold-400 text-navy-950 shadow-lg shadow-gold-400/10 hover:bg-gold-300"
           }`}
         >
-          {alreadyInterested ? "Interest Sent" : "I'm Interested"}
+          {isOwnListing ? "Your Listing" : alreadyInterested ? "Interest Sent" : "I'm Interested"}
         </button>
         {showNumber ? (
           <>
             {/* Mobile (<640px): Call Person opens the dialpad directly */}
             <a
-              href={`tel:${phone.replace(/\s+/g, "")}`}
+              href={isOwnListing ? undefined : `tel:${phone.replace(/\s+/g, "")}`}
               onClick={handleCallPerson}
-              className="tracked-label flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-navy-700/60 px-6 py-4 text-center text-xs text-cream transition hover:border-gold-400 active:scale-[0.98] sm:hidden"
+              aria-disabled={isOwnListing}
+              className={`tracked-label flex min-h-[44px] items-center justify-center gap-2 rounded-full border px-6 py-4 text-center text-xs transition active:scale-[0.98] sm:hidden ${
+                isOwnListing
+                  ? "cursor-not-allowed border-navy-700/60 text-muted"
+                  : "border-navy-700/60 text-cream hover:border-gold-400"
+              }`}
             >
               <MdCall className="h-4 w-4 shrink-0 text-gold-400" />
-              Call Now
+              {isOwnListing ? "It's Your Number" : "Call Now"}
             </a>
 
             {/* Tablet & up (>=640px): Show Number with copy */}
@@ -229,10 +245,15 @@ export default function PropertyActionCard({
                 <button
                   type="button"
                   onClick={handleShowNumber}
-                  className="tracked-label flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full border border-navy-700/60 px-6 py-4 text-center text-xs text-cream transition hover:border-gold-400 active:scale-[0.98]"
+                  disabled={isOwnListing}
+                  className={`tracked-label flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full border px-6 py-4 text-center text-xs transition active:scale-[0.98] ${
+                    isOwnListing
+                      ? "cursor-not-allowed border-navy-700/60 text-muted"
+                      : "border-navy-700/60 text-cream hover:border-gold-400"
+                  }`}
                 >
                   <MdCall className="h-4 w-4 shrink-0 text-gold-400" />
-                  Call Now
+                  {isOwnListing ? "It's Your Number" : "Call Now"}
                 </button>
               ) : (
                 <div
@@ -261,10 +282,15 @@ export default function PropertyActionCard({
           <button
             type="button"
             onClick={handleRequestCallback}
-            className="tracked-label flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full border border-navy-700/60 px-6 py-4 text-center text-xs text-cream transition hover:border-gold-400 active:scale-[0.98]"
+            disabled={isOwnListing}
+            className={`tracked-label flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full border px-6 py-4 text-center text-xs transition active:scale-[0.98] ${
+              isOwnListing
+                ? "cursor-not-allowed border-navy-700/60 text-muted"
+                : "border-navy-700/60 text-cream hover:border-gold-400"
+            }`}
           >
             <MdCall className="h-4 w-4 shrink-0 text-gold-400" />
-            Request a Callback
+            {isOwnListing ? "It's Your Number" : "Request a Callback"}
           </button>
         )}
       </div>

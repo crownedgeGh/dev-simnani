@@ -27,10 +27,10 @@ import { trackEvent } from "@/lib/gtag";
 const FALLBACK_MOBILE = "+91 98765 43210";
 
 export default function PropertyCard({ property, hideContactButton, emphasizeDetails, ownerView }) {
-  const { id, title, price, location, image, badge, beds, bedsPlus, baths, area, roi, type, address, contact } =
+  const { id, title, price, location, image, badge, beds, bedsPlus, baths, area, roi, type, purpose, address, contact, ownerId } =
     property;
   const isInvest = type === "invest";
-  const isRent = type === "rent";
+  const isRent = type === "rent" || (purpose || "").toLowerCase() === "rent";
   const phone = contact?.mobile || property.mobile || FALLBACK_MOBILE;
   const [showToast, setShowToast] = useState(false);
   const [numberRevealed, setNumberRevealed] = useState(false);
@@ -48,7 +48,8 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
   const { isAuthenticated, user } = useAuth();
   const saved = isSaved(id);
   const isBrokerViewer = isAuthenticated && user?.accountType === "broker";
-  const showViewProperty = hideContactButton || isBrokerViewer;
+  const isOwnListing = isAuthenticated && !!ownerId && ownerId === user?.accountId;
+  const showViewProperty = hideContactButton || isBrokerViewer || isOwnListing;
 
   async function handleContactClick(e) {
     e.preventDefault();

@@ -134,8 +134,10 @@ export default async function PropertyDetailPage({ params, searchParams }) {
             propertyTitle={property.title}
             propertyPrice={property.price}
             propertyType={property.type}
+            propertyPurpose={property.purpose}
             contactName={property.contact?.fullName}
             contactMobile={property.contact?.mobile}
+            ownerId={property.ownerId}
           />
         }
       />
