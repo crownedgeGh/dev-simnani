@@ -13,9 +13,11 @@ export default function PropertyActionCard({
   propertyId,
   propertyTitle,
   propertyPrice,
+  propertyType,
   contactName,
   contactMobile,
 }) {
+  const showNumber = propertyType === "rent";
   const [shareUrl, setShareUrl] = useState("");
   const [copied, setCopied] = useState(false);
   const [showToast, setShowToast] = useState(false);
@@ -149,6 +151,25 @@ export default function PropertyActionCard({
     requestAnimationFrame(() => setNumberEntered(true));
   }
 
+  async function handleRequestCallback() {
+    if (!isAuthenticated) {
+      setShowAuthGate(true);
+      return;
+    }
+    try {
+      await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ propertyId }),
+      });
+    } catch {
+      // best-effort — still show the callback confirmation
+    }
+    trackEvent("contact_click", { method: "request_callback", item_id: propertyId });
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 2500);
+  }
+
   async function handleCopyNumber() {
     try {
       await navigator.clipboard.writeText(phone);
@@ -190,49 +211,62 @@ export default function PropertyActionCard({
         >
           {alreadyInterested ? "Interest Sent" : "I'm Interested"}
         </button>
-        {/* Mobile (<640px): Call Person opens the dialpad directly */}
-        <a
-          href={`tel:${phone.replace(/\s+/g, "")}`}
-          onClick={handleCallPerson}
-          className="tracked-label flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-navy-700/60 px-6 py-4 text-center text-xs text-cream transition hover:border-gold-400 active:scale-[0.98] sm:hidden"
-        >
-          <MdCall className="h-4 w-4 shrink-0 text-gold-400" />
-          Call Now
-        </a>
-
-        {/* Tablet & up (>=640px): Show Number with copy */}
-        <div className="hidden sm:block">
-          {!numberRevealed ? (
-            <button
-              type="button"
-              onClick={handleShowNumber}
-              className="tracked-label flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full border border-navy-700/60 px-6 py-4 text-center text-xs text-cream transition hover:border-gold-400 active:scale-[0.98]"
+        {showNumber ? (
+          <>
+            {/* Mobile (<640px): Call Person opens the dialpad directly */}
+            <a
+              href={`tel:${phone.replace(/\s+/g, "")}`}
+              onClick={handleCallPerson}
+              className="tracked-label flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-navy-700/60 px-6 py-4 text-center text-xs text-cream transition hover:border-gold-400 active:scale-[0.98] sm:hidden"
             >
               <MdCall className="h-4 w-4 shrink-0 text-gold-400" />
               Call Now
-            </button>
-          ) : (
-            <div
-              className={`flex min-h-[44px] items-center gap-2 rounded-full border border-navy-700/60 bg-navy-950 py-2 pl-4 pr-2 transition-all duration-300 ease-out ${
-                numberEntered ? "scale-100 opacity-100" : "scale-95 opacity-0"
-              }`}
-            >
-              <span className="min-w-0 flex-1 truncate text-sm text-cream">{phone}</span>
-              <button
-                type="button"
-                onClick={handleCopyNumber}
-                aria-label="Copy phone number"
-                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition active:scale-95 ${
-                  numberCopied
-                    ? "border-gold-400 bg-gold-400 text-navy-950"
-                    : "border-navy-700/60 text-gold-400 hover:border-gold-400"
-                }`}
-              >
-                {numberCopied ? <MdCheck className="h-4 w-4" /> : <MdContentCopy className="h-4 w-4" />}
-              </button>
+            </a>
+
+            {/* Tablet & up (>=640px): Show Number with copy */}
+            <div className="hidden sm:block">
+              {!numberRevealed ? (
+                <button
+                  type="button"
+                  onClick={handleShowNumber}
+                  className="tracked-label flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full border border-navy-700/60 px-6 py-4 text-center text-xs text-cream transition hover:border-gold-400 active:scale-[0.98]"
+                >
+                  <MdCall className="h-4 w-4 shrink-0 text-gold-400" />
+                  Call Now
+                </button>
+              ) : (
+                <div
+                  className={`flex min-h-[44px] items-center gap-2 rounded-full border border-navy-700/60 bg-navy-950 py-2 pl-4 pr-2 transition-all duration-300 ease-out ${
+                    numberEntered ? "scale-100 opacity-100" : "scale-95 opacity-0"
+                  }`}
+                >
+                  <span className="min-w-0 flex-1 truncate text-sm text-cream">{phone}</span>
+                  <button
+                    type="button"
+                    onClick={handleCopyNumber}
+                    aria-label="Copy phone number"
+                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition active:scale-95 ${
+                      numberCopied
+                        ? "border-gold-400 bg-gold-400 text-navy-950"
+                        : "border-navy-700/60 text-gold-400 hover:border-gold-400"
+                    }`}
+                  >
+                    {numberCopied ? <MdCheck className="h-4 w-4" /> : <MdContentCopy className="h-4 w-4" />}
+                  </button>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </>
+        ) : (
+          <button
+            type="button"
+            onClick={handleRequestCallback}
+            className="tracked-label flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full border border-navy-700/60 px-6 py-4 text-center text-xs text-cream transition hover:border-gold-400 active:scale-[0.98]"
+          >
+            <MdCall className="h-4 w-4 shrink-0 text-gold-400" />
+            Request a Callback
+          </button>
+        )}
       </div>
 
       <div className="mt-5 border-t border-navy-700/60 pt-5">

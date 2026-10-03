@@ -133,6 +133,7 @@ export default async function PropertyDetailPage({ params, searchParams }) {
             propertyId={property.id}
             propertyTitle={property.title}
             propertyPrice={property.price}
+            propertyType={property.type}
             contactName={property.contact?.fullName}
             contactMobile={property.contact?.mobile}
           />

@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "warmup": "node scripts/warmup.mjs",
     "copy:ffmpeg": "node scripts/copy-ffmpeg-core.mjs",
     "predev": "npm run copy:ffmpeg",
     "preprod": "npm run copy:ffmpeg",
