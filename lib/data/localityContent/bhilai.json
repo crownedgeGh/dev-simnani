@@ -1,0 +1,36 @@
+{
+  "nehru-nagar": {
+    "overview": "Nehru Nagar is Bhilai's principal commercial and residential hub, a short distance from the Bhilai Steel Plant (SAIL) township that the city grew up around. It offers a mix of independent houses, mid-rise apartments, and active retail markets, serving both steel-plant employees and the broader twin-city (Bhilai–Durg) population.",
+    "connectivity": "Close to NH 53 and NH 6, with Bhilai and Durg railway stations both within a 15–20 minute drive; Raipur's Swami Vivekananda Airport is roughly 40–45 minutes away.",
+    "socialInfra": "Schools: Delhi Public School Bhilai, BSP schools network. Hospitals: Sector 9 Hospital (BSP), Chandulal Chandrakar Memorial Hospital. Retail: Nehru Nagar market, Junwani Road retail belt.",
+    "techParks": "Bhilai's core employment driver is the Bhilai Steel Plant (SAIL), one of India's largest integrated steel plants, along with ancillary manufacturing units in the surrounding industrial belt.",
+    "upcomingInfra": "Road and civic upgrades tied to the Bhilai–Durg urban agglomeration's Smart City initiatives, alongside continued expansion of the industrial belt along NH 53.",
+    "priceTrend": {
+      "avgPricePerSqft": 2800,
+      "yoyChangePercent": 5.0,
+      "comparisonNote": "Prices track steadily with steel-plant employment stability rather than sharp speculative growth."
+    },
+    "rentalYield": {
+      "percent": 3.3,
+      "note": "Reliable rental demand from Bhilai Steel Plant employees and ancillary industry workers."
+    },
+    "faq": [
+      {
+        "q": "Is RERA registration mandatory for projects in Bhilai?",
+        "a": "Yes, Bhilai falls under CG-RERA (Chhattisgarh Real Estate Regulatory Authority), the same as the rest of the state. Confirm any project's registration number on the CG-RERA portal before paying a booking amount."
+      },
+      {
+        "q": "What is the average price per sq.ft. in Nehru Nagar, Bhilai?",
+        "a": "Around ₹2,800 per sq.ft. as of this update, with roughly 5% year-on-year growth, reflecting Bhilai's steady, industry-anchored property market."
+      },
+      {
+        "q": "Why does Bhilai's property market depend so much on the steel plant?",
+        "a": "Bhilai grew as a planned township around the Bhilai Steel Plant (SAIL), and a large share of housing demand still comes from plant employees and related ancillary industries, which makes local employment trends a key indicator for this market."
+      },
+      {
+        "q": "What should I verify before buying property near the BSP township area?",
+        "a": "Some housing near the plant is on leasehold/township land rather than freehold — confirm whether the property is freehold or leasehold, check the title and any transfer restrictions, and verify the encumbrance certificate before proceeding."
+      }
+    ]
+  }
+}

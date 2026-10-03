@@ -1,0 +1,66 @@
+{
+  "shankar-nagar": {
+    "overview": "Shankar Nagar is one of Raipur's most established central residential neighborhoods, popular for its mix of independent houses, mid-rise apartments, and easy access to VIP Road and the city's commercial core. It's a long-standing address rather than a new-launch suburb, which keeps supply tighter than Raipur's outer growth corridors.",
+    "connectivity": "Close to VIP Road and Jail Road, with Raipur Railway Junction roughly 15–20 minutes away and NH 53 (Raipur–Bilaspur–Kolkata) accessible within a short drive.",
+    "socialInfra": "Schools: Delhi Public School Raipur, Krishna Public School. Hospitals: Shri Narayana Hospital, Ramakrishna Care Hospital. Retail: City Mall, Magneto Mall nearby.",
+    "techParks": "Raipur's IT/office activity is concentrated around New Raipur (Naya Raipur) and Telibandha; Shankar Nagar is primarily a residential-commercial hub rather than an employment corridor itself.",
+    "upcomingInfra": "Ongoing Raipur Smart City road-widening and drainage upgrades along VIP Road are expected to ease access further.",
+    "priceTrend": {
+      "avgPricePerSqft": 3800,
+      "yoyChangePercent": 6.0,
+      "comparisonNote": "One of Raipur's steadier central localities — price growth tracks the city average rather than outpacing it."
+    },
+    "rentalYield": {
+      "percent": 3.0,
+      "note": "Consistent rental demand from a central, well-connected location with established social infrastructure."
+    },
+    "faq": [
+      {
+        "q": "Is RERA registration mandatory for projects in Raipur?",
+        "a": "Yes. Any qualifying residential or commercial project in Chhattisgarh must be registered with CG-RERA (Chhattisgarh Real Estate Regulatory Authority) before it can be marketed or sold — verify the registration number on the CG-RERA portal before booking."
+      },
+      {
+        "q": "What is the average price per sq.ft. in Shankar Nagar, Raipur?",
+        "a": "Around ₹3,800 per sq.ft. as of this update, with roughly 6% year-on-year growth, broadly in line with Raipur's citywide trend."
+      },
+      {
+        "q": "How well connected is Shankar Nagar to the rest of Raipur?",
+        "a": "It sits close to VIP Road and Jail Road, with Raipur Railway Junction around 15–20 minutes away and direct access to NH 53 toward Bilaspur."
+      },
+      {
+        "q": "What legal documents should I verify before buying resale property here?",
+        "a": "Title deed and ownership chain, encumbrance certificate, occupancy certificate (for completed buildings), approved building plan, and confirmation there are no outstanding municipal dues."
+      }
+    ]
+  },
+  "telibandha": {
+    "overview": "Telibandha has grown into one of Raipur's more active residential corridors, anchored by Telibandha Lake and its proximity to New Raipur (Naya Raipur), the state's planned administrative and institutional hub. It sees a mix of gated apartment projects and independent plots.",
+    "connectivity": "Direct access to the Raipur–Naya Raipur corridor and NH 130 (Raipur–Vishakhapatnam economic corridor); roughly 20–25 minutes from Raipur Railway Junction and Swami Vivekananda Airport.",
+    "socialInfra": "Schools: Carmel Convent nearby, Delhi Public School. Hospitals: Shalby Hospital Raipur, Ramkrishna CARE. Retail: nearby malls on VIP Road.",
+    "techParks": "Proximity to Naya Raipur's government and institutional offices, and Raipur's emerging IT/ITES initiatives planned there.",
+    "upcomingInfra": "Continued development of Naya Raipur's planned sectors and the Raipur–Vishakhapatnam Economic Corridor (NH 130) are expected to keep driving demand toward this side of the city.",
+    "priceTrend": {
+      "avgPricePerSqft": 3500,
+      "yoyChangePercent": 7.5,
+      "comparisonNote": "Growing slightly faster than Raipur's older central localities, driven by Naya Raipur-linked development."
+    },
+    "rentalYield": {
+      "percent": 3.2,
+      "note": "Reasonable yield for a growth corridor, supported by demand from professionals working near Naya Raipur."
+    },
+    "faq": [
+      {
+        "q": "Is Telibandha a good investment compared to central Raipur?",
+        "a": "Telibandha offers more new-supply inventory and is positioned closer to Naya Raipur's long-term institutional growth, trading some of central Raipur's established infrastructure for higher appreciation potential."
+      },
+      {
+        "q": "What is the average price per sq.ft. in Telibandha?",
+        "a": "Around ₹3,500 per sq.ft. as of this update, with about 7.5% year-on-year growth."
+      },
+      {
+        "q": "How do I verify a project's CG-RERA status before booking in Telibandha?",
+        "a": "Search the project name or the promoter's name on the CG-RERA portal to confirm the registration number, sanctioned layout, and project completion timeline before making any payment."
+      }
+    ]
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "wakad": {
+    "overview": "Wakad is one of Pune's most active mid-market residential suburbs, benefiting from direct access to the Hinjewadi IT Park while staying comparatively affordable versus Hinjewadi itself. Inventory is dominated by mid-rise gated apartment communities.",
+    "connectivity": "The Mumbai–Pune Expressway and Mumbai–Bangalore Highway (NH 48) both run near Wakad; the under-construction Metro Line 3 (Hinjewadi–Shivajinagar) will add a station here.",
+    "socialInfra": "Schools: Indira National School, Vibgyor High. Hospitals: Aditya Birla Memorial Hospital. Retail: Xion Mall, D-Mart Wakad.",
+    "techParks": "Hinjewadi IT Park (Phases 1–3) is a 10–15 minute drive, hosting Infosys, Wipro, and Cognizant campuses.",
+    "upcomingInfra": "Pune Metro Line 3 (PCMC–Swargate via Hinjewadi) under construction, expected to add a Wakad-area station.",
+    "priceTrend": {
+      "avgPricePerSqft": 7400,
+      "yoyChangePercent": 7.8,
+      "comparisonNote": "Growing faster than Pune's city average, driven by Hinjewadi IT-corridor spillover demand."
+    },
+    "rentalYield": {
+      "percent": 3.4,
+      "note": "One of Pune's better rental yields, supported by steady tenant demand from Hinjewadi IT employees."
+    },
+    "faq": [
+      {
+        "q": "Is Wakad better value than buying directly in Hinjewadi?",
+        "a": "Wakad typically prices lower per sq.ft. than Hinjewadi itself while staying within a 10–15 minute commute, making it a common value alternative for IT-park employees."
+      },
+      {
+        "q": "What RERA checks apply to a Wakad apartment project?",
+        "a": "Verify the project's MahaRERA registration number and promoter history on the Maharashtra RERA portal, and confirm the sanctioned building plan matches what's being marketed."
+      },
+      {
+        "q": "What is the average price per sq.ft. in Wakad?",
+        "a": "Around ₹7,400 per sq.ft. as of this update, with close to 8% year-on-year growth tied to Hinjewadi IT Park demand."
+      },
+      {
+        "q": "Will the upcoming metro line affect Wakad property prices?",
+        "a": "The under-construction Pune Metro Line 3, connecting Hinjewadi to Shivajinagar, is expected to improve connectivity and is already a factor in current price appreciation ahead of completion."
+      }
+    ]
+  }
+}

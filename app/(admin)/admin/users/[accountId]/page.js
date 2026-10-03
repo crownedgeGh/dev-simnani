@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { MdArrowBack, MdStar, MdStarBorder } from "react-icons/md";
 import AdminStatusBadge from "@/components/admin/ui/AdminStatusBadge";
@@ -31,6 +31,8 @@ function propertyTypeLabels(values) {
 export default function UserDetailPage() {
   const { accountId } = useParams();
   const router = useRouter();
+  const pathname = usePathname();
+  const basePath = pathname?.startsWith("/admin/sg-users") ? "/admin/sg-users" : "/admin/users";
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [featuredModalOpen, setFeaturedModalOpen] = useState(false);
@@ -73,7 +75,7 @@ export default function UserDetailPage() {
   if (!user) return (
     <div className="flex flex-col items-center gap-3 py-20">
       <p className="text-[#9ca3af]">User not found</p>
-      <button onClick={() => router.push("/admin/users")} className="text-sm text-[#f0b429] hover:underline">← Back to Users</button>
+      <button onClick={() => router.push(basePath)} className="text-sm text-[#f0b429] hover:underline">← Back to Users</button>
     </div>
   );
 
@@ -178,7 +180,7 @@ export default function UserDetailPage() {
 
   return (
     <div>
-      <button onClick={() => router.push("/admin/users")} className="mb-4 flex items-center gap-1.5 text-sm text-[#9ca3af] hover:text-[#1a1a2e]">
+      <button onClick={() => router.push(basePath)} className="mb-4 flex items-center gap-1.5 text-sm text-[#9ca3af] hover:text-[#1a1a2e]">
         <MdArrowBack size={16} /> Back to Users
       </button>
 

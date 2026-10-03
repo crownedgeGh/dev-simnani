@@ -190,7 +190,7 @@ export default function AdminSgUsersPage() {
         type: "actions",
         searchable: false,
         actions: (row) => [
-          { label: "View Profile", icon: MdOpenInNew, onClick: () => router.push(`/admin/users/${row.accountId}`) },
+          { label: "View Profile", icon: MdOpenInNew, onClick: () => router.push(`/admin/sg-users/${row.accountId}`) },
           {
             label: "Take Action",
             icon: MdTouchApp,
@@ -220,7 +220,7 @@ export default function AdminSgUsersPage() {
         columns={COLUMNS}
         data={users}
         loading={loading}
-        onRowClick={(row) => router.push(`/admin/users/${row.accountId}`)}
+        onRowClick={(row) => router.push(`/admin/sg-users/${row.accountId}`)}
         emptyMessage="No CP users found"
         pageSize={10}
       />

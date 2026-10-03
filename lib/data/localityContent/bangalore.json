@@ -1,0 +1,112 @@
+{
+  "whitefield": {
+    "overview": "Whitefield is Bangalore's largest IT corridor, anchored by ITPL and a dense cluster of tech parks. It has grown from a quiet railway colony into one of the city's most self-contained residential markets, with large gated apartment communities, international schools, and malls within a short drive of most workplaces.",
+    "connectivity": "Served by the Purple Line extension (Whitefield / Kadugodi metro stations), Outer Ring Road, and the Whitefield–Hoskote Road. The Bangalore–Chennai highway (NH 648) is accessible within 15–20 minutes.",
+    "socialInfra": "Schools: Vydehi School of Excellence, Ryan International. Hospitals: Vydehi Institute of Medical Sciences, Columbia Asia Whitefield. Malls: Phoenix Marketcity, Forum Shantiniketan.",
+    "techParks": "ITPL (International Tech Park Bangalore), EPIP Zone, and SEZ campuses hosting Accenture, SAP Labs, and IBM.",
+    "upcomingInfra": "Purple Line metro extension to Whitefield is operational; further extension toward Hoskote is under construction.",
+    "priceTrend": {
+      "avgPricePerSqft": 7200,
+      "yoyChangePercent": 8.5,
+      "comparisonNote": "Up from roughly ₹6,600/sq.ft. a year ago, tracking the city's IT-corridor demand."
+    },
+    "rentalYield": {
+      "percent": 3.2,
+      "note": "Among the higher rental yields in Bangalore, driven by steady tenant demand from IT professionals."
+    },
+    "faq": [
+      {
+        "q": "Is it safe to buy a flat in Whitefield without RERA registration?",
+        "a": "No. Every residential project in Karnataka above the exemption threshold must carry a K-RERA registration number. Always ask the builder for the RERA ID and verify it on the Karnataka RERA portal before paying any booking amount."
+      },
+      {
+        "q": "What is the average price per sq.ft. for flats in Whitefield?",
+        "a": "As of this update, flats in Whitefield average around ₹7,200 per sq.ft., up roughly 8.5% year-on-year, reflecting continued IT-sector demand in the corridor."
+      },
+      {
+        "q": "Is Whitefield well connected to the rest of Bangalore?",
+        "a": "Yes — the Purple Line metro now serves Whitefield and Kadugodi, and Outer Ring Road connects to Marathahalli, Sarjapur, and Electronic City within 30–45 minutes depending on traffic."
+      },
+      {
+        "q": "What rental yield can I expect on a Whitefield apartment?",
+        "a": "Whitefield typically yields around 3–3.5% annually, higher than Bangalore's city-wide average, due to strong rental demand from IT professionals working in nearby tech parks."
+      },
+      {
+        "q": "What documents should I verify before buying a resale flat in Whitefield?",
+        "a": "At minimum: the RERA registration certificate, encumbrance certificate (last 13–30 years), occupancy certificate, approved building plan, and a clear title deed chain. A property lawyer should verify these before registration."
+      }
+    ]
+  },
+  "indiranagar": {
+    "overview": "Indiranagar is one of Bangalore's most established residential and lifestyle neighborhoods, known for its tree-lined streets, 100 Feet Road retail strip, and proximity to the central business district. Inventory here is dominated by premium apartments and independent houses rather than large new-launch projects.",
+    "connectivity": "Indiranagar metro station (Purple Line) sits on 100 Feet Road; the locality is a 15-minute drive from MG Road and 20 minutes from the CBD via Old Airport Road.",
+    "socialInfra": "Schools: Bishop Cotton Boys' School (nearby), National Public School. Hospitals: Manipal Hospital Old Airport Road. Retail: 100 Feet Road, Indiranagar Metro Mall.",
+    "techParks": "Close to Old Airport Road and Domlur commercial clusters, including Prestige Technology Park.",
+    "upcomingInfra": "Ongoing Metro Purple Line capacity upgrades; no major new transit lines planned for this already well-served locality.",
+    "priceTrend": {
+      "avgPricePerSqft": 13500,
+      "yoyChangePercent": 6.2,
+      "comparisonNote": "One of Bangalore's premium micro-markets; price growth is steadier than newer IT-corridor suburbs."
+    },
+    "rentalYield": {
+      "percent": 2.6,
+      "note": "Lower yield than Whitefield in percentage terms, offset by stronger long-term capital appreciation."
+    },
+    "faq": [
+      {
+        "q": "Why are property prices higher in Indiranagar than in Whitefield?",
+        "a": "Indiranagar is a mature, centrally located neighborhood with limited new land supply, strong retail and social infrastructure, and proximity to the CBD — all of which keep per-sq.ft. prices higher than newer IT-corridor suburbs."
+      },
+      {
+        "q": "Are RERA checks necessary for resale flats in an established locality like Indiranagar?",
+        "a": "Yes. RERA registration applies to the original project at launch; for resale, buyers should still verify the project's original RERA ID, the occupancy certificate, and that the seller's title is clear and unencumbered."
+      },
+      {
+        "q": "What is the average price per sq.ft. in Indiranagar?",
+        "a": "Flats in Indiranagar average around ₹13,500 per sq.ft., among the higher rates in Bangalore, with roughly 6% year-on-year growth."
+      },
+      {
+        "q": "Is Indiranagar a good locality for rental income?",
+        "a": "Rental yields run around 2.5–3%, lower in percentage terms than newer suburbs, but tenant demand is consistent given the locality's connectivity and lifestyle appeal."
+      },
+      {
+        "q": "What lifestyle factors make Indiranagar attractive to buyers?",
+        "a": "Walkable retail and dining along 100 Feet Road, direct metro access, mature parks and schools, and short commute times to the central business district."
+      }
+    ]
+  },
+  "devanahalli": {
+    "overview": "Devanahalli, home to Kempegowda International Airport, has transformed into a fast-growing residential and villa corridor on Bangalore's northern edge, with large integrated townships and aerospace/hardware-park employment nearby.",
+    "connectivity": "NH 44 (Bellary Road) runs through Devanahalli, connecting to the airport in under 15 minutes and to central Bangalore in roughly 45–60 minutes.",
+    "socialInfra": "Schools: Vidyashilp Academy North Campus. Hospitals: Akash Hospital. Retail: Nandi Hills Road retail clusters.",
+    "techParks": "KIADB Aerospace Park and the upcoming BIAL IT Investment Region.",
+    "upcomingInfra": "Namma Metro Blue Line extension toward the airport, and the proposed Peripheral Ring Road.",
+    "priceTrend": {
+      "avgPricePerSqft": 5400,
+      "yoyChangePercent": 11.0,
+      "comparisonNote": "Among Bangalore's fastest-appreciating corridors, driven by airport-linked infrastructure."
+    },
+    "rentalYield": {
+      "percent": 2.4,
+      "note": "Still an emerging rental market; yields are modest until occupancy density increases."
+    },
+    "faq": [
+      {
+        "q": "Is Devanahalli a good long-term investment?",
+        "a": "Its proximity to the international airport, the Aerospace Park, and planned metro and ring-road links have driven roughly 11% year-on-year price growth, making it one of the city's higher-growth corridors — though it carries more execution-timeline risk than established localities."
+      },
+      {
+        "q": "What should I check before buying a villa plot in Devanahalli?",
+        "a": "Confirm RERA registration for the layout, verify it isn't on notified agricultural or airport-restricted land, and check that khata and conversion certificates are in order before registration."
+      },
+      {
+        "q": "How far is Devanahalli from central Bangalore?",
+        "a": "Roughly 45–60 minutes by road via Bellary Road (NH 44), depending on traffic; the planned metro extension will shorten this considerably once operational."
+      },
+      {
+        "q": "What is the average price per sq.ft. in Devanahalli?",
+        "a": "Around ₹5,400 per sq.ft. as of this update, still well below established Bangalore localities, which is part of its investment appeal."
+      }
+    ]
+  }
+}

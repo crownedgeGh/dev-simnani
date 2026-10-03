@@ -1,0 +1,36 @@
+{
+  "vyapar-vihar": {
+    "overview": "Vyapar Vihar is Bilaspur's primary commercial-residential hub, centrally located and close to the city's main markets and administrative offices. Bilaspur itself is Chhattisgarh's second-largest city and a major railway hub, home to the South East Central Railway zonal headquarters.",
+    "connectivity": "Close to NH 130 and NH 200, with Bilaspur Junction railway station (one of India's busiest) around 15–20 minutes away. Bilapsur Airport (Bilasa Devi Kesari Airport) offers limited regional connectivity.",
+    "socialInfra": "Schools: DAV Public School, St. Francis School. Hospitals: CIMS (Chhattisgarh Institute of Medical Sciences), Apollo Clinic Bilaspur. Retail: City Mall Bilaspur, local Vyapar Vihar markets.",
+    "techParks": "Bilaspur's economy is driven more by railways, trade, and administration than a dedicated IT corridor; Vyapar Vihar itself is the commercial core rather than an employment park.",
+    "upcomingInfra": "Planned road-widening along NH 130 and continued Smart City infrastructure upgrades around the central business district.",
+    "priceTrend": {
+      "avgPricePerSqft": 3000,
+      "yoyChangePercent": 5.5,
+      "comparisonNote": "Stable, central-market pricing typical of an established Tier-2 city commercial district."
+    },
+    "rentalYield": {
+      "percent": 3.1,
+      "note": "Steady demand from traders and railway-linked professionals supports consistent rental occupancy."
+    },
+    "faq": [
+      {
+        "q": "Is RERA registration required for new projects in Bilaspur?",
+        "a": "Yes — Bilaspur falls under CG-RERA (Chhattisgarh RERA) jurisdiction, same as the rest of the state. Always confirm a project's registration number on the CG-RERA portal before booking."
+      },
+      {
+        "q": "What is the average price per sq.ft. in Vyapar Vihar, Bilaspur?",
+        "a": "Around ₹3,000 per sq.ft. as of this update, with roughly 5.5% year-on-year growth."
+      },
+      {
+        "q": "Why is Bilaspur significant beyond being a residential city?",
+        "a": "Bilaspur hosts the South East Central Railway zonal headquarters and Bilaspur Junction, one of India's busiest railway stations, which anchors steady trade and transit-linked housing demand in central areas like Vyapar Vihar."
+      },
+      {
+        "q": "What should I check before buying resale property in Vyapar Vihar?",
+        "a": "Verify the title deed and ownership chain, encumbrance certificate, approved building plan, and that municipal property tax and any society dues are clear before registration."
+      }
+    ]
+  }
+}

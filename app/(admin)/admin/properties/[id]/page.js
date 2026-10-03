@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   MdArrowBack,
@@ -72,6 +72,8 @@ function capitalize(value) {
 export default function PropertyDetailPage() {
   const { id } = useParams();
   const router = useRouter();
+  const pathname = usePathname();
+  const basePath = pathname?.startsWith("/admin/sg-properties") ? "/admin/sg-properties" : "/admin/properties";
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
@@ -264,7 +266,7 @@ export default function PropertyDetailPage() {
       const json = await res.json();
       if (json.success) {
         toast.success("Property deleted successfully from database");
-        router.push("/admin/properties");
+        router.push(basePath);
         return;
       }
       toast.error(json.error || "Failed to delete property");
@@ -288,7 +290,7 @@ export default function PropertyDetailPage() {
     return (
       <div className="flex flex-col items-center gap-3 py-20">
         <p className="text-[#9ca3af]">Property not found</p>
-        <button onClick={() => router.push("/admin/properties")} className="text-sm text-[#f0b429] hover:underline">
+        <button onClick={() => router.push(basePath)} className="text-sm text-[#f0b429] hover:underline">
           ← Back to Properties
         </button>
       </div>
@@ -321,7 +323,7 @@ export default function PropertyDetailPage() {
     <div>
       {/* Back */}
       <button
-        onClick={() => router.push("/admin/properties")}
+        onClick={() => router.push(basePath)}
         className="mb-4 flex items-center gap-1.5 text-sm text-[#9ca3af] transition hover:text-[#1a1a2e]"
       >
         <MdArrowBack size={16} /> Back to Properties
@@ -605,7 +607,7 @@ export default function PropertyDetailPage() {
                 </button>
               )}
               <button
-                onClick={() => router.push(`/admin/properties/${id}/edit`)}
+                onClick={() => router.push(`${basePath}/${id}/edit`)}
                 className="flex h-12 items-center justify-center gap-1.5 rounded-xl border border-[#e8e0d5] bg-white text-sm font-medium text-[#374151] transition hover:bg-[#faf8f5]"
               >
                 <MdEdit size={16} /> Edit Property

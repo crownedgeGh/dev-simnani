@@ -2,6 +2,7 @@ import Link from "next/link";
 import PropertyFilterBar from "@/components/property/PropertyFilterBar";
 import { getPropertiesByType } from "@/lib/propertiesServer";
 import BackButton from "@/components/layout/BackButton";
+import BrowseByLocalityLinks from "@/components/seo/BrowseByLocalityLinks";
 
 export const revalidate = 60;
 
@@ -37,6 +38,8 @@ export default async function SellPage() {
           emptyMessage="No owner-listed properties available right now. Check back soon."
         />
       </div>
+
+      <BrowseByLocalityLinks phraseSlug="flats-for-sale" title="Sell-side Listings by Locality" />
     </div>
   );
 }

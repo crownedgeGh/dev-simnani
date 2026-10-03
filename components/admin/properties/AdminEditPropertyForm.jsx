@@ -680,6 +680,8 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
     );
   }
 
+  const backHref = isPublicPostedByRole(form.postedByRole) ? "/admin/properties" : "/admin/sg-properties";
+
   return (
     <div className="mx-auto max-w-5xl pb-16">
       {/* Top Header Bar */}
@@ -687,7 +689,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
         <div>
           <button
             type="button"
-            onClick={() => router.push(`/admin/properties`)}
+            onClick={() => router.push(backHref)}
             className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-[#9ca3af] transition hover:text-[#1a1a2e]"
           >
             <MdArrowBack size={16} /> Back to Properties
@@ -1644,7 +1646,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
         <div className="flex flex-col-reverse gap-3 rounded-2xl border border-[#e8e0d5] bg-white p-5 sm:flex-row sm:items-center sm:justify-end">
           <button
             type="button"
-            onClick={() => router.push("/admin/properties")}
+            onClick={() => router.push(backHref)}
             disabled={saving}
             className="h-11 rounded-xl border border-[#e8e0d5] bg-white px-6 text-sm font-semibold text-[#6b7280] transition hover:bg-[#faf8f5] disabled:opacity-50"
           >

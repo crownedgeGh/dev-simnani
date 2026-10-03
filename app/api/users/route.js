@@ -94,6 +94,14 @@ export async function POST(request) {
       );
     }
 
+    const existing = await User.findOne({ mobile: body.mobile }).lean();
+    if (existing) {
+      return NextResponse.json(
+        { success: false, error: "An account with this mobile number already exists. Please log in instead." },
+        { status: 409 }
+      );
+    }
+
     const accountId = body.accountId || `SG-USR-${Date.now()}`;
     const { confirmPassword, ...rest } = body;
 
@@ -137,8 +145,14 @@ export async function POST(request) {
     );
   } catch (error) {
     if (error.code === 11000) {
+      const isMobileDupe = Boolean(error.keyPattern?.mobile);
       return NextResponse.json(
-        { success: false, error: "An account with this ID already exists" },
+        {
+          success: false,
+          error: isMobileDupe
+            ? "An account with this mobile number already exists. Please log in instead."
+            : "An account with this ID already exists",
+        },
         { status: 409 }
       );
     }

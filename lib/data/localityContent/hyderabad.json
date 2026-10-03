@@ -1,0 +1,36 @@
+{
+  "jubilee-hills": {
+    "overview": "Jubilee Hills is Hyderabad's most prestigious residential address, home to independent houses, luxury villas, and premium apartments, favored by film and business families. It sits adjacent to the HITEC City IT corridor without the density of a pure tech-park suburb.",
+    "connectivity": "Jubilee Hills Road No. 36 metro station (Red Line) and the Outer Ring Road give direct access to HITEC City (10 minutes) and Banjara Hills / the old city (20 minutes).",
+    "socialInfra": "Schools: Meridian School, Oakridge International. Hospitals: Apollo Hospitals Jubilee Hills. Retail: GVK One Mall, Jubilee Hills Check Post.",
+    "techParks": "HITEC City and Gachibowli are a 10–15 minute drive, home to Microsoft, Google, and Amazon campuses.",
+    "upcomingInfra": "Metro Red Line extension and ongoing ORR-linked flyover upgrades around Jubilee Hills Check Post.",
+    "priceTrend": {
+      "avgPricePerSqft": 11500,
+      "yoyChangePercent": 9.0,
+      "comparisonNote": "Among Hyderabad's highest per-sq.ft. localities, growing faster than the city average on sustained HITEC City demand."
+    },
+    "rentalYield": {
+      "percent": 3.0,
+      "note": "Solid rental demand from senior IT and business executives relocating for HITEC City roles."
+    },
+    "faq": [
+      {
+        "q": "Is Jubilee Hills a good investment compared to Gachibowli or HITEC City directly?",
+        "a": "Jubilee Hills offers more established social infrastructure and independent-house inventory, at a premium to apartment-dominated HITEC City; it suits buyers prioritizing lifestyle and lower density over proximity-to-office."
+      },
+      {
+        "q": "How do I verify RERA compliance for a Jubilee Hills project?",
+        "a": "Check the Telangana RERA (TS-RERA) portal for the project's registration number, promoter details, and sanctioned layout before booking."
+      },
+      {
+        "q": "What is the average price per sq.ft. in Jubilee Hills?",
+        "a": "Around ₹11,500 per sq.ft. as of this update, with roughly 9% year-on-year growth driven by sustained HITEC City-linked demand."
+      },
+      {
+        "q": "How far is Jubilee Hills from the HITEC City IT corridor?",
+        "a": "About 10 minutes by road via the Outer Ring Road, making it a popular choice for senior professionals who want distance from the IT corridor's density without a long commute."
+      }
+    ]
+  }
+}

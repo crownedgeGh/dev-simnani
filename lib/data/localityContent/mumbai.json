@@ -1,0 +1,40 @@
+{
+  "bandra": {
+    "overview": "Bandra is Mumbai's premier western-suburb address, split between the upscale Bandra West (sea-facing apartments, celebrity residences) and the more commercial Bandra East (BKC-adjacent office towers). It commands some of the highest per-sq.ft. prices in the city outside South Mumbai.",
+    "connectivity": "Bandra railway station (Western Line) and the Bandra–Worli Sea Link give fast access to South Mumbai; the Bandra–Kurla Complex (BKC) business district is a 10-minute drive.",
+    "socialInfra": "Schools: St. Andrew's High School, Apostolic Carmel. Hospitals: Lilavati Hospital. Retail: Linking Road, Hill Road.",
+    "techParks": "Bandra–Kurla Complex (BKC) — Mumbai's second CBD, home to major banks, MNCs, and the NSE.",
+    "upcomingInfra": "Mumbai Metro Line 2B and the Coastal Road project, both expected to further reduce commute times to South Mumbai.",
+    "priceTrend": {
+      "avgPricePerSqft": 38000,
+      "yoyChangePercent": 5.5,
+      "comparisonNote": "One of Mumbai's most expensive suburbs; price growth is steady rather than sharp, reflecting an already-mature market."
+    },
+    "rentalYield": {
+      "percent": 2.8,
+      "note": "Strong absolute rents from a deep corporate-tenant pool near BKC, though yield percentage is modest given high capital values."
+    },
+    "faq": [
+      {
+        "q": "Why is Bandra so expensive compared to other Mumbai suburbs?",
+        "a": "Bandra combines sea-facing inventory, direct access to BKC's corporate hub, mature social infrastructure, and the Bandra–Worli Sea Link's fast link to South Mumbai — a combination few other suburbs match, which sustains premium pricing."
+      },
+      {
+        "q": "Is RERA registration mandatory for projects in Bandra?",
+        "a": "Yes, under MahaRERA, every new residential project in Maharashtra must be registered before sale, and the RERA ID must be quoted in all marketing material and agreements."
+      },
+      {
+        "q": "What is the average price per sq.ft. in Bandra?",
+        "a": "Around ₹38,000 per sq.ft. as of this update, among the highest in Mumbai outside South Mumbai's prime addresses."
+      },
+      {
+        "q": "What rental yield can I expect in Bandra?",
+        "a": "Roughly 2.5–3% annually — the absolute rent is high given BKC-adjacent corporate demand, but yield as a percentage of capital value is moderate because property prices are also very high."
+      },
+      {
+        "q": "What legal documents should I check before buying resale property in Bandra?",
+        "a": "Title deed and chain of ownership, society share certificate and NOC (for co-op housing), encumbrance certificate, occupancy certificate, and confirmation of outstanding property tax or society dues."
+      }
+    ]
+  }
+}

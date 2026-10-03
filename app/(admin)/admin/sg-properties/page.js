@@ -323,12 +323,12 @@ export default function AdminSgPropertiesPage() {
             {
               label: "View Details",
               icon: MdOpenInNew,
-              onClick: () => router.push(`/admin/properties/${row.id}`),
+              onClick: () => router.push(`/admin/sg-properties/${row.id}`),
             },
             {
               label: "Edit",
               icon: MdEdit,
-              onClick: () => router.push(`/admin/properties/${row.id}/edit`),
+              onClick: () => router.push(`/admin/sg-properties/${row.id}/edit`),
             },
           ];
           if (!isSold) {
@@ -402,7 +402,7 @@ export default function AdminSgPropertiesPage() {
         columns={COLUMNS}
         data={visibleProperties}
         loading={loading}
-        onRowClick={(row) => router.push(`/admin/properties/${row.id}`)}
+        onRowClick={(row) => router.push(`/admin/sg-properties/${row.id}`)}
         emptyMessage={
           activeTab === "assigned"
             ? "No properties have been forwarded to a Company CP yet."

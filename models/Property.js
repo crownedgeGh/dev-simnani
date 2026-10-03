@@ -128,6 +128,7 @@ const PropertySchema = new mongoose.Schema(
     negotiable: { type: String, default: "no" },
     locality: { type: String, default: "" },
     landmark: { type: String, default: "" },
+    reraId: { type: String, default: "" },
     address: { type: String, default: "" },
     areaSize: { type: Number },
     areaUnit: { type: String, default: "sq ft" },

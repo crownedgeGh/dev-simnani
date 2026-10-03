@@ -3,6 +3,8 @@ import { getPropertyById } from "@/lib/propertiesServer";
 import PropertyDetailContent from "@/components/property/PropertyDetailContent";
 import PropertyActionCard from "@/components/property/PropertyActionCard";
 import PropertyViewTracker from "@/components/property/PropertyViewTracker";
+import JsonLd from "@/components/seo/JsonLd";
+import { getSiteUrl } from "@/lib/siteUrl";
 
 export const revalidate = 60; // cache listing HTML for 60s instead of hitting Mongo on every request
 
@@ -59,6 +61,51 @@ export async function generateMetadata({ params }) {
   };
 }
 
+function buildPropertyJsonLd(property) {
+  const siteUrl = getSiteUrl();
+  const rawImage = property.image || property.galleryImages?.[0];
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "RealEstateListing",
+    name: property.title,
+    description: property.description || undefined,
+    url: `${siteUrl}/property/${property.id}`,
+    image: rawImage || undefined,
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: property.address || property.landmark || undefined,
+      addressLocality: property.locality || undefined,
+      addressRegion: property.city || undefined,
+      addressCountry: "IN",
+    },
+  };
+
+  // Offer requires a real numeric price — never guess one out of a
+  // formatted display string like "₹1.25 Cr" (see design.md Decision 5).
+  if (typeof property.rawPrice === "number" && property.rawPrice > 0) {
+    jsonLd.offers = {
+      "@type": "Offer",
+      price: property.rawPrice,
+      priceCurrency: "INR",
+      availability: "https://schema.org/InStock",
+      url: `${siteUrl}/property/${property.id}`,
+    };
+  }
+
+  if (property.reraId) {
+    jsonLd.additionalProperty = [
+      {
+        "@type": "PropertyValue",
+        name: "RERA Registration ID",
+        value: property.reraId,
+      },
+    ];
+  }
+
+  return jsonLd;
+}
+
 export default async function PropertyDetailPage({ params, searchParams }) {
   const { id } = await params;
   const { campaign } = await searchParams;
@@ -70,6 +117,7 @@ export default async function PropertyDetailPage({ params, searchParams }) {
 
   return (
     <>
+      <JsonLd data={buildPropertyJsonLd(property)} />
       <PropertyViewTracker
         id={property.id}
         title={property.title}

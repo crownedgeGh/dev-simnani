@@ -1,6 +1,7 @@
 import PropertyFilterBar from "@/components/property/PropertyFilterBar";
 import { getPropertiesByType } from "@/lib/propertiesServer";
 import BackButton from "@/components/layout/BackButton";
+import BrowseByLocalityLinks from "@/components/seo/BrowseByLocalityLinks";
 
 export const revalidate = 60;
 
@@ -30,6 +31,8 @@ export default async function RentPage() {
           emphasizeDetails
         />
       </div>
+
+      <BrowseByLocalityLinks phraseSlug="apartments-for-rent" title="Rent Apartments by Locality" />
     </div>
   );
 }
