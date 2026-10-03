@@ -3,7 +3,6 @@ import dbConnect from "@/lib/mongodb";
 import Property from "@/models/Property";
 import {
   getLocationCity,
-  isStructureCategory,
   categoryHasBedrooms,
   isPgOrHostel,
   isResidentialSection,
@@ -133,16 +132,9 @@ export async function POST(request) {
     }
 
     const isPgHostel = isPgOrHostel(body.propertyType);
-    const needsStructureFields = isStructureCategory(body.type, body.category) && !isPgHostel;
     const needsBedrooms = categoryHasBedrooms(body.type, body.category, body.propertyType);
 
     const baths = Number(body.baths) || 0;
-    if (needsStructureFields && baths < 1) {
-      return NextResponse.json(
-        { success: false, error: "Number of bathrooms is required" },
-        { status: 400 }
-      );
-    }
 
     if (isPgHostel && !body.bathroomType) {
       return NextResponse.json(
@@ -160,12 +152,6 @@ export async function POST(request) {
     }
 
     const halls = Number(body.halls) || 0;
-    if (needsBedrooms && halls < 1) {
-      return NextResponse.json(
-        { success: false, error: "Number of halls is required" },
-        { status: 400 }
-      );
-    }
 
     const id = body.id || `PROP-${Date.now()}`;
     const city = body.city || (body.location ? getLocationCity(body.location) : "") || "Other";

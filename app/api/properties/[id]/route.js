@@ -3,7 +3,6 @@ import dbConnect from "@/lib/mongodb";
 import Property from "@/models/Property";
 import {
   getLocationCity,
-  isStructureCategory,
   categoryHasBedrooms,
   isPgOrHostel,
   isResidentialSection,
@@ -97,7 +96,6 @@ export async function PUT(request, { params }) {
     }
 
     const isPgHostel = isPgOrHostel(effectivePropertyType);
-    const needsStructureFields = isStructureCategory(effectiveType, effectiveCategory) && !isPgHostel;
     const needsBedrooms = categoryHasBedrooms(effectiveType, effectiveCategory, effectivePropertyType);
 
     if (updateData.beds !== undefined) {
@@ -114,24 +112,10 @@ export async function PUT(request, { params }) {
       updateData.bedsPlus = Boolean(updateData.bedsPlus);
     }
     if (updateData.halls !== undefined) {
-      const halls = Number(updateData.halls) || 0;
-      if (needsBedrooms && halls < 1) {
-        return NextResponse.json(
-          { success: false, error: "Number of halls is required" },
-          { status: 400 }
-        );
-      }
-      updateData.halls = halls;
+      updateData.halls = Number(updateData.halls) || 0;
     }
     if (updateData.baths !== undefined) {
-      const baths = Number(updateData.baths) || 0;
-      if (needsStructureFields && baths < 1) {
-        return NextResponse.json(
-          { success: false, error: "Number of bathrooms is required" },
-          { status: 400 }
-        );
-      }
-      updateData.baths = baths;
+      updateData.baths = Number(updateData.baths) || 0;
     }
 
     const updated = await Property.findOneAndUpdate(

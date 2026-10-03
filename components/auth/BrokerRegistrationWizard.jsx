@@ -343,7 +343,12 @@ export default function BrokerRegistrationWizard() {
 
   return (
     <AuthShell size="xl">
-      <Stepper step={step} total={TOTAL_STEPS} label={STEP_LABELS[step - 1]} />
+      <Stepper
+        step={step}
+        total={TOTAL_STEPS}
+        label={STEP_LABELS[step - 1]}
+        onBack={step > 1 ? goBack : () => router.push("/auth/register")}
+      />
 
       <div className="mb-6 text-center">
         <h1 className="font-display text-2xl text-cream sm:text-3xl">{STEP_LABELS[step - 1]}</h1>

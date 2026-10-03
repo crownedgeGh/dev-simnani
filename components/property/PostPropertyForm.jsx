@@ -440,7 +440,6 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
       ...(isPgHostelType ? [{ id: "genderPreference", invalid: !form.genderPreference }] : []),
       ...(isPgHostelType ? [{ id: "bathroomType", invalid: !form.bathroomType }] : []),
       ...(showBedsHallsFields ? [{ id: "beds", invalid: !form.beds || Number(form.beds) < 1 }] : []),
-      ...(showBedsHallsFields ? [{ id: "halls", invalid: !form.halls || Number(form.halls) < 1 }] : []),
       { id: "fullName", invalid: !form.fullName.trim() },
       { id: "mobile", invalid: !isMobileValid(form.mobile) },
     ];
@@ -868,11 +867,11 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
           </FormField>
         )}
         {showBedsHallsFields && (
-          <FormField label="No. of Halls" htmlFor="halls" required>
+          <FormField label="No. of Halls" htmlFor="halls">
             <input
               id="halls"
               type="number"
-              min="1"
+              min="0"
               autoComplete="off"
               value={form.halls}
               onChange={(e) => update("halls", e.target.value)}
@@ -885,7 +884,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
             <input
               id="baths"
               type="number"
-              min="1"
+              min="0"
               autoComplete="off"
               value={form.baths}
               onChange={(e) => update("baths", e.target.value)}
