@@ -55,7 +55,11 @@ const SECTIONS = [
   },
   {
     title: "Cookies & Local Storage",
-    body: "Simnani Estate uses browser local storage (not third-party tracking cookies) to keep you logged in, remember in-progress registration form drafts, and remember properties you've saved. This data stays on your device.",
+    body: "Simnani Estate uses browser local storage to keep you logged in, remember in-progress registration form drafts, and remember properties you've saved — this data stays on your device and is necessary for the site to work, so it is not something we ask consent for. Separately, with your consent via the cookie banner, we use Google Analytics cookies to understand how visitors use the site (pages viewed, approximate location, device type). You can choose \"Necessary Only\" on the banner to opt out of analytics cookies at any time; clearing your browser storage resets that choice.",
+  },
+  {
+    title: "Legal Basis (DPDP Act, 2023 & IT Act, 2000)",
+    body: "Our collection and processing of your personal data is based on your consent, given either by submitting a form on this site or through the cookie consent banner, in line with the Digital Personal Data Protection Act, 2023 and the DPDP Rules, and the IT Act, 2000 (Section 43A) read with the Sensitive Personal Data or Information (SPDI) Rules, 2011. You may withdraw consent at any time by contacting us or, for analytics cookies, by choosing \"Necessary Only\" on the cookie banner — withdrawal does not affect processing already carried out.",
   },
   {
     title: "Your Rights",

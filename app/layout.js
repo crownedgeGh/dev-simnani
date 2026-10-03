@@ -5,6 +5,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import PublicShell from "@/components/layout/PublicShell";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import LocationPrompt from "@/components/LocationPrompt";
+import CookieConsentBanner from "@/components/CookieConsentBanner";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -45,6 +46,7 @@ export default function RootLayout({ children }) {
           <PublicShell>{children}</PublicShell>
           <LocationPrompt />
         </AuthProvider>
+        <CookieConsentBanner />
         <Toaster
           position="top-right"
           richColors

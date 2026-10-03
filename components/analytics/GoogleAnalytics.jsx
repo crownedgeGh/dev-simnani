@@ -1,9 +1,10 @@
 "use client";
 
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Script from "next/script";
 import { usePathname, useSearchParams } from "next/navigation";
 import { GA_MEASUREMENT_ID, pageview } from "@/lib/gtag";
+import { getConsent, CONSENT_EVENT } from "@/lib/consent";
 
 function RouteChangeTracker() {
   const pathname = usePathname();
@@ -18,7 +19,16 @@ function RouteChangeTracker() {
 }
 
 export default function GoogleAnalytics() {
-  if (!GA_MEASUREMENT_ID) return null;
+  const [allowed, setAllowed] = useState(false);
+
+  useEffect(() => {
+    const check = () => setAllowed(Boolean(getConsent()?.analytics));
+    check();
+    window.addEventListener(CONSENT_EVENT, check);
+    return () => window.removeEventListener(CONSENT_EVENT, check);
+  }, []);
+
+  if (!GA_MEASUREMENT_ID || !allowed) return null;
 
   return (
     <>
