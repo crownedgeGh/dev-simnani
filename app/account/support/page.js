@@ -1,6 +1,5 @@
 import PortalHeader from "@/components/portal/PortalHeader";
 import SupportPanel from "@/components/portal/SupportPanel";
-import { SUPPORT_TICKETS } from "@/lib/demoAccount";
 
 export const metadata = {
   title: "Support Requests | Simnani Estate",
@@ -16,7 +15,7 @@ export default function SupportPage() {
         subtitle="Track and manage your inquiries with Simnani Estate."
       />
       <div className="mt-8">
-        <SupportPanel tickets={SUPPORT_TICKETS} />
+        <SupportPanel tickets={[]} />
       </div>
     </div>
   );

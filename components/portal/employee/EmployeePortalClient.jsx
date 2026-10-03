@@ -25,10 +25,9 @@ export default function EmployeePortalClient({
 
   const districtLeads = leads.filter((lead) => lead.district === district);
   const districtProperties = getPropertiesByDistrict(properties, district);
-  const achievementPct = Math.min(
-    100,
-    Math.round((salesTarget.achieved / salesTarget.monthlyTarget) * 100)
-  );
+  const achievementPct = salesTarget.monthlyTarget
+    ? Math.min(100, Math.round((salesTarget.achieved / salesTarget.monthlyTarget) * 100))
+    : 0;
 
   return (
     <div className="relative overflow-hidden bg-gray-50">

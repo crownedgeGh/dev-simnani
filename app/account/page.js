@@ -4,7 +4,6 @@ import { getPlanById } from "@/lib/plans";
 import PortalHeader from "@/components/portal/PortalHeader";
 import AccountProfile from "@/components/portal/AccountProfile";
 import UpgradePlanBanner from "@/components/portal/UpgradePlanBanner";
-import { DEMO_USER } from "@/lib/demoAccount";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +26,16 @@ export default async function AccountPage() {
       {/* UpgradePlanBanner temporarily disabled — pricing not in use yet */}
       {/* {isBroker && <UpgradePlanBanner planName={currentPlan.name} isPremium={isPremium} />} */}
       <div className="mt-6">
-        <AccountProfile user={DEMO_USER} />
+        <AccountProfile
+          user={{
+            name: user.fullName,
+            email: user.email,
+            city: user.city,
+            mobile: user.mobile,
+            role: user.accountType === "common-person" ? "Common Person" : user.accountType,
+            memberSince: user.registeredDate || "Recently",
+          }}
+        />
       </div>
     </div>
   );

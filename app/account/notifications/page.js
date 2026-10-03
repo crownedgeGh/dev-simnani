@@ -1,6 +1,6 @@
 import PortalHeader from "@/components/portal/PortalHeader";
 import NotificationsPanel from "@/components/portal/NotificationsPanel";
-import { NOTIFICATIONS, NOTIFICATION_CATEGORIES } from "@/lib/demoAccount";
+import { NOTIFICATION_CATEGORIES } from "@/lib/demoAccount";
 
 export const metadata = {
   title: "Notifications | Simnani Estate",
@@ -16,7 +16,7 @@ export default function NotificationsPage() {
         subtitle="Stay updated on your portfolio and account activity."
       />
       <div className="mt-8">
-        <NotificationsPanel notifications={NOTIFICATIONS} categories={NOTIFICATION_CATEGORIES} />
+        <NotificationsPanel notifications={[]} categories={NOTIFICATION_CATEGORIES} />
       </div>
     </div>
   );
