@@ -5,7 +5,7 @@ export default async function FeaturedProperties() {
   const properties = await getFeaturedProperties();
 
   return (
-    <section className="bg-navy-900/40 py-16 sm:py-20">
+    <section id="featured-properties" className="bg-navy-900/40 py-16 sm:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center">
           <h2 className="font-display text-2xl text-cream sm:text-3xl">
