@@ -25,6 +25,7 @@ function AdminShell({ children }) {
     "/admin/properties": "Properties",
     "/admin/sg-properties": "SG Properties",
     "/admin/users": "Users",
+    "/admin/deleted-accounts": "Deleted Accounts",
     "/admin/leads": "Leads",
     "/admin/analytics": "Analytics",
     "/admin/plans": "Plans & Subscriptions",

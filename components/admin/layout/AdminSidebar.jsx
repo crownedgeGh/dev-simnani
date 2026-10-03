@@ -17,6 +17,7 @@ import {
   MdAdminPanelSettings,
   MdCategory,
   MdThumbUp,
+  MdRestoreFromTrash,
 } from "react-icons/md";
 import { BiBuildingHouse } from "react-icons/bi";
 import { useState } from "react";
@@ -34,6 +35,7 @@ const NAV_ITEMS = [
     ],
   },
   { href: "/admin/users", label: "Users", icon: MdPeople },
+  { href: "/admin/deleted-accounts", label: "Deleted Accounts", icon: MdRestoreFromTrash },
   {
     href: "/admin/sg-properties",
     label: "SG Internals",

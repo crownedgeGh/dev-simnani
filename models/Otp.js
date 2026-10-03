@@ -9,7 +9,7 @@ const OtpSchema = new mongoose.Schema(
     },
     purpose: {
       type: String,
-      enum: ["login", "reset-password"],
+      enum: ["login", "reset-password", "delete-account"],
       required: true,
     },
     otpHash: {

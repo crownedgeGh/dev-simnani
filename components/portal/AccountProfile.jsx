@@ -6,6 +6,7 @@ import { FiEdit3, FiAlertCircle, FiZap, FiArrowUpCircle } from "react-icons/fi";
 import { MdStar, MdWorkspacePremium } from "react-icons/md";
 import Badge from "./Badge";
 import SectionCard from "./SectionCard";
+import DeleteAccountModal from "./DeleteAccountModal";
 import { inputClass } from "@/components/auth/inputStyles";
 import { useAuth } from "@/context/AuthContext";
 
@@ -32,6 +33,7 @@ export default function AccountProfile({ user }) {
     dealsClosed: authUser?.dealsClosed ?? 0,
   });
   const [saved, setSaved] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
     if (authUser) {
@@ -227,6 +229,23 @@ export default function AccountProfile({ user }) {
           Full access to premium property listings and investment portfolios.
         </p>
       </SectionCard>
+
+      <SectionCard title="Danger Zone">
+        <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-muted">
+            Permanently deactivate your account. This cannot be undone by you.
+          </p>
+          <button
+            type="button"
+            onClick={() => setShowDeleteModal(true)}
+            className="tracked-label shrink-0 border border-red-500/60 px-5 py-3 text-xs text-red-400 transition active:scale-[0.98] hover:bg-red-500/10"
+          >
+            Delete Account
+          </button>
+        </div>
+      </SectionCard>
+
+      <DeleteAccountModal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)} />
     </div>
   );
 }
