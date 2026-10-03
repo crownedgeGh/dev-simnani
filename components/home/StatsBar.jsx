@@ -1,10 +1,10 @@
-import { MdHome, MdApartment, MdPeople, MdHandshake } from "react-icons/md";
+import { MdHome, MdApartment, MdPeople, MdVerifiedUser } from "react-icons/md";
 
 const STATS = [
-  { value: "500+", label: "Properties", sub: "Across Premium Locations", icon: <MdHome className="h-5 w-5 sm:h-6 sm:w-6" /> },
+  { value: "5000+", label: "Properties", sub: "Across Premium Locations", icon: <MdHome className="h-5 w-5 sm:h-6 sm:w-6" /> },
   { value: "50+", label: "Cities", sub: "Pan India Presence", icon: <MdApartment className="h-5 w-5 sm:h-6 sm:w-6" /> },
-  { value: "15+", label: "Years of Trust", sub: "Delivering Excellence", icon: <MdPeople className="h-5 w-5 sm:h-6 sm:w-6" /> },
-  { value: "1000+", label: "Happy Clients", sub: "Who Trust Us", icon: <MdHandshake className="h-5 w-5 sm:h-6 sm:w-6" /> },
+  { value: "10+", label: "Years of Trust", sub: "Delivering Excellence", icon: <MdPeople className="h-5 w-5 sm:h-6 sm:w-6" /> },
+  { value: "100%", label: "Transparency", sub: "Legal Assurance", icon: <MdVerifiedUser className="h-5 w-5 sm:h-6 sm:w-6" /> },
 ];
 
 export default function StatsBar() {
