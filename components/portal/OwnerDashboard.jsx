@@ -36,6 +36,7 @@ export default function OwnerDashboard({
   commissions = [],
   addPropertyHref = "/portal/broker/add-property",
   showCommissions = true,
+  showAddProperty = true,
 }) {
   const TABS = showCommissions ? [...BASE_TABS, COMMISSIONS_TAB] : BASE_TABS;
   const [tab, setTab] = useState("overview");
@@ -165,12 +166,14 @@ export default function OwnerDashboard({
           <div>
             <div className="mb-4 flex items-center justify-between">
               <h2 className="font-display text-xl text-cream">My Listings</h2>
-              <Link
-                href={addPropertyHref}
-                className="tracked-label rounded-full bg-gold-400 px-5 py-2 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 hover:shadow-gold-400/20 active:scale-[0.98]"
-              >
-                Add Property
-              </Link>
+              {showAddProperty && (
+                <Link
+                  href={addPropertyHref}
+                  className="tracked-label rounded-full bg-gold-400 px-5 py-2 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 hover:shadow-gold-400/20 active:scale-[0.98]"
+                >
+                  Add Property
+                </Link>
+              )}
             </div>
             <PropertyGrid properties={listings} emptyMessage="You don't have any listings yet." ownerView />
           </div>
