@@ -38,7 +38,7 @@ export default async function BrokerPortalPage() {
           clients={clients}
           commissions={[]}
           addPropertyHref="/portal/broker/add-property"
-          showCommissions
+          showCommissions={false}
         />
       </div>
     </div>
