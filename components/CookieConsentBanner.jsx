@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { MdClose } from "react-icons/md";
 import { getConsent, setConsent, CONSENT_EVENT } from "@/lib/consent";
 
 export default function CookieConsentBanner() {
+  const pathname = usePathname();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -20,7 +22,7 @@ export default function CookieConsentBanner() {
     setVisible(false);
   }
 
-  if (!visible) return null;
+  if (!visible || pathname?.startsWith("/admin")) return null;
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 border-t border-navy-700/60 bg-navy-900 px-4 pb-5 pt-10 sm:px-6 sm:pt-5 lg:px-8">
