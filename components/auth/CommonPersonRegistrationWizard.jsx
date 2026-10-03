@@ -28,7 +28,14 @@ export default function CommonPersonRegistrationWizard() {
   const router = useRouter();
   const [form, setForm] = useState(INITIAL_FORM);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
+
+  function focusFirstError(errors) {
+    const order = ["fullName", "mobile", "state", "city", "password", "confirmPassword", "agree"];
+    const firstKey = order.find((key) => errors[key]);
+    document.getElementById(firstKey)?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
 
   const cityOptions = useMemo(() => {
     if (!form.state) return [];
@@ -44,22 +51,30 @@ export default function CommonPersonRegistrationWizard() {
   }
 
   async function handleSubmit() {
-    if (!form.fullName.trim() || !isMobileValid(form.mobile) || !form.state || !form.city.trim()) {
-      setError("Please fill in all required fields.");
+    const errors = {
+      fullName: !form.fullName.trim(),
+      mobile: !isMobileValid(form.mobile),
+      state: !form.state,
+      city: !form.city.trim(),
+      password: !isPasswordValid(form.password),
+      confirmPassword: form.password !== form.confirmPassword,
+      agree: !form.agree,
+    };
+    if (Object.values(errors).some(Boolean)) {
+      setFieldErrors(errors);
+      if (errors.fullName || errors.mobile || errors.state || errors.city) {
+        setError("Please fill in all required fields.");
+      } else if (errors.password) {
+        setError("Password must be at least 8 characters.");
+      } else if (errors.confirmPassword) {
+        setError("Passwords do not match.");
+      } else {
+        setError("Please accept the Terms & Conditions to continue.");
+      }
+      focusFirstError(errors);
       return;
     }
-    if (!isPasswordValid(form.password)) {
-      setError("Password must be at least 8 characters.");
-      return;
-    }
-    if (form.password !== form.confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
-    if (!form.agree) {
-      setError("Please accept the Terms & Conditions to continue.");
-      return;
-    }
+    setFieldErrors({});
     setError("");
     setSubmitting(true);
     const id = generateAccountId("IND");
@@ -111,12 +126,14 @@ export default function CommonPersonRegistrationWizard() {
             placeholder="e.g. John Doe"
             value={form.fullName}
             onChange={(e) => update("fullName", e.target.value)}
-            className={inputClass}
+            className={`${inputClass} ${fieldErrors.fullName ? "border-red-500 focus:border-red-400" : ""}`}
           />
         </FormField>
 
         <FormField label="Mobile Number" htmlFor="mobile" required>
-          <div className="flex items-center rounded-full border border-navy-700/60 bg-navy-950 px-4 transition focus-within:border-gold-400 focus-within:ring-4 focus-within:ring-gold-400/10">
+          <div
+            className={`flex items-center rounded-full border bg-navy-950 px-4 transition focus-within:border-gold-400 focus-within:ring-4 focus-within:ring-gold-400/10 ${fieldErrors.mobile ? "border-red-500" : "border-navy-700/60"}`}
+          >
             <span className="text-sm text-muted">+91</span>
             <input
               id="mobile"
@@ -150,6 +167,7 @@ export default function CommonPersonRegistrationWizard() {
               options={RTO_STATES}
               placeholder="Select your state"
               searchPlaceholder="Search states…"
+              invalid={fieldErrors.state}
             />
           </FormField>
 
@@ -163,6 +181,7 @@ export default function CommonPersonRegistrationWizard() {
               searchPlaceholder="Search cities…"
               disabled={!form.state}
               emptyMessage="No cities found for this state"
+              invalid={fieldErrors.city}
             />
           </FormField>
         </div>
@@ -172,14 +191,19 @@ export default function CommonPersonRegistrationWizard() {
           confirmPassword={form.confirmPassword}
           onPasswordChange={(value) => update("password", value)}
           onConfirmPasswordChange={(value) => update("confirmPassword", value)}
+          passwordInvalid={fieldErrors.password}
+          confirmInvalid={fieldErrors.confirmPassword}
         />
 
-        <label className="flex items-start gap-3 text-xs text-muted">
+        <label
+          id="agree"
+          className={`flex items-start gap-3 text-xs text-muted ${fieldErrors.agree ? "text-red-400" : ""}`}
+        >
           <input
             type="checkbox"
             checked={form.agree}
             onChange={(e) => update("agree", e.target.checked)}
-            className="mt-0.5 h-4 w-4 accent-gold-400"
+            className={`mt-0.5 h-4 w-4 accent-gold-400 ${fieldErrors.agree ? "outline outline-1 outline-red-500" : ""}`}
           />
           I agree to the{" "}
           <Link href="/legal/terms-conditions" target="_blank" onClick={(e) => e.stopPropagation()} className="text-gold-400 hover:text-gold-300">

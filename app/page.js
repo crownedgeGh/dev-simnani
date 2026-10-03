@@ -3,7 +3,6 @@ import SearchBar from "@/components/home/SearchBar";
 import StatsBar from "@/components/home/StatsBar";
 import FeaturedProperties from "@/components/home/FeaturedProperties";
 import FeaturedBrokers from "@/components/home/FeaturedBrokers";
-import ProjectsSection from "@/components/home/ProjectsSection";
 import PopularLocations from "@/components/home/PopularLocations";
 import WhyChooseUs from "@/components/home/WhyChooseUs";
 import InsightsSection from "@/components/home/InsightsSection";
@@ -20,7 +19,6 @@ export default function Home() {
       <StatsBar />
       <FeaturedProperties />
       <FeaturedBrokers />
-      <ProjectsSection />
       <PopularLocations />
       <WhyChooseUs />
       <InsightsSection />

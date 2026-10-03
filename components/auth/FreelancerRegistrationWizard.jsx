@@ -72,7 +72,16 @@ export default function FreelancerRegistrationWizard() {
   const router = useRouter();
   const { step, setStep, form, setForm, clearDraft } = useWizardDraft("se_draft_freelancer", INITIAL_FORM);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
+
+  function showFieldError(fields, message) {
+    const errs = {};
+    fields.forEach((f) => { errs[f] = true; });
+    setFieldErrors(errs);
+    setError(message);
+    document.getElementById(fields[0])?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
 
   function update(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -90,90 +99,94 @@ export default function FreelancerRegistrationWizard() {
   function goNext() {
     if (step === 1) {
       if (!form.cpType) {
+        setFieldErrors({ cpType: true });
         setError("Please select how you'd like to join the network.");
         return;
       }
     }
     if (step === 2) {
       if (!form.fullName.trim()) {
-        setError("Please enter your full name.");
+        showFieldError(["fullName"], "Please enter your full name.");
         return;
       }
       if (!isMobileValid(form.mobile)) {
-        setError("Please enter a valid 10-digit mobile number.");
+        showFieldError(["mobile"], "Please enter a valid 10-digit mobile number.");
         return;
       }
       if (!form.state) {
-        setError("Please select your state.");
+        showFieldError(["state"], "Please select your state.");
         return;
       }
       if (!form.city) {
-        setError("Please select your city.");
+        showFieldError(["city"], "Please select your city.");
         return;
       }
       if (!form.skills.length) {
-        setError("Please add at least one skill.");
+        showFieldError(["skills"], "Please add at least one skill.");
         return;
       }
       if (form.cpType === "digital" && !form.currentlyWorking) {
-        setError("Please let us know if you are currently working anywhere.");
+        showFieldError(["currentlyWorking"], "Please let us know if you are currently working anywhere.");
         return;
       }
       if (form.cpType === "field" && !form.coverageAreas.trim()) {
-        setError("Please enter the localities you cover.");
+        showFieldError(["coverageAreas"], "Please enter the localities you cover.");
         return;
       }
     }
+    setFieldErrors({});
     setError("");
     setStep((s) => Math.min(s + 1, TOTAL_STEPS));
   }
 
   function goBack() {
     setError("");
+    setFieldErrors({});
     setStep((s) => Math.max(s - 1, 1));
   }
 
   async function handleSubmit() {
     if (!form.fullName.trim()) {
-      setError("Please enter your full name.");
+      showFieldError(["fullName"], "Please enter your full name.");
       return;
     }
     if (!isMobileValid(form.mobile)) {
-      setError("Please enter a valid 10-digit mobile number.");
+      showFieldError(["mobile"], "Please enter a valid 10-digit mobile number.");
       return;
     }
     if (!form.state) {
-      setError("Please select your state.");
+      showFieldError(["state"], "Please select your state.");
       return;
     }
     if (!form.city) {
-      setError("Please select your city.");
+      showFieldError(["city"], "Please select your city.");
       return;
     }
     if (!form.skills || !form.skills.length) {
-      setError("Please select at least one skill.");
+      showFieldError(["skills"], "Please select at least one skill.");
       return;
     }
     if (form.cpType === "digital" && !form.currentlyWorking) {
-      setError("Please let us know if you are currently working anywhere.");
+      showFieldError(["currentlyWorking"], "Please let us know if you are currently working anywhere.");
       return;
     }
     if (form.cpType === "field" && !form.coverageAreas.trim()) {
-      setError("Please enter the localities you cover.");
+      showFieldError(["coverageAreas"], "Please enter the localities you cover.");
       return;
     }
     if (!form.agree) {
-      setError("Please accept the Terms & Conditions to continue.");
+      showFieldError(["agree"], "Please accept the Terms & Conditions to continue.");
       return;
     }
     if (!isPasswordValid(form.password)) {
-      setError("Password must be at least 8 characters.");
+      showFieldError(["password"], "Password must be at least 8 characters.");
       return;
     }
     if (form.password !== form.confirmPassword) {
-      setError("Passwords do not match.");
+      showFieldError(["confirmPassword"], "Passwords do not match.");
       return;
     }
+    setFieldErrors({});
     setError("");
     setSubmitting(true);
     const id = generateAccountId(ACCOUNT_ID_PREFIX[form.cpType]);
@@ -228,7 +241,7 @@ export default function FreelancerRegistrationWizard() {
       </div>
 
       {step === 1 && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div id="cpType" className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {CP_TYPES.map(({ value, label, description, Icon }) => (
             <button
               key={value}
@@ -238,6 +251,8 @@ export default function FreelancerRegistrationWizard() {
               className={`flex flex-col items-center gap-3 rounded-2xl border p-6 text-center transition active:scale-[0.98] ${
                 form.cpType === value
                   ? "border-gold-400 bg-gold-400/5"
+                  : fieldErrors.cpType
+                  ? "border-red-500"
                   : "border-navy-700/60 hover:border-navy-600"
               }`}
             >
@@ -260,12 +275,12 @@ export default function FreelancerRegistrationWizard() {
               placeholder="Enter your full name"
               value={form.fullName}
               onChange={(e) => update("fullName", e.target.value)}
-              className={inputClass}
+              className={`${inputClass} ${fieldErrors.fullName ? "border-red-500 focus:border-red-400" : ""}`}
             />
           </FormField>
 
           <FormField label="Mobile Number" htmlFor="mobile" required>
-            <div className="flex items-center rounded-full border border-navy-700/60 bg-navy-950 px-4 transition focus-within:border-gold-400 focus-within:ring-4 focus-within:ring-gold-400/10">
+            <div className={`flex items-center rounded-full border bg-navy-950 px-4 transition focus-within:border-gold-400 focus-within:ring-4 focus-within:ring-gold-400/10 ${fieldErrors.mobile ? "border-red-500" : "border-navy-700/60"}`}>
               <span className="text-sm text-muted">+91</span>
               <input
                 id="mobile"
@@ -299,6 +314,7 @@ export default function FreelancerRegistrationWizard() {
                 options={RTO_STATES}
                 placeholder="Select your state"
                 searchPlaceholder="Search states…"
+                invalid={fieldErrors.state}
               />
             </FormField>
 
@@ -312,17 +328,20 @@ export default function FreelancerRegistrationWizard() {
                 searchPlaceholder="Search cities…"
                 disabled={!form.state}
                 emptyMessage="No cities found for this state"
+                invalid={fieldErrors.city}
               />
             </FormField>
           </div>
 
           {form.cpType === "digital" && (
             <FormField label="Currently working anywhere?" required>
-              <ChipGroup
-                options={CURRENTLY_WORKING_OPTIONS}
-                value={form.currentlyWorking}
-                onChange={(value) => update("currentlyWorking", value)}
-              />
+              <div id="currentlyWorking" className={fieldErrors.currentlyWorking ? "rounded-xl border border-red-500 p-2" : ""}>
+                <ChipGroup
+                  options={CURRENTLY_WORKING_OPTIONS}
+                  value={form.currentlyWorking}
+                  onChange={(value) => update("currentlyWorking", value)}
+                />
+              </div>
             </FormField>
           )}
 
@@ -339,7 +358,7 @@ export default function FreelancerRegistrationWizard() {
                 placeholder="e.g. Whitefield, Sarjapur Road, HSR Layout"
                 value={form.coverageAreas}
                 onChange={(e) => update("coverageAreas", e.target.value)}
-                className={inputClass}
+                className={`${inputClass} ${fieldErrors.coverageAreas ? "border-red-500 focus:border-red-400" : ""}`}
               />
             </FormField>
           )}
@@ -349,10 +368,12 @@ export default function FreelancerRegistrationWizard() {
             required
             hint="Select your category, then pick or add your skills below."
           >
-            <SkillsSelector
-              value={form.skills}
-              onChange={(skills) => update("skills", skills)}
-            />
+            <div id="skills" className={fieldErrors.skills ? "rounded-xl border border-red-500 p-2" : ""}>
+              <SkillsSelector
+                value={form.skills}
+                onChange={(skills) => update("skills", skills)}
+              />
+            </div>
           </FormField>
 
           <PasswordFields
@@ -360,14 +381,16 @@ export default function FreelancerRegistrationWizard() {
             confirmPassword={form.confirmPassword}
             onPasswordChange={(value) => update("password", value)}
             onConfirmPasswordChange={(value) => update("confirmPassword", value)}
+            passwordInvalid={fieldErrors.password}
+            confirmInvalid={fieldErrors.confirmPassword}
           />
 
-          <label className="flex items-start gap-3 text-xs text-muted">
+          <label id="agree" className={`flex items-start gap-3 text-xs text-muted ${fieldErrors.agree ? "text-red-400" : ""}`}>
             <input
               type="checkbox"
               checked={form.agree}
               onChange={(e) => update("agree", e.target.checked)}
-              className="mt-0.5 h-4 w-4 accent-gold-400"
+              className={`mt-0.5 h-4 w-4 accent-gold-400 ${fieldErrors.agree ? "outline outline-2 outline-red-500" : ""}`}
             />
             I agree to the{" "}
           <Link href="/legal/terms-conditions" target="_blank" onClick={(e) => e.stopPropagation()} className="text-gold-400 hover:text-gold-300">
