@@ -13,6 +13,7 @@ export default function SearchableSelect({
   searchPlaceholder = "Type to search…",
   disabled = false,
   emptyMessage = "No matches found",
+  invalid = false,
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -57,7 +58,7 @@ export default function SearchableSelect({
           id={id}
           disabled={disabled}
           onClick={openDropdown}
-          className={`${inputClass} flex items-center justify-between text-left disabled:cursor-not-allowed disabled:opacity-50`}
+          className={`${inputClass} flex items-center justify-between text-left disabled:cursor-not-allowed disabled:opacity-50 ${invalid ? "border-red-500 focus:border-red-400" : ""}`}
         >
           <span className={value ? "truncate text-cream" : "truncate text-muted"}>
             {value || placeholder}

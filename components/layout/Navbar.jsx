@@ -9,11 +9,11 @@ import { getAccountPermissions } from "@/lib/accountPermissions";
 import { TEST_MODE_CP_PROFILES } from "@/lib/testModeCp";
 import AuthGateModal from "@/components/auth/AuthGateModal";
 import CompleteProfileModal from "@/components/auth/CompleteProfileModal";
-import { MdHome, MdTrendingUp, MdPersonAdd, MdAgriculture, MdFactory, MdScience, MdWorkspacePremium, MdStar } from "react-icons/md";
+import { MdHome, MdTrendingUp, MdPersonAdd, MdAgriculture, MdFactory, MdScience } from "react-icons/md";
 import {
   FiUser, FiPlus, FiMenu, FiX,
   FiList, FiBookmark, FiSettings, FiLogOut, FiHelpCircle, FiInfo,
-  FiChevronDown, FiMapPin, FiSmartphone, FiBriefcase, FiZap,
+  FiChevronDown, FiMapPin, FiSmartphone, FiBriefcase,
 } from "react-icons/fi";
 import { BiBuildings, BiBuildingHouse } from "react-icons/bi";
 
@@ -64,53 +64,11 @@ function getAccountTypeLabel(user) {
   return ACCOUNT_TYPE_LABEL[user?.accountType] ?? user?.accountType ?? "Member";
 }
 
-// Membership plan badge — /pricing is Broker-only, so this only ever
-// renders for broker accounts (see PLAN_BADGE usage below).
-const PLAN_BADGE = {
-  free: { label: "Free Member", icon: FiZap, color: "#9aa3b8" },
-  standard: { label: "Standard Member", icon: MdStar, color: "#ffc633" },
-  premium: { label: "Premium Member", icon: MdWorkspacePremium, color: "#ffde85" },
-};
-
-const PLAN_STATUS_SUFFIX = {
-  pending: " (Pending Approval)",
-  hold: " (On Hold)",
-  rejected: " (Rejected)",
-};
-
 function getInitials(name) {
   if (!name) return "?";
   const parts = name.trim().split(" ");
   if (parts.length === 1) return parts[0][0]?.toUpperCase() ?? "?";
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
-
-/** Membership plan badge — icon + level, shown for Broker accounts only. */
-function PlanBadgeTag({ plan, planStatus, size = "sm" }) {
-  const meta = PLAN_BADGE[plan] || PLAN_BADGE.free;
-  const Icon = meta.icon;
-  const suffix = PLAN_STATUS_SUFFIX[planStatus] || "";
-  const isCompact = size === "sm";
-  return (
-    <span
-      style={{
-        display: "inline-flex", alignItems: "center", gap: 5,
-        marginTop: 6,
-        padding: isCompact ? "2px 8px" : "3px 10px",
-        background: "rgba(255,255,255,0.05)",
-        border: "1px solid rgba(255,255,255,0.12)",
-        borderRadius: 20,
-        fontSize: isCompact ? 10 : 11,
-        fontWeight: 600,
-        color: meta.color,
-        whiteSpace: "nowrap",
-      }}
-    >
-      <Icon style={{ width: isCompact ? 11 : 12, height: isCompact ? 11 : 12, flexShrink: 0 }} />
-      {meta.label}
-      {suffix}
-    </span>
-  );
 }
 
 /** One icon-badge row used throughout the mobile sidebar (nav links, account links, sign out). */
@@ -307,7 +265,7 @@ function MobileTestModeAccordion({ isOpen, onToggle, onSelect, onSelectCp, tone 
 }
 
 /** User dropdown panel (desktop) */
-function UserDropdown({ user, onSelectCp, onClose, onLogout }) {
+function UserDropdown({ user, cityLabel, onSelectCp, onClose, onLogout }) {
   const [testModeOpen, setTestModeOpen] = useState(false);
   const fullName = user?.fullName;
   const typeLabel = getAccountTypeLabel(user);
@@ -377,25 +335,35 @@ function UserDropdown({ user, onSelectCp, onClose, onLogout }) {
             <p style={{ fontSize: 15, fontWeight: 600, color: "#f5f1e8", marginBottom: 5, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               {fullName || "My Account"}
             </p>
-            {/* Account type tag */}
-            <span style={{
-              display: "inline-flex", alignItems: "center",
-              padding: "2px 9px",
-              background: "rgba(255,198,51,0.12)",
-              border: "1px solid rgba(255,198,51,0.3)",
-              borderRadius: 20,
-              fontSize: 10, fontWeight: 700,
-              letterSpacing: "0.13em", textTransform: "uppercase",
-              color: "#ffc633",
-            }}>
-              {typeLabel}
-            </span>
-            {/* Membership plan badge — Broker accounts only */}
-            {user?.accountType === "broker" && (
-              <div>
-                <PlanBadgeTag plan={user?.plan} planStatus={user?.planStatus} />
-              </div>
-            )}
+            <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+              {/* Account type tag */}
+              <span style={{
+                display: "inline-flex", alignItems: "center",
+                padding: "2px 9px",
+                background: "rgba(255,198,51,0.12)",
+                border: "1px solid rgba(255,198,51,0.3)",
+                borderRadius: 20,
+                fontSize: 10, fontWeight: 700,
+                letterSpacing: "0.13em", textTransform: "uppercase",
+                color: "#ffc633",
+              }}>
+                {typeLabel}
+              </span>
+              {cityLabel && (
+                <span className="tracked-label" style={{
+                  display: "inline-flex", alignItems: "center", gap: 4,
+                  padding: "2px 9px",
+                  background: "rgba(10,14,26,1)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  borderRadius: 20,
+                  fontSize: 10, fontWeight: 700,
+                  color: "#ffc633", whiteSpace: "nowrap",
+                }}>
+                  <FiMapPin style={{ width: 10, height: 10 }} />
+                  {cityLabel}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -581,10 +549,27 @@ export default function Navbar() {
   const [mobileTestModeOpen, setMobileTestModeOpen] = useState(false);
   const [showAuthGate, setShowAuthGate] = useState(false);
   const [showCompleteProfile, setShowCompleteProfile] = useState(false);
+  const [cityLabel, setCityLabel] = useState("");
   const { isAuthenticated, isLoading, user, login, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const dropdownRef = useRef(null);
+
+  // Detected city badge: read what LocationPrompt saved, and stay in sync if it updates
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("se_user_city");
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time read of a client-only external store on mount
+      if (saved) setCityLabel(saved);
+    } catch {
+      // ignore
+    }
+    function handleLocationUpdate(e) {
+      setCityLabel(e.detail || "");
+    }
+    window.addEventListener("se-location-updated", handleLocationUpdate);
+    return () => window.removeEventListener("se-location-updated", handleLocationUpdate);
+  }, []);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -769,6 +754,7 @@ export default function Navbar() {
                 {dropdownOpen && (
                   <UserDropdown
                     user={user}
+                    cityLabel={cityLabel}
                     onSelectCp={handleTestModeSelectCp}
                     onClose={() => setDropdownOpen(false)}
                     onLogout={handleLogout}
@@ -874,21 +860,24 @@ export default function Navbar() {
                     <p style={{ fontSize: 14, fontWeight: 600, color: "#f5f1e8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                       {user?.fullName || "My Account"}
                     </p>
-                    <span className="tracked-label" style={{
-                      display: "inline-flex", marginTop: 4,
-                      padding: "2px 8px",
-                      background: "rgba(255,198,51,0.12)", border: "1px solid rgba(255,198,51,0.3)",
-                      borderRadius: 20,
-                      fontSize: 9, fontWeight: 700,
-                      color: "#ffc633",
-                    }}>
-                      {typeLabel}
-                    </span>
-                    {user?.accountType === "broker" && (
-                      <div>
-                        <PlanBadgeTag plan={user?.plan} planStatus={user?.planStatus} />
-                      </div>
-                    )}
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4, flexWrap: "wrap" }}>
+                      <span className="tracked-label" style={{
+                        display: "inline-flex",
+                        padding: "2px 8px",
+                        background: "rgba(255,198,51,0.12)", border: "1px solid rgba(255,198,51,0.3)",
+                        borderRadius: 20,
+                        fontSize: 9, fontWeight: 700,
+                        color: "#ffc633",
+                      }}>
+                        {typeLabel}
+                      </span>
+                      {cityLabel && (
+                        <span className="tracked-label flex items-center gap-1 whitespace-nowrap rounded-full border border-navy-700/60 bg-navy-900 px-2 py-[3px] text-[9px] text-gold-400">
+                          <FiMapPin className="h-2.5 w-2.5" />
+                          {cityLabel}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               ) : (
@@ -913,6 +902,16 @@ export default function Navbar() {
                 <FiX className="h-6 w-6" />
               </button>
             </div>
+
+            {/* Detected city badge — authenticated users get it inline next to their name above */}
+            {cityLabel && !isAuthenticated && (
+              <div className="px-4 pt-3.5">
+                <span className="tracked-label flex w-fit items-center gap-1.5 whitespace-nowrap rounded-full border border-navy-700/60 bg-navy-900 px-3 py-1.5 text-[10px] text-gold-400">
+                  <FiMapPin className="h-3 w-3" />
+                  {cityLabel}
+                </span>
+              </div>
+            )}
 
             {/* Guest: Register + Login, shown above the Post Property CTA */}
             {!isLoading && !isAuthenticated && (

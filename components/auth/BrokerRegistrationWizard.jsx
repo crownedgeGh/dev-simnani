@@ -70,7 +70,16 @@ export default function BrokerRegistrationWizard() {
   const router = useRouter();
   const { step, setStep, form, setForm, clearDraft } = useWizardDraft("se_draft_broker", INITIAL_FORM);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
+
+  function showFieldError(fields, message) {
+    const errs = {};
+    fields.forEach((f) => { errs[f] = true; });
+    setFieldErrors(errs);
+    setError(message);
+    document.getElementById(fields[0])?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
 
   const cityOptions = useMemo(() => {
     if (!form.state) return [];
@@ -118,28 +127,36 @@ export default function BrokerRegistrationWizard() {
 
   async function goNext() {
     if (step === 1) {
-      if (!form.fullName.trim() || !isMobileValid(form.mobile) || !form.email.trim() || !form.state || !form.city || !form.experience) {
-        setError("Please fill in all required fields.");
+      const missing = [];
+      if (!form.fullName.trim()) missing.push("fullName");
+      if (!isMobileValid(form.mobile)) missing.push("mobile");
+      if (!form.email.trim()) missing.push("email");
+      if (!form.state) missing.push("state");
+      if (!form.city) missing.push("city");
+      if (!form.experience) missing.push("experience");
+      if (missing.length) {
+        showFieldError(missing, "Please fill in all required fields.");
         return;
       }
       if (!/^\d{1,2}$/.test(form.experience) || Number(form.experience) < 0 || Number(form.experience) > 60) {
-        setError("Please enter a valid number of years of experience (0-60).");
+        showFieldError(["experience"], "Please enter a valid number of years of experience (0-60).");
         return;
       }
       if (form.dealsClosed !== "" && (isNaN(Number(form.dealsClosed)) || Number(form.dealsClosed) < 0)) {
-        setError("Please enter a valid non-negative number for deals closed.");
+        showFieldError(["dealsClosed"], "Please enter a valid non-negative number for deals closed.");
         return;
       }
       if (!form.accountId) {
         if (!isPasswordValid(form.password)) {
-          setError("Password must be at least 8 characters.");
+          showFieldError(["password"], "Password must be at least 8 characters.");
           return;
         }
         if (form.password !== form.confirmPassword) {
-          setError("Passwords do not match.");
+          showFieldError(["confirmPassword"], "Passwords do not match.");
           return;
         }
       }
+      setFieldErrors({});
       setError("");
       setSubmitting(true);
       const dealsClosedNum = form.dealsClosed !== "" ? Math.max(0, parseInt(form.dealsClosed, 10) || 0) : 0;
@@ -192,20 +209,21 @@ export default function BrokerRegistrationWizard() {
     }
     if (step === 2) {
       if (!form.applicantType) {
-        setError("Please select whether you are an individual or an agency/company.");
+        showFieldError(["applicantType"], "Please select whether you are an individual or an agency/company.");
         return;
       }
       if (form.applicantType === "company") {
-        if (
-          !form.agencyName.trim() ||
-          !form.officeAddress.trim() ||
-          !form.operatingAreas.trim() ||
-          form.specialties.length === 0
-        ) {
-          setError("Please fill in all required fields.");
+        const missing = [];
+        if (!form.agencyName.trim()) missing.push("agencyName");
+        if (!form.officeAddress.trim()) missing.push("officeAddress");
+        if (!form.operatingAreas.trim()) missing.push("operatingAreas");
+        if (form.specialties.length === 0) missing.push("specialties");
+        if (missing.length) {
+          showFieldError(missing, "Please fill in all required fields.");
           return;
         }
       }
+      setFieldErrors({});
       setSubmitting(true);
       try {
         const result = await updateProfile({
@@ -226,11 +244,11 @@ export default function BrokerRegistrationWizard() {
     }
     if (step === 3) {
       if (!form.reraRegistered) {
-        setError("Please let us know if you are RERA registered.");
+        showFieldError(["reraRegistered"], "Please let us know if you are RERA registered.");
         return;
       }
       if (form.reraRegistered === "yes" && !form.reraNumber.trim()) {
-        setError("RERA registration is mandatory. Please provide your RERA number.");
+        showFieldError(["reraNumber"], "RERA registration is mandatory. Please provide your RERA number.");
         return;
       }
       const stepThreeError = await persistReraStep(form.reraRegistered);
@@ -239,6 +257,7 @@ export default function BrokerRegistrationWizard() {
         return;
       }
     }
+    setFieldErrors({});
     setError("");
     setStep((s) => Math.min(s + 1, TOTAL_STEPS));
   }
@@ -275,6 +294,7 @@ export default function BrokerRegistrationWizard() {
 
   function goBack() {
     setError("");
+    setFieldErrors({});
     setStep((s) => Math.max(s - 1, 1));
   }
 
@@ -289,9 +309,10 @@ export default function BrokerRegistrationWizard() {
 
   async function handleSubmit() {
     if (!form.agree) {
-      setError("Please accept the Terms & Conditions to continue.");
+      showFieldError(["agree"], "Please accept the Terms & Conditions to continue.");
       return;
     }
+    setFieldErrors({});
     setError("");
     setSubmitting(true);
     try {
@@ -343,12 +364,12 @@ export default function BrokerRegistrationWizard() {
               placeholder="Enter your legal name"
               value={form.fullName}
               onChange={(e) => update("fullName", e.target.value)}
-              className={inputClass}
+              className={`${inputClass} ${fieldErrors.fullName ? "border-red-500 focus:border-red-400" : ""}`}
             />
           </FormField>
 
           <FormField label="Mobile Number" htmlFor="mobile" required>
-            <div className="flex items-center rounded-full border border-navy-700/60 bg-navy-950 px-4 transition focus-within:border-gold-400 focus-within:ring-4 focus-within:ring-gold-400/10">
+            <div className={`flex items-center rounded-full border bg-navy-950 px-4 transition focus-within:border-gold-400 focus-within:ring-4 focus-within:ring-gold-400/10 ${fieldErrors.mobile ? "border-red-500" : "border-navy-700/60"}`}>
               <span className="text-sm text-muted">+91</span>
               <input
                 id="mobile"
@@ -369,7 +390,7 @@ export default function BrokerRegistrationWizard() {
               placeholder="name@domain.com"
               value={form.email}
               onChange={(e) => update("email", e.target.value)}
-              className={inputClass}
+              className={`${inputClass} ${fieldErrors.email ? "border-red-500 focus:border-red-400" : ""}`}
             />
           </FormField>
 
@@ -382,6 +403,7 @@ export default function BrokerRegistrationWizard() {
                 options={RTO_STATES}
                 placeholder="Select your state"
                 searchPlaceholder="Search states…"
+                invalid={fieldErrors.state}
               />
             </FormField>
 
@@ -395,6 +417,7 @@ export default function BrokerRegistrationWizard() {
                 searchPlaceholder="Search cities…"
                 disabled={!form.state}
                 emptyMessage="No cities found for this state"
+                invalid={fieldErrors.city}
               />
             </FormField>
           </div>
@@ -414,7 +437,7 @@ export default function BrokerRegistrationWizard() {
                 const clamped = digits && Number(digits) > 60 ? "60" : digits;
                 update("experience", clamped);
               }}
-              className={inputClass}
+              className={`${inputClass} ${fieldErrors.experience ? "border-red-500 focus:border-red-400" : ""}`}
             />
           </FormField>
 
@@ -431,7 +454,7 @@ export default function BrokerRegistrationWizard() {
                 const digits = e.target.value.replace(/\D/g, "").slice(0, 4);
                 update("dealsClosed", digits);
               }}
-              className={inputClass}
+              className={`${inputClass} ${fieldErrors.dealsClosed ? "border-red-500 focus:border-red-400" : ""}`}
             />
           </FormField>
 
@@ -441,6 +464,8 @@ export default function BrokerRegistrationWizard() {
               confirmPassword={form.confirmPassword}
               onPasswordChange={(value) => update("password", value)}
               onConfirmPasswordChange={(value) => update("confirmPassword", value)}
+              passwordInvalid={fieldErrors.password}
+              confirmInvalid={fieldErrors.confirmPassword}
             />
           )}
         </div>
@@ -450,10 +475,12 @@ export default function BrokerRegistrationWizard() {
         <div className="flex flex-col gap-4">
           <FormField label="I am registering as" required>
             <ChipGroup
+              id="applicantType"
               options={APPLICANT_TYPES}
               value={form.applicantType}
               onChange={(value) => update("applicantType", value)}
               layout="row"
+              invalid={fieldErrors.applicantType}
             />
           </FormField>
 
@@ -466,7 +493,7 @@ export default function BrokerRegistrationWizard() {
                   placeholder="e.g. Apex Luxury Real Estate"
                   value={form.agencyName}
                   onChange={(e) => update("agencyName", e.target.value)}
-                  className={inputClass}
+                  className={`${inputClass} ${fieldErrors.agencyName ? "border-red-500 focus:border-red-400" : ""}`}
                 />
               </FormField>
 
@@ -477,7 +504,7 @@ export default function BrokerRegistrationWizard() {
                   placeholder="Street Address, City, State, PIN Code"
                   value={form.officeAddress}
                   onChange={(e) => update("officeAddress", e.target.value)}
-                  className={inputClass}
+                  className={`${inputClass} ${fieldErrors.officeAddress ? "border-red-500 focus:border-red-400" : ""}`}
                 />
               </FormField>
 
@@ -493,16 +520,18 @@ export default function BrokerRegistrationWizard() {
                   placeholder="e.g. Whitefield, Indiranagar, Koramangala"
                   value={form.operatingAreas}
                   onChange={(e) => update("operatingAreas", e.target.value)}
-                  className={inputClass}
+                  className={`${inputClass} ${fieldErrors.operatingAreas ? "border-red-500 focus:border-red-400" : ""}`}
                 />
               </FormField>
 
               <FormField label="Property Specialties" required>
                 <ChipGroup
+                  id="specialties"
                   options={SPECIALTIES}
                   value={form.specialties}
                   onChange={(value) => update("specialties", value)}
                   multi
+                  invalid={fieldErrors.specialties}
                 />
               </FormField>
             </>
@@ -514,10 +543,12 @@ export default function BrokerRegistrationWizard() {
         <div className="flex flex-col gap-4">
           <FormField label="Are you RERA Registered?" required>
             <ChipGroup
+              id="reraRegistered"
               options={RERA_OPTIONS}
               value={form.reraRegistered}
               onChange={selectReraStatus}
               layout="row"
+              invalid={fieldErrors.reraRegistered}
             />
           </FormField>
 
@@ -538,7 +569,7 @@ export default function BrokerRegistrationWizard() {
                   placeholder="Enter your RERA ID"
                   value={form.reraNumber}
                   onChange={(e) => update("reraNumber", e.target.value)}
-                  className={inputClass}
+                  className={`${inputClass} ${fieldErrors.reraNumber ? "border-red-500 focus:border-red-400" : ""}`}
                 />
               </FormField>
 
@@ -640,12 +671,12 @@ export default function BrokerRegistrationWizard() {
             </div>
           </div>
 
-          <label className="flex items-start gap-3 text-xs text-muted">
+          <label id="agree" className={`flex items-start gap-3 text-xs text-muted ${fieldErrors.agree ? "text-red-400" : ""}`}>
             <input
               type="checkbox"
               checked={form.agree}
               onChange={(e) => update("agree", e.target.checked)}
-              className="mt-0.5 h-4 w-4 accent-gold-400"
+              className={`mt-0.5 h-4 w-4 accent-gold-400 ${fieldErrors.agree ? "outline outline-2 outline-red-500" : ""}`}
             />
             By submitting, you agree to our{" "}
             <Link href="/legal/terms-conditions" target="_blank" onClick={(e) => e.stopPropagation()} className="text-gold-400 hover:text-gold-300">

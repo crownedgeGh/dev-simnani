@@ -104,7 +104,8 @@ export default function AccountProfile({ user }) {
             <p className="font-display text-lg text-cream">{form.name}</p>
             <div className="flex flex-wrap items-center gap-2">
               <Badge tone="gold">{displayRole}</Badge>
-              {authUser?.accountType === "broker" && <PlanBadge user={authUser} />}
+              {/* PlanBadge and Upgrade Plan link temporarily disabled — pricing not in use yet */}
+              {/* {authUser?.accountType === "broker" && <PlanBadge user={authUser} />}
               {authUser?.accountType === "broker" && authUser?.plan !== "premium" && (
                 <Link
                   href="/pricing"
@@ -113,7 +114,7 @@ export default function AccountProfile({ user }) {
                   <FiArrowUpCircle className="h-3.5 w-3.5" />
                   Upgrade Plan
                 </Link>
-              )}
+              )} */}
             </div>
           </div>
           {!editing && (

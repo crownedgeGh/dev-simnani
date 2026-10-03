@@ -1,4 +1,4 @@
-export default function ChipGroup({ options, value, onChange, multi = false, layout = "pill" }) {
+export default function ChipGroup({ id, options, value, onChange, multi = false, layout = "pill", invalid = false }) {
   function isSelected(val) {
     return multi ? value.includes(val) : value === val;
   }
@@ -11,9 +11,11 @@ export default function ChipGroup({ options, value, onChange, multi = false, lay
     }
   }
 
+  const unselectedBorder = invalid ? "border-red-500/70" : "border-navy-700/60";
+
   if (layout === "row") {
     return (
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+      <div id={id} className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         {options.map((opt) => (
           <button
             key={opt.value}
@@ -23,7 +25,7 @@ export default function ChipGroup({ options, value, onChange, multi = false, lay
             className={`flex items-center justify-between border px-4 py-3 text-left text-sm transition ${
               isSelected(opt.value)
                 ? "border-gold-400 text-cream"
-                : "border-navy-700/60 text-muted hover:text-cream"
+                : `${unselectedBorder} text-muted hover:text-cream`
             }`}
           >
             {opt.label}
@@ -36,7 +38,7 @@ export default function ChipGroup({ options, value, onChange, multi = false, lay
 
   if (layout === "card") {
     return (
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div id={id} className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {options.map((opt) => (
           <button
             key={opt.value}
@@ -46,7 +48,7 @@ export default function ChipGroup({ options, value, onChange, multi = false, lay
             className={`flex flex-col items-start gap-1 border p-4 text-left transition ${
               isSelected(opt.value)
                 ? "border-gold-400 bg-gold-400/5"
-                : "border-navy-700/60 hover:border-navy-600"
+                : `${unselectedBorder} hover:border-navy-600`
             }`}
           >
             <span className="text-sm text-cream">{opt.label}</span>
@@ -58,7 +60,7 @@ export default function ChipGroup({ options, value, onChange, multi = false, lay
   }
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div id={id} className="flex flex-wrap gap-2">
       {options.map((opt) => (
         <button
           key={opt.value}
@@ -68,7 +70,7 @@ export default function ChipGroup({ options, value, onChange, multi = false, lay
           className={`tracked-label rounded-full border px-4 py-2 text-xs transition active:scale-[0.98] ${
             isSelected(opt.value)
               ? "border-gold-400 bg-gold-400 text-navy-950"
-              : "border-navy-700/60 text-muted hover:text-cream"
+              : `${unselectedBorder} text-muted hover:text-cream`
           }`}
         >
           {opt.label}

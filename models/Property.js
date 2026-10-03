@@ -105,6 +105,14 @@ const PropertySchema = new mongoose.Schema(
       default: "public",
       index: true,
     },
+    // Snapshot of the poster's accountType at creation time (common-person,
+    // broker, freelancer, ...), used only to tell Owner vs Broker apart when
+    // postedByRole is "public". Server-set, not trusted from the client.
+    postedByAccountType: {
+      type: String,
+      default: "",
+      index: true,
+    },
     addedDate: {
       type: String,
       default: () =>

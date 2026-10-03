@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import { FiMapPin, FiX } from "react-icons/fi";
 
 const STORAGE_KEY = "se_location_prompt_seen";
+const LOCATION_KEY = "se_user_location";
+const STALE_MS = 30 * 60 * 1000; // re-detect city after 30 min, e.g. if the user has traveled
 
 export default function LocationPrompt() {
   const pathname = usePathname();
@@ -40,36 +42,91 @@ export default function LocationPrompt() {
     }
   }
 
+  function saveCity(city) {
+    if (!city) return;
+    try {
+      localStorage.setItem("se_user_city", city);
+    } catch {
+      // ignore
+    }
+    window.dispatchEvent(new CustomEvent("se-location-updated", { detail: city }));
+  }
+
+  // IP-based fallback — used when GPS is denied, times out, or isn't available
+  // (e.g. no secure context), so the city badge still has a chance to populate.
+  function fetchCityByIp() {
+    fetch("https://ipapi.co/json/")
+      .then((res) => res.json())
+      .then((data) => saveCity(data?.city))
+      .catch(() => {
+        // IP lookup unavailable too — no city badge, not fatal
+      });
+  }
+
+  function detectCityFromCoords(lat, lng) {
+    try {
+      localStorage.setItem(LOCATION_KEY, JSON.stringify({ lat, lng, savedAt: Date.now() }));
+    } catch {
+      // ignore
+    }
+    fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`)
+      .then((res) => res.json())
+      .then((data) => saveCity(data?.city || data?.locality || data?.principalSubdivision))
+      .catch(() => {
+        // reverse geocoding unavailable — fall back to IP-based city
+        fetchCityByIp();
+      });
+  }
+
   function handleAllow() {
     if (!("geolocation" in navigator)) {
-      dismiss();
+      markGranted();
+      fetchCityByIp();
       return;
     }
     setRequesting(true);
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        try {
-          localStorage.setItem(
-            "se_user_location",
-            JSON.stringify({
-              lat: position.coords.latitude,
-              lng: position.coords.longitude,
-              savedAt: Date.now(),
-            })
-          );
-        } catch {
-          // ignore
-        }
         setRequesting(false);
         markGranted();
+        detectCityFromCoords(position.coords.latitude, position.coords.longitude);
       },
       () => {
+        // Permission denied / timed out / insecure context — still stop nagging,
+        // and fall back to an IP-based city guess.
         setRequesting(false);
-        dismiss();
+        markGranted();
+        fetchCityByIp();
       },
       { timeout: 10000 }
     );
   }
+
+  // Silent re-detect: if location was granted before and the cached fix is
+  // stale, quietly refresh it on this load — covers the "traveled to another
+  // city" case without re-showing the prompt. No-ops if permission was denied
+  // (the browser just won't prompt and getCurrentPosition errors silently).
+  useEffect(() => {
+    if (!("geolocation" in navigator)) return;
+    let seen, cached;
+    try {
+      seen = localStorage.getItem(STORAGE_KEY);
+      cached = JSON.parse(localStorage.getItem(LOCATION_KEY) || "null");
+    } catch {
+      return;
+    }
+    if (!seen) return;
+    if (cached?.savedAt && Date.now() - cached.savedAt < STALE_MS) return;
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => detectCityFromCoords(position.coords.latitude, position.coords.longitude),
+      () => {
+        // denied/unavailable this time — leave the last known city as-is
+      },
+      { timeout: 10000 }
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-time mount check, detectCityFromCoords has no reactive deps
+  }, []);
 
   if (!visible || isAdminRoute || !isHomePage) return null;
 

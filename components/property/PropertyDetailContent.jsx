@@ -11,6 +11,7 @@ import {
   isPgOrHostel,
 } from "@/lib/properties";
 import { getPropertyDescription } from "@/lib/propertyContent";
+import { getPostedByCategoryLabel } from "@/lib/postedByRoles";
 import PropertyMediaCarousel from "@/components/property/PropertyMediaCarousel";
 import VideoEditingGuidelines from "@/components/property/VideoEditingGuidelines";
 import BackButton from "@/components/layout/BackButton";
@@ -39,6 +40,7 @@ import {
   MdPerson,
   MdWeekend,
   MdWc,
+  MdBadge,
 } from "react-icons/md";
 
 export default function PropertyDetailContent({ property, eyebrow, sidebar, backHref, showDownloadButtons = false }) {
@@ -95,6 +97,7 @@ export default function PropertyDetailContent({ property, eyebrow, sidebar, back
         value: getGenderPreferenceLabel(property.genderPreference),
       },
     { icon: <MdAccessTime />, label: "Posted", value: formatPostedDate(property) || property.addedDate },
+    { icon: <MdBadge />, label: "Posted By", value: getPostedByCategoryLabel(property) },
     { icon: <MdPerson />, label: "Contact Person", value: property.contact?.fullName },
   ]
     .filter(Boolean)

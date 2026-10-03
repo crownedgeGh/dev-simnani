@@ -17,6 +17,7 @@ import {
 } from "@/lib/properties";
 import { searchIndianCities } from "@/lib/indianCities";
 import { trackEvent } from "@/lib/gtag";
+import { POSTED_BY_CATEGORY_OPTIONS, getPostedByCategory } from "@/lib/postedByRoles";
 
 // Accepts either a plain dropdown value ("1".."5") or a free-form label
 // like "4 BHK+" (as sent by the homepage search bar) and normalizes it to
@@ -83,6 +84,7 @@ export default function PropertyFilterBar({
   const [showTypeSuggestions, setShowTypeSuggestions] = useState(false);
   const [budget, setBudget] = useState("");
   const [bhk, setBhk] = useState("");
+  const [postedBy, setPostedBy] = useState("");
   const cityFieldRef = useRef(null);
   const typeFieldRef = useRef(null);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
@@ -280,9 +282,11 @@ export default function PropertyFilterBar({
         }
       }
 
+      if (postedBy && getPostedByCategory(property) !== postedBy) return false;
+
       return true;
     });
-  }, [properties, search, city, propertyType, selectedRange, bhkFilter]);
+  }, [properties, search, city, propertyType, selectedRange, bhkFilter, postedBy]);
 
   const activeFilters = [
     city && {
@@ -298,6 +302,11 @@ export default function PropertyFilterBar({
       label: `${bhkFilter.num}${bhkFilter.plus ? "+" : ""} BHK`,
       clear: () => setBhk(""),
     },
+    postedBy && {
+      key: "postedBy",
+      label: `Posted by ${POSTED_BY_CATEGORY_OPTIONS.find((o) => o.value === postedBy)?.label || postedBy}`,
+      clear: () => setPostedBy(""),
+    },
   ].filter(Boolean);
 
   function clearAll() {
@@ -306,6 +315,7 @@ export default function PropertyFilterBar({
     clearPropertyType();
     setBudget("");
     setBhk("");
+    setPostedBy("");
   }
 
   // When the active city/type/BHK filters return nothing, surface a warmer,
@@ -390,9 +400,9 @@ export default function PropertyFilterBar({
           } sm:static sm:z-auto sm:w-auto sm:max-w-none sm:overflow-visible sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:grid sm:grid-cols-2 sm:gap-3 ${
             showPropertyType
               ? showBhk
-                ? "lg:grid-cols-[2fr_1fr_1fr_1.3fr_1fr]"
-                : "lg:grid-cols-[2fr_1fr_1.3fr_1fr]"
-              : "lg:grid-cols-[2fr_1.3fr_1fr]"
+                ? "lg:grid-cols-[2fr_1fr_1fr_1.3fr_1fr_1fr]"
+                : "lg:grid-cols-[2fr_1fr_1.3fr_1fr_1fr]"
+              : "lg:grid-cols-[2fr_1.3fr_1fr_1fr]"
           }`}
         >
           <div className="flex items-center justify-between sm:hidden">
@@ -541,6 +551,20 @@ export default function PropertyFilterBar({
             {budgetRanges.map((range) => (
               <option key={range.label} value={range.label}>
                 {range.label}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={postedBy}
+            onChange={(e) => setPostedBy(e.target.value)}
+            className={`${filterFieldClass} appearance-none`}
+            aria-label="Filter by posted by"
+          >
+            <option value="">Posted by Anyone</option>
+            {POSTED_BY_CATEGORY_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                Posted by {option.label}
               </option>
             ))}
           </select>

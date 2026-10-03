@@ -180,6 +180,7 @@ export async function POST(request) {
       baths,
       ownerId: sessionUser.accountId,
       postedByRole: body.postedByRole || "public",
+      postedByAccountType: sessionUser.accountType || "",
       addedDate:
         body.addedDate ||
         new Date().toLocaleDateString("en-IN", {
