@@ -18,9 +18,11 @@ export async function POST(request) {
     }
 
     await dbConnect();
-    const { mobile, turnstileToken } = await request.json();
+    const { mobile, turnstileToken, purpose = "login" } = await request.json();
 
-    if (!(await verifyTurnstile(turnstileToken, request))) {
+    // Registration OTP has no Turnstile widget in its UI (kept minimal) —
+    // it's still covered by the rate limit above.
+    if (purpose !== "register" && !(await verifyTurnstile(turnstileToken, request))) {
       return NextResponse.json(
         { success: false, error: "Verification failed. Please try again." },
         { status: 400 }
@@ -38,7 +40,21 @@ export async function POST(request) {
 
     const mobileRegex = new RegExp(digits.split("").join("\\D*") + "$");
     const isRegistered = await User.exists({ mobile: mobileRegex });
-    if (!isRegistered) {
+
+    // Registration OTP verifies ownership of a number that has no account
+    // yet — the opposite check from login, which only ever OTPs existing
+    // accounts.
+    if (purpose === "register") {
+      if (isRegistered) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "This mobile number is already registered. Please login instead.",
+          },
+          { status: 409 }
+        );
+      }
+    } else if (!isRegistered) {
       return NextResponse.json(
         {
           success: false,
@@ -49,7 +65,7 @@ export async function POST(request) {
       );
     }
 
-    await sendOtp(digits, "login");
+    await sendOtp(digits, purpose === "register" ? "register" : "login");
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("POST /api/auth/send-otp error:", error?.response?.data || error);

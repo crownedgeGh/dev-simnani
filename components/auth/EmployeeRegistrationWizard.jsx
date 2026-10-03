@@ -8,6 +8,7 @@ import Stepper from "./Stepper";
 import FormField from "./FormField";
 import PasswordFields from "./PasswordFields";
 import SearchableSelect from "./SearchableSelect";
+import MobileOtpGate from "./MobileOtpGate";
 import { inputClass, selectClass } from "./inputStyles";
 import { formatMobile, isMobileValid, isPasswordValid, generateAccountId } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
@@ -43,6 +44,7 @@ export default function EmployeeRegistrationWizard() {
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(() => Boolean(form.accountId));
 
   function showFieldError(fields, message) {
     const errs = {};
@@ -104,6 +106,10 @@ export default function EmployeeRegistrationWizard() {
       if (!form.city.trim()) missing.push("city");
       if (missing.length) {
         showFieldError(missing, "Please fill in all required fields.");
+        return;
+      }
+      if (!otpVerified) {
+        setError("Please verify your mobile number with the OTP before continuing.");
         return;
       }
       if (!form.accountId) {
@@ -258,55 +264,67 @@ export default function EmployeeRegistrationWizard() {
             </div>
           </FormField>
 
-          <FormField label="Email Address" htmlFor="email" required>
-            <input
-              id="email"
-              type="email"
-              placeholder="name@domain.com"
-              value={form.email}
-              onChange={(e) => update("email", e.target.value)}
-              className={`${inputClass} ${fieldErrors.email ? "border-red-500 focus:border-red-400" : ""}`}
-            />
-          </FormField>
+          <MobileOtpGate
+            mobile={form.mobile}
+            mobileValid={isMobileValid(form.mobile)}
+            verified={otpVerified}
+            onVerified={setOtpVerified}
+          />
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormField label="State" htmlFor="state" required>
-              <SearchableSelect
-                id="state"
-                value={form.state}
-                onChange={handleStateChange}
-                options={RTO_STATES}
-                placeholder="Select your state"
-                searchPlaceholder="Search states…"
-                invalid={fieldErrors.state}
+          <fieldset
+            disabled={!otpVerified}
+            className={`flex flex-col gap-4 ${!otpVerified ? "pointer-events-none opacity-40" : ""}`}
+          >
+            <FormField label="Email Address" htmlFor="email" required>
+              <input
+                id="email"
+                type="email"
+                placeholder="name@domain.com"
+                value={form.email}
+                onChange={(e) => update("email", e.target.value)}
+                className={`${inputClass} ${fieldErrors.email ? "border-red-500 focus:border-red-400" : ""}`}
               />
             </FormField>
 
-            <FormField label="City" htmlFor="city" required>
-              <SearchableSelect
-                id="city"
-                value={form.city}
-                onChange={(city) => update("city", city)}
-                options={cityOptions}
-                placeholder={form.state ? "Select your city" : "Select a state first"}
-                searchPlaceholder="Search cities…"
-                disabled={!form.state}
-                emptyMessage="No cities found for this state"
-                invalid={fieldErrors.city}
-              />
-            </FormField>
-          </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <FormField label="State" htmlFor="state" required>
+                <SearchableSelect
+                  id="state"
+                  value={form.state}
+                  onChange={handleStateChange}
+                  options={RTO_STATES}
+                  placeholder="Select your state"
+                  searchPlaceholder="Search states…"
+                  invalid={fieldErrors.state}
+                />
+              </FormField>
 
-          {!form.accountId && (
-            <PasswordFields
-              password={form.password}
-              confirmPassword={form.confirmPassword}
-              onPasswordChange={(value) => update("password", value)}
-              onConfirmPasswordChange={(value) => update("confirmPassword", value)}
-              passwordInvalid={fieldErrors.password}
-              confirmInvalid={fieldErrors.confirmPassword}
-            />
-          )}
+              <FormField label="City" htmlFor="city" required>
+                <SearchableSelect
+                  id="city"
+                  value={form.city}
+                  onChange={(city) => update("city", city)}
+                  options={cityOptions}
+                  placeholder={form.state ? "Select your city" : "Select a state first"}
+                  searchPlaceholder="Search cities…"
+                  disabled={!form.state}
+                  emptyMessage="No cities found for this state"
+                  invalid={fieldErrors.city}
+                />
+              </FormField>
+            </div>
+
+            {!form.accountId && (
+              <PasswordFields
+                password={form.password}
+                confirmPassword={form.confirmPassword}
+                onPasswordChange={(value) => update("password", value)}
+                onConfirmPasswordChange={(value) => update("confirmPassword", value)}
+                passwordInvalid={fieldErrors.password}
+                confirmInvalid={fieldErrors.confirmPassword}
+              />
+            )}
+          </fieldset>
         </div>
       )}
 
@@ -429,7 +447,7 @@ export default function EmployeeRegistrationWizard() {
             <button
               type="button"
               onClick={goNext}
-              disabled={submitting}
+              disabled={submitting || (step === 1 && !otpVerified)}
               className="tracked-label rounded-full bg-gold-400 px-6 py-4 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 hover:shadow-gold-400/20 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {submitting && step === 1 ? "Please wait..." : "Continue"}

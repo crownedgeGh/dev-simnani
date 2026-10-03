@@ -11,6 +11,7 @@ import ChipGroup from "./ChipGroup";
 import PasswordFields from "./PasswordFields";
 import SearchableSelect from "./SearchableSelect";
 import SkillsSelector from "./SkillsSelector";
+import MobileOtpGate from "./MobileOtpGate";
 import { inputClass } from "./inputStyles";
 import { formatMobile, isMobileValid, isPasswordValid, generateAccountId } from "@/lib/auth";
 import { RTO_STATES, getCitiesForState } from "@/lib/cityRto";
@@ -74,6 +75,7 @@ export default function FreelancerRegistrationWizard() {
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
 
   function showFieldError(fields, message) {
     const errs = {};
@@ -111,6 +113,10 @@ export default function FreelancerRegistrationWizard() {
       }
       if (!isMobileValid(form.mobile)) {
         showFieldError(["mobile"], "Please enter a valid 10-digit mobile number.");
+        return;
+      }
+      if (!otpVerified) {
+        setError("Please verify your mobile number with the OTP before continuing.");
         return;
       }
       if (!form.state) {
@@ -152,6 +158,10 @@ export default function FreelancerRegistrationWizard() {
     }
     if (!isMobileValid(form.mobile)) {
       showFieldError(["mobile"], "Please enter a valid 10-digit mobile number.");
+      return;
+    }
+    if (!otpVerified) {
+      setError("Please verify your mobile number with the OTP before continuing.");
       return;
     }
     if (!form.state) {
@@ -294,114 +304,126 @@ export default function FreelancerRegistrationWizard() {
             </div>
           </FormField>
 
-          <FormField label="Email Address" htmlFor="email" optional>
-            <input
-              id="email"
-              type="email"
-              placeholder="you@example.com"
-              value={form.email}
-              onChange={(e) => update("email", e.target.value)}
-              className={inputClass}
-            />
-          </FormField>
+          <MobileOtpGate
+            mobile={form.mobile}
+            mobileValid={isMobileValid(form.mobile)}
+            verified={otpVerified}
+            onVerified={setOtpVerified}
+          />
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormField label="State" htmlFor="state" required>
-              <SearchableSelect
-                id="state"
-                value={form.state}
-                onChange={handleStateChange}
-                options={RTO_STATES}
-                placeholder="Select your state"
-                searchPlaceholder="Search states…"
-                invalid={fieldErrors.state}
+          <fieldset
+            disabled={!otpVerified}
+            className={`flex flex-col gap-4 ${!otpVerified ? "pointer-events-none opacity-40" : ""}`}
+          >
+            <FormField label="Email Address" htmlFor="email" optional>
+              <input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={form.email}
+                onChange={(e) => update("email", e.target.value)}
+                className={inputClass}
               />
             </FormField>
 
-            <FormField label="City" htmlFor="city" required>
-              <SearchableSelect
-                id="city"
-                value={form.city}
-                onChange={(city) => update("city", city)}
-                options={cityOptions}
-                placeholder={form.state ? "Select your city" : "Select a state first"}
-                searchPlaceholder="Search cities…"
-                disabled={!form.state}
-                emptyMessage="No cities found for this state"
-                invalid={fieldErrors.city}
-              />
-            </FormField>
-          </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <FormField label="State" htmlFor="state" required>
+                <SearchableSelect
+                  id="state"
+                  value={form.state}
+                  onChange={handleStateChange}
+                  options={RTO_STATES}
+                  placeholder="Select your state"
+                  searchPlaceholder="Search states…"
+                  invalid={fieldErrors.state}
+                />
+              </FormField>
 
-          {form.cpType === "digital" && (
-            <FormField label="Currently working anywhere?" required>
-              <div id="currentlyWorking" className={fieldErrors.currentlyWorking ? "rounded-xl border border-red-500 p-2" : ""}>
-                <ChipGroup
-                  options={CURRENTLY_WORKING_OPTIONS}
-                  value={form.currentlyWorking}
-                  onChange={(value) => update("currentlyWorking", value)}
+              <FormField label="City" htmlFor="city" required>
+                <SearchableSelect
+                  id="city"
+                  value={form.city}
+                  onChange={(city) => update("city", city)}
+                  options={cityOptions}
+                  placeholder={form.state ? "Select your city" : "Select a state first"}
+                  searchPlaceholder="Search cities…"
+                  disabled={!form.state}
+                  emptyMessage="No cities found for this state"
+                  invalid={fieldErrors.city}
+                />
+              </FormField>
+            </div>
+
+            {form.cpType === "digital" && (
+              <FormField label="Currently working anywhere?" required>
+                <div id="currentlyWorking" className={fieldErrors.currentlyWorking ? "rounded-xl border border-red-500 p-2" : ""}>
+                  <ChipGroup
+                    options={CURRENTLY_WORKING_OPTIONS}
+                    value={form.currentlyWorking}
+                    onChange={(value) => update("currentlyWorking", value)}
+                  />
+                </div>
+              </FormField>
+            )}
+
+            {form.cpType === "field" && (
+              <FormField
+                label="Coverage Localities"
+                htmlFor="coverageAreas"
+                required
+                hint="Neighborhoods or areas where you can arrange site visits."
+              >
+                <input
+                  id="coverageAreas"
+                  type="text"
+                  placeholder="e.g. Whitefield, Sarjapur Road, HSR Layout"
+                  value={form.coverageAreas}
+                  onChange={(e) => update("coverageAreas", e.target.value)}
+                  className={`${inputClass} ${fieldErrors.coverageAreas ? "border-red-500 focus:border-red-400" : ""}`}
+                />
+              </FormField>
+            )}
+
+            <FormField
+              label="Your Current Skills"
+              required
+              hint="Select your category, then pick or add your skills below."
+            >
+              <div id="skills" className={fieldErrors.skills ? "rounded-xl border border-red-500 p-2" : ""}>
+                <SkillsSelector
+                  value={form.skills}
+                  onChange={(skills) => update("skills", skills)}
                 />
               </div>
             </FormField>
-          )}
 
-          {form.cpType === "field" && (
-            <FormField
-              label="Coverage Localities"
-              htmlFor="coverageAreas"
-              required
-              hint="Neighborhoods or areas where you can arrange site visits."
-            >
-              <input
-                id="coverageAreas"
-                type="text"
-                placeholder="e.g. Whitefield, Sarjapur Road, HSR Layout"
-                value={form.coverageAreas}
-                onChange={(e) => update("coverageAreas", e.target.value)}
-                className={`${inputClass} ${fieldErrors.coverageAreas ? "border-red-500 focus:border-red-400" : ""}`}
-              />
-            </FormField>
-          )}
-
-          <FormField
-            label="Your Current Skills"
-            required
-            hint="Select your category, then pick or add your skills below."
-          >
-            <div id="skills" className={fieldErrors.skills ? "rounded-xl border border-red-500 p-2" : ""}>
-              <SkillsSelector
-                value={form.skills}
-                onChange={(skills) => update("skills", skills)}
-              />
-            </div>
-          </FormField>
-
-          <PasswordFields
-            password={form.password}
-            confirmPassword={form.confirmPassword}
-            onPasswordChange={(value) => update("password", value)}
-            onConfirmPasswordChange={(value) => update("confirmPassword", value)}
-            passwordInvalid={fieldErrors.password}
-            confirmInvalid={fieldErrors.confirmPassword}
-          />
-
-          <label id="agree" className={`flex items-start gap-3 text-xs text-muted ${fieldErrors.agree ? "text-red-400" : ""}`}>
-            <input
-              type="checkbox"
-              checked={form.agree}
-              onChange={(e) => update("agree", e.target.checked)}
-              className={`mt-0.5 h-4 w-4 accent-gold-400 ${fieldErrors.agree ? "outline outline-2 outline-red-500" : ""}`}
+            <PasswordFields
+              password={form.password}
+              confirmPassword={form.confirmPassword}
+              onPasswordChange={(value) => update("password", value)}
+              onConfirmPasswordChange={(value) => update("confirmPassword", value)}
+              passwordInvalid={fieldErrors.password}
+              confirmInvalid={fieldErrors.confirmPassword}
             />
-            I agree to the{" "}
-          <Link href="/legal/terms-conditions" target="_blank" onClick={(e) => e.stopPropagation()} className="text-gold-400 hover:text-gold-300">
-            Terms &amp; Conditions
-          </Link>{" "}
-          and{" "}
-          <Link href="/legal/privacy-policy" target="_blank" onClick={(e) => e.stopPropagation()} className="text-gold-400 hover:text-gold-300">
-            Channel Partner Policy
-          </Link>
-          .
-          </label>
+
+            <label id="agree" className={`flex items-start gap-3 text-xs text-muted ${fieldErrors.agree ? "text-red-400" : ""}`}>
+              <input
+                type="checkbox"
+                checked={form.agree}
+                onChange={(e) => update("agree", e.target.checked)}
+                className={`mt-0.5 h-4 w-4 accent-gold-400 ${fieldErrors.agree ? "outline outline-2 outline-red-500" : ""}`}
+              />
+              I agree to the{" "}
+            <Link href="/legal/terms-conditions" target="_blank" onClick={(e) => e.stopPropagation()} className="text-gold-400 hover:text-gold-300">
+              Terms &amp; Conditions
+            </Link>{" "}
+            and{" "}
+            <Link href="/legal/privacy-policy" target="_blank" onClick={(e) => e.stopPropagation()} className="text-gold-400 hover:text-gold-300">
+              Channel Partner Policy
+            </Link>
+            .
+            </label>
+          </fieldset>
         </div>
       )}
 
@@ -432,7 +454,7 @@ export default function FreelancerRegistrationWizard() {
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={submitting}
+            disabled={submitting || !otpVerified}
             className="tracked-label rounded-full bg-gold-400 px-6 py-4 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 hover:shadow-gold-400/20 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {submitting ? "Submitting..." : "Complete Registration"}

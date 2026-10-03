@@ -7,6 +7,7 @@ import AuthShell from "./AuthShell";
 import FormField from "./FormField";
 import PasswordFields from "./PasswordFields";
 import SearchableSelect from "./SearchableSelect";
+import MobileOtpGate from "./MobileOtpGate";
 import { inputClass } from "./inputStyles";
 import { formatMobile, isMobileValid, isPasswordValid, generateAccountId } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
@@ -30,6 +31,7 @@ export default function CommonPersonRegistrationWizard() {
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
 
   function focusFirstError(errors) {
     const order = ["fullName", "mobile", "state", "city", "password", "confirmPassword", "agree"];
@@ -51,6 +53,10 @@ export default function CommonPersonRegistrationWizard() {
   }
 
   async function handleSubmit() {
+    if (!otpVerified) {
+      setError("Please verify your mobile number with the OTP before continuing.");
+      return;
+    }
     const errors = {
       fullName: !form.fullName.trim(),
       mobile: !isMobileValid(form.mobile),
@@ -147,74 +153,86 @@ export default function CommonPersonRegistrationWizard() {
           </div>
         </FormField>
 
-        <FormField label="Email Address" htmlFor="email" optional>
-          <input
-            id="email"
-            type="email"
-            placeholder="john@example.com"
-            value={form.email}
-            onChange={(e) => update("email", e.target.value)}
-            className={inputClass}
-          />
-        </FormField>
-
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <FormField label="State" htmlFor="state" required>
-            <SearchableSelect
-              id="state"
-              value={form.state}
-              onChange={handleStateChange}
-              options={RTO_STATES}
-              placeholder="Select your state"
-              searchPlaceholder="Search states…"
-              invalid={fieldErrors.state}
-            />
-          </FormField>
-
-          <FormField label="City" htmlFor="city" required>
-            <SearchableSelect
-              id="city"
-              value={form.city}
-              onChange={(city) => update("city", city)}
-              options={cityOptions}
-              placeholder={form.state ? "Select your city" : "Select a state first"}
-              searchPlaceholder="Search cities…"
-              disabled={!form.state}
-              emptyMessage="No cities found for this state"
-              invalid={fieldErrors.city}
-            />
-          </FormField>
-        </div>
-
-        <PasswordFields
-          password={form.password}
-          confirmPassword={form.confirmPassword}
-          onPasswordChange={(value) => update("password", value)}
-          onConfirmPasswordChange={(value) => update("confirmPassword", value)}
-          passwordInvalid={fieldErrors.password}
-          confirmInvalid={fieldErrors.confirmPassword}
+        <MobileOtpGate
+          mobile={form.mobile}
+          mobileValid={isMobileValid(form.mobile)}
+          verified={otpVerified}
+          onVerified={setOtpVerified}
         />
 
-        <label
-          id="agree"
-          className={`flex items-start gap-3 text-xs text-muted ${fieldErrors.agree ? "text-red-400" : ""}`}
+        <fieldset
+          disabled={!otpVerified}
+          className={`flex flex-col gap-4 ${!otpVerified ? "pointer-events-none opacity-40" : ""}`}
         >
-          <input
-            type="checkbox"
-            checked={form.agree}
-            onChange={(e) => update("agree", e.target.checked)}
-            className={`mt-0.5 h-4 w-4 accent-gold-400 ${fieldErrors.agree ? "outline outline-1 outline-red-500" : ""}`}
+          <FormField label="Email Address" htmlFor="email" optional>
+            <input
+              id="email"
+              type="email"
+              placeholder="john@example.com"
+              value={form.email}
+              onChange={(e) => update("email", e.target.value)}
+              className={inputClass}
+            />
+          </FormField>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <FormField label="State" htmlFor="state" required>
+              <SearchableSelect
+                id="state"
+                value={form.state}
+                onChange={handleStateChange}
+                options={RTO_STATES}
+                placeholder="Select your state"
+                searchPlaceholder="Search states…"
+                invalid={fieldErrors.state}
+              />
+            </FormField>
+
+            <FormField label="City" htmlFor="city" required>
+              <SearchableSelect
+                id="city"
+                value={form.city}
+                onChange={(city) => update("city", city)}
+                options={cityOptions}
+                placeholder={form.state ? "Select your city" : "Select a state first"}
+                searchPlaceholder="Search cities…"
+                disabled={!form.state}
+                emptyMessage="No cities found for this state"
+                invalid={fieldErrors.city}
+              />
+            </FormField>
+          </div>
+
+          <PasswordFields
+            password={form.password}
+            confirmPassword={form.confirmPassword}
+            onPasswordChange={(value) => update("password", value)}
+            onConfirmPasswordChange={(value) => update("confirmPassword", value)}
+            passwordInvalid={fieldErrors.password}
+            confirmInvalid={fieldErrors.confirmPassword}
           />
-          I agree to the{" "}
-          <Link href="/legal/terms-conditions" target="_blank" onClick={(e) => e.stopPropagation()} className="text-gold-400 hover:text-gold-300">
-            Terms &amp; Conditions
-          </Link>{" "}
-          and{" "}
-          <Link href="/legal/privacy-policy" target="_blank" onClick={(e) => e.stopPropagation()} className="text-gold-400 hover:text-gold-300">
-            Privacy Policy
-          </Link>
-          .
-        </label>
+
+          <label
+            id="agree"
+            className={`flex items-start gap-3 text-xs text-muted ${fieldErrors.agree ? "text-red-400" : ""}`}
+          >
+            <input
+              type="checkbox"
+              checked={form.agree}
+              onChange={(e) => update("agree", e.target.checked)}
+              className={`mt-0.5 h-4 w-4 accent-gold-400 ${fieldErrors.agree ? "outline outline-1 outline-red-500" : ""}`}
+            />
+            I agree to the{" "}
+            <Link href="/legal/terms-conditions" target="_blank" onClick={(e) => e.stopPropagation()} className="text-gold-400 hover:text-gold-300">
+              Terms &amp; Conditions
+            </Link>{" "}
+            and{" "}
+            <Link href="/legal/privacy-policy" target="_blank" onClick={(e) => e.stopPropagation()} className="text-gold-400 hover:text-gold-300">
+              Privacy Policy
+            </Link>
+            .
+          </label>
+        </fieldset>
       </div>
 
       {error && <p className="mt-4 text-center text-xs text-red-400">{error}</p>}
@@ -223,7 +241,7 @@ export default function CommonPersonRegistrationWizard() {
         <button
           type="button"
           onClick={handleSubmit}
-          disabled={submitting}
+          disabled={submitting || !otpVerified}
           className="tracked-label rounded-full bg-gold-400 px-6 py-4 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 hover:shadow-gold-400/20 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {submitting ? "Creating Account..." : "Create Account"}

@@ -11,6 +11,7 @@ import { PROPERTY_CATEGORIES } from "@/lib/propertyCategories";
 import FileUpload from "./FileUpload";
 import PasswordFields from "./PasswordFields";
 import SearchableSelect from "./SearchableSelect";
+import MobileOtpGate from "./MobileOtpGate";
 import { inputClass } from "./inputStyles";
 import { formatMobile, isMobileValid, isPasswordValid, generateAccountId } from "@/lib/auth";
 import { RTO_STATES, getCitiesForState } from "@/lib/cityRto";
@@ -72,6 +73,7 @@ export default function BrokerRegistrationWizard() {
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(() => Boolean(form.accountId));
 
   function showFieldError(fields, message) {
     const errs = {};
@@ -136,6 +138,10 @@ export default function BrokerRegistrationWizard() {
       if (!form.experience) missing.push("experience");
       if (missing.length) {
         showFieldError(missing, "Please fill in all required fields.");
+        return;
+      }
+      if (!otpVerified) {
+        setError("Please verify your mobile number with the OTP before continuing.");
         return;
       }
       if (!/^\d{1,2}$/.test(form.experience) || Number(form.experience) < 0 || Number(form.experience) > 60) {
@@ -388,91 +394,103 @@ export default function BrokerRegistrationWizard() {
             </div>
           </FormField>
 
-          <FormField label="Email Address" htmlFor="email" required>
-            <input
-              id="email"
-              type="email"
-              placeholder="name@domain.com"
-              value={form.email}
-              onChange={(e) => update("email", e.target.value)}
-              className={`${inputClass} ${fieldErrors.email ? "border-red-500 focus:border-red-400" : ""}`}
-            />
-          </FormField>
+          <MobileOtpGate
+            mobile={form.mobile}
+            mobileValid={isMobileValid(form.mobile)}
+            verified={otpVerified}
+            onVerified={setOtpVerified}
+          />
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormField label="State" htmlFor="state" required>
-              <SearchableSelect
-                id="state"
-                value={form.state}
-                onChange={handleStateChange}
-                options={RTO_STATES}
-                placeholder="Select your state"
-                searchPlaceholder="Search states…"
-                invalid={fieldErrors.state}
+          <fieldset
+            disabled={!otpVerified}
+            className={`flex flex-col gap-4 ${!otpVerified ? "pointer-events-none opacity-40" : ""}`}
+          >
+            <FormField label="Email Address" htmlFor="email" required>
+              <input
+                id="email"
+                type="email"
+                placeholder="name@domain.com"
+                value={form.email}
+                onChange={(e) => update("email", e.target.value)}
+                className={`${inputClass} ${fieldErrors.email ? "border-red-500 focus:border-red-400" : ""}`}
               />
             </FormField>
 
-            <FormField label="Primary City of Operation" htmlFor="city" required>
-              <SearchableSelect
-                id="city"
-                value={form.city}
-                onChange={(city) => update("city", city)}
-                options={cityOptions}
-                placeholder={form.state ? "Select your city" : "Select a state first"}
-                searchPlaceholder="Search cities…"
-                disabled={!form.state}
-                emptyMessage="No cities found for this state"
-                invalid={fieldErrors.city}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <FormField label="State" htmlFor="state" required>
+                <SearchableSelect
+                  id="state"
+                  value={form.state}
+                  onChange={handleStateChange}
+                  options={RTO_STATES}
+                  placeholder="Select your state"
+                  searchPlaceholder="Search states…"
+                  invalid={fieldErrors.state}
+                />
+              </FormField>
+
+              <FormField label="Primary City of Operation" htmlFor="city" required>
+                <SearchableSelect
+                  id="city"
+                  value={form.city}
+                  onChange={(city) => update("city", city)}
+                  options={cityOptions}
+                  placeholder={form.state ? "Select your city" : "Select a state first"}
+                  searchPlaceholder="Search cities…"
+                  disabled={!form.state}
+                  emptyMessage="No cities found for this state"
+                  invalid={fieldErrors.city}
+                />
+              </FormField>
+            </div>
+
+            <FormField label="Years of Experience" htmlFor="experience" required>
+              <input
+                id="experience"
+                type="number"
+                min="0"
+                max="60"
+                maxLength={2}
+                inputMode="numeric"
+                placeholder="e.g. 5"
+                value={form.experience}
+                onChange={(e) => {
+                  const digits = e.target.value.replace(/\D/g, "").slice(0, 2);
+                  const clamped = digits && Number(digits) > 60 ? "60" : digits;
+                  update("experience", clamped);
+                }}
+                className={`${inputClass} ${fieldErrors.experience ? "border-red-500 focus:border-red-400" : ""}`}
               />
             </FormField>
-          </div>
 
-          <FormField label="Years of Experience" htmlFor="experience" required>
-            <input
-              id="experience"
-              type="number"
-              min="0"
-              max="60"
-              maxLength={2}
-              inputMode="numeric"
-              placeholder="e.g. 5"
-              value={form.experience}
-              onChange={(e) => {
-                const digits = e.target.value.replace(/\D/g, "").slice(0, 2);
-                const clamped = digits && Number(digits) > 60 ? "60" : digits;
-                update("experience", clamped);
-              }}
-              className={`${inputClass} ${fieldErrors.experience ? "border-red-500 focus:border-red-400" : ""}`}
-            />
-          </FormField>
+            <FormField label="Deals Closed" htmlFor="dealsClosed" optional hint="Number of deals successfully closed so far">
+              <input
+                id="dealsClosed"
+                type="number"
+                min="0"
+                maxLength={4}
+                inputMode="numeric"
+                placeholder="e.g. 0"
+                value={form.dealsClosed}
+                onChange={(e) => {
+                  const digits = e.target.value.replace(/\D/g, "").slice(0, 4);
+                  update("dealsClosed", digits);
+                }}
+                className={`${inputClass} ${fieldErrors.dealsClosed ? "border-red-500 focus:border-red-400" : ""}`}
+              />
+            </FormField>
 
-          <FormField label="Deals Closed" htmlFor="dealsClosed" optional hint="Number of deals successfully closed so far">
-            <input
-              id="dealsClosed"
-              type="number"
-              min="0"
-              maxLength={4}
-              inputMode="numeric"
-              placeholder="e.g. 0"
-              value={form.dealsClosed}
-              onChange={(e) => {
-                const digits = e.target.value.replace(/\D/g, "").slice(0, 4);
-                update("dealsClosed", digits);
-              }}
-              className={`${inputClass} ${fieldErrors.dealsClosed ? "border-red-500 focus:border-red-400" : ""}`}
-            />
-          </FormField>
-
-          {!form.accountId && (
-            <PasswordFields
-              password={form.password}
-              confirmPassword={form.confirmPassword}
-              onPasswordChange={(value) => update("password", value)}
-              onConfirmPasswordChange={(value) => update("confirmPassword", value)}
-              passwordInvalid={fieldErrors.password}
-              confirmInvalid={fieldErrors.confirmPassword}
-            />
-          )}
+            {!form.accountId && (
+              <PasswordFields
+                password={form.password}
+                confirmPassword={form.confirmPassword}
+                onPasswordChange={(value) => update("password", value)}
+                onConfirmPasswordChange={(value) => update("confirmPassword", value)}
+                passwordInvalid={fieldErrors.password}
+                confirmInvalid={fieldErrors.confirmPassword}
+              />
+            )}
+          </fieldset>
         </div>
       )}
 

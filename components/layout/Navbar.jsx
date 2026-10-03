@@ -11,7 +11,7 @@ import AuthGateModal from "@/components/auth/AuthGateModal";
 import CompleteProfileModal from "@/components/auth/CompleteProfileModal";
 import { MdHome, MdTrendingUp, MdPersonAdd, MdAgriculture, MdFactory, MdScience } from "react-icons/md";
 import {
-  FiUser, FiPlus, FiMenu, FiX,
+  FiUser, FiMenu, FiX,
   FiList, FiBookmark, FiSettings, FiLogOut, FiHelpCircle, FiInfo,
   FiChevronDown, FiMapPin, FiSmartphone, FiBriefcase,
 } from "react-icons/fi";
@@ -696,8 +696,8 @@ export default function Navbar() {
                 className="tracked-label flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full bg-gold-400 px-3.5 py-2 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 active:scale-[0.98]"
               >
                 Post Property
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-navy-950/15 text-navy-950">
-                  <FiPlus className="h-3 w-3" />
+                <span className="rounded-full bg-navy-950 px-2 py-0.5 text-[10px] font-bold text-gold-300">
+                  FREE
                 </span>
               </button>
             )}
@@ -956,10 +956,10 @@ export default function Navbar() {
                     boxShadow: "0 4px 20px rgba(255,198,51,0.25)",
                   }}
                 >
-                  <span style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 22, height: 22, borderRadius: "50%", background: "rgba(5,7,12,0.18)" }}>
-                    <FiPlus style={{ width: 14, height: 14 }} />
-                  </span>
                   Post Your Property
+                  <span style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "3px 9px", borderRadius: 999, background: "var(--color-navy-950)", color: "var(--color-gold-300)", fontSize: 10, fontWeight: 700 }}>
+                    FREE
+                  </span>
                 </button>
               </div>
             )}
