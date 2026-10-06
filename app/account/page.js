@@ -32,7 +32,12 @@ export default async function AccountPage() {
             email: user.email,
             city: user.city,
             mobile: user.mobile,
-            role: user.accountType === "common-person" ? "Common Person" : user.accountType,
+            role:
+              user.accountType === "common-person"
+                ? "Common Person"
+                : user.accountType === "builder"
+                ? "Builder"
+                : user.accountType,
             memberSince: user.registeredDate || "Recently",
           }}
         />

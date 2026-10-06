@@ -11,7 +11,7 @@ import AdminConfirmModal from "@/components/admin/ui/AdminConfirmModal";
 import adminAxios from "@/lib/adminAxios";
 import { ADMIN_KEYS, readCollection, writeCollection } from "@/lib/adminStorage";
 
-const ACCOUNT_TYPES = ["buyer", "broker", "investor", "freelancer", "common-person", "employee"];
+const ACCOUNT_TYPES = ["buyer", "broker", "investor", "freelancer", "common-person", "employee", "builder"];
 const STATUSES = ["Active", "Suspended", "Deleted"];
 
 export default function AdminUsersPage() {

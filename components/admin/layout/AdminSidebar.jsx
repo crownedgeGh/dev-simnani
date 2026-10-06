@@ -35,7 +35,6 @@ const NAV_ITEMS = [
     ],
   },
   { href: "/admin/users", label: "Users", icon: MdPeople },
-  { href: "/admin/deleted-accounts", label: "Deleted Accounts", icon: MdRestoreFromTrash },
   {
     href: "/admin/sg-properties",
     label: "SG Internals",
@@ -69,6 +68,8 @@ const NAV_ITEMS = [
       { href: "/admin/freelancer-cp/field", label: "Field CP" },
     ],
   },
+    { href: "/admin/deleted-accounts", label: "Deleted Accounts", icon: MdRestoreFromTrash },
+
   // { href: "/admin/callbacks", label: "Callbacks", icon: MdPhone },
   // { href: "/admin/skills", label: "Skills", icon: MdCategory },
   // { href: "/admin/settings", label: "Settings", icon: MdSettings },

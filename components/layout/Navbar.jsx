@@ -54,6 +54,7 @@ const ACCOUNT_TYPE_LABEL = {
   freelancer: "Freelancer",
   "common-person": "Common Person",
   employee: "Employee",
+  builder: "Builder",
 };
 
 /** Freelancer accounts show their specific CP tier (Field/Digital/Company CP) instead of the generic "Freelancer" label. */

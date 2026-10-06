@@ -52,6 +52,7 @@ const STATUS_COLORS = {
   freelancer: "bg-purple-50 text-purple-700 border-purple-200",
   "common-person": "bg-gray-100 text-gray-600 border-gray-200",
   employee: "bg-orange-50 text-orange-700 border-orange-200",
+  builder: "bg-amber-50 text-amber-700 border-amber-200",
 };
 
 const DEFAULT_COLOR = "bg-gray-100 text-gray-600 border-gray-200";
