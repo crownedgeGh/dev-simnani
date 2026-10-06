@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import AdminDialog from "@/components/admin/ui/AdminDialog";
 import AdminFormField, { adminSelectClass } from "@/components/admin/ui/AdminFormField";
+import StateCitySearchFields from "@/components/shared/StateCitySearchFields";
 
 const CP_TYPE_LABEL = { company: "Company CP", field: "Field CP", digital: "Digital CP" };
 
@@ -27,6 +28,7 @@ export default function AssignPropertyDialog({
 }) {
   const [selected, setSelected] = useState("");
   const [saving, setSaving] = useState(false);
+  const [location, setLocation] = useState({ state: "", city: "" });
 
   useEffect(() => {
     if (!isOpen) return;
@@ -35,11 +37,26 @@ export default function AssignPropertyDialog({
       if (!active) return;
       const stillValid = currentAssigneeId && partners.some((p) => p.id === currentAssigneeId);
       setSelected(stillValid ? currentAssigneeId : "");
+      setLocation({ state: "", city: "" });
     });
     return () => { active = false; };
   }, [isOpen, currentAssigneeId, partners]);
 
-  const groupedByType = partners.reduce((acc, p) => {
+  function handleLocationChange(next) {
+    setLocation(next);
+    setSelected("");
+  }
+
+  const hasLocation = !!(location.state && location.city);
+  const matchingPartners = hasLocation
+    ? partners.filter(
+        (p) =>
+          p.state?.trim().toLowerCase() === location.state.trim().toLowerCase() &&
+          p.city?.trim().toLowerCase() === location.city.trim().toLowerCase()
+      )
+    : [];
+
+  const groupedByType = matchingPartners.reduce((acc, p) => {
     (acc[p.cpType] = acc[p.cpType] || []).push(p);
     return acc;
   }, {});
@@ -90,27 +107,36 @@ export default function AssignPropertyDialog({
             No active partners available yet. Add a partner to the network first.
           </p>
         ) : (
-          <AdminFormField label="Assign to" id="assign-property-select" required>
-            <select
-              id="assign-property-select"
-              value={selected}
-              onChange={(e) => setSelected(e.target.value)}
-              className={adminSelectClass}
-            >
-              <option value="" disabled>
-                Select a partner
-              </option>
-              {Object.entries(groupedByType).map(([cpType, list]) => (
-                <optgroup key={cpType} label={CP_TYPE_LABEL[cpType] || cpType}>
-                  {list.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {formatPartnerLabel(p)}
-                    </option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
-          </AdminFormField>
+          <>
+            <StateCitySearchFields state={location.state} city={location.city} onChange={handleLocationChange} />
+
+            <AdminFormField label="Assign to" id="assign-property-select" required>
+              <select
+                id="assign-property-select"
+                value={selected}
+                onChange={(e) => setSelected(e.target.value)}
+                disabled={!hasLocation || matchingPartners.length === 0}
+                className={adminSelectClass}
+              >
+                <option value="" disabled>
+                  {!hasLocation
+                    ? "Select state and city first"
+                    : matchingPartners.length === 0
+                      ? "No partner registered in this location"
+                      : "Select a partner"}
+                </option>
+                {Object.entries(groupedByType).map(([cpType, list]) => (
+                  <optgroup key={cpType} label={CP_TYPE_LABEL[cpType] || cpType}>
+                    {list.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {formatPartnerLabel(p)}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+            </AdminFormField>
+          </>
         )}
       </form>
     </AdminDialog>

@@ -3,12 +3,13 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { MdAdd, MdEdit, MdDelete, MdOpenInNew, MdLocationOn, MdReportProblem } from "react-icons/md";
+import { MdAdd, MdEdit, MdDelete, MdOpenInNew, MdLocationOn, MdReportProblem, MdSend } from "react-icons/md";
 import AdminPageHeader from "@/components/admin/layout/AdminPageHeader";
 import AdminTable from "@/components/admin/ui/AdminTable";
 import AdminConfirmModal from "@/components/admin/ui/AdminConfirmModal";
 import PropertyFormDialog from "@/components/admin/properties/PropertyFormDialog";
 import FeaturedLocationModal from "@/components/admin/ui/FeaturedLocationModal";
+import ForwardToCompanyCpModal from "@/components/admin/ui/ForwardToCompanyCpModal";
 import adminAxios from "@/lib/adminAxios";
 import { ADMIN_KEYS, readCollection, writeCollection } from "@/lib/adminStorage";
 import { getLocationCity } from "@/lib/properties";
@@ -47,6 +48,8 @@ export default function AdminPropertiesPage() {
   const [deleting, setDeleting] = useState(false);
   const [featuredModalRow, setFeaturedModalRow] = useState(null);
   const [featuredSaving, setFeaturedSaving] = useState(false);
+  const [forwardModalRow, setForwardModalRow] = useState(null);
+  const [forwarding, setForwarding] = useState(false);
 
   const loadProperties = useCallback(async () => {
     try {
@@ -211,6 +214,34 @@ export default function AdminPropertiesPage() {
     if (ok) setFeaturedModalRow(null);
   };
 
+  // Forward to Company CP — first leg of the Head -> Company -> Field/Digital chain
+  const handleForwardConfirm = async (accountId) => {
+    if (!forwardModalRow) return;
+    setForwarding(true);
+    try {
+      const res = await fetch("/api/assignments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          propertyId: forwardModalRow.id,
+          propertyTitle: forwardModalRow.title,
+          propertyImage: forwardModalRow.image,
+          propertyLocation: forwardModalRow.location,
+          level: "head-to-company",
+          assignedToAccountId: accountId,
+        }),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || "Failed to forward");
+      toast.success(`Forwarded to ${json.data?.assignedToName || "Company CP"}`);
+      setForwardModalRow(null);
+    } catch (err) {
+      toast.error(err.message || "Failed to forward property");
+    } finally {
+      setForwarding(false);
+    }
+  };
+
   // This page is for public-facing listings only (posted by common users /
   // brokers via the site). CP & Super Admin postings live on /admin/sg-properties.
   const publicProperties = useMemo(
@@ -342,6 +373,11 @@ export default function AdminPropertiesPage() {
             onClick: () => router.push(`/admin/properties/${row.id}/edit`),
           },
           {
+            label: "Forward to Company CP",
+            icon: MdSend,
+            onClick: () => setForwardModalRow(row),
+          },
+          {
             label: "Delete",
             icon: MdDelete,
             variant: "danger",
@@ -445,6 +481,15 @@ export default function AdminPropertiesPage() {
         description="Choose the state and city this property should be featured for."
         initialState={featuredModalRow?.state}
         initialCity={featuredModalRow?.city}
+      />
+
+      {/* Forward to Company CP */}
+      <ForwardToCompanyCpModal
+        isOpen={!!forwardModalRow}
+        onClose={() => setForwardModalRow(null)}
+        onConfirm={handleForwardConfirm}
+        isLoading={forwarding}
+        propertyTitle={forwardModalRow?.title}
       />
     </div>
   );

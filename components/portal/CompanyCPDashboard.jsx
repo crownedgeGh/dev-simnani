@@ -26,6 +26,13 @@ import { CP_TYPE_LABEL, VIDEO_STATUS_TONE, VISIT_STATUS_TONE, LEAD_STATUS_TONE, 
 import RefreshButton from "./RefreshButton";
 import { usePersistentTab } from "@/lib/usePersistentTab";
 import { toast } from "sonner";
+import StateCitySearchFields from "@/components/shared/StateCitySearchFields";
+
+const PICKER_INPUT_CLASS =
+  "h-11 w-full rounded-none border border-navy-700/60 bg-navy-950 px-3 text-sm text-cream placeholder:text-muted outline-none transition focus:border-gold-400 disabled:cursor-not-allowed disabled:opacity-50";
+const PICKER_LABEL_CLASS = "tracked-label text-[10px] text-muted";
+const PICKER_MENU_CLASS = "border border-navy-700/60 bg-navy-950 text-cream";
+const PICKER_OPTION_CLASS = "text-cream hover:bg-gold-500/10 hover:text-gold-400";
 
 function formatCpLabel(name, city, state) {
   const place = [city, state].filter(Boolean).join(", ");
@@ -174,6 +181,7 @@ export default function CompanyCPDashboard({
   );
   const [assignments, setAssignments] = useState([]);
   const [openPicker, setOpenPicker] = useState({});
+  const [pickerLocation, setPickerLocation] = useState({ state: "", city: "" });
   const [soldBusyId, setSoldBusyId] = useState(null);
   const [videos, setVideos] = useState([]);
   const [leads, setLeads] = useState([]);
@@ -463,6 +471,17 @@ export default function CompanyCPDashboard({
       ...prev,
       [projectId]: prev[projectId] === cpType ? null : cpType,
     }));
+    setPickerLocation({ state: "", city: "" });
+  }
+
+  const hasPickerLocation = !!(pickerLocation.state && pickerLocation.city);
+  function filterPartnersByLocation(list) {
+    if (!hasPickerLocation) return [];
+    return list.filter(
+      (p) =>
+        p.state?.trim().toLowerCase() === pickerLocation.state.trim().toLowerCase() &&
+        p.city?.trim().toLowerCase() === pickerLocation.city.trim().toLowerCase()
+    );
   }
 
   async function updateVideoStatus(id, status, note = "") {
@@ -599,58 +618,92 @@ export default function CompanyCPDashboard({
                         </button>
 
                         {!isSold && openPicker[project.id] === "field" && (
-                          <div className="flex flex-col gap-1.5 border border-navy-700/60 bg-navy-950 p-2">
-                            {fieldPartners.map((p) => {
-                              const alreadySent = delegatedAccountIds(project.id).has(p.accountId);
-                              return (
-                                <button
-                                  key={p.accountId}
-                                  type="button"
-                                  disabled={alreadySent}
-                                  onClick={() => handleDelegate(project.id, "field", p.accountId)}
-                                  className={`flex items-center justify-between px-2 py-2 text-left text-xs transition ${
-                                    alreadySent
-                                      ? "cursor-not-allowed text-muted opacity-50"
-                                      : "text-cream hover:bg-gold-500/10 hover:text-gold-400"
-                                  }`}
-                                >
-                                  {formatCpLabel(p.name, p.city, p.state)}
-                                  {alreadySent ? (
-                                    <span className="tracked-label text-[10px] text-muted">Already Sent</span>
-                                  ) : (
-                                    <FiArrowRight className="h-3.5 w-3.5 shrink-0" />
-                                  )}
-                                </button>
-                              );
-                            })}
+                          <div className="flex flex-col gap-3 border border-navy-700/60 bg-navy-950 p-3">
+                            <StateCitySearchFields
+                              state={pickerLocation.state}
+                              city={pickerLocation.city}
+                              onChange={setPickerLocation}
+                              inputClassName={PICKER_INPUT_CLASS}
+                              labelClassName={PICKER_LABEL_CLASS}
+                              menuClassName={PICKER_MENU_CLASS}
+                              optionClassName={PICKER_OPTION_CLASS}
+                            />
+                            <div className="flex flex-col gap-1.5">
+                              {!hasPickerLocation ? (
+                                <p className="px-2 py-2 text-xs text-muted">Select state and city to see Field CPs there.</p>
+                              ) : filterPartnersByLocation(fieldPartners).length === 0 ? (
+                                <p className="px-2 py-2 text-xs text-muted">No Field CP registered in this location.</p>
+                              ) : (
+                                filterPartnersByLocation(fieldPartners).map((p) => {
+                                  const alreadySent = delegatedAccountIds(project.id).has(p.accountId);
+                                  return (
+                                    <button
+                                      key={p.accountId}
+                                      type="button"
+                                      disabled={alreadySent}
+                                      onClick={() => handleDelegate(project.id, "field", p.accountId)}
+                                      className={`flex items-center justify-between px-2 py-2 text-left text-xs transition ${
+                                        alreadySent
+                                          ? "cursor-not-allowed text-muted opacity-50"
+                                          : "text-cream hover:bg-gold-500/10 hover:text-gold-400"
+                                      }`}
+                                    >
+                                      {formatCpLabel(p.name, p.city, p.state)}
+                                      {alreadySent ? (
+                                        <span className="tracked-label text-[10px] text-muted">Already Sent</span>
+                                      ) : (
+                                        <FiArrowRight className="h-3.5 w-3.5 shrink-0" />
+                                      )}
+                                    </button>
+                                  );
+                                })
+                              )}
+                            </div>
                           </div>
                         )}
 
                         {!isSold && openPicker[project.id] === "digital" && (
-                          <div className="flex flex-col gap-1.5 border border-navy-700/60 bg-navy-950 p-2">
-                            {digitalPartners.map((p) => {
-                              const alreadySent = delegatedAccountIds(project.id).has(p.accountId);
-                              return (
-                                <button
-                                  key={p.accountId}
-                                  type="button"
-                                  disabled={alreadySent}
-                                  onClick={() => handleDelegate(project.id, "digital", p.accountId)}
-                                  className={`flex items-center justify-between px-2 py-2 text-left text-xs transition ${
-                                    alreadySent
-                                      ? "cursor-not-allowed text-muted opacity-50"
-                                      : "text-cream hover:bg-gold-500/10 hover:text-gold-400"
-                                  }`}
-                                >
-                                  {formatCpLabel(p.name, p.city, p.state)}
-                                  {alreadySent ? (
-                                    <span className="tracked-label text-[10px] text-muted">Already Sent</span>
-                                  ) : (
-                                    <FiArrowRight className="h-3.5 w-3.5 shrink-0" />
-                                  )}
-                                </button>
-                              );
-                            })}
+                          <div className="flex flex-col gap-3 border border-navy-700/60 bg-navy-950 p-3">
+                            <StateCitySearchFields
+                              state={pickerLocation.state}
+                              city={pickerLocation.city}
+                              onChange={setPickerLocation}
+                              inputClassName={PICKER_INPUT_CLASS}
+                              labelClassName={PICKER_LABEL_CLASS}
+                              menuClassName={PICKER_MENU_CLASS}
+                              optionClassName={PICKER_OPTION_CLASS}
+                            />
+                            <div className="flex flex-col gap-1.5">
+                              {!hasPickerLocation ? (
+                                <p className="px-2 py-2 text-xs text-muted">Select state and city to see Digital CPs there.</p>
+                              ) : filterPartnersByLocation(digitalPartners).length === 0 ? (
+                                <p className="px-2 py-2 text-xs text-muted">No Digital CP registered in this location.</p>
+                              ) : (
+                                filterPartnersByLocation(digitalPartners).map((p) => {
+                                  const alreadySent = delegatedAccountIds(project.id).has(p.accountId);
+                                  return (
+                                    <button
+                                      key={p.accountId}
+                                      type="button"
+                                      disabled={alreadySent}
+                                      onClick={() => handleDelegate(project.id, "digital", p.accountId)}
+                                      className={`flex items-center justify-between px-2 py-2 text-left text-xs transition ${
+                                        alreadySent
+                                          ? "cursor-not-allowed text-muted opacity-50"
+                                          : "text-cream hover:bg-gold-500/10 hover:text-gold-400"
+                                      }`}
+                                    >
+                                      {formatCpLabel(p.name, p.city, p.state)}
+                                      {alreadySent ? (
+                                        <span className="tracked-label text-[10px] text-muted">Already Sent</span>
+                                      ) : (
+                                        <FiArrowRight className="h-3.5 w-3.5 shrink-0" />
+                                      )}
+                                    </button>
+                                  );
+                                })
+                              )}
+                            </div>
                           </div>
                         )}
                       </div>
