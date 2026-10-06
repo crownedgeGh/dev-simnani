@@ -3,6 +3,7 @@ import PropertyFilterBar from "@/components/property/PropertyFilterBar";
 import { COMMERCIAL_CATEGORIES } from "@/lib/properties";
 import { getPropertiesByTypeAndCategory } from "@/lib/propertiesServer";
 import BackButton from "@/components/layout/BackButton";
+import PostOnCategoryButton from "@/components/property/PostOnCategoryButton";
 
 export const revalidate = 60; // cache listing HTML for 60s instead of hitting Mongo on every request
 
@@ -29,11 +30,14 @@ export default async function CommercialCategoryPage({ params }) {
 
   return (
     <div className="mx-auto max-w-7xl px-4 pt-6 pb-16 sm:px-6 sm:pt-8 sm:pb-20 lg:px-8 lg:pt-10 lg:pb-24">
-      <div className="mt-6 flex items-center gap-3 max-w-2xl">
-        <BackButton />
-        <h1 className="font-display text-3xl text-cream sm:text-4xl">
-          {match.label}
-        </h1>
+      <div className="mt-6 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex items-center gap-3 max-w-2xl">
+          <BackButton />
+          <h1 className="font-display text-3xl text-cream sm:text-4xl">
+            {match.label}
+          </h1>
+        </div>
+        <PostOnCategoryButton section="commercial" category={category} />
       </div>
 
       <div className="mt-10">

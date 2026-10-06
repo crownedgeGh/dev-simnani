@@ -51,6 +51,13 @@ const UserSchema = new mongoose.Schema(
       enum: ["active", "hold"],
       default: "active",
     },
+    // Self-registered Company CPs can't use their portal until Head CP
+    // generates and sends them an invitation code and they redeem it (see
+    // /api/invitation-codes/redeem). Admin-added partners never get locked.
+    cpPortalLocked: {
+      type: Boolean,
+      default: false,
+    },
     accountType: {
       type: String,
       required: [true, "Account type is required"],

@@ -35,6 +35,7 @@ export default async function CommonPersonPortalPage() {
           clients={clients}
           addPropertyHref="/post-property"
           showCommissions={false}
+          showAddProperty={user.accountType !== "builder"}
         />
       </div>
     </div>

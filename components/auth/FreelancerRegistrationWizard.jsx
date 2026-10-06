@@ -215,6 +215,7 @@ export default function FreelancerRegistrationWizard() {
       skills: form.skills,
       registeredAt: new Date().toISOString(),
       profileComplete: true,
+      cpPortalLocked: form.cpType === "company",
     };
     try {
       const res = await fetch("/api/users", {

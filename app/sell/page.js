@@ -1,8 +1,8 @@
-import Link from "next/link";
 import PropertyFilterBar from "@/components/property/PropertyFilterBar";
 import { getPropertiesByType } from "@/lib/propertiesServer";
 import BackButton from "@/components/layout/BackButton";
 import BrowseByLocalityLinks from "@/components/seo/BrowseByLocalityLinks";
+import PostOnCategoryButton from "@/components/property/PostOnCategoryButton";
 
 export const revalidate = 60;
 
@@ -23,12 +23,7 @@ export default async function SellPage() {
             Sell Property
           </h1>
         </div>
-        <Link
-          href="/post-property"
-          className="tracked-label w-full shrink-0 rounded-full bg-gold-400 px-6 py-3.5 text-center text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 active:scale-[0.98] sm:w-auto"
-        >
-          Post Your Property
-        </Link>
+        <PostOnCategoryButton section="residential" purpose="sale" label="Post Your Property" />
       </div>
 
       <div className="mt-10">

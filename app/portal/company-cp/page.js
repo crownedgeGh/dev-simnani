@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import FreelancerPortalClient from "@/components/portal/freelancer/FreelancerPortalClient";
+import CpInviteLockScreen from "@/components/portal/freelancer/CpInviteLockScreen";
 import { PROJECTS } from "@/lib/projects";
 import { requireCpUser } from "@/lib/freelancerPortalGuard";
 import { getOwnerPortalData } from "@/lib/ownerPortalData";
@@ -22,6 +23,9 @@ export const metadata = {
 
 export default async function CompanyCPPortalPage() {
   const user = await requireCpUser("company");
+  if (user.cpPortalLocked) {
+    return <CpInviteLockScreen />;
+  }
   const { listings: myListings } = await getOwnerPortalData(user.accountId);
   const network = await getCpNetwork();
 

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { MdAddHome } from "react-icons/md";
 import PostPropertyGuardedForm from "@/components/property/PostPropertyGuardedForm";
 
@@ -25,12 +26,14 @@ export default function PostPropertyPage() {
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_rgba(245,180,0,0.08),_transparent_60%)]" />
 
       <div className="mx-auto max-w-3xl">
-        <PostPropertyGuardedForm>
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-gold-400/30 bg-gold-400/10 text-gold-400 sm:h-14 sm:w-14">
-            <MdAddHome className="h-6 w-6 sm:h-7 sm:w-7" />
-          </span>
-          <h1 className="font-display text-xl leading-tight text-cream sm:text-3xl">Post Your Property</h1>
-        </PostPropertyGuardedForm>
+        <Suspense fallback={null}>
+          <PostPropertyGuardedForm>
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-gold-400/30 bg-gold-400/10 text-gold-400 sm:h-14 sm:w-14">
+              <MdAddHome className="h-6 w-6 sm:h-7 sm:w-7" />
+            </span>
+            <h1 className="font-display text-xl leading-tight text-cream sm:text-3xl">Post Your Property</h1>
+          </PostPropertyGuardedForm>
+        </Suspense>
       </div>
     </div>
   );

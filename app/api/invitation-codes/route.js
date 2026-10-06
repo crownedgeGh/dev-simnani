@@ -46,7 +46,7 @@ export async function POST(request) {
 
     await dbConnect();
     const body = await request.json();
-    const { code, cpType, name, mobile, city, state, address } = body;
+    const { code, cpType, name, mobile, city, state, address, targetAccountId } = body;
 
     if (!code || !cpType) {
       return NextResponse.json({ success: false, error: "code and cpType are required" }, { status: 400 });
@@ -55,6 +55,7 @@ export async function POST(request) {
     const invitationCode = await InvitationCode.create({
       code: code.trim().toUpperCase(),
       cpType,
+      targetAccountId: targetAccountId || "",
       name: name || "",
       mobile: mobile || "",
       city: city || "",

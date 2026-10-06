@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
@@ -151,6 +151,7 @@ const INITIAL_FORM = {
 
 const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, isLoading } = useAuth();
   const portalHref = getAccountPermissions(user?.accountType, user?.cpType).portalHref;
   // Channel Partners posting through the public form get attributed to
@@ -231,6 +232,27 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
       setPropertyId(generateAccountId("PROP"));
     }, 0);
     return () => clearTimeout(timer);
+  }, [editId]);
+
+  // "Post Property on this Category" links (/post-property?section=...&category=...&purpose=...)
+  // from the listing pages prefill these fields instead of the user picking them again.
+  useEffect(() => {
+    if (editId) return;
+    const section = searchParams.get("section");
+    const category = searchParams.get("category");
+    const purpose = searchParams.get("purpose");
+    if (!section && !category && !purpose) return;
+    setForm((prev) => {
+      const next = {
+        ...prev,
+        ...(section ? { section } : {}),
+        ...(category ? { category } : {}),
+        ...(purpose ? { purpose } : {}),
+      };
+      initialSnapshotRef.current = next;
+      return next;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editId]);
 
   useEffect(() => {
