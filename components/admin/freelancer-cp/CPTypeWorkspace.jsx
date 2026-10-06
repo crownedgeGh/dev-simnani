@@ -62,6 +62,8 @@ export default function CPTypeWorkspace({
   showSiteVisits = false,
   showAllLeads = false,
   emptyMessage = "No records found",
+  hideRefresh = false,
+  hideKpis = false,
 }) {
   const router = useRouter();
   const effectiveLeadCpTypes = useMemo(
@@ -682,7 +684,7 @@ export default function CPTypeWorkspace({
         title={title}
         description={description}
         badge={showNetworkTab ? `${network.length} partners` : `${leads.length} leads`}
-        onRefresh={handleRefresh}
+        onRefresh={hideRefresh ? undefined : handleRefresh}
         isRefreshing={refreshing}
         actions={
           tab === "invitationCodes" && showInvitationCodes ? (
@@ -705,18 +707,8 @@ export default function CPTypeWorkspace({
         }
       />
 
-      {/* Type banner */}
-      <div className={`mb-6 flex items-center gap-3 rounded-2xl border p-4 ${accentClasses}`}>
-        {Icon && (
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/70">
-            <Icon size={20} />
-          </div>
-        )}
-        <p className="text-sm font-medium">{description}</p>
-      </div>
-
       {/* KPI Cards */}
-      {loading ? (
+      {!hideKpis && (loading ? (
         <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="h-28 rounded-2xl bg-[#f0ebe3] animate-pulse" />
@@ -728,7 +720,7 @@ export default function CPTypeWorkspace({
             <AdminKpiCard key={card.title} {...card} />
           ))}
         </div>
-      )}
+      ))}
 
       {/* Tabs */}
       <div className="mb-4 flex gap-1 overflow-x-auto rounded-xl border border-[#e8e0d5] bg-white p-1 gold-scrollbar">
