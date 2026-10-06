@@ -116,7 +116,7 @@ export default function CpInviteLockScreen() {
           type="button"
           onClick={handleRefreshCode}
           disabled={refreshingCode}
-          className="tracked-label mt-4 inline-flex h-10 items-center justify-center gap-2 rounded-full border border-navy-700/60 px-5 text-xs text-cream transition hover:border-gold-400 hover:text-gold-400 disabled:cursor-not-allowed disabled:opacity-60"
+          className="tracked-label mt-4 inline-flex h-10 items-center justify-center gap-2 rounded-full border border-gold-500/70 bg-gold-400/10 px-5 text-xs text-gold-400 transition hover:bg-gold-400/20 disabled:cursor-not-allowed disabled:opacity-60"
         >
           <MdRefresh className={`h-4 w-4 ${refreshingCode ? "animate-spin" : ""}`} />
           {refreshingCode ? "Checking..." : "Check for Code"}
