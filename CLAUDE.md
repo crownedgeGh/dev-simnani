@@ -478,3 +478,12 @@ Every screen must feel **premium and intentional**. Minimum bar:
 | Border style | `border-navy-700/60` — never solid white or default gray borders |
 | No Bootstrap colors | No plain red, blue, green — only the defined palette |
 | Spacing | `py-16 sm:py-20 lg:py-24` between full sections |
+## 15 . Whenever I say "fullstack update" or "sab jagah apply karo", you MUST automatically implement the requested feature across the entire application stack. 
+
+Do not stop after updating just one file. You must systematically check and update:
+1. **Database:** Update schemas, Prisma/Mongoose models, or SQL migrations.
+2. **Backend/API:** Update API routes, controllers, services, and validation logic.
+3. **Admin Panel:** Ensure the admin dashboard can view/edit the new changes.
+4. **Frontend:** Update the user-facing UI, components, and API integration/fetch logic.
+
+Always verify that all 4 layers are synced before completing the task.

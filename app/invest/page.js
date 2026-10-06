@@ -4,7 +4,6 @@ import { INVEST_CATEGORIES } from "@/lib/properties";
 import { getPropertiesByType } from "@/lib/propertiesServer";
 import { PROJECTS } from "@/lib/projects";
 import BackButton from "@/components/layout/BackButton";
-import BrowseByLocalityLinks from "@/components/seo/BrowseByLocalityLinks";
 
 export const revalidate = 60;
 
@@ -25,7 +24,6 @@ export default async function InvestPage() {
   }, {});
 
   const categories = [
-    ...INVEST_CATEGORIES,
     {
       key: "company-project",
       label: "Company Projects",
@@ -33,6 +31,7 @@ export default async function InvestPage() {
       href: "/projects",
       count: PROJECTS.length,
     },
+    ...INVEST_CATEGORIES.filter((category) => ["land", "others"].includes(category.key)),
   ];
 
   return (
@@ -51,8 +50,6 @@ export default async function InvestPage() {
           basePath="/invest"
         />
       </div>
-
-      <BrowseByLocalityLinks phraseSlug="investment-properties" title="Investment Opportunities by Locality" />
     </div>
   );
 }
