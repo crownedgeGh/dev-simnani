@@ -38,6 +38,7 @@ import { POSTED_BY_ROLE_OPTIONS, POSTED_BY_ROLES, isPublicPostedByRole } from "@
 import BlurredImageFrame from "@/components/property/BlurredImageFrame";
 import ConfirmCloseModal from "@/components/property/ConfirmCloseModal";
 import { STATES, getCitiesForState } from "@/lib/cityState";
+import { AREA_UNITS, normalizeAreaToAcre } from "@/lib/areaUnits";
 
 const PURPOSE_OPTIONS = [
   { value: "sale", label: "For Sale" },
@@ -71,7 +72,6 @@ const SECTION_OPTIONS = [
   { value: "seized-property", label: "Seized Property" },
 ];
 
-const AREA_UNITS = ["sq ft", "sq m", "acres", "gaj"];
 
 const FURNISHING_OPTIONS = ["Unfurnished", "Semi-Furnished", "Fully Furnished"];
 
@@ -235,6 +235,11 @@ export default function AdminAddPropertyForm() {
       }
       if (field === "state") {
         next.city = "";
+      }
+      if (field === "areaSize" || field === "areaUnit") {
+        const snapped = normalizeAreaToAcre(next.areaSize, next.areaUnit);
+        next.areaSize = snapped.areaSize;
+        next.areaUnit = snapped.areaUnit;
       }
       return next;
     });

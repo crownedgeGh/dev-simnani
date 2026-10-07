@@ -39,6 +39,7 @@ import {
 import { uploadFileToR2 } from "@/lib/uploadToR2";
 import { POSTED_BY_ROLE_OPTIONS, POSTED_BY_ROLES, isPublicPostedByRole } from "@/lib/postedByRoles";
 import BlurredImageFrame from "@/components/property/BlurredImageFrame";
+import { AREA_UNITS, normalizeAreaToAcre } from "@/lib/areaUnits";
 
 const PURPOSE_OPTIONS = [
   { value: "sale", label: "For Sale" },
@@ -75,7 +76,6 @@ const PLATFORM_TYPES = [
   "seized-property",
 ];
 
-const AREA_UNITS = ["sq ft", "sq m", "acres", "gaj"];
 
 const FURNISHING_OPTIONS = ["Unfurnished", "Semi-Furnished", "Fully Furnished"];
 
@@ -393,6 +393,11 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
       if (field === "propertyType" && !isPgOrHostel(val)) {
         next.genderPreference = "";
         next.bathroomType = "";
+      }
+      if (field === "areaSize" || field === "areaUnit") {
+        const snapped = normalizeAreaToAcre(next.areaSize, next.areaUnit);
+        next.areaSize = snapped.areaSize;
+        next.areaUnit = snapped.areaUnit;
       }
       return next;
     });

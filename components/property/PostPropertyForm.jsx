@@ -8,6 +8,7 @@ import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
 import { getAccountPermissions } from "@/lib/accountPermissions";
 import { POSTED_BY_ROLES } from "@/lib/postedByRoles";
+import { AREA_UNITS, normalizeAreaToAcre } from "@/lib/areaUnits";
 import { inputClass, selectClass, textareaClass } from "@/components/auth/inputStyles";
 import FormField from "@/components/auth/FormField";
 import CompleteProfileModal from "@/components/auth/CompleteProfileModal";
@@ -82,8 +83,6 @@ const BHK_OPTIONS = [
   { value: "5", label: "5 BHK" },
   { value: "5+", label: "5 BHK+" },
 ];
-
-const AREA_UNITS = ["sq ft", "sq m", "acres", "gaj"];
 
 const FURNISHING_OPTIONS = ["Unfurnished", "Semi-Furnished", "Fully Furnished"];
 
@@ -401,6 +400,11 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
       }
       if (field === "state") {
         next.city = "";
+      }
+      if (field === "areaSize" || field === "areaUnit") {
+        const snapped = normalizeAreaToAcre(next.areaSize, next.areaUnit);
+        next.areaSize = snapped.areaSize;
+        next.areaUnit = snapped.areaUnit;
       }
       return next;
     });
