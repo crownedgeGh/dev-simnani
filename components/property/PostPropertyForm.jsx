@@ -898,9 +898,10 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
               id="halls"
               type="number"
               min="0"
+              max="20"
               autoComplete="off"
               value={form.halls}
-              onChange={(e) => update("halls", e.target.value)}
+              onChange={(e) => update("halls", e.target.value.slice(0, 2))}
               className={errClass(`${inputClass}`, "halls")}
             />
           </FormField>
@@ -911,9 +912,10 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
               id="baths"
               type="number"
               min="0"
+              max="20"
               autoComplete="off"
               value={form.baths}
-              onChange={(e) => update("baths", e.target.value)}
+              onChange={(e) => update("baths", e.target.value.replace(/\D/g, "").slice(0, 2))}
               className={errClass(`${inputClass}`, "baths")}
             />
           </FormField>
@@ -944,8 +946,9 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
                 id="floorNo"
                 type="text"
                 placeholder="e.g. 3rd, Ground"
+                maxLength={3}
                 value={form.floorNo}
-                onChange={(e) => update("floorNo", e.target.value)}
+                onChange={(e) => update("floorNo", e.target.value.replace(/[^a-zA-Z0-9\s-]/g, ""))}
                 className={`${inputClass}`}
               />
             </FormField>
@@ -954,9 +957,10 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
                 id="totalFloors"
                 type="number"
                 min="0"
+                max="200"
                 autoComplete="off"
                 value={form.totalFloors}
-                onChange={(e) => update("totalFloors", e.target.value)}
+                onChange={(e) => update("totalFloors", e.target.value.slice(0, 3))}
                 className={`${inputClass}`}
               />
             </FormField>

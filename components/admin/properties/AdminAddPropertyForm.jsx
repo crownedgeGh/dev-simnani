@@ -967,8 +967,9 @@ export default function AdminAddPropertyForm() {
                   id="prop-baths"
                   type="number"
                   min="1"
+                  max="20"
                   value={form.baths}
-                  onChange={(e) => update("baths", e.target.value)}
+                  onChange={(e) => update("baths", e.target.value.replace(/\D/g, "").slice(0, 2))}
                   placeholder="e.g. 2"
                   className={adminInputClass}
                 />
@@ -1010,8 +1011,9 @@ export default function AdminAddPropertyForm() {
                 <input
                   id="prop-floor"
                   type="text"
+                  maxLength={3}
                   value={form.floorNo}
-                  onChange={(e) => update("floorNo", e.target.value)}
+                  onChange={(e) => update("floorNo", e.target.value.replace(/[^a-zA-Z0-9\s-]/g, ""))}
                   placeholder="e.g. 4th Floor"
                   className={adminInputClass}
                 />
@@ -1025,8 +1027,9 @@ export default function AdminAddPropertyForm() {
                   id="prop-total-floors"
                   type="number"
                   min="0"
+                  max="200"
                   value={form.totalFloors}
-                  onChange={(e) => update("totalFloors", e.target.value)}
+                  onChange={(e) => update("totalFloors", e.target.value.slice(0, 3))}
                   placeholder="e.g. 12"
                   className={adminInputClass}
                 />

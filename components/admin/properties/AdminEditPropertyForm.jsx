@@ -1140,8 +1140,9 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
                 <div className="flex items-center gap-2">
                   <input
                     type="text"
+                    maxLength={3}
                     value={form.floorNo}
-                    onChange={(e) => update("floorNo", e.target.value)}
+                    onChange={(e) => update("floorNo", e.target.value.replace(/[^a-zA-Z0-9\s-]/g, ""))}
                     placeholder="Floor (e.g. 4)"
                     className="h-11 min-w-0 flex-1 rounded-xl border border-[#e8e0d5] bg-[#faf8f5] px-3 text-sm text-[#1a1a2e] placeholder-[#9ca3af] outline-none transition focus:border-[#f0b429] focus:ring-2 focus:ring-[#f0b429]/20"
                   />
@@ -1149,8 +1150,9 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
                   <input
                     type="number"
                     min="1"
+                    max="200"
                     value={form.totalFloors}
-                    onChange={(e) => update("totalFloors", e.target.value)}
+                    onChange={(e) => update("totalFloors", e.target.value.slice(0, 3))}
                     placeholder="Total Floors"
                     className="h-11 min-w-0 flex-1 rounded-xl border border-[#e8e0d5] bg-[#faf8f5] px-3 text-sm text-[#1a1a2e] placeholder-[#9ca3af] outline-none transition focus:border-[#f0b429] focus:ring-2 focus:ring-[#f0b429]/20"
                   />

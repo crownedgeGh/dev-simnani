@@ -171,7 +171,7 @@ export default function PropertyFormDialog({ isOpen, onClose, property, onSave }
 
         {needsStructureFields && (
           <AdminFormField label="Baths" id="prop-baths" required error={errors.baths}>
-            <input id="prop-baths" type="number" min="1" value={form.baths} onChange={(e) => set("baths", e.target.value)} placeholder="e.g. 2" className={adminInputClass} />
+            <input id="prop-baths" type="number" min="1" max="20" value={form.baths} onChange={(e) => set("baths", e.target.value.replace(/\D/g, "").slice(0, 2))} placeholder="e.g. 2" className={adminInputClass} />
           </AdminFormField>
         )}
 
