@@ -446,6 +446,7 @@ export default function AdminPropertiesPage() {
         onRowClick={(row) => router.push(`/admin/properties/${row.id}`)}
         emptyMessage="No properties found. Add your first property!"
         pageSize={10}
+        searchKeys={["id", "title", "location", "city", "type", "price", "status"]}
       />
 
       {/* Create / Edit Dialog */}

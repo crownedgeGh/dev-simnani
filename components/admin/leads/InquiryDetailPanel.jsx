@@ -3,9 +3,15 @@
 import AdminDialog from "@/components/admin/ui/AdminDialog";
 import AdminStatusBadge from "@/components/admin/ui/AdminStatusBadge";
 import AdminPhoneCell from "@/components/admin/ui/AdminPhoneCell";
+import AdminCopyCell from "@/components/admin/ui/AdminCopyCell";
+
+// Source is stored as "Property: SG-PROP-xxxxxx" — pull the id out so it gets its own copy button.
+const PROPERTY_ID_RE = /SG-PROP-\S+/;
 
 export default function InquiryDetailPanel({ isOpen, onClose, lead }) {
   if (!lead) return null;
+
+  const propertyId = lead.source?.match(PROPERTY_ID_RE)?.[0];
 
   const fields = [
     ["Inquiry ID", lead.id],
@@ -13,7 +19,7 @@ export default function InquiryDetailPanel({ isOpen, onClose, lead }) {
     ["Phone", lead.phone, "phone"],
     ["Email", lead.email || "—"],
     ["User Type", lead.userType ? lead.userType.charAt(0).toUpperCase() + lead.userType.slice(1) : "—"],
-    ["Source", lead.source || "—"],
+    ["Source", lead.source || "—", propertyId ? "source" : undefined],
     ["Property / Interest", lead.propertyTitle || "—"],
     ["Date", lead.date],
   ];
@@ -42,7 +48,16 @@ export default function InquiryDetailPanel({ isOpen, onClose, lead }) {
               <tr key={k}>
                 <td className="py-2 text-[#9ca3af] w-40 pr-4 align-top">{k}</td>
                 <td className="py-2 text-[#374151] font-medium">
-                  {type === "phone" ? <AdminPhoneCell value={v} /> : v || "—"}
+                  {type === "phone" ? (
+                    <AdminPhoneCell value={v} />
+                  ) : type === "source" ? (
+                    <span className="inline-flex items-center gap-1.5">
+                      {v}
+                      <AdminCopyCell value={propertyId} label="Property ID" />
+                    </span>
+                  ) : (
+                    v || "—"
+                  )}
                 </td>
               </tr>
             ))}
