@@ -263,6 +263,86 @@ body {
   color: var(--celestial-fg) !important;
 }
 
+/*
+ * ==========================================================================
+ * Admin Panel: Production-only theme override ("Awesome child" / tweakcn)
+ * Scoped to .admin-shell.admin-env-production — class only added in
+ * app/(admin)/admin/layout.js when process.env.NODE_ENV === "production".
+ * Only overrides the base tokens; every --celestial-* alias and every
+ * attribute-selector rule below resolves through var(), so nothing else
+ * needs to change for the swap to take effect.
+ * Source: https://tweakcn.com/r/themes/cmpf7f1h1000004i893rz3gnd
+ * ==========================================================================
+ */
+.admin-shell.admin-env-production {
+  --font-admin: Quicksand, var(--font-open-sans), "Open Sans", var(--font-inter), sans-serif;
+  --radius: 1.5rem;
+  --tracking-normal: 0.02em;
+
+  --background: oklch(0.9926 0.0146 98.2779);
+  --foreground: oklch(0.3211 0 0);
+  --card: oklch(1.0000 0 0);
+  --card-foreground: oklch(0.3211 0 0);
+  --popover: oklch(1.0000 0 0);
+  --popover-foreground: oklch(0.3211 0 0);
+  --primary: oklch(0.7626 0.1496 146.6234);
+  --primary-foreground: oklch(1.0000 0 0);
+  --secondary: oklch(0.8925 0.1667 94.5471);
+  --secondary-foreground: oklch(0.3211 0 0);
+  --muted: oklch(0.9551 0 0);
+  --muted-foreground: oklch(0.5486 0 0);
+  --accent: oklch(0.7626 0.1496 146.6234);
+  --accent-foreground: oklch(1.0000 0 0);
+  --destructive: oklch(0.6730 0.2146 25.0397);
+  --destructive-foreground: oklch(1.0000 0 0);
+  --border: oklch(0.9128 0 0);
+  --input: oklch(0.9128 0 0);
+  --ring: oklch(0.7626 0.1496 146.6234);
+  --sidebar: oklch(1.0000 0 0);
+  --sidebar-foreground: oklch(0.3211 0 0);
+  --sidebar-primary: oklch(0.7626 0.1496 146.6234);
+  --sidebar-primary-foreground: oklch(1.0000 0 0);
+  --sidebar-accent: oklch(0.9551 0 0);
+  --sidebar-accent-foreground: oklch(0.3211 0 0);
+  --sidebar-border: oklch(0.9128 0 0);
+  --sidebar-ring: oklch(0.7116 0.1812 22.8389);
+  --shadow: 0px 4px 10px 0px hsl(0, 0, 0 / 0.10), 0px 1px 2px -1px hsl(0, 0, 0 / 0.10);
+}
+
+.admin-shell.admin-env-production.admin-dark,
+.admin-dark .admin-shell.admin-env-production,
+.admin-shell.admin-env-production.dark,
+.admin-dark.admin-shell.admin-env-production {
+  --background: oklch(0.2284 0.0384 282.9324);
+  --foreground: oklch(0.9551 0 0);
+  --card: oklch(0.2543 0.0571 266.7095);
+  --card-foreground: oklch(0.9551 0 0);
+  --popover: oklch(0.2543 0.0571 266.7095);
+  --popover-foreground: oklch(0.9551 0 0);
+  --primary: oklch(0.8341 0.1348 145.6133);
+  --primary-foreground: oklch(0.2284 0.0384 282.9324);
+  --secondary: oklch(0.9224 0.1427 97.7777);
+  --secondary-foreground: oklch(0.2284 0.0384 282.9324);
+  --muted: oklch(0.2737 0.0477 282.7879);
+  --muted-foreground: oklch(0.7058 0 0);
+  --accent: oklch(0.8341 0.1348 145.6133);
+  --accent-foreground: oklch(0.2284 0.0384 282.9324);
+  --destructive: oklch(0.6949 0.1953 23.6877);
+  --destructive-foreground: oklch(1.0000 0 0);
+  --border: oklch(0.3171 0.0566 282.6916);
+  --input: oklch(0.3171 0.0566 282.6916);
+  --ring: oklch(0.8341 0.1348 145.6133);
+  --sidebar: oklch(0.2543 0.0571 266.7095);
+  --sidebar-foreground: oklch(0.9551 0 0);
+  --sidebar-primary: oklch(0.8341 0.1348 145.6133);
+  --sidebar-primary-foreground: oklch(0.2284 0.0384 282.9324);
+  --sidebar-accent: oklch(0.2737 0.0477 282.7879);
+  --sidebar-accent-foreground: oklch(0.9551 0 0);
+  --sidebar-border: oklch(0.3171 0.0566 282.6916);
+  --sidebar-ring: oklch(0.7685 0.1369 20.7298);
+  --shadow: 0px 6px 12px 0px hsl(0, 0, 0 / 0.30), 0px 1px 2px -1px hsl(0, 0, 0 / 0.30);
+}
+
 /* Surfaces & Layout Containers */
 .admin-shell aside,
 .admin-theme-celestial aside {

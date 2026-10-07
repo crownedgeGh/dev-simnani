@@ -42,26 +42,42 @@ function AdminShell({ children }) {
         Object.entries(PAGE_TITLES).find(([k]) => pathname.startsWith(k))?.[1] ||
         "Admin Panel";
 
+  // prod.env sets the live domain; .env.local / dev set a different one —
+  // this is true under `npm run prod` as well as a real `next build`.
+  const isProduction = process.env.NEXT_PUBLIC_SITE_URL === "https://www.simnaniestates.com";
+
   return (
-    <div className={`admin-shell admin-theme-celestial flex h-screen overflow-hidden ${isDark ? "admin-dark dark" : "light"}`}>
-      {/* Desktop Sidebar */}
-      <AdminSidebar
-        collapsed={sidebarCollapsed}
-        onToggleCollapse={() => setSidebarCollapsed((v) => !v)}
-      />
-
-      {/* Mobile Drawer */}
-      <AdminMobileDrawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />
-
-      {/* Main content column */}
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <AdminTopbar
-          onMenuClick={() => setDrawerOpen(true)}
-          pageTitle={pageTitle}
+    <div
+      className={`admin-shell admin-theme-celestial ${isProduction ? "admin-env-production" : ""} flex h-screen flex-col overflow-hidden ${isDark ? "admin-dark dark" : "light"}`}
+    >
+      {isProduction && (
+        <div
+          className="shrink-0 py-1 text-center text-[11px] font-bold tracking-[0.2em] uppercase"
+          style={{ background: "var(--accent)", color: "var(--accent-foreground)" }}
+        >
+          Production Environment
+        </div>
+      )}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Desktop Sidebar */}
+        <AdminSidebar
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed((v) => !v)}
         />
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6">
-          {children}
-        </main>
+
+        {/* Mobile Drawer */}
+        <AdminMobileDrawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />
+
+        {/* Main content column */}
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <AdminTopbar
+            onMenuClick={() => setDrawerOpen(true)}
+            pageTitle={pageTitle}
+          />
+          <main className="flex-1 overflow-y-auto p-4 sm:p-6">
+            {children}
+          </main>
+        </div>
       </div>
     </div>
   );

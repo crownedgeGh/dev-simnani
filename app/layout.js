@@ -15,7 +15,6 @@ const inter = Inter({
 const openSans = Open_Sans({
   variable: "--font-open-sans",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
 });
 
 const siteUrl =
