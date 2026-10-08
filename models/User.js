@@ -43,20 +43,14 @@ const UserSchema = new mongoose.Schema(
       type: String,
       enum: ["company", "digital", "field"],
     },
-    // Channel Partners get portal access immediately by default; an admin
-    // can only place them on hold (blocks portal access) — rejecting a
-    // registration deletes the user record outright rather than flagging it.
+    // Channel Partners get portal access immediately by default. Self-
+    // registered Company CPs start on "hold" until Head CP approves them
+    // (see PendingCpApprovals) — admin can also place any CP on hold later;
+    // rejecting a registration deletes the user record outright instead.
     cpApprovalStatus: {
       type: String,
       enum: ["active", "hold"],
       default: "active",
-    },
-    // Self-registered Company CPs can't use their portal until Head CP
-    // generates and sends them an invitation code and they redeem it (see
-    // /api/invitation-codes/redeem). Admin-added partners never get locked.
-    cpPortalLocked: {
-      type: Boolean,
-      default: false,
     },
     accountType: {
       type: String,

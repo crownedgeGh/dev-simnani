@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import FreelancerPortalClient from "@/components/portal/freelancer/FreelancerPortalClient";
+import CPUnderReviewModal from "@/components/portal/freelancer/CPUnderReviewModal";
 import { PROJECTS } from "@/lib/projects";
 import { requireCpUser } from "@/lib/freelancerPortalGuard";
 import { getOwnerPortalData } from "@/lib/ownerPortalData";
@@ -24,6 +25,9 @@ export const metadata = {
 
 export default async function DigitalCPPortalPage() {
   const user = await requireCpUser("digital");
+  if (user.cpApprovalStatus === "hold") {
+    return <CPUnderReviewModal />;
+  }
   const { listings: myListings } = await getOwnerPortalData(user.accountId);
 
   return (

@@ -15,7 +15,6 @@ import {
   MdGroups,
   MdAttachMoney,
   MdArrowBack,
-  MdContentCopy,
   MdSend,
 } from "react-icons/md";
 import AdminPageHeader from "@/components/admin/layout/AdminPageHeader";
@@ -26,8 +25,8 @@ import AdminPhoneCell from "@/components/admin/ui/AdminPhoneCell";
 import CPPartnerFormDialog from "@/components/admin/freelancer-cp/CPPartnerFormDialog";
 import VideoModerationDialog from "@/components/admin/freelancer-cp/VideoModerationDialog";
 import AssignPropertyDialog from "@/components/admin/freelancer-cp/AssignPropertyDialog";
-import InvitationCodeDialog from "@/components/admin/freelancer-cp/InvitationCodeDialog";
 import LeadDetailDialog from "@/components/admin/freelancer-cp/LeadDetailDialog";
+import PendingCpApprovals from "@/components/admin/freelancer-cp/PendingCpApprovals";
 
 const CP_LEAD_STATUSES = ["Pending Verification", "Verified", "Assigned", "Site Visit Scheduled", "Site Visit Completed", "Converted", "Lost"];
 const COMM_STATUSES = ["Pending", "Approved", "On Hold"];
@@ -54,7 +53,7 @@ export default function CPTypeWorkspace({
   showCampaignVideos = true,
   showNetworkTab = true,
   showAddPartner = true,
-  showInvitationCodes = true,
+  showApprovals = false,
   showCommissions = true,
   showAssignedProjects = false,
   assignmentLevel,
@@ -75,7 +74,6 @@ export default function CPTypeWorkspace({
     cpLeads: [],
     campaignVideos: [],
     commissions: [],
-    invitationCodes: [],
     cpAssignments: [],
     siteVisits: [],
   });
@@ -87,14 +85,14 @@ export default function CPTypeWorkspace({
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [delegateTarget, setDelegateTarget] = useState(null); // assignment row being delegated onward
-  const [invitationDialogOpen, setInvitationDialogOpen] = useState(false);
   const [leadDetailTarget, setLeadDetailTarget] = useState(null);
+  const [approvalsCount, setApprovalsCount] = useState(0);
 
   const needsNetwork = (t) =>
     t === cpType || (delegateToTypes || []).includes(t) || (t === "company" && !!routingStage);
 
   const load = useCallback(async () => {
-    const [company, digital, field, cpl, cv, comm, inv, asg, visits] = await Promise.all([
+    const [company, digital, field, cpl, cv, comm, asg, visits] = await Promise.all([
       needsNetwork("company") ? getJSON("/api/admin/cp-network?cpType=company") : Promise.resolve([]),
       needsNetwork("digital") ? getJSON("/api/admin/cp-network?cpType=digital") : Promise.resolve([]),
       needsNetwork("field") ? getJSON("/api/admin/field-cps") : Promise.resolve([]),
@@ -105,14 +103,13 @@ export default function CPTypeWorkspace({
         : Promise.resolve([]),
       showCampaignVideos ? getJSON("/api/campaign-videos") : Promise.resolve([]),
       showCommissions ? getJSON(`/api/commissions?cpType=${cpType || ""}`) : Promise.resolve([]),
-      showInvitationCodes && cpType ? getJSON(`/api/invitation-codes?cpType=${cpType}`) : Promise.resolve([]),
       assignmentLevel ? getJSON(`/api/assignments?level=${assignmentLevel}`) : Promise.resolve([]),
       showSiteVisits ? getJSON("/api/site-visits") : Promise.resolve([]),
     ]);
     setNetworks({ company, digital, field });
-    setData({ cpLeads: cpl, campaignVideos: cv, commissions: comm, invitationCodes: inv, cpAssignments: asg, siteVisits: visits });
+    setData({ cpLeads: cpl, campaignVideos: cv, commissions: comm, cpAssignments: asg, siteVisits: visits });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cpType, routingStage, assignmentLevel, showCampaignVideos, showCommissions, showInvitationCodes, showSiteVisits, showAllLeads, delegateToTypes]);
+  }, [cpType, routingStage, assignmentLevel, showCampaignVideos, showCommissions, showSiteVisits, showAllLeads, delegateToTypes]);
 
   useEffect(() => {
     let active = true;
@@ -152,7 +149,6 @@ export default function CPTypeWorkspace({
     () => (assignmentLevel ? data.cpAssignments.filter((a) => a.level === assignmentLevel) : []),
     [data.cpAssignments, assignmentLevel]
   );
-  const invitationCodes = data.invitationCodes;
 
   const commissions = useMemo(
     () => data.commissions.filter((c) => effectiveLeadCpTypes.includes(c.cpType)),
@@ -605,54 +601,6 @@ export default function CPTypeWorkspace({
     { key: "notes", label: "Notes", render: (v) => <span className="max-w-[160px] block truncate text-xs text-[#6b7280]">{v || "—"}</span> },
   ];
 
-  const handleCopyCode = async (code) => {
-    try {
-      await navigator.clipboard.writeText(code);
-      toast.success("Invitation code copied");
-    } catch {
-      toast.error("Couldn't copy — please copy manually");
-    }
-  };
-
-  const INVITATION_COLUMNS = [
-    {
-      key: "code",
-      label: "Invitation Code",
-      primary: true,
-      searchable: true,
-      render: (v) => (
-        <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-          <span className="font-mono text-xs font-semibold text-[#d97706]">{v}</span>
-          <button
-            type="button"
-            onClick={() => handleCopyCode(v)}
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[#9ca3af] transition hover:bg-[#fff8e1] hover:text-[#d97706]"
-            aria-label={`Copy ${v}`}
-            title="Copy code"
-          >
-            <MdContentCopy size={14} />
-          </button>
-        </div>
-      ),
-    },
-    { key: "name", label: "Name", sortable: true },
-    { key: "mobile", label: "Mobile", render: (v) => <AdminPhoneCell value={v} /> },
-    { key: "city", label: "City", sortable: true, render: (v) => <span className="text-sm text-[#374151]">{v || "—"}</span> },
-    { key: "state", label: "State", sortable: true },
-    { key: "address", label: "Full Address", render: (v) => <span className="max-w-[220px] block truncate text-xs text-[#6b7280]" title={v}>{v || "—"}</span> },
-    {
-      key: "used",
-      label: "Status",
-      render: (v) => <span className={`text-xs font-medium ${v ? "text-[#9ca3af]" : "text-[#16a34a]"}`}>{v ? "Used" : "Unused"}</span>,
-    },
-    {
-      key: "createdAt",
-      label: "Generated On",
-      sortable: true,
-      render: (v) => <span className="text-xs text-[#9ca3af]">{v ? new Date(v).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"}</span>,
-    },
-  ];
-
   const TABS = [
     ...(showNetworkTab ? [{ key: "network", label: "Network", count: network.length }] : []),
     ...(showAssignedProjects ? [{ key: "assignedProjects", label: "Assigned Projects", count: assignedProjects.length }] : []),
@@ -660,7 +608,7 @@ export default function CPTypeWorkspace({
     ...(showSiteVisits ? [{ key: "siteVisits", label: "Site Visits", count: data.siteVisits.length }] : []),
     ...(showCampaignVideos ? [{ key: "campaignVideos", label: "Campaign Videos", count: campaignVideos.length }] : []),
     ...(showCommissions ? [{ key: "commissions", label: "Commissions", count: commissions.length }] : []),
-    ...(showInvitationCodes ? [{ key: "invitationCodes", label: "Invitation Codes", count: invitationCodes.length }] : []),
+    ...(showApprovals ? [{ key: "approvals", label: "Approvals", count: approvalsCount }] : []),
   ];
 
   const tabContent = {
@@ -670,7 +618,6 @@ export default function CPTypeWorkspace({
     siteVisits: { columns: SITE_VISIT_COLUMNS, data: data.siteVisits },
     campaignVideos: { columns: VIDEO_COLUMNS, data: campaignVideos },
     commissions: { columns: COMM_COLUMNS, data: commissions },
-    invitationCodes: { columns: INVITATION_COLUMNS, data: invitationCodes },
   };
   const current = tabContent[tab] || tabContent.leads;
 
@@ -687,15 +634,7 @@ export default function CPTypeWorkspace({
         onRefresh={hideRefresh ? undefined : handleRefresh}
         isRefreshing={refreshing}
         actions={
-          tab === "invitationCodes" && showInvitationCodes ? (
-            <button
-              onClick={() => setInvitationDialogOpen(true)}
-              className="flex h-9 items-center gap-1.5 rounded-xl bg-[#f0b429] px-3.5 text-xs font-semibold text-white shadow-sm transition hover:bg-[#d97706]"
-            >
-              <MdAdd size={16} />
-              <span>Generate Code</span>
-            </button>
-          ) : showAddPartner && cpType !== "field" ? (
+          showAddPartner && cpType !== "field" ? (
             <button
               onClick={() => setPartnerFormTarget(null)}
               className="flex h-9 items-center gap-1.5 rounded-xl bg-[#f0b429] px-3.5 text-xs font-semibold text-white shadow-sm transition hover:bg-[#d97706]"
@@ -740,20 +679,24 @@ export default function CPTypeWorkspace({
         ))}
       </div>
 
-      <AdminTable
-        columns={current.columns}
-        data={current.data}
-        loading={loading}
-        emptyMessage={emptyMessage}
-        pageSize={10}
-        onRowClick={
-          tab === "network"
-            ? (row) => router.push(`/admin/freelancer-cp/${cpType}/${row.accountId || row.id}`)
-            : tab === "leads"
-            ? (row) => setLeadDetailTarget(row)
-            : undefined
-        }
-      />
+      {tab === "approvals" ? (
+        <PendingCpApprovals onCountChange={setApprovalsCount} />
+      ) : (
+        <AdminTable
+          columns={current.columns}
+          data={current.data}
+          loading={loading}
+          emptyMessage={emptyMessage}
+          pageSize={10}
+          onRowClick={
+            tab === "network"
+              ? (row) => router.push(`/admin/freelancer-cp/${cpType}/${row.accountId || row.id}`)
+              : tab === "leads"
+              ? (row) => setLeadDetailTarget(row)
+              : undefined
+          }
+        />
+      )}
 
       <CPPartnerFormDialog
         isOpen={partnerFormTarget !== undefined}
@@ -788,13 +731,6 @@ export default function CPTypeWorkspace({
         isOpen={!!leadDetailTarget}
         onClose={() => setLeadDetailTarget(null)}
         lead={leadDetailTarget}
-      />
-
-      <InvitationCodeDialog
-        isOpen={invitationDialogOpen}
-        onClose={() => setInvitationDialogOpen(false)}
-        cpType={cpType}
-        onGenerated={(code) => setData((prev) => ({ ...prev, invitationCodes: [code, ...prev.invitationCodes] }))}
       />
 
       <AssignPropertyDialog

@@ -42,7 +42,7 @@ export async function GET(request) {
       city: u.city || "",
       state: u.state || "",
       cpType: u.cpType,
-      cpPortalLocked: !!u.cpPortalLocked,
+      cpApprovalStatus: u.cpApprovalStatus || "active",
       leadsSubmitted: leadCountByAccount.get(u.accountId) || 0,
       siteVisits: 0,
       dealsClosed: u.dealsClosed || 0,
