@@ -1,21 +1,47 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { MdRestore, MdOpenInNew } from "react-icons/md";
+import { MdRestore, MdOpenInNew, MdVisibility, MdClose } from "react-icons/md";
 import AdminPageHeader from "@/components/admin/layout/AdminPageHeader";
 import AdminTable from "@/components/admin/ui/AdminTable";
 import AdminPhoneCell from "@/components/admin/ui/AdminPhoneCell";
 import AdminConfirmModal from "@/components/admin/ui/AdminConfirmModal";
 
+function SnapshotModal({ record, onClose }) {
+  if (!record) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
+      <div className="flex max-h-[80vh] w-full max-w-2xl flex-col border border-navy-700/60 bg-navy-900 p-6">
+        <div className="flex items-center justify-between">
+          <h3 className="font-display text-lg text-cream">
+            {record.fullName || record.accountId} — Archived Data
+          </h3>
+          <button type="button" onClick={onClose} className="text-muted transition hover:text-cream">
+            <MdClose className="h-5 w-5" />
+          </button>
+        </div>
+        <p className="mt-1 text-xs text-muted">
+          Deleted {new Date(record.deletedAt).toLocaleString("en-IN")} — everything this account owned at the time.
+        </p>
+        <pre className="mt-4 overflow-auto rounded-sm border border-navy-700/60 bg-navy-950 p-4 text-xs text-muted">
+          {JSON.stringify(record.snapshot, null, 2)}
+        </pre>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminDeletedAccountsPage() {
   const router = useRouter();
   const [users, setUsers] = useState([]);
+  const [archived, setArchived] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [restoreTarget, setRestoreTarget] = useState(null);
   const [restoring, setRestoring] = useState(false);
+  const [viewing, setViewing] = useState(null);
 
   const load = useCallback(async () => {
     try {
@@ -26,6 +52,15 @@ export default function AdminDeletedAccountsPage() {
       }
     } catch (err) {
       console.error("Failed to fetch deleted accounts:", err);
+    }
+    try {
+      const res = await fetch("/api/admin/deleted-accounts", { cache: "no-store" });
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        setArchived(json.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch archived accounts:", err);
     }
   }, []);
 
@@ -72,6 +107,16 @@ export default function AdminDeletedAccountsPage() {
     }
   };
 
+  // Unified list: admin soft-deleted users (still live, restorable) + self-
+  // deleted accounts (hard-deleted, archived snapshot only, not restorable).
+  const rows = useMemo(
+    () => [
+      ...users.map((u) => ({ ...u, source: "soft", deletedOn: u.registeredDate })),
+      ...archived.map((a) => ({ ...a, source: "archived", deletedOn: a.deletedAt })),
+    ],
+    [users, archived]
+  );
+
   const COLUMNS = [
     {
       key: "fullName",
@@ -80,7 +125,7 @@ export default function AdminDeletedAccountsPage() {
       primary: true,
       render: (val, row) => (
         <div>
-          <p className="font-medium text-[#1a1a2e] text-sm">{val}</p>
+          <p className="font-medium text-[#1a1a2e] text-sm">{val || "—"}</p>
           <p className="text-xs text-[#9ca3af]">{row.accountId}</p>
         </div>
       ),
@@ -88,17 +133,34 @@ export default function AdminDeletedAccountsPage() {
     { key: "mobile", label: "Mobile", render: (v) => <AdminPhoneCell value={v} /> },
     { key: "email", label: "Email", render: (v) => <span className="text-sm text-[#374151]">{v}</span> },
     { key: "accountType", label: "Account Type", type: "status", sortable: true },
-    { key: "city", label: "City", sortable: true },
-    { key: "registeredDate", label: "Registered", sortable: true },
+    {
+      key: "source",
+      label: "Type",
+      sortable: true,
+      render: (v) => (
+        <span className={`text-xs font-medium ${v === "archived" ? "text-[#b91c1c]" : "text-[#374151]"}`}>
+          {v === "archived" ? "Self-Deleted (Archived)" : "Soft-Deleted"}
+        </span>
+      ),
+    },
+    {
+      key: "deletedOn",
+      label: "Deleted On",
+      sortable: true,
+      render: (v) => <span className="text-sm text-[#374151]">{v ? new Date(v).toLocaleDateString("en-IN") : "—"}</span>,
+    },
     {
       key: "actions",
       label: "",
       type: "actions",
       searchable: false,
-      actions: (row) => [
-        { label: "View Profile", icon: MdOpenInNew, onClick: () => router.push(`/admin/users/${row.accountId}`) },
-        { label: "Undelete", icon: MdRestore, onClick: () => setRestoreTarget(row) },
-      ],
+      actions: (row) =>
+        row.source === "archived"
+          ? [{ label: "View Data", icon: MdVisibility, onClick: () => setViewing(row) }]
+          : [
+              { label: "View Profile", icon: MdOpenInNew, onClick: () => router.push(`/admin/users/${row.accountId}`) },
+              { label: "Undelete", icon: MdRestore, onClick: () => setRestoreTarget(row) },
+            ],
     },
   ];
 
@@ -106,17 +168,17 @@ export default function AdminDeletedAccountsPage() {
     <div>
       <AdminPageHeader
         title="Deleted Accounts"
-        description="Accounts that self-deleted or were soft-deleted by an admin"
-        badge={`${users.length} accounts`}
+        description="Accounts that self-deleted (hard-deleted, archived here) or were soft-deleted by an admin"
+        badge={`${rows.length} accounts`}
         onRefresh={handleRefresh}
         isRefreshing={refreshing}
       />
 
       <AdminTable
         columns={COLUMNS}
-        data={users}
+        data={rows}
         loading={loading}
-        onRowClick={(row) => router.push(`/admin/users/${row.accountId}`)}
+        onRowClick={(row) => (row.source === "archived" ? setViewing(row) : router.push(`/admin/users/${row.accountId}`))}
         emptyMessage="No deleted accounts"
         pageSize={10}
       />
@@ -131,6 +193,8 @@ export default function AdminDeletedAccountsPage() {
         confirmVariant="primary"
         isLoading={restoring}
       />
+
+      <SnapshotModal record={viewing} onClose={() => setViewing(null)} />
     </div>
   );
 }

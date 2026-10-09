@@ -1,33 +1,57 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FiX } from "react-icons/fi";
 import { inputClass } from "@/components/auth/inputStyles";
 import { useAuth } from "@/context/AuthContext";
+
+// Must match OTP_LENGTH in lib/otp.js — see components/auth/AuthCard.jsx.
+const OTP_LENGTH = parseInt(process.env.NEXT_PUBLIC_OTP_LENGTH || "4", 10);
 
 export default function DeleteAccountModal({ isOpen, onClose }) {
   const { logout } = useAuth();
   const router = useRouter();
   const [method, setMethod] = useState("otp");
   const [otpSent, setOtpSent] = useState(false);
-  const [code, setCode] = useState("");
+  const [otp, setOtp] = useState(Array(OTP_LENGTH).fill(""));
+  const [password, setPassword] = useState("");
   const [sending, setSending] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [resendIn, setResendIn] = useState(0);
+  const otpRefs = useRef([]);
+  const timerRef = useRef(null);
 
   if (!isOpen) return null;
 
   function reset() {
     setMethod("otp");
     setOtpSent(false);
-    setCode("");
+    setOtp(Array(OTP_LENGTH).fill(""));
+    setPassword("");
     setError("");
+    clearInterval(timerRef.current);
+    setResendIn(0);
   }
 
   function handleClose() {
     reset();
     onClose();
+  }
+
+  function startResendTimer() {
+    clearInterval(timerRef.current);
+    setResendIn(59);
+    timerRef.current = setInterval(() => {
+      setResendIn((prev) => {
+        if (prev <= 1) {
+          clearInterval(timerRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
   }
 
   async function handleSendOtp() {
@@ -37,7 +61,10 @@ export default function DeleteAccountModal({ isOpen, onClose }) {
       const res = await fetch("/api/account/send-delete-otp", { method: "POST" });
       const data = await res.json();
       if (!data.success) throw new Error(data.error || "Failed to send OTP");
+      setOtp(Array(OTP_LENGTH).fill(""));
       setOtpSent(true);
+      startResendTimer();
+      requestAnimationFrame(() => otpRefs.current[0]?.focus());
     } catch (err) {
       setError(err.message);
     } finally {
@@ -45,11 +72,40 @@ export default function DeleteAccountModal({ isOpen, onClose }) {
     }
   }
 
+  function handleOtpChange(index, rawValue) {
+    const value = rawValue.replace(/\D/g, "").slice(-1);
+    setOtp((prev) => {
+      const next = [...prev];
+      next[index] = value;
+      return next;
+    });
+    setError("");
+    if (value && index < OTP_LENGTH - 1) otpRefs.current[index + 1]?.focus();
+  }
+
+  function handleOtpKeyDown(index, event) {
+    if (event.key === "Backspace" && !otp[index] && index > 0) {
+      otpRefs.current[index - 1]?.focus();
+    }
+  }
+
+  function handleOtpPaste(event) {
+    event.preventDefault();
+    const pasted = event.clipboardData.getData("text").replace(/\D/g, "").slice(0, OTP_LENGTH);
+    if (!pasted) return;
+    const next = Array(OTP_LENGTH).fill("");
+    [...pasted].forEach((char, i) => {
+      next[i] = char;
+    });
+    setOtp(next);
+    otpRefs.current[Math.min(pasted.length, OTP_LENGTH - 1)]?.focus();
+  }
+
   async function handleConfirmDelete() {
     setSubmitting(true);
     setError("");
     try {
-      const body = method === "otp" ? { method, otp: code } : { method, password: code };
+      const body = method === "otp" ? { method, otp: otp.join("") } : { method, password };
       const res = await fetch("/api/account/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -66,7 +122,8 @@ export default function DeleteAccountModal({ isOpen, onClose }) {
     }
   }
 
-  const canSubmit = method === "password" ? code.length > 0 : otpSent && code.length > 0;
+  const canSubmit =
+    method === "password" ? password.length > 0 : otpSent && otp.every((d) => d.length === 1);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
@@ -84,13 +141,13 @@ export default function DeleteAccountModal({ isOpen, onClose }) {
         </div>
 
         <p className="mt-3 text-sm text-muted">
-          This permanently deactivates your account. Confirm your identity to continue.
+          This permanently deletes your account. Confirm your identity to continue.
         </p>
 
         <div className="mt-5 flex gap-2">
           <button
             type="button"
-            onClick={() => { setMethod("otp"); setCode(""); setError(""); }}
+            onClick={() => { setMethod("otp"); setError(""); }}
             className={`tracked-label flex-1 border px-3 py-2 text-xs transition ${
               method === "otp" ? "border-gold-400 text-gold-400" : "border-navy-700/60 text-muted hover:border-navy-600"
             }`}
@@ -99,7 +156,7 @@ export default function DeleteAccountModal({ isOpen, onClose }) {
           </button>
           <button
             type="button"
-            onClick={() => { setMethod("password"); setCode(""); setError(""); }}
+            onClick={() => { setMethod("password"); setError(""); }}
             className={`tracked-label flex-1 border px-3 py-2 text-xs transition ${
               method === "password" ? "border-gold-400 text-gold-400" : "border-navy-700/60 text-muted hover:border-navy-600"
             }`}
@@ -111,15 +168,42 @@ export default function DeleteAccountModal({ isOpen, onClose }) {
         <div className="mt-4">
           {method === "otp" ? (
             otpSent ? (
-              <input
-                type="text"
-                inputMode="numeric"
-                placeholder="Enter OTP"
-                value={code}
-                onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                className={inputClass}
-                autoFocus
-              />
+              <div className="flex flex-col gap-3">
+                <div className="flex justify-between gap-2">
+                  {otp.map((digit, index) => (
+                    <input
+                      key={index}
+                      ref={(el) => {
+                        otpRefs.current[index] = el;
+                      }}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={1}
+                      value={digit}
+                      onChange={(e) => handleOtpChange(index, e.target.value)}
+                      onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                      onPaste={handleOtpPaste}
+                      className={`h-14 w-12 rounded-full border bg-navy-950 text-center text-lg text-cream outline-none transition focus:border-gold-400 focus:ring-4 focus:ring-gold-400/10 ${
+                        error ? "border-red-500" : "border-navy-700/60"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <div className="text-center text-xs text-muted">
+                  {resendIn > 0 ? (
+                    <span>Resend OTP in 0:{String(resendIn).padStart(2, "0")}</span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleSendOtp}
+                      disabled={sending}
+                      className="tracked-label text-gold-400 hover:text-gold-300 disabled:opacity-50"
+                    >
+                      {sending ? "Sending…" : "Resend OTP"}
+                    </button>
+                  )}
+                </div>
+              </div>
             ) : (
               <button
                 type="button"
@@ -134,8 +218,8 @@ export default function DeleteAccountModal({ isOpen, onClose }) {
             <input
               type="password"
               placeholder="Enter your password"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className={inputClass}
               autoFocus
             />

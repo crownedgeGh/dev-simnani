@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Switch from "./Switch";
 import SectionCard from "./SectionCard";
+import DeleteAccountModal from "./DeleteAccountModal";
 
 const DATA_TOGGLES = [
   { key: "personalization", label: "Personalization", description: "Tailor recommendations to your activity.", defaultOn: true },
@@ -21,9 +22,8 @@ export default function PrivacyPanel() {
   const [toggles, setToggles] = useState(
     Object.fromEntries(DATA_TOGGLES.map((t) => [t.key, t.defaultOn]))
   );
-  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [confirmingLogout, setConfirmingLogout] = useState(false);
-  const [deleted, setDeleted] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [loggedOut, setLoggedOut] = useState(false);
 
   return (
@@ -95,52 +95,26 @@ export default function PrivacyPanel() {
 
       <div className="border border-red-500/40 bg-navy-900 p-6">
         <h2 className="tracked-label text-xs text-red-400">Danger Zone</h2>
-        {deleted ? (
-          <p className="mt-3 text-sm text-muted">
-            Your deletion request has been received. Our team will process it within 7 business
-            days.
+        <div className="mt-3">
+          <p className="text-sm text-muted">
+            Permanently delete your account and all associated data. This cannot be undone.
           </p>
-        ) : confirmingDelete ? (
-          <div className="mt-3">
-            <p className="text-sm text-cream">
-              Are you sure you want to delete your account? This action cannot be undone and all
-              associated property data will be permanently erased.
-            </p>
-            <div className="mt-4 flex flex-wrap items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setConfirmingDelete(false)}
-                className="tracked-label rounded-full border border-navy-700/60 px-5 py-3 text-xs text-cream transition hover:border-gold-400 active:scale-[0.98]"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => setDeleted(true)}
-                className="tracked-label rounded-full border border-red-500 px-5 py-3 text-xs text-red-400 transition hover:bg-red-500 hover:text-navy-950 active:scale-[0.98]"
-              >
-                Confirm Delete
-              </button>
-              <Link href="/help" className="tracked-label text-xs text-muted hover:text-gold-400">
-                Need assistance? Contact Concierge
-              </Link>
-            </div>
-          </div>
-        ) : (
-          <div className="mt-3">
-            <p className="text-sm text-muted">
-              Permanently delete your account and all associated data.
-            </p>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
             <button
               type="button"
-              onClick={() => setConfirmingDelete(true)}
-              className="tracked-label mt-4 rounded-full border border-red-500 px-5 py-3 text-xs text-red-400 transition hover:bg-red-500 hover:text-navy-950 active:scale-[0.98]"
+              onClick={() => setShowDeleteModal(true)}
+              className="tracked-label rounded-full border border-red-500 px-5 py-3 text-xs text-red-400 transition hover:bg-red-500 hover:text-navy-950 active:scale-[0.98]"
             >
               Delete Account
             </button>
+            <Link href="/help" className="tracked-label text-xs text-muted hover:text-gold-400">
+              Need assistance? Contact Concierge
+            </Link>
           </div>
-        )}
+        </div>
       </div>
+
+      <DeleteAccountModal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)} />
     </div>
   );
 }
