@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getProjectById } from "@/lib/projects";
 import { AMENITIES, getProjectDescription } from "@/lib/propertyContent";
 import BackButton from "@/components/layout/BackButton";
+import LocationLink from "@/components/common/LocationLink";
 
 export async function generateMetadata({ params }) {
   const { id } = await params;
@@ -47,13 +48,24 @@ export default async function ProjectDetailPage({ params }) {
             <BackButton />
             <h1 className="font-display text-3xl text-cream sm:text-4xl">{project.name}</h1>
           </div>
-          <p className="mt-2 text-sm text-muted">{project.location}</p>
+          <p className="mt-2 text-sm text-muted">
+            <LocationLink mapLocation={project.mapLocation} location={project.location} className="hover:text-gold-400" />
+          </p>
           <p className="mt-4 font-sans text-2xl font-semibold text-gold-400">{project.startingPrice}</p>
 
           <div className="mt-6 grid grid-cols-2 gap-4 border-y border-navy-700/60 py-6 sm:grid-cols-3">
             <Stat label="Developer" value={project.developer} />
             <Stat label="Status" value={project.status} />
-            <Stat label="Location" value={project.location} />
+            <Stat
+              label="Location"
+              value={
+                <LocationLink
+                  mapLocation={project.mapLocation}
+                  location={project.location}
+                  className="hover:text-gold-400"
+                />
+              }
+            />
           </div>
 
           <section className="mt-10">

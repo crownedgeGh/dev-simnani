@@ -7,6 +7,7 @@ import {
   isPgOrHostel,
   isResidentialSection,
   RESIDENTIAL_PROPERTY_TYPES,
+  getListingLimit,
 } from "@/lib/properties";
 import { getSessionUser } from "@/lib/session";
 import { isAdminRequest } from "@/lib/adminSession";
@@ -123,6 +124,18 @@ export async function POST(request) {
     }
 
     const body = await request.json();
+
+    const limit = getListingLimit(sessionUser.accountType);
+    const existingCount = await Property.countDocuments({ ownerId: sessionUser.accountId });
+    if (existingCount >= limit) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `You have reached your listing limit of ${limit}. Remove an existing listing to post more.`,
+        },
+        { status: 403 }
+      );
+    }
 
     if (isResidentialSection(body.type) && !RESIDENTIAL_PROPERTY_TYPES.includes(body.propertyType)) {
       return NextResponse.json(

@@ -39,6 +39,7 @@ export default function OwnerDashboard({
   showAddProperty = true,
 }) {
   const TABS = showCommissions ? [...BASE_TABS, COMMISSIONS_TAB] : BASE_TABS;
+  const listingsRemaining = stats?.listingsRemaining;
   const [tab, setTab] = useState("overview");
   const [leadList, setLeadList] = useState(leads);
   const [clientList, setClientList] = useState(clients);
@@ -164,17 +165,35 @@ export default function OwnerDashboard({
 
         {tab === "listings" && (
           <div>
-            <div className="mb-4 flex items-center justify-between">
+            <div className="mb-1 flex items-center justify-between">
               <h2 className="font-display text-xl text-cream">My Listings</h2>
               {showAddProperty && (
-                <Link
-                  href={addPropertyHref}
-                  className="tracked-label rounded-full bg-gold-400 px-5 py-2 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 hover:shadow-gold-400/20 active:scale-[0.98]"
-                >
-                  Add Property
-                </Link>
+                listingsRemaining > 0 ? (
+                  <Link
+                    href={addPropertyHref}
+                    className="tracked-label rounded-full bg-gold-400 px-5 py-2 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 hover:shadow-gold-400/20 active:scale-[0.98]"
+                  >
+                    Add Property
+                  </Link>
+                ) : (
+                  <span className="tracked-label rounded-full border border-navy-700/60 px-5 py-2 text-xs text-muted">
+                    Add Property
+                  </span>
+                )
               )}
             </div>
+            {typeof listingsRemaining === "number" && (
+              <p className="mb-4 text-sm text-muted">
+                {listingsRemaining > 0 ? (
+                  <>
+                    You have <span className="font-display text-gold-400">{listingsRemaining}</span>{" "}
+                    listing{listingsRemaining === 1 ? "" : "s"} left.
+                  </>
+                ) : (
+                  "You've reached your listing limit. Remove a listing to add a new one."
+                )}
+              </p>
+            )}
             <PropertyGrid properties={listings} emptyMessage="You don't have any listings yet." ownerView />
           </div>
         )}

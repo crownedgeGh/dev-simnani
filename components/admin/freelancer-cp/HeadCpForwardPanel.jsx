@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { MdSend } from "react-icons/md";
 import AdminTable from "@/components/admin/ui/AdminTable";
 import { adminSelectClass } from "@/components/admin/ui/AdminFormField";
+import LocationLink from "@/components/common/LocationLink";
 
 function formatCpLabel(cp) {
   const place = [cp.city, cp.state].filter(Boolean).join(", ");
@@ -102,7 +103,9 @@ export default function HeadCpForwardPanel() {
       render: (v, row) => (
         <div>
           <p className="text-sm font-medium text-[#1a1a2e]">{v}</p>
-          <p className="mt-0.5 text-xs text-[#9ca3af]">{row.location}</p>
+          <p className="mt-0.5 text-xs text-[#9ca3af]">
+            <LocationLink mapLocation={row.mapLocation} location={row.location} className="hover:text-[#f0b429]" />
+          </p>
         </div>
       ),
     },

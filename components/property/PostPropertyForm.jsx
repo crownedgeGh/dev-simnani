@@ -23,6 +23,7 @@ import {
   MdArrowForward,
   MdKeyboardArrowDown,
   MdDescription,
+  MdMyLocation,
 } from "react-icons/md";
 import {
   CATEGORIES_BY_TYPE,
@@ -124,6 +125,7 @@ const INITIAL_FORM = {
   locality: "",
   landmark: "",
   address: "",
+  mapLocation: "",
   price: "",
   negotiable: "",
   areaSize: "",
@@ -173,6 +175,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
   const [pendingLeave, setPendingLeave] = useState(null);
   const [minAvailableDate, setMinAvailableDate] = useState("");
   const [availableFromError, setAvailableFromError] = useState("");
+  const [locating, setLocating] = useState(false);
   const submittedRef = useRef(false);
   const initialSnapshotRef = useRef(INITIAL_FORM);
 
@@ -317,6 +320,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
           locality: p.locality || "",
           landmark: p.landmark || "",
           address: p.address || "",
+          mapLocation: p.mapLocation || "",
           price: p.rawPrice ? String(p.rawPrice) : "",
           negotiable: p.negotiable || "",
           areaSize: p.areaSize ? String(p.areaSize) : "",
@@ -414,6 +418,26 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
       next.delete(field);
       return next;
     });
+  }
+
+  function handleUseCurrentLocation() {
+    if (!navigator.geolocation) {
+      toast.error("Location isn't supported on this browser.");
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        update("mapLocation", `https://www.google.com/maps?q=${latitude},${longitude}`);
+        setLocating(false);
+      },
+      () => {
+        toast.error("Couldn't get your location. Please allow location access and try again.");
+        setLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
   }
 
   function errClass(base, field) {
@@ -549,6 +573,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
         locality: localityStr,
         landmark: (form.landmark || "").trim(),
         address: (form.address || "").trim(),
+        mapLocation: (form.mapLocation || "").trim(),
         area: `${form.areaSize || 0} ${form.areaUnit || "sq ft"}`,
         areaSize: Number(form.areaSize) || 0,
         areaUnit: form.areaUnit || "sq ft",
@@ -818,6 +843,29 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
               onChange={(e) => update("landmark", e.target.value)}
               className={`${inputClass}`}
             />
+          </FormField>
+        </div>
+        <div className="sm:col-span-2">
+          <FormField label="Google Maps Location" htmlFor="mapLocation" optional hint="Paste a maps link or use your current location">
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <input
+                id="mapLocation"
+                type="url"
+                placeholder="https://maps.google.com/..."
+                value={form.mapLocation}
+                onChange={(e) => update("mapLocation", e.target.value)}
+                className={`${inputClass} flex-1`}
+              />
+              <button
+                type="button"
+                onClick={handleUseCurrentLocation}
+                disabled={locating}
+                className="tracked-label flex h-14 shrink-0 items-center justify-center gap-2 rounded-full border border-gold-500/70 px-4 text-xs text-gold-400 transition hover:bg-gold-500/10 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <MdMyLocation className="h-4 w-4" />
+                {locating ? "Locating…" : "Use Current Location"}
+              </button>
+            </div>
           </FormField>
         </div>
       </Section>

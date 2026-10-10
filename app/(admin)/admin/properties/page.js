@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import LocationLink from "@/components/common/LocationLink";
 import { MdAdd, MdEdit, MdDelete, MdOpenInNew, MdLocationOn, MdReportProblem, MdSend } from "react-icons/md";
 import AdminPageHeader from "@/components/admin/layout/AdminPageHeader";
 import AdminTable from "@/components/admin/ui/AdminTable";
@@ -297,7 +298,9 @@ export default function AdminPropertiesPage() {
         render: (val, row) => (
           <div className="min-w-[180px] max-w-xs whitespace-normal break-words">
             <p className="font-medium text-[#1a1a2e] text-sm leading-snug">{val}</p>
-            <p className="text-xs text-[#9ca3af] mt-0.5">{row.location}</p>
+            <p className="text-xs text-[#9ca3af] mt-0.5">
+              <LocationLink mapLocation={row.mapLocation} location={row.location} className="hover:text-[#f0b429]" />
+            </p>
           </div>
         ),
       },

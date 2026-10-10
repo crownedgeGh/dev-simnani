@@ -19,6 +19,7 @@ import {
 import AdminKpiCard from "@/components/admin/ui/AdminKpiCard";
 import AdminStatusBadge from "@/components/admin/ui/AdminStatusBadge";
 import AdminPhoneCell from "@/components/admin/ui/AdminPhoneCell";
+import LocationLink from "@/components/common/LocationLink";
 
 export default function UserPortalSnapshot({ accountId }) {
   const [fetched, setFetched] = useState({ forId: null, data: null });
@@ -243,7 +244,9 @@ function PropertyTileGrid({ properties, emptyMessage }) {
           </div>
           <div className="p-3.5">
             <p className="truncate text-sm font-medium text-[#1a1a2e]">{p.title}</p>
-            <p className="mt-0.5 truncate text-xs text-[#9ca3af]">{p.location}</p>
+            <p className="mt-0.5 truncate text-xs text-[#9ca3af]">
+              <LocationLink mapLocation={p.mapLocation} location={p.location} nested className="hover:text-[#f0b429]" />
+            </p>
             <p className="mt-1.5 text-sm font-semibold text-[#d97706]">{p.price}</p>
           </div>
         </Link>

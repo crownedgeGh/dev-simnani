@@ -43,8 +43,11 @@ import {
   MdRemoveCircleOutline,
   MdBusiness,
   MdArrowForward,
+  MdMyLocation,
 } from "react-icons/md";
 import AdminStatusBadge from "@/components/admin/ui/AdminStatusBadge";
+import LocationLink from "@/components/common/LocationLink";
+import { getMapHref } from "@/lib/mapLink";
 import AdminConfirmModal from "@/components/admin/ui/AdminConfirmModal";
 import AdminPhoneCell from "@/components/admin/ui/AdminPhoneCell";
 import PropertyFormDialog from "@/components/admin/properties/PropertyFormDialog";
@@ -350,7 +353,14 @@ export default function PropertyDetailPage() {
           </div>
 
           <h1 className="mt-3 text-3xl font-bold text-[#1a1a2e] sm:text-4xl">{property.title}</h1>
-          <p className="mt-2 text-sm text-[#9ca3af]">{property.location}</p>
+          <p className="mt-2 text-sm text-[#9ca3af]">
+            <LocationLink
+              mapLocation={property.mapLocation}
+              address={property.address}
+              location={property.location}
+              className="hover:text-[#f0b429]"
+            />
+          </p>
           <p className="mt-4 text-2xl font-bold text-[#d97706]">{property.price}</p>
 
           {property.correctionRequest?.active && (
@@ -452,6 +462,28 @@ export default function PropertyDetailPage() {
                 { icon: <MdMap />, label: "Locality", value: property.locality },
                 { icon: <MdPlace />, label: "Landmark", value: property.landmark },
                 { icon: <MdHome />, label: "Address", value: property.address },
+                getMapHref({
+                  mapLocation: property.mapLocation,
+                  address: property.address,
+                  location: property.location,
+                }) && {
+                  icon: <MdMyLocation />,
+                  label: "Map Location",
+                  value: (
+                    <a
+                      href={getMapHref({
+                        mapLocation: property.mapLocation,
+                        address: property.address,
+                        location: property.location,
+                      })}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#d97706] hover:underline"
+                    >
+                      View on Map
+                    </a>
+                  ),
+                },
                 hasBedrooms && {
                   icon: <MdBed />,
                   label: "No. of Bedrooms",

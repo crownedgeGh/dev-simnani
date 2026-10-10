@@ -16,6 +16,7 @@ import {
   FiPlay,
 } from "react-icons/fi";
 import { MdCampaign } from "react-icons/md";
+import LocationLink from "@/components/common/LocationLink";
 import { toast } from "sonner";
 import { downloadFile, downloadFiles } from "@/lib/downloadFile";
 
@@ -199,7 +200,9 @@ export default function CampaignDetailPage({ project, assets, backHref }) {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <h1 className="font-display text-2xl text-cream sm:text-3xl">{project.name}</h1>
-              <p className="mt-1 text-sm text-muted">{project.location}</p>
+              <p className="mt-1 text-sm text-muted">
+                <LocationLink mapLocation={project.mapLocation} location={project.location} className="hover:text-gold-400" />
+              </p>
               <div className="mt-2 flex flex-wrap gap-3">
                 <span className="tracked-label rounded-full border border-navy-700/60 px-3 py-1 text-[10px] text-muted">
                   {project.startingPrice}

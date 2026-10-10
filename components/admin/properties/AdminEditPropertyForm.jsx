@@ -155,6 +155,7 @@ function parseLocation(property) {
       locality: property.locality || "",
       landmark: property.landmark || "",
       address: property.address || "",
+      mapLocation: property.mapLocation || "",
     };
   }
   if (property.location) {
@@ -165,6 +166,7 @@ function parseLocation(property) {
         city: parts.slice(1).join(", ") || "",
         landmark: "",
         address: "",
+        mapLocation: property.mapLocation || "",
       };
     }
     return {
@@ -172,9 +174,10 @@ function parseLocation(property) {
       city: "",
       landmark: "",
       address: "",
+      mapLocation: property.mapLocation || "",
     };
   }
-  return { city: "", locality: "", landmark: "", address: "" };
+  return { city: "", locality: "", landmark: "", address: "", mapLocation: property.mapLocation || "" };
 }
 
 export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
@@ -215,6 +218,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
     locality: "",
     landmark: "",
     address: "",
+    mapLocation: "",
     price: "",
     negotiable: "no",
     areaSize: "",
@@ -278,6 +282,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
       locality: loc.locality,
       landmark: loc.landmark,
       address: loc.address,
+      mapLocation: loc.mapLocation,
       price: numPrice,
       negotiable: prop.negotiable || "no",
       areaSize: area.size,
@@ -589,6 +594,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
         locality: form.locality.trim(),
         landmark: form.landmark.trim(),
         address: form.address.trim(),
+        mapLocation: form.mapLocation.trim(),
         area: `${form.areaSize} ${form.areaUnit}`,
         areaSize: Number(form.areaSize),
         areaUnit: form.areaUnit,
@@ -952,6 +958,18 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
                   value={form.address}
                   onChange={(e) => update("address", e.target.value)}
                   placeholder="e.g. Flat 402, Sunshine Heights, 14th Road"
+                  className={adminInputClass}
+                />
+              </AdminFormField>
+            </div>
+
+            <div className="sm:col-span-2 lg:col-span-3">
+              <AdminFormField label="Google Maps Location" hint="Optional — link shown to buyers to open the exact location">
+                <input
+                  type="url"
+                  value={form.mapLocation}
+                  onChange={(e) => update("mapLocation", e.target.value)}
+                  placeholder="https://maps.google.com/..."
                   className={adminInputClass}
                 />
               </AdminFormField>

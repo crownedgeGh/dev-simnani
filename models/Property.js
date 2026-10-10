@@ -130,6 +130,7 @@ const PropertySchema = new mongoose.Schema(
     landmark: { type: String, default: "" },
     reraId: { type: String, default: "" },
     address: { type: String, default: "" },
+    mapLocation: { type: String, default: "" },
     areaSize: { type: Number },
     areaUnit: { type: String, default: "sq ft" },
     floorNo: { type: String, default: "" },

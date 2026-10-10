@@ -13,6 +13,7 @@ import {
 import { getPropertyDescription } from "@/lib/propertyContent";
 import { getPostedByCategoryLabel } from "@/lib/postedByRoles";
 import PropertyMediaCarousel from "@/components/property/PropertyMediaCarousel";
+import LocationLink from "@/components/common/LocationLink";
 import VideoEditingGuidelines from "@/components/property/VideoEditingGuidelines";
 import BackButton from "@/components/layout/BackButton";
 import ContactForm from "@/components/property/ContactForm";
@@ -41,7 +42,9 @@ import {
   MdWeekend,
   MdWc,
   MdBadge,
+  MdMyLocation,
 } from "react-icons/md";
+import { getMapHref } from "@/lib/mapLink";
 
 export default function PropertyDetailContent({ property, eyebrow, sidebar, backHref, showDownloadButtons = false }) {
   const { isAuthenticated } = useAuth();
@@ -63,6 +66,20 @@ export default function PropertyDetailContent({ property, eyebrow, sidebar, back
     { icon: <MdMap />, label: "Locality", value: property.locality },
     { icon: <MdPlace />, label: "Landmark", value: property.landmark },
     { icon: <MdHome />, label: "Address", value: property.address },
+    getMapHref({ mapLocation: property.mapLocation, address: property.address, location: property.location }) && {
+      icon: <MdMyLocation />,
+      label: "Map Location",
+      value: (
+        <a
+          href={getMapHref({ mapLocation: property.mapLocation, address: property.address, location: property.location })}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-gold-400 transition hover:text-gold-300"
+        >
+          View on Map
+        </a>
+      ),
+    },
     hasBedrooms && {
       icon: <MdBed />,
       label: "No. of Bedrooms",
@@ -137,7 +154,15 @@ export default function PropertyDetailContent({ property, eyebrow, sidebar, back
             <BackButton href={backHref} />
             <h1 className="font-display text-3xl text-cream sm:text-4xl">{property.title}</h1>
           </div>
-          <p className="mt-2 text-sm text-muted">{property.location}</p>
+          <p className="mt-2 flex items-center gap-1 text-sm text-muted">
+            <MdPlace className="h-4 w-4 shrink-0" />
+            <LocationLink
+              mapLocation={property.mapLocation}
+              address={property.address}
+              location={property.location}
+              className="transition hover:text-gold-400"
+            />
+          </p>
           <p className="mt-4 font-sans text-2xl font-semibold text-gold-400">{property.price}</p>
 
           <div className="mt-6 grid grid-cols-2 gap-4 border-y border-navy-700/60 py-6 sm:grid-cols-4">

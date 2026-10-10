@@ -20,6 +20,7 @@ import {
 } from "react-icons/md";
 import { formatPostedDate, getPropertyCategoryLabels, formatBhkLabel } from "@/lib/properties";
 import { useSavedPropertyIds } from "@/lib/savedProperties";
+import LocationLink from "@/components/common/LocationLink";
 import { useAuth } from "@/context/AuthContext";
 import AuthGateModal from "@/components/auth/AuthGateModal";
 import { trackEvent } from "@/lib/gtag";
@@ -183,7 +184,13 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
         <h3 className={`font-display text-lg text-cream ${categoryLabel ? "mt-1" : ""}`}>{title}</h3>
         <p className="mt-1 flex items-start gap-1 text-sm text-muted">
           <MdLocationOn className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-          {address || location}
+          <LocationLink
+            mapLocation={property.mapLocation}
+            address={address}
+            location={location}
+            nested
+            className="transition hover:text-gold-400"
+          />
         </p>
         <div className="mt-3 flex items-center justify-between gap-2">
           <p className="font-sans text-xl font-semibold text-gold-400">{price}</p>

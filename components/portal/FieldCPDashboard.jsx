@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { FiPlus, FiCheck, FiSend, FiNavigation, FiCamera, FiUser, FiPhone, FiArrowRight, FiX, FiEdit2, FiChevronDown } from "react-icons/fi";
 import { MdContentCopy, MdCheck, MdCall } from "react-icons/md";
+import LocationLink from "@/components/common/LocationLink";
 import Tabs from "./Tabs";
 import StatCard from "./StatCard";
 import Badge from "./Badge";
@@ -531,7 +532,9 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
                         <Link href={propHref} className="group">
                           <h3 className="font-display text-lg text-cream transition group-hover:text-gold-400">{project.name}</h3>
                         </Link>
-                        <p className="mt-1 text-xs text-muted">{project.location}</p>
+                        <p className="mt-1 text-xs text-muted">
+                          <LocationLink mapLocation={project.mapLocation} location={project.location} className="hover:text-gold-400" />
+                        </p>
                         <p className="mt-1 text-xs text-muted">
                           {project.startingPrice} · {project.developer}
                         </p>
