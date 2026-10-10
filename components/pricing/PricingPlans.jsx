@@ -131,7 +131,7 @@ export default function PricingPlans() {
             const isCurrent = isAuthenticated && user?.plan === plan.id;
             const isPurchasing = purchasingPlan === plan.id;
             const isDowngrade = currentRank > -1 && planRank < currentRank;
-            const isDisabled = isPurchasing || isCurrent || isDowngrade;
+            const isDisabled = true;
 
             return (
               <div
@@ -158,9 +158,16 @@ export default function PricingPlans() {
                   </div>
                 </div>
 
-                <div className="mt-6 flex items-baseline gap-1.5">
+                <div className="mt-6 flex items-baseline gap-2">
+                  {plan.originalPriceLabel && (
+                    <span className="text-lg text-muted line-through">{plan.originalPriceLabel}</span>
+                  )}
                   <span className="font-display text-4xl text-gold-400">{plan.priceLabel}</span>
-                  {plan.price > 0 && <span className="text-sm text-muted">one-time</span>}
+                  {plan.originalPriceLabel && (
+                    <span className="tracked-label rounded-full bg-gold-400/10 px-2 py-0.5 text-[10px] text-gold-400">
+                      Free for now
+                    </span>
+                  )}
                 </div>
                 <p className="mt-1 text-xs text-muted">{plan.validityLabel}</p>
 
@@ -200,11 +207,6 @@ export default function PricingPlans() {
           })}
         </div>
 
-        {/* Testing-period note */}
-        <div className="mx-auto mt-14 max-w-3xl rounded-2xl border border-navy-700/60 bg-navy-900 px-5 py-5 text-center sm:px-8">
-          <p className="tracked-label text-[11px] text-gold-400">Please Note</p>
-          
-        </div>
       </div>
     </>
   );

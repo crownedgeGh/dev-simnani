@@ -15,7 +15,7 @@ import {
   FiList, FiBookmark, FiSettings, FiLogOut, FiHelpCircle, FiInfo,
   FiChevronDown, FiMapPin, FiSmartphone, FiBriefcase,
 } from "react-icons/fi";
-import { BiBuildings, BiBuildingHouse } from "react-icons/bi";
+import { BiBuildings, BiBuildingHouse, BiTag } from "react-icons/bi";
 
 // Test Mode (demo CP dashboard bypass) is a dev/staging-only convenience —
 // it must never be reachable in production. Gate it behind an env flag that
@@ -36,6 +36,7 @@ const NAV_LINKS = [
   { label: "Farming Land Projects", href: "/farming", icon: MdAgriculture },
   { label: "Industrial", href: "/industrial", icon: MdFactory },
   { label: "Services", href: "/services", icon: FiSettings },
+  { label: "Pricing", href: "/pricing", icon: BiTag },
   { label: "About Us", href: "/about", icon: FiInfo },
 ];
 
