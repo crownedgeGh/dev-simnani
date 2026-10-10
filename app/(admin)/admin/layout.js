@@ -27,6 +27,7 @@ function AdminShell({ children }) {
     "/admin/users": "Users",
     "/admin/deleted-accounts": "Deleted Accounts",
     "/admin/leads": "Leads",
+    "/admin/helpdesk": "Helpdesk",
     "/admin/analytics": "Analytics",
     "/admin/plans": "Plans & Subscriptions",
     "/admin/brokers/featured": "Featured Brokers",

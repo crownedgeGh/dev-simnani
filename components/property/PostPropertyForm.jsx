@@ -13,6 +13,7 @@ import { inputClass, selectClass, textareaClass } from "@/components/auth/inputS
 import FormField from "@/components/auth/FormField";
 import CompleteProfileModal from "@/components/auth/CompleteProfileModal";
 import ConfirmCloseModal from "@/components/property/ConfirmCloseModal";
+import EditListingHelpdeskCard from "@/components/property/EditListingHelpdeskCard";
 import { PhotosUpload, VideoUpload } from "@/components/property/PropertyImageUpload";
 import {
   MdContentPaste,
@@ -918,6 +919,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
           />
         </FormField>
         </fieldset>
+        {editId && <EditListingHelpdeskCard propertyId={editId} />}
       </Section>
 
       <fieldset

@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { MdEdit, MdDeleteOutline, MdLockOutline, MdLockOpen, MdVisibility } from "react-icons/md";
+import { MdEdit, MdLockOutline, MdLockOpen, MdVisibility } from "react-icons/md";
 import { useAuth } from "@/context/AuthContext";
 import { getAccountPermissions } from "@/lib/accountPermissions";
 
@@ -33,29 +33,6 @@ export default function ListingOwnerActions({ property }) {
     } finally {
       setBusy(false);
     }
-  }
-
-  async function handleDelete() {
-    setBusy(true);
-    try {
-      const res = await fetch(`/api/properties/${property.id}`, { method: "DELETE" });
-      const data = await res.json();
-      if (!res.ok || !data.success) throw new Error(data.error || "Failed to delete listing");
-      toast.success("Listing deleted successfully.");
-      router.push(portalHref);
-    } catch (err) {
-      toast.error(err.message || "Failed to delete listing.");
-      setBusy(false);
-    }
-  }
-
-  function confirmDelete() {
-    toast("Remove this listing?", {
-      description: `"${property.title}" will be permanently deleted. This cannot be undone.`,
-      duration: Infinity,
-      action: { label: "Delete", onClick: handleDelete },
-      cancel: { label: "Cancel", onClick: () => {} },
-    });
   }
 
   return (
@@ -127,16 +104,6 @@ export default function ListingOwnerActions({ property }) {
             Close Listing
           </button>
         )}
-
-        <button
-          type="button"
-          disabled={busy}
-          onClick={confirmDelete}
-          className="tracked-label flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-navy-700/60 py-2.5 text-xs text-cream transition hover:border-red-400 hover:text-red-400 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <MdDeleteOutline className="h-4 w-4" />
-          Delete Listing
-        </button>
       </div>
     </div>
   );
