@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { MdMyLocation } from "react-icons/md";
 import AdminDialog from "@/components/admin/ui/AdminDialog";
 import AdminFormField, { adminInputClass, adminSelectClass, adminTextareaClass } from "@/components/admin/ui/AdminFormField";
 import { getLocationCity, CATEGORIES_BY_TYPE, isStructureCategory, categoryHasBedrooms, isPgOrHostel } from "@/lib/properties";
+import { getCurrentCoords, reverseGeocode } from "@/lib/geo";
 
 const PROPERTY_TYPES = ["buy", "sell", "rent", "invest", "commercial", "farming", "industrial", "lease", "seized-property"];
 const STATUSES = ["Active", "Pending Review", "Rejected"];
@@ -31,6 +33,7 @@ export default function PropertyFormDialog({ isOpen, onClose, property, onSave }
   const [form, setForm] = useState(property ? { ...EMPTY_FORM, ...property } : { ...EMPTY_FORM });
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
+  const [locating, setLocating] = useState(false);
 
   // Reset form when dialog opens
   const handleOpen = () => {
@@ -39,6 +42,22 @@ export default function PropertyFormDialog({ isOpen, onClose, property, onSave }
   };
 
   const set = (key, val) => setForm((prev) => ({ ...prev, [key]: val }));
+
+  const handleUseCurrentLocation = async () => {
+    setLocating(true);
+    try {
+      const { lat, lng } = await getCurrentCoords();
+      const { city, locality, state } = await reverseGeocode(lat, lng);
+      const locationStr = locality && city ? `${locality}, ${city}` : city || locality;
+      if (locationStr) set("location", locationStr);
+      if (city) set("city", city);
+      if (state) set("state", state);
+    } catch (err) {
+      toast.error(err.message || "Couldn't get your location. Please allow location access and try again.", { duration: 6000 });
+    } finally {
+      setLocating(false);
+    }
+  };
 
   const isPgHostel = isPgOrHostel(form.propertyType);
   const needsStructureFields = isStructureCategory(form.type, form.category) && !isPgHostel;
@@ -154,7 +173,19 @@ export default function PropertyFormDialog({ isOpen, onClose, property, onSave }
         </AdminFormField>
 
         <AdminFormField label="Location" id="prop-location" required error={errors.location}>
-          <input id="prop-location" value={form.location} onChange={(e) => set("location", e.target.value)} placeholder="e.g. Indiranagar, Bangalore" className={adminInputClass} />
+          <div className="flex gap-2">
+            <input id="prop-location" value={form.location} onChange={(e) => set("location", e.target.value)} placeholder="e.g. Indiranagar, Bangalore" className={`${adminInputClass} flex-1`} />
+            <button
+              type="button"
+              onClick={handleUseCurrentLocation}
+              disabled={locating}
+              aria-label="Use current location"
+              className="flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-[#f0b429]/60 px-3 text-xs font-medium text-[#f0b429] transition hover:bg-[#f0b429]/10 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <MdMyLocation className="h-4 w-4" />
+              {locating ? "Locating…" : "Locate"}
+            </button>
+          </div>
         </AdminFormField>
 
         {needsBedrooms && (

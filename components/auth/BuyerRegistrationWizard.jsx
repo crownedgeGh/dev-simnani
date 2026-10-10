@@ -16,6 +16,8 @@ import { useAuth } from "@/context/AuthContext";
 import { PROPERTY_CATEGORIES } from "@/lib/propertyCategories";
 import { useWizardDraft } from "@/lib/useWizardDraft";
 import { RTO_STATES, getCitiesForState } from "@/lib/cityRto";
+import { reverseGeocode, matchFromOptions } from "@/lib/geo";
+import LocateButton from "@/components/shared/LocateButton";
 
 const ACCOUNT_TYPE = "buyer";
 const ACCOUNT_PREFIX = "BYR";
@@ -70,6 +72,19 @@ export default function BuyerRegistrationWizard() {
 
   function handleStateChange(state) {
     setForm((prev) => ({ ...prev, state, city: "" }));
+  }
+
+  async function handleUseCurrentLocation({ lat, lng }) {
+    const { city, state } = await reverseGeocode(lat, lng);
+    const matchedState = matchFromOptions(state, RTO_STATES);
+    setForm((prev) => {
+      const next = { ...prev };
+      if (matchedState) next.state = matchedState;
+      const options = getCitiesForState(matchedState || prev.state).map((c) => c.city);
+      const matchedCity = matchFromOptions(city, options);
+      if (matchedCity) next.city = matchedCity;
+      return next;
+    });
   }
 
   useEffect(() => {
@@ -298,6 +313,10 @@ export default function BuyerRegistrationWizard() {
                 className={inputClass}
               />
             </FormField>
+
+            <div className="flex justify-end">
+              <LocateButton onLocate={handleUseCurrentLocation} label="Use Current Location" />
+            </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FormField label="State" htmlFor="state" required>

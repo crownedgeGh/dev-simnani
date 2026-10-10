@@ -23,7 +23,6 @@ import {
   MdArrowForward,
   MdKeyboardArrowDown,
   MdDescription,
-  MdMyLocation,
 } from "react-icons/md";
 import {
   CATEGORIES_BY_TYPE,
@@ -36,6 +35,8 @@ import {
 import { uploadFileToR2, uploadFilesToR2 } from "@/lib/uploadToR2";
 import { trackEvent } from "@/lib/gtag";
 import { STATES, getCitiesForState } from "@/lib/cityState";
+import { reverseGeocode, matchFromOptions } from "@/lib/geo";
+import LocateButton from "@/components/shared/LocateButton";
 import SearchableSelect from "@/components/property/SearchableSelect";
 
 const CP_TYPE_TO_POSTED_BY_ROLE = {
@@ -175,7 +176,6 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
   const [pendingLeave, setPendingLeave] = useState(null);
   const [minAvailableDate, setMinAvailableDate] = useState("");
   const [availableFromError, setAvailableFromError] = useState("");
-  const [locating, setLocating] = useState(false);
   const submittedRef = useRef(false);
   const initialSnapshotRef = useRef(INITIAL_FORM);
 
@@ -420,24 +420,23 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
     });
   }
 
-  function handleUseCurrentLocation() {
-    if (!navigator.geolocation) {
-      toast.error("Location isn't supported on this browser.");
-      return;
+  async function handleUseCurrentLocation({ lat, lng }) {
+    update("mapLocation", `https://www.google.com/maps?q=${lat},${lng}`);
+    try {
+      const { city, locality, state } = await reverseGeocode(lat, lng);
+      const matchedState = matchFromOptions(state, STATES);
+      setForm((prev) => {
+        const next = { ...prev };
+        if (matchedState) next.state = matchedState;
+        const cityOptions = getCitiesForState(matchedState || prev.state);
+        const matchedCity = matchFromOptions(city, cityOptions);
+        if (matchedCity) next.city = matchedCity;
+        if (locality) next.locality = locality;
+        return next;
+      });
+    } catch {
+      // reverse geocoding failed — map link is still set above, not fatal
     }
-    setLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude } = pos.coords;
-        update("mapLocation", `https://www.google.com/maps?q=${latitude},${longitude}`);
-        setLocating(false);
-      },
-      () => {
-        toast.error("Couldn't get your location. Please allow location access and try again.");
-        setLocating(false);
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
   }
 
   function errClass(base, field) {
@@ -799,7 +798,12 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
         disabled={!purposeSelected}
         className={`flex flex-col gap-6 transition ${!purposeSelected ? "pointer-events-none opacity-40" : ""}`}
       >
-      <Section icon={<MdLocationOn className="h-5 w-5" />} title="Location" subtitle="City and area — no full address required">
+      <Section
+        icon={<MdLocationOn className="h-5 w-5" />}
+        title="Location"
+        subtitle="City and area — no full address required"
+        action={<LocateButton onLocate={handleUseCurrentLocation} label="Use Current Location" />}
+      >
         <FormField label="State" htmlFor="state" required>
           <SearchableSelect
             id="state"
@@ -846,26 +850,15 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
           </FormField>
         </div>
         <div className="sm:col-span-2">
-          <FormField label="Google Maps Location" htmlFor="mapLocation" optional hint="Paste a maps link or use your current location">
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <input
-                id="mapLocation"
-                type="url"
-                placeholder="https://maps.google.com/..."
-                value={form.mapLocation}
-                onChange={(e) => update("mapLocation", e.target.value)}
-                className={`${inputClass} flex-1`}
-              />
-              <button
-                type="button"
-                onClick={handleUseCurrentLocation}
-                disabled={locating}
-                className="tracked-label flex h-14 shrink-0 items-center justify-center gap-2 rounded-full border border-gold-500/70 px-4 text-xs text-gold-400 transition hover:bg-gold-500/10 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <MdMyLocation className="h-4 w-4" />
-                {locating ? "Locating…" : "Use Current Location"}
-              </button>
-            </div>
+          <FormField label="Google Maps Location" htmlFor="mapLocation" optional hint="Paste a maps link, or use the Use Current Location button above">
+            <input
+              id="mapLocation"
+              type="url"
+              placeholder="https://maps.google.com/..."
+              value={form.mapLocation}
+              onChange={(e) => update("mapLocation", e.target.value)}
+              className={`${inputClass}`}
+            />
           </FormField>
         </div>
       </Section>
@@ -1222,18 +1215,21 @@ PostPropertyForm.displayName = "PostPropertyForm";
 
 export default PostPropertyForm;
 
-function Section({ icon, title, subtitle, children }) {
+function Section({ icon, title, subtitle, children, action }) {
   return (
     <div className="overflow-hidden rounded-2xl border border-navy-700/60 bg-navy-900 shadow-[0_16px_40px_-24px_rgba(0,0,0,0.8)]">
       <div className="h-[3px] bg-gold-400" />
-      <div className="flex items-center gap-3 border-b border-navy-700/60 bg-navy-950/40 px-5 py-4 sm:gap-4 sm:px-6">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold-400/10 text-gold-400 sm:h-11 sm:w-11">
-          {icon}
-        </span>
-        <div className="min-w-0">
-          <h2 className="text-sm font-semibold text-cream sm:text-base">{title}</h2>
-          <p className="text-xs text-muted">{subtitle}</p>
+      <div className="flex flex-col gap-3 border-b border-navy-700/60 bg-navy-950/40 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-6">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold-400/10 text-gold-400 sm:h-11 sm:w-11">
+            {icon}
+          </span>
+          <div className="min-w-0">
+            <h2 className="text-sm font-semibold text-cream sm:text-base">{title}</h2>
+            <p className="text-xs text-muted">{subtitle}</p>
+          </div>
         </div>
+        {action}
       </div>
       <div className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 sm:gap-6 sm:p-6">{children}</div>
     </div>

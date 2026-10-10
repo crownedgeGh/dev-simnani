@@ -3,6 +3,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { FiSearch, FiX, FiMapPin, FiSliders } from "react-icons/fi";
+import { MdMyLocation } from "react-icons/md";
+import { toast } from "sonner";
+import { getCurrentCoords, reverseGeocode } from "@/lib/geo";
 import PropertyGrid from "./PropertyGrid";
 import {
   getLocationCity,
@@ -87,6 +90,7 @@ export default function PropertyFilterBar({
   const [budget, setBudget] = useState("");
   const [bhk, setBhk] = useState("");
   const [postedBy, setPostedBy] = useState("");
+  const [locating, setLocating] = useState(false);
   const cityFieldRef = useRef(null);
   const typeFieldRef = useRef(null);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
@@ -175,6 +179,24 @@ export default function PropertyFilterBar({
     setCity("");
     setCityInput("");
     setCitySuggestions([]);
+  }
+
+  async function handleUseMyLocation() {
+    setLocating(true);
+    try {
+      const { lat, lng } = await getCurrentCoords();
+      const { city: detectedCity } = await reverseGeocode(lat, lng);
+      const match = searchIndianCities(detectedCity || "", 1)[0];
+      if (!match) {
+        toast.error("Couldn't detect a matching city. Please search manually.");
+        return;
+      }
+      handleCitySelect({ city: match.city, label: match.label });
+    } catch (err) {
+      toast.error(err.message || "Couldn't get your location. Please allow location access and try again.", { duration: 6000 });
+    } finally {
+      setLocating(false);
+    }
   }
 
   // Sync filters from the URL (e.g. the homepage search bar's location/type/bhk
@@ -513,18 +535,27 @@ export default function PropertyFilterBar({
               aria-controls="filter-city-suggestions"
               aria-autocomplete="list"
               aria-label="Filter by city"
-              className={`${filterFieldClass} pl-9 ${cityInput ? "pr-9" : ""}`}
+              className={`${filterFieldClass} pl-9 ${cityInput ? "pr-16" : "pr-9"}`}
             />
             {cityInput && (
               <button
                 type="button"
                 onClick={clearCity}
                 aria-label="Clear city"
-                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full text-muted transition hover:text-cream"
+                className="absolute right-9 top-1/2 -translate-y-1/2 rounded-full text-muted transition hover:text-cream"
               >
                 <FiX className="h-4 w-4" />
               </button>
             )}
+            <button
+              type="button"
+              onClick={handleUseMyLocation}
+              disabled={locating}
+              aria-label="Use current location"
+              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full text-muted transition hover:text-gold-400 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <MdMyLocation className={`h-4 w-4 ${locating ? "animate-pulse" : ""}`} />
+            </button>
 
             {showCitySuggestions && citySuggestions.length > 0 && (
               <ul

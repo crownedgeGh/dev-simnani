@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAdminAuth } from "@/context/AdminAuthContext";
+import { AdminLoadingState, AdminSessionExpiredState } from "@/components/admin/ui/AdminStateScreen";
 
 export default function AdminGuard({ children }) {
   const { isAdminAuthenticated, isLoading } = useAdminAuth();
@@ -16,16 +17,19 @@ export default function AdminGuard({ children }) {
 
   if (isLoading) {
     return (
-      <div className="admin-shell admin-theme-celestial flex min-h-screen items-center justify-center bg-[#faf8f5]">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#f0b429] border-t-transparent" />
-          <p className="text-sm text-[#6b7280]">Loading admin panel…</p>
-        </div>
+      <div className="admin-shell admin-theme-celestial flex min-h-screen items-center justify-center bg-[#faf8f5] p-6">
+        <AdminLoadingState compact />
       </div>
     );
   }
 
-  if (!isAdminAuthenticated) return null;
+  if (!isAdminAuthenticated) {
+    return (
+      <div className="admin-shell admin-theme-celestial flex min-h-screen items-center justify-center bg-[#faf8f5] p-6">
+        <AdminSessionExpiredState compact />
+      </div>
+    );
+  }
 
   return <>{children}</>;
 }
