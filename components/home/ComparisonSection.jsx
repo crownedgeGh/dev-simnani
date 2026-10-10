@@ -15,11 +15,7 @@ export default function ComparisonSection() {
         <h2 className="mt-3 font-display text-2xl text-cream sm:text-3xl lg:text-4xl">
           <span className="text-gold-400">Our Speciality</span> Vs Other Real Estate Websites
         </h2>
-        <p className="mx-auto mt-3 max-w-2xl text-sm text-muted">
-          Other portals cap your listings and chip away at your commission.
-          We built Simnani Estate to give owners and brokers more reach, more
-          free listings, and a real Channel Partner network.
-        </p>
+       
       </div>
 
       {/* Framed card wrapper */}
