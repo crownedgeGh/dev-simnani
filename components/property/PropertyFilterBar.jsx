@@ -33,6 +33,8 @@ function parseBhkValue(raw) {
   return { num, plus };
 }
 
+const OFFICE_SUBTYPE_LABELS = ["Ready to Move Offices", "Bare Shell Offices"];
+
 const filterFieldClass =
   "h-11 w-full rounded-full border border-navy-700/60 bg-navy-950 px-3 text-sm text-cream outline-none transition focus:border-gold-400 focus:ring-4 focus:ring-gold-400/10 sm:h-12";
 
@@ -264,8 +266,12 @@ export default function PropertyFilterBar({
 
       if (city && getLocationCity(property.location) !== city) return false;
 
-      if (propertyType && getPropertyCategoryLabels(property).categoryLabel !== propertyType) {
-        return false;
+      if (propertyType) {
+        const categoryLabel = getPropertyCategoryLabels(property).categoryLabel;
+        const matches =
+          categoryLabel === propertyType ||
+          (propertyType === "Office" && OFFICE_SUBTYPE_LABELS.includes(categoryLabel));
+        if (!matches) return false;
       }
 
       if (selectedRange) {
