@@ -66,13 +66,25 @@ export default function ListingOwnerActions({ property }) {
       </p>
 
       <div className="mt-5 flex flex-col gap-3">
-        <Link
-          href={`/post-property/edit/${property.id}`}
-          className="tracked-label flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-gold-500/70 py-2.5 text-xs text-gold-400 transition hover:bg-gold-500/10 active:scale-[0.98]"
-        >
-          <MdEdit className="h-4 w-4" />
-          Edit Listing
-        </Link>
+        {status === "Closed" ? (
+          <button
+            type="button"
+            disabled
+            title="Reopen the listing to edit it"
+            className="tracked-label flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-navy-700/60 py-2.5 text-xs text-muted opacity-50 cursor-not-allowed"
+          >
+            <MdEdit className="h-4 w-4" />
+            Edit Listing
+          </button>
+        ) : (
+          <Link
+            href={`/post-property/edit/${property.id}`}
+            className="tracked-label flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-gold-500/70 py-2.5 text-xs text-gold-400 transition hover:bg-gold-500/10 active:scale-[0.98]"
+          >
+            <MdEdit className="h-4 w-4" />
+            Edit Listing
+          </Link>
+        )}
 
         <Link
           href={`/property/${property.id}`}

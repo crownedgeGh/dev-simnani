@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   MdReportProblem,
@@ -6,6 +9,7 @@ import {
   MdErrorOutline,
   MdOutlineChatBubble,
   MdCheckCircle,
+  MdClose,
 } from "react-icons/md";
 
 function formatDate(value) {
@@ -18,12 +22,60 @@ function formatDate(value) {
     : "";
 }
 
+function CloseButton({ onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label="Close"
+      className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full text-muted transition hover:bg-navy-950/40 hover:text-cream"
+    >
+      <MdClose className="h-4 w-4" />
+    </button>
+  );
+}
+
+function dismissKeyFor(propertyId, variant, timestamp) {
+  return `se_banner_dismissed_${propertyId}_${variant}_${timestamp || ""}`;
+}
+
+function useDismiss(dismissKey) {
+  const [dismissed, setDismissed] = useState(false);
+
+  useEffect(() => {
+    setDismissed(localStorage.getItem(dismissKey) === "1");
+  }, [dismissKey]);
+
+  function dismiss() {
+    localStorage.setItem(dismissKey, "1");
+    setDismissed(true);
+  }
+
+  return [dismissed, dismiss];
+}
+
 export default function CorrectionHoldBanner({ correctionRequest, propertyId, status }) {
+  const variant = correctionRequest?.active
+    ? "hold"
+    : correctionRequest?.underReview
+      ? "under-review"
+      : status === "Pending Review"
+        ? "pending-review"
+        : status === "Active"
+          ? "active"
+          : "none";
+  const timestamp =
+    correctionRequest?.requestedAt || correctionRequest?.submittedAt || "";
+  const [dismissed, dismiss] = useDismiss(dismissKeyFor(propertyId, variant, timestamp));
+
+  if (dismissed) return null;
+
   if (!correctionRequest?.active && !correctionRequest?.underReview) {
     if (status === "Pending Review") {
       return (
         <div className="mx-auto mb-6 max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="rounded-2xl border border-gold-500/60 bg-gold-400/10 p-5 shadow-lg shadow-gold-400/5">
+          <div className="relative rounded-2xl border border-gold-500/60 bg-gold-400/10 p-5 pr-12 shadow-lg shadow-gold-400/5">
+            <CloseButton onClick={dismiss} />
             <div className="flex items-start gap-3">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold-400/20 text-gold-400">
                 <MdHourglassTop className="h-5 w-5" />
@@ -44,7 +96,8 @@ export default function CorrectionHoldBanner({ correctionRequest, propertyId, st
     if (status === "Active") {
       return (
         <div className="mx-auto mb-6 max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="rounded-2xl border border-gold-500/60 bg-gold-400/10 p-5 shadow-lg shadow-gold-400/5">
+          <div className="relative rounded-2xl border border-gold-500/60 bg-gold-400/10 p-5 pr-12 shadow-lg shadow-gold-400/5">
+            <CloseButton onClick={dismiss} />
             <div className="flex items-start gap-3">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold-400/20 text-gold-400">
                 <MdCheckCircle className="h-5 w-5" />
@@ -67,7 +120,8 @@ export default function CorrectionHoldBanner({ correctionRequest, propertyId, st
   if (correctionRequest.underReview) {
     return (
       <div className="mx-auto mb-6 max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="rounded-2xl border border-gold-500/60 bg-gold-400/10 p-5 shadow-lg shadow-gold-400/5">
+        <div className="relative rounded-2xl border border-gold-500/60 bg-gold-400/10 p-5 pr-12 shadow-lg shadow-gold-400/5">
+          <CloseButton onClick={dismiss} />
           <div className="flex items-start gap-3">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold-400/20 text-gold-400">
               <MdHourglassTop className="h-5 w-5" />
@@ -95,7 +149,8 @@ export default function CorrectionHoldBanner({ correctionRequest, propertyId, st
 
   return (
     <div className="mx-auto mb-6 max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div className="rounded-2xl border border-gold-500/60 bg-gold-400/10 p-5 shadow-lg shadow-gold-400/5">
+      <div className="relative rounded-2xl border border-gold-500/60 bg-gold-400/10 p-5 pr-12 shadow-lg shadow-gold-400/5">
+        <CloseButton onClick={dismiss} />
         <div className="flex items-start gap-3">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold-400/20 text-gold-400">
             <MdReportProblem className="h-5 w-5" />

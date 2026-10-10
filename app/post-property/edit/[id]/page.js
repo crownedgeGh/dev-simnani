@@ -41,6 +41,20 @@ export default async function EditPropertyPage({ params }) {
     );
   }
 
+  if (property.status === "Closed") {
+    return (
+      <div className="mx-auto max-w-xl px-4 py-24 text-center sm:px-6 lg:px-8">
+        <div className="flex items-center justify-center gap-3">
+          <BackButton />
+          <h1 className="font-display text-2xl text-cream sm:text-3xl">Listing Closed</h1>
+        </div>
+        <p className="mt-4 text-sm text-muted">
+          Reopen this listing from your portal before editing it.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <RequireAuth>
       <div className="relative overflow-hidden px-4 py-16 sm:px-6 lg:px-8">

@@ -77,6 +77,23 @@ function countWords(text) {
   return text.trim() ? text.trim().split(/\s+/).filter(Boolean).length : 0;
 }
 
+const MAX_PRICE_DIGITS = 12; // ₹999,99,99,99,999 ceiling — plenty for any real listing, stops Number overflow
+const MAX_AREA_DIGITS = 7; // up to 99,99,999 — same overflow guard for areaSize
+
+const MAX_VARIANCE_INCREASE = 0.3;
+
+function exceedsVariance(newValue, originalValue) {
+  if (!originalValue) return false;
+  const n = Number(newValue);
+  if (!n) return false;
+  const delta = (n - originalValue) / originalValue;
+  return delta > MAX_VARIANCE_INCREASE;
+}
+
+function varianceMax(originalValue) {
+  return Math.floor(originalValue * (1 + MAX_VARIANCE_INCREASE));
+}
+
 const BHK_OPTIONS = [
   { value: "1", label: "1 BHK" },
   { value: "2", label: "2 BHK" },
@@ -171,6 +188,11 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
   const [uploadStatus, setUploadStatus] = useState("");
   const [loadingProperty, setLoadingProperty] = useState(!!editId);
   const [originalAddedDate, setOriginalAddedDate] = useState("");
+  const [originalStatus, setOriginalStatus] = useState("");
+  const [originalRawPrice, setOriginalRawPrice] = useState(null);
+  const [originalAreaSize, setOriginalAreaSize] = useState(null);
+  const [priceVarianceError, setPriceVarianceError] = useState("");
+  const [areaVarianceError, setAreaVarianceError] = useState("");
   const [originalCorrectionRequest, setOriginalCorrectionRequest] = useState(null);
   const [invalidFields, setInvalidFields] = useState(new Set());
   const [pendingLeave, setPendingLeave] = useState(null);
@@ -211,6 +233,37 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [form]);
+
+  // Browser Back button: push a sentinel history entry so the first Back
+  // press lands us back here via popstate instead of actually navigating
+  // away, then ask via the same confirm modal used for the in-app Back
+  // button. pushState always truncates forward entries before appending, so
+  // after every block-and-repush we're consistently 2 entries above the
+  // page the user actually came from (1 for the original navigation onto
+  // this edit page, 1 for our sentinel) — go(-2) on confirm always lands
+  // there for real, no counter needed.
+  const allowNextPopRef = useRef(false);
+  useEffect(() => {
+    if (!editId) return;
+    window.history.pushState(null, "", window.location.href);
+  }, [editId]);
+  useEffect(() => {
+    if (!editId) return;
+    function handlePopState() {
+      if (allowNextPopRef.current) {
+        allowNextPopRef.current = false;
+        return;
+      }
+      if (!isFormDirty()) return;
+      window.history.pushState(null, "", window.location.href);
+      setPendingLeave(() => () => {
+        allowNextPopRef.current = true;
+        window.history.go(-2);
+      });
+    }
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [editId, form]);
 
   // A drop that misses a drop-zone by even a few pixels lands on the
   // document, and the browser's default action is to navigate the tab to
@@ -293,6 +346,32 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
     }
   }
 
+  function handlePriceChange(e) {
+    const raw = e.target.value.slice(0, MAX_PRICE_DIGITS);
+    update("price", raw);
+    if (exceedsVariance(raw, originalRawPrice)) {
+      setPriceVarianceError(
+        `Price can only go up to ₹${varianceMax(originalRawPrice).toLocaleString("en-IN")}.`
+      );
+      setInvalidFields((prev) => new Set(prev).add("price"));
+    } else {
+      setPriceVarianceError("");
+    }
+  }
+
+  function handleAreaSizeChange(e) {
+    const raw = e.target.value.slice(0, MAX_AREA_DIGITS);
+    update("areaSize", raw);
+    if (exceedsVariance(raw, originalAreaSize)) {
+      setAreaVarianceError(
+        `Area can only go up to ${varianceMax(originalAreaSize).toLocaleString("en-IN")} ${form.areaUnit || "sq ft"}.`
+      );
+      setInvalidFields((prev) => new Set(prev).add("areaSize"));
+    } else {
+      setAreaVarianceError("");
+    }
+  }
+
   useEffect(() => {
     if (!editId) return;
     let cancelled = false;
@@ -308,6 +387,9 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
         const isResidentialType = ["rent", "lease", "sell"].includes(p.type);
         setPropertyId(p.id);
         setOriginalAddedDate(p.addedDate || "");
+        setOriginalStatus(p.status || "");
+        setOriginalRawPrice(p.rawPrice || null);
+        setOriginalAreaSize(p.areaSize || null);
         setOriginalCorrectionRequest(p.correctionRequest || null);
         const loadedForm = {
           section: isResidentialType ? "residential" : p.type || "residential",
@@ -466,6 +548,11 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
   // Every listing (any section) must pick a Purpose (Sale/Rent/Lease) before
   // anything else in the form becomes usable.
   const purposeSelected = !!form.purpose;
+  // Mirrors the server-side lock in app/api/properties/[id]/route.js — once a
+  // listing is approved, its core identity can't be edited here, only
+  // resubmitted through a fresh listing.
+  const isApprovedListing = !!editId && originalStatus === "Active";
+  const lockedFieldHint = "Locked — approved listings can't change this. Close this listing and post a new one instead.";
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -479,8 +566,8 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
       { id: "state", invalid: !form.state.trim() },
       { id: "city", invalid: !form.city.trim() },
       { id: "locality", invalid: !form.locality.trim() },
-      { id: "price", invalid: !form.price },
-      { id: "areaSize", invalid: !form.areaSize },
+      { id: "price", invalid: !form.price || exceedsVariance(form.price, originalRawPrice) },
+      { id: "areaSize", invalid: !form.areaSize || exceedsVariance(form.areaSize, originalAreaSize) },
       { id: "photos", invalid: !form.photos.length },
       {
         id: "availableFrom",
@@ -496,6 +583,14 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
 
     if (missing.length) {
       setInvalidFields(new Set(missing.map((f) => f.id)));
+      if (exceedsVariance(form.price, originalRawPrice)) {
+        setPriceVarianceError(`Price can only go up to ₹${varianceMax(originalRawPrice).toLocaleString("en-IN")}.`);
+      }
+      if (exceedsVariance(form.areaSize, originalAreaSize)) {
+        setAreaVarianceError(
+          `Area can only go up to ${varianceMax(originalAreaSize).toLocaleString("en-IN")} ${form.areaUnit || "sq ft"}.`
+        );
+      }
       setError("Please fill in all required fields.");
       toast.error("Please fill in all required fields.");
       const target = document.getElementById(missing[0].id);
@@ -676,22 +771,35 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
         <FormField
           label="Purpose"
           required
-          hint={!purposeSelected ? "Select a purpose to unlock the rest of the form" : undefined}
+          hint={
+            !purposeSelected
+              ? "Select a purpose to unlock the rest of the form"
+              : isApprovedListing
+                ? lockedFieldHint
+                : undefined
+          }
         >
           <div id="purpose">
             <ToggleTwo
               options={PURPOSE_OPTIONS}
               value={form.purpose}
+              disabled={isApprovedListing}
               onChange={(value) => update("purpose", value)}
             />
           </div>
         </FormField>
         <fieldset disabled={!purposeSelected} className="contents">
-        <FormField label="Listing Section" htmlFor="section" required hint="Where this property will be listed">
+        <FormField
+          label="Listing Section"
+          htmlFor="section"
+          required
+          hint={isApprovedListing ? lockedFieldHint : "Where this property will be listed"}
+        >
           <SelectWrap>
             <select
               id="section"
               value={form.section}
+              disabled={isApprovedListing}
               onChange={(e) => update("section", e.target.value)}
               className={`${selectClass} pr-10`}
             >
@@ -705,11 +813,17 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
         </FormField>
         {isResidential ? (
           <>
-            <FormField label="Property Type" htmlFor="propertyType" required>
+            <FormField
+              label="Property Type"
+              htmlFor="propertyType"
+              required
+              hint={isApprovedListing ? lockedFieldHint : undefined}
+            >
               <SelectWrap>
                 <select
                   id="propertyType"
                   value={form.propertyType}
+                  disabled={isApprovedListing}
                   onChange={(e) => update("propertyType", e.target.value)}
                   className={errClass(`${selectClass} pr-10`, "propertyType")}
                 >
@@ -723,11 +837,17 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
               </SelectWrap>
             </FormField>
             {showBhkSelect && (
-              <FormField label="BHK" htmlFor="beds" required>
+              <FormField
+                label="BHK"
+                htmlFor="beds"
+                required
+                hint={isApprovedListing ? lockedFieldHint : undefined}
+              >
                 <SelectWrap>
                   <select
                     id="beds"
                     value={form.beds}
+                    disabled={isApprovedListing}
                     onChange={(e) => update("beds", e.target.value)}
                     className={errClass(`${selectClass} pr-10`, "beds")}
                   >
@@ -762,11 +882,17 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
             )}
           </>
         ) : (
-          <FormField label="Category" htmlFor="category" required>
+          <FormField
+            label="Category"
+            htmlFor="category"
+            required
+            hint={isApprovedListing ? lockedFieldHint : undefined}
+          >
             <SelectWrap>
               <select
                 id="category"
                 value={form.category}
+                disabled={isApprovedListing}
                 onChange={(e) => update("category", e.target.value)}
                 className={errClass(`${selectClass} pr-10`, "category")}
               >
@@ -804,35 +930,52 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
         subtitle="City and area — no full address required"
         action={<LocateButton onLocate={handleUseCurrentLocation} label="Use Current Location" />}
       >
-        <FormField label="State" htmlFor="state" required>
+        <FormField
+          label="State"
+          htmlFor="state"
+          required
+          hint={isApprovedListing ? lockedFieldHint : undefined}
+        >
           <SearchableSelect
             id="state"
             value={form.state}
             onChange={(state) => update("state", state)}
             options={STATES}
+            disabled={isApprovedListing}
             placeholder="Select state"
             searchPlaceholder="Search state…"
             className={errClass(`${selectClass}`, "state")}
           />
         </FormField>
-        <FormField label="City" htmlFor="city" required>
+        <FormField
+          label="City"
+          htmlFor="city"
+          required
+          hint={isApprovedListing ? lockedFieldHint : undefined}
+        >
           <SearchableSelect
             id="city"
             value={form.city}
             onChange={(city) => update("city", city)}
             options={getCitiesForState(form.state)}
-            disabled={!form.state}
+            disabled={!form.state || isApprovedListing}
             placeholder={form.state ? "Select city" : "Select state first"}
             searchPlaceholder="Search city…"
             className={errClass(`${selectClass}`, "city")}
           />
         </FormField>
-        <FormField label="Area / Locality" htmlFor="locality" required>
+        <FormField
+          label="Area / Locality"
+          htmlFor="locality"
+          required
+          hint={isApprovedListing ? lockedFieldHint : undefined}
+        >
           <input
             id="locality"
             type="text"
             placeholder="Shankar Nagar"
             value={form.locality}
+            disabled={isApprovedListing}
             onChange={(e) => update("locality", e.target.value)}
             className={errClass(`${inputClass}`, "locality")}
           />
@@ -868,7 +1011,12 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
         title="Property Details & Pricing"
         subtitle="Specifications, features, and price"
       >
-        <FormField label="Price (₹)" htmlFor="price" required>
+        <FormField
+          label="Price (₹)"
+          htmlFor="price"
+          required
+          hint={originalRawPrice ? `Max allowed: ₹${varianceMax(originalRawPrice).toLocaleString("en-IN")}` : undefined}
+        >
           <div
             className={errClass(
               "flex items-center rounded-full border border-navy-700/60 bg-navy-950 pl-4 transition focus-within:border-gold-400",
@@ -882,10 +1030,11 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
               min="0"
               autoComplete="off"
               value={form.price}
-              onChange={(e) => update("price", e.target.value)}
+              onChange={handlePriceChange}
               className="h-14 w-full bg-transparent px-3 text-cream placeholder:text-muted focus:outline-none"
             />
           </div>
+          {priceVarianceError && <p className="text-xs text-red-400">{priceVarianceError}</p>}
         </FormField>
         <FormField label="Price Negotiable?" optional>
           <ToggleTwo
@@ -894,7 +1043,16 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
             onChange={(value) => update("negotiable", value)}
           />
         </FormField>
-        <FormField label="Total Area" htmlFor="areaSize" required>
+        <FormField
+          label="Total Area"
+          htmlFor="areaSize"
+          required
+          hint={
+            originalAreaSize
+              ? `Max allowed: ${varianceMax(originalAreaSize).toLocaleString("en-IN")} ${form.areaUnit || "sq ft"}`
+              : undefined
+          }
+        >
           <div className="flex gap-2">
             <input
               id="areaSize"
@@ -902,7 +1060,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
               min="0"
               autoComplete="off"
               value={form.areaSize}
-              onChange={(e) => update("areaSize", e.target.value)}
+              onChange={handleAreaSizeChange}
               className={errClass(`${inputClass} min-w-0 flex-1`, "areaSize")}
             />
             <SelectWrap className="w-28 shrink-0">
@@ -919,15 +1077,22 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
               </select>
             </SelectWrap>
           </div>
+          {areaVarianceError && <p className="text-xs text-red-400">{areaVarianceError}</p>}
         </FormField>
         {showBedsHallsFields && !showBhkSelect && (
-          <FormField label="No. of Bedrooms " htmlFor="beds" required>
+          <FormField
+            label="No. of Bedrooms "
+            htmlFor="beds"
+            required
+            hint={isApprovedListing ? lockedFieldHint : undefined}
+          >
             <input
               id="beds"
               type="number"
               min="1"
               autoComplete="off"
               value={form.beds}
+              disabled={isApprovedListing}
               onChange={(e) => update("beds", e.target.value)}
               className={errClass(`${inputClass}`, "beds")}
             />
@@ -1245,7 +1410,7 @@ function SelectWrap({ children, className = "" }) {
   );
 }
 
-function ToggleTwo({ options, value, onChange }) {
+function ToggleTwo({ options, value, onChange, disabled = false }) {
   const colClass = options.length === 3 ? "grid-cols-3" : "grid-cols-2";
   return (
     <div className={`grid ${colClass} gap-2`}>
@@ -1253,6 +1418,7 @@ function ToggleTwo({ options, value, onChange }) {
         <button
           key={opt.value}
           type="button"
+          disabled={disabled}
           onClick={() => onChange(opt.value)}
           aria-pressed={value === opt.value}
           className={`tracked-label flex h-14 items-center justify-center rounded-full border text-xs transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-navy-700/60 disabled:hover:text-muted ${
