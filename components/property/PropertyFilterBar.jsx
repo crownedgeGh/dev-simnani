@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { FiSearch, FiX, FiMapPin, FiSliders } from "react-icons/fi";
 import { MdMyLocation } from "react-icons/md";
@@ -41,7 +41,15 @@ const OFFICE_SUBTYPE_LABELS = ["Ready to Move Offices", "Bare Shell Offices"];
 const filterFieldClass =
   "h-11 w-full rounded-full border border-navy-700/60 bg-navy-950 px-3 text-sm text-cream outline-none transition focus:border-gold-400 focus:ring-4 focus:ring-gold-400/10 sm:h-12";
 
-export default function PropertyFilterBar({
+export default function PropertyFilterBar(props) {
+  return (
+    <Suspense fallback={null}>
+      <PropertyFilterBarInner {...props} />
+    </Suspense>
+  );
+}
+
+function PropertyFilterBarInner({
   properties,
   pricingMode = "sale",
   emptyMessage,
