@@ -55,7 +55,7 @@ export async function POST(request) {
         mobile: digits,
         email: "",
         city: "",
-        accountType: "common-person",
+        accountType: "owner",
       });
       user = created.toObject();
     }

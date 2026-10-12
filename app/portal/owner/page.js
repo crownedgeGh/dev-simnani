@@ -12,7 +12,7 @@ export const metadata = {
   description: "Manage your listings, leads and client relationships.",
 };
 
-export default async function CommonPersonPortalPage() {
+export default async function OwnerPortalPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/auth");
 

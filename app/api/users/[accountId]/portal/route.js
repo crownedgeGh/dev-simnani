@@ -255,7 +255,7 @@ export async function GET(request, { params }) {
       case "broker":
         portal = await getOwnerSnapshot(accountId, { includeCommissions: true, user });
         break;
-      case "common-person":
+      case "owner":
         portal = await getOwnerSnapshot(accountId, { includeCommissions: false, user });
         break;
       case "buyer":

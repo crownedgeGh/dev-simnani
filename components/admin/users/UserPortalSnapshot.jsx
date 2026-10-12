@@ -256,7 +256,7 @@ function PropertyTileGrid({ properties, emptyMessage }) {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Owner (broker / common-person)                                             */
+/* Owner (broker / owner)                                             */
 /* -------------------------------------------------------------------------- */
 
 function OwnerTabs({ data, tab }) {

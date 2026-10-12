@@ -46,8 +46,8 @@ export default function AccountProfile({ user }) {
     }
   }, [authUser, user]);
 
-  const displayRole = authUser?.accountType === "common-person"
-    ? "Common Person"
+  const displayRole = authUser?.accountType === "owner"
+    ? "Owner"
     : (authUser?.accountType || user.role);
 
   const displayMobile = authUser?.mobile || user.mobile;

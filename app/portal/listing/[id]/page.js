@@ -26,9 +26,9 @@ export default async function OwnerListingPage({ params }) {
   if (property.ownerId !== user.accountId) {
     return (
       <div className="mx-auto max-w-xl px-4 py-24 text-center sm:px-6 lg:px-8">
-        <ForceBackRedirect href="/portal/common-person" />
+        <ForceBackRedirect href="/portal/owner" />
         <div className="flex items-center justify-center gap-3">
-          <BackButton href="/portal/common-person" />
+          <BackButton href="/portal/owner" />
           <h1 className="font-display text-2xl text-cream sm:text-3xl">Access Denied</h1>
         </div>
         <p className="mt-4 text-sm text-muted">
@@ -41,7 +41,7 @@ export default async function OwnerListingPage({ params }) {
 
   return (
     <>
-      <ForceBackRedirect href="/portal/common-person" />
+      <ForceBackRedirect href="/portal/owner" />
       <CorrectionHoldBanner
         correctionRequest={property.correctionRequest}
         propertyId={property.id}
@@ -51,7 +51,7 @@ export default async function OwnerListingPage({ params }) {
         property={property}
         eyebrow="Private Listing View"
         sidebar={<ListingOwnerActions property={property} />}
-        backHref="/portal/common-person"
+        backHref="/portal/owner"
       />
     </>
   );

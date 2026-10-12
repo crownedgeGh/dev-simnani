@@ -208,7 +208,7 @@ export default function AuthCard() {
       fullName: "Tester Account",
       mobile: "98765 43210",
       email: "tester@simnaniestate.com",
-      accountType: "common-person",
+      accountType: "owner",
       accountId: "SG-IND-TESTER",
       city: "Mumbai",
       propertyType: "flat",
@@ -516,12 +516,12 @@ export default function AuthCard() {
                       {loading && isTesterLogin ? "Logging in..." : "Login as Tester"}
                     </span>
                     <p className="mt-0.5 text-[11px] text-muted">
-                      Instant login as Common Person
+                      Instant login as Owner
                     </p>
                   </div>
                 </div>
                 <span className="rounded border border-gold-400/30 bg-gold-400/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-gold-400">
-                  Common Person
+                  Owner
                 </span>
               </button>
             </>

@@ -98,7 +98,7 @@ export function AuthProvider({ children }) {
 
   /**
    * loginWithMobile — OTP login path. Looks the user up by mobile number in
-   * the database (creating a minimal Common Person profile on first login).
+   * the database (creating a minimal Owner profile on first login).
    */
   const loginWithMobile = useCallback(async (mobile, otp) => {
     const res = await fetch("/api/auth/login", {

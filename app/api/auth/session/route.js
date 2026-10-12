@@ -31,7 +31,7 @@ export async function POST(request) {
         mobile: body.mobile || "",
         email: body.email || "",
         city: body.city || "",
-        accountType: body.accountType || "common-person",
+        accountType: body.accountType || "owner",
         cpType: body.cpType,
         reraRegistered: body.reraRegistered,
         reraNumber: body.reraNumber || "",

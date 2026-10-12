@@ -27,7 +27,7 @@ const DATA_BY_ACCOUNT = [
     items: "Full name, mobile number, email, employee code, designation, and assigned district.",
   },
   {
-    title: "Common Person / general registration",
+    title: "Owner / general registration",
     items: "Full name, mobile number, email, and city.",
   },
 ];

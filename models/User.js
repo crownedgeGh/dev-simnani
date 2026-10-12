@@ -55,7 +55,7 @@ const UserSchema = new mongoose.Schema(
     accountType: {
       type: String,
       required: [true, "Account type is required"],
-      enum: ["buyer", "broker", "investor", "freelancer", "common-person", "employee", "builder"],
+      enum: ["buyer", "broker", "investor", "freelancer", "owner", "employee", "builder"],
       index: true,
     },
     status: {

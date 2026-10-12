@@ -33,8 +33,8 @@ export default async function AccountPage() {
             city: user.city,
             mobile: user.mobile,
             role:
-              user.accountType === "common-person"
-                ? "Common Person"
+              user.accountType === "owner"
+                ? "Owner"
                 : user.accountType === "builder"
                 ? "Builder"
                 : user.accountType,

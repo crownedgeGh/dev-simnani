@@ -53,7 +53,7 @@ const ACCOUNT_TYPE_LABEL = {
   investor: "Investor",
   broker: "Broker",
   freelancer: "Freelancer",
-  "common-person": "Common Person",
+  owner: "Owner",
   employee: "Employee",
   builder: "Builder",
 };

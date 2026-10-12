@@ -243,7 +243,7 @@ export default function AdminPropertiesPage() {
     }
   };
 
-  // This page is for public-facing listings only (posted by common users /
+  // This page is for public-facing listings only (posted by owners /
   // brokers via the site). CP & Super Admin postings live on /admin/sg-properties.
   const publicProperties = useMemo(
     () => properties.filter((p) => isPublicPostedByRole(p.postedByRole)),

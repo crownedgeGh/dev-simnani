@@ -21,16 +21,16 @@ const TEST_MODE_CP_OPTIONS = [
 
 const TEST_MODE_DIRECT_OPTIONS = [
   {
-    key: "common-person",
-    label: "Common Person",
-    description: "Skip the form — go straight to the Common Person dashboard.",
+    key: "owner",
+    label: "Owner",
+    description: "Skip the form — go straight to the Owner dashboard.",
     Icon: MdPerson,
-    href: "/portal/common-person",
+    href: "/portal/owner",
     profile: {
-      fullName: "Test Common Person",
+      fullName: "Test Owner",
       mobile: "90000 00001",
-      email: "test.commonperson@simnaniestate.com",
-      accountType: "common-person",
+      email: "test.owner@simnaniestate.com",
+      accountType: "owner",
       accountId: "SG-IND-TEST-COMMON",
       city: "Mumbai",
       registeredAt: new Date(0).toISOString(),
@@ -73,8 +73,8 @@ const TEST_MODE_DIRECT_OPTIONS = [
 
 const ACCOUNT_TYPES = [
   {
-    value: "common-person",
-    label: "Common User",
+    value: "owner",
+    label: "Owner",
     description: "Post, Search and manage your own property directly.",
     Icon: MdPerson,
   },
@@ -85,16 +85,16 @@ const ACCOUNT_TYPES = [
     Icon: MdHome,
   },
   {
-    value: "investor",
-    label: "Investor",
-    description: "Discover real estate investment opportunities.",
-    Icon: MdTrendingUp,
-  },
-  {
     value: "broker",
     label: "Broker",
     description: "Sell properties and manage clients.",
     Icon: MdDomain,
+  },
+  {
+    value: "investor",
+    label: "Investor",
+    description: "Discover real estate investment opportunities.",
+    Icon: MdTrendingUp,
   },
   {
     value: "freelancer",

@@ -24,7 +24,7 @@ const INITIAL_FORM = {
   agree: false,
 };
 
-export default function CommonPersonRegistrationWizard() {
+export default function OwnerRegistrationWizard() {
   const { login } = useAuth();
   const router = useRouter();
   const [form, setForm] = useState(INITIAL_FORM);
@@ -91,7 +91,7 @@ export default function CommonPersonRegistrationWizard() {
       state: form.state,
       city: form.city,
       password: form.password,
-      accountType: "common-person",
+      accountType: "owner",
       accountId: id,
       registeredAt: new Date().toISOString(),
       profileComplete: true,
