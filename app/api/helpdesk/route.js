@@ -3,12 +3,14 @@ import dbConnect from "@/lib/mongodb";
 import HelpdeskTicket from "@/models/HelpdeskTicket";
 import Property from "@/models/Property";
 import { getSessionUser } from "@/lib/session";
+import { isMobileValid } from "@/lib/auth";
 import { isRateLimited, rateLimitResponse } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-// POST — logged-in user asks customer care to change a locked listing field
+// POST — logged-in user asks customer care to change a locked listing field,
+// or any visitor (e.g. the public Helpdesk form on /about) sending a query
 export async function POST(request) {
   try {
     if (isRateLimited(request, { limit: 10, windowMs: 10 * 60 * 1000, key: "helpdesk" })) {
@@ -18,24 +20,40 @@ export async function POST(request) {
     await dbConnect();
 
     const user = await getSessionUser(request);
-    if (!user) {
-      return NextResponse.json({ success: false, error: "Login required" }, { status: 401 });
-    }
+    const body = await request.json();
+    const { propertyId, message, name, phone } = body;
 
-    const { propertyId, message } = await request.json();
     if (!message?.trim()) {
       return NextResponse.json({ success: false, error: "Message is required" }, { status: 400 });
+    }
+
+    const userName = user?.fullName || name?.trim() || "";
+    const userPhone = user?.mobile || phone?.trim() || "";
+
+    if (!user && (!userName || !isMobileValid(userPhone))) {
+      return NextResponse.json(
+        { success: false, error: "Name and a valid 10-digit mobile number are required" },
+        { status: 400 }
+      );
+    }
+
+    const existingCount = await HelpdeskTicket.countDocuments({ userPhone });
+    if (existingCount >= 2) {
+      return NextResponse.json(
+        { success: false, error: "You've already submitted 2 queries with this mobile number. Please wait for a response." },
+        { status: 429 }
+      );
     }
 
     const property = propertyId ? await Property.findOne({ id: propertyId }).lean() : null;
 
     const ticket = await HelpdeskTicket.create({
       id: `HD-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-      accountId: user.accountId,
-      userName: user.fullName || "",
-      userPhone: user.mobile || "",
-      userEmail: user.email || "",
-      accountType: user.accountType || "",
+      accountId: user?.accountId || `GUEST-${userPhone}`,
+      userName,
+      userPhone,
+      userEmail: user?.email || "",
+      accountType: user?.accountType || "",
       propertyId: propertyId || "",
       propertyTitle: property?.title || "",
       message: message.trim(),

@@ -75,7 +75,7 @@ export default function HelpdeskDetailPanel({ isOpen, onClose, ticket }) {
               View Property
             </Link>
           )}
-          {ticket.accountId && (
+          {ticket.accountId && !ticket.accountId.startsWith("GUEST-") && (
             <Link
               href={`/admin/users/${ticket.accountId}`}
               className="rounded-xl border border-[#e8e0d5] px-3 py-2 text-xs font-semibold text-[#374151] hover:bg-[#faf8f5]"

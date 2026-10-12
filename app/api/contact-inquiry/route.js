@@ -40,6 +40,14 @@ export async function POST(request) {
       );
     }
 
+    const existingCount = await ContactInquiry.countDocuments({ phone: phone.trim() });
+    if (existingCount >= 2) {
+      return NextResponse.json(
+        { success: false, error: "You've already submitted 2 queries with this mobile number. Please wait for a response." },
+        { status: 429 }
+      );
+    }
+
     const inquiry = await ContactInquiry.create({
       id: `INQ-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       name: name.trim(),

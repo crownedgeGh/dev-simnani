@@ -1,6 +1,7 @@
 import { FiMapPin, FiMail } from "react-icons/fi";
 import { FaInstagram } from "react-icons/fa6";
 import BackButton from "@/components/layout/BackButton";
+import HelpdeskForm from "@/components/property/HelpdeskForm";
 
 const LEADERSHIP = [
   {
@@ -89,6 +90,10 @@ export default function AboutPage() {
           <FaInstagram className="h-5 w-5 shrink-0 text-gold-400" />
           @simnani.groups
         </a>
+      </div>
+
+      <div className="mt-16">
+        <HelpdeskForm />
       </div>
     </div>
   );
