@@ -34,7 +34,6 @@ export default function CookieConsentBanner() {
 
   function decide(analytics) {
     setConsent(analytics);
-    setVisible(false);
   }
 
   if (!visible || pathname?.startsWith("/admin")) return null;
