@@ -9,7 +9,7 @@ import { getAccountPermissions } from "@/lib/accountPermissions";
 import { TEST_MODE_CP_PROFILES } from "@/lib/testModeCp";
 import AuthGateModal from "@/components/auth/AuthGateModal";
 import CompleteProfileModal from "@/components/auth/CompleteProfileModal";
-import { MdHome, MdTrendingUp, MdPersonAdd, MdAgriculture, MdFactory, MdScience } from "react-icons/md";
+import { MdHome, MdTrendingUp, MdPersonAdd, MdAgriculture, MdFactory, MdScience, MdTerrain } from "react-icons/md";
 import {
   FiUser, FiMenu, FiX,
   FiList, FiBookmark, FiSettings, FiLogOut, FiHelpCircle, FiInfo,
@@ -33,6 +33,7 @@ const NAV_LINKS = [
   { label: "Properties", href: "/properties", icon: BiBuildingHouse, matchPaths: ["/properties", "/buy", "/rent", "/sell", "/lease", "/seized-property", "/property"] },
   { label: "Invest", href: "/invest", icon: MdTrendingUp },
   { label: "Commercial", href: "/commercial", icon: BiBuildings },
+  { label: "Plot / Land", href: "/plot-land", icon: MdTerrain },
   { label: "Farming Land Projects", href: "/farming", icon: MdAgriculture },
   { label: "Industrial", href: "/industrial", icon: MdFactory },
   { label: "Services", href: "/services", icon: FiSettings },

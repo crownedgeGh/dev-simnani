@@ -66,6 +66,7 @@ function countWords(text) {
 const SECTION_OPTIONS = [
   { value: "residential", label: "Residential" },
   { value: "commercial", label: "Commercial" },
+  { value: "plot-land", label: "Plot / Land" },
   { value: "farming", label: "Farming Land" },
   { value: "industrial", label: "Industrial" },
   { value: "invest", label: "Investment Property" },
@@ -166,8 +167,9 @@ export default function AdminAddPropertyForm() {
   const [form, setForm] = useState(INITIAL_FORM);
 
   const isResidentialType = form.section === "residential";
+  const isPlotLand = form.section === "plot-land";
   const isPgHostelType = isResidentialType && isPgOrHostel(form.propertyType);
-  const hasSelection = isResidentialType ? !!form.propertyType : !!form.category;
+  const hasSelection = isResidentialType ? !!form.propertyType : isPlotLand ? true : !!form.category;
   const fieldProfile = hasSelection ? getFieldProfile(form.section, form.category, form.propertyType) : null;
   const showBhkSelect = !!fieldProfile?.bhk;
   const needsBedrooms = !!fieldProfile?.beds;
@@ -220,7 +222,9 @@ export default function AdminAddPropertyForm() {
     setForm((prev) => {
       const next = { ...prev, [field]: val };
       if (field === "section") {
-        next.category = "";
+        // Plot / Land skips the Category step in this form too — default it
+        // silently to "any-purpose" instead of leaving it unset.
+        next.category = val === "plot-land" ? "any-purpose" : "";
         next.propertyType = "";
         next.beds = "";
         next.halls = "";
@@ -327,7 +331,7 @@ export default function AdminAddPropertyForm() {
     if (!form.title.trim()) errs.title = "Property title is required";
     if (isResidentialType) {
       if (!form.propertyType) errs.propertyType = "Property type is required";
-    } else if (!form.category) {
+    } else if (!isPlotLand && !form.category) {
       errs.category = "Category is required";
     }
     if (!form.state.trim()) errs.state = "State is required";
@@ -730,29 +734,31 @@ export default function AdminAddPropertyForm() {
                 )}
               </>
             ) : (
-              <div>
-                <AdminFormField
-                  label="Category"
-                  id="prop-category"
-                  hint="Sub-category shown on the /invest, /commercial, /farming, /industrial pages"
-                  required
-                  error={errors.category}
-                >
-                  <select
+              !isPlotLand && (
+                <div>
+                  <AdminFormField
+                    label="Category"
                     id="prop-category"
-                    value={form.category}
-                    onChange={(e) => update("category", e.target.value)}
-                    className={adminSelectClass}
+                    hint="Sub-category shown on the /invest, /commercial, /farming, /industrial pages"
+                    required
+                    error={errors.category}
                   >
-                    <option value="">Select category</option>
-                    {(CATEGORIES_BY_TYPE[form.section] || []).map((cat) => (
-                      <option key={cat.key} value={cat.key}>
-                        {cat.label}
-                      </option>
-                    ))}
-                  </select>
-                </AdminFormField>
-              </div>
+                    <select
+                      id="prop-category"
+                      value={form.category}
+                      onChange={(e) => update("category", e.target.value)}
+                      className={adminSelectClass}
+                    >
+                      <option value="">Select category</option>
+                      {(CATEGORIES_BY_TYPE[form.section] || []).map((cat) => (
+                        <option key={cat.key} value={cat.key}>
+                          {cat.label}
+                        </option>
+                      ))}
+                    </select>
+                  </AdminFormField>
+                </div>
+              )
             )}
 
             {/* Property Title */}
@@ -923,6 +929,7 @@ export default function AdminAddPropertyForm() {
                     id="prop-area"
                     type="number"
                     min="0"
+                    step="any"
                     value={form.areaSize}
                     onChange={(e) => update("areaSize", e.target.value)}
                     placeholder="Area size"

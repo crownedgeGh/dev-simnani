@@ -8,7 +8,7 @@ import AdminFormField, { adminInputClass, adminSelectClass, adminTextareaClass }
 import { getLocationCity, CATEGORIES_BY_TYPE, isStructureCategory, categoryHasBedrooms, isPgOrHostel } from "@/lib/properties";
 import { getCurrentCoords, reverseGeocode } from "@/lib/geo";
 
-const PROPERTY_TYPES = ["buy", "sell", "rent", "invest", "commercial", "farming", "industrial", "lease", "seized-property"];
+const PROPERTY_TYPES = ["buy", "sell", "rent", "invest", "commercial", "plot-land", "farming", "industrial", "lease", "seized-property"];
 const STATUSES = ["Active", "Pending Review", "Rejected"];
 
 const EMPTY_FORM = {
@@ -69,7 +69,7 @@ export default function PropertyFormDialog({ isOpen, onClose, property, onSave }
     if (!form.price.trim()) errs.price = "Price is required";
     if (!form.location.trim()) errs.location = "Location is required";
     if (!form.type) errs.type = "Type is required";
-    if (CATEGORIES_BY_TYPE[form.type] && !form.category) errs.category = "Category is required";
+    if (CATEGORIES_BY_TYPE[form.type] && form.type !== "plot-land" && !form.category) errs.category = "Category is required";
     if (needsStructureFields && (!form.baths || Number(form.baths) < 1))
       errs.baths = "Number of bathrooms is required";
     if (needsBedrooms && (!form.halls || Number(form.halls) < 1))
@@ -137,7 +137,13 @@ export default function PropertyFormDialog({ isOpen, onClose, property, onSave }
           <select
             id="prop-type"
             value={form.type}
-            onChange={(e) => setForm((prev) => ({ ...prev, type: e.target.value, category: "" }))}
+            onChange={(e) =>
+              setForm((prev) => ({
+                ...prev,
+                type: e.target.value,
+                category: e.target.value === "plot-land" ? "any-purpose" : "",
+              }))
+            }
             className={adminSelectClass}
           >
             {PROPERTY_TYPES.map((t) => (
@@ -151,7 +157,7 @@ export default function PropertyFormDialog({ isOpen, onClose, property, onSave }
           </select>
         </AdminFormField>
 
-        {CATEGORIES_BY_TYPE[form.type] && (
+        {CATEGORIES_BY_TYPE[form.type] && form.type !== "plot-land" && (
           <AdminFormField label="Category" id="prop-category" required error={errors.category}>
             <select id="prop-category" value={form.category} onChange={(e) => set("category", e.target.value)} className={adminSelectClass}>
               <option value="">Select category</option>

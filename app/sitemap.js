@@ -12,6 +12,7 @@ const STATIC_ROUTES = [
   "/sell",
   "/invest",
   "/commercial",
+  "/plot-land",
   "/farming",
   "/industrial",
   "/lease",

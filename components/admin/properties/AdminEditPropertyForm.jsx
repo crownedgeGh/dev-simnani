@@ -275,7 +275,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
     setForm({
       purpose: determinedPurpose,
       type: prop.type || (determinedPurpose === "rent" ? "rent" : "buy"),
-      category: prop.category || "",
+      category: prop.category || (prop.type === "plot-land" ? "any-purpose" : ""),
       title: prop.title || "",
       propertyType: prop.propertyType || "Flat",
       city: loc.city,
@@ -387,7 +387,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
         if (val === "lease") next.type = "lease";
       }
       if (field === "type" && val !== prev.type) {
-        next.category = "";
+        next.category = val === "plot-land" ? "any-purpose" : "";
         next.beds = "";
         next.halls = "";
       }
@@ -504,7 +504,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
     const errs = {};
     if (!form.title.trim()) errs.title = "Property title is required";
     if (!form.propertyType) errs.propertyType = "Property type is required";
-    if (CATEGORIES_BY_TYPE[form.type] && !form.category) errs.category = "Category is required";
+    if (CATEGORIES_BY_TYPE[form.type] && form.type !== "plot-land" && !form.category) errs.category = "Category is required";
     if (!form.city.trim()) errs.city = "City is required";
     if (!form.locality.trim()) errs.locality = "Area / Locality is required";
     if (!form.price || Number(form.price) <= 0) errs.price = "Valid price is required";
@@ -823,7 +823,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
             </div>
 
             {/* Category (commercial / farming / industrial / invest sub-category) */}
-            {CATEGORIES_BY_TYPE[form.type] && (
+            {CATEGORIES_BY_TYPE[form.type] && form.type !== "plot-land" && (
               <div>
                 <AdminFormField
                   label="Category"
@@ -1046,6 +1046,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
                   <input
                     type="number"
                     min="0"
+                    step="any"
                     value={form.areaSize}
                     onChange={(e) => update("areaSize", e.target.value)}
                     placeholder="1850"

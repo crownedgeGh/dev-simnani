@@ -25,6 +25,7 @@ const BROWSE_ROUTE = {
   invest: "/invest",
   lease: "/lease",
   commercial: "/commercial",
+  "plot-land": "/plot-land",
   farming: "/farming",
   industrial: "/industrial",
   "seized-property": "/seized-property",

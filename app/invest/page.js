@@ -31,7 +31,7 @@ export default async function InvestPage() {
       href: "/projects",
       count: PROJECTS.length,
     },
-    ...INVEST_CATEGORIES.filter((category) => ["land", "others"].includes(category.key)),
+    ...INVEST_CATEGORIES.filter((category) => ["land", "invest-others"].includes(category.key)),
   ];
 
   return (

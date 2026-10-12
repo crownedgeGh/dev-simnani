@@ -60,6 +60,7 @@ const YES_NO_OPTIONS = [
 const SECTION_OPTIONS = [
   { value: "residential", label: "Residential" },
   { value: "commercial", label: "Commercial" },
+  { value: "plot-land", label: "Plot / Land" },
   { value: "farming", label: "Farming Land" },
   { value: "industrial", label: "Industrial" },
   { value: "invest", label: "Investment Property" },
@@ -397,7 +398,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
           purpose: p.type === "sell" ? "sale" : p.type === "rent" ? "rent" : p.type === "lease" ? "lease" : "sale",
           title: p.title || "",
           propertyType: isResidentialType ? p.propertyType || "" : "",
-          category: p.category || "",
+          category: p.category || (p.type === "plot-land" ? "any-purpose" : ""),
           state: p.state || "",
           city: p.city || "",
           locality: p.locality || "",
@@ -455,7 +456,9 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
     setForm((prev) => {
       const next = { ...prev, [field]: value };
       if (field === "section") {
-        next.category = "";
+        // Plot / Land skips the Category step in the form, so default it
+        // silently to "any-purpose" instead of leaving it unset.
+        next.category = value === "plot-land" ? "any-purpose" : "";
         next.propertyType = "";
         next.beds = "";
         next.halls = "";
@@ -528,13 +531,14 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
   }
 
   const isResidential = form.section === "residential";
+  const isPlotLand = form.section === "plot-land";
   const isPgHostelType = isResidential && isPgOrHostel(form.propertyType);
   // Real-world spec sheets differ by what's actually selected — a warehouse
   // has no bedrooms/bathrooms/furnishing, a bare plot has no structure
   // fields at all, an office has washrooms but no bedrooms, etc. This one
   // profile lookup (keyed by propertyType for Residential, or by category
   // for every other section) decides which fields below are shown.
-  const hasSelection = isResidential ? !!form.propertyType : !!form.category;
+  const hasSelection = isResidential ? !!form.propertyType : isPlotLand ? true : !!form.category;
   const fieldProfile = hasSelection
     ? getFieldProfile(form.section, form.category, form.propertyType)
     : null;
@@ -563,7 +567,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
       { id: "title", invalid: !form.title.trim() },
       isResidential
         ? { id: "propertyType", invalid: !form.propertyType }
-        : { id: "category", invalid: !form.category },
+        : { id: "category", invalid: !isPlotLand && !form.category },
       { id: "state", invalid: !form.state.trim() },
       { id: "city", invalid: !form.city.trim() },
       { id: "locality", invalid: !form.locality.trim() },
@@ -883,36 +887,37 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
             )}
           </>
         ) : (
-          <FormField
-            label="Category"
-            htmlFor="category"
-            required
-            hint={isApprovedListing ? lockedFieldHint : undefined}
-          >
-            <SelectWrap>
-              <select
-                id="category"
-                value={form.category}
-                disabled={isApprovedListing}
-                onChange={(e) => update("category", e.target.value)}
-                className={errClass(`${selectClass} pr-10`, "category")}
-              >
-                <option value="">Select category</option>
-                {(CATEGORIES_BY_TYPE[form.section] || []).map((cat) => (
-                  <option key={cat.key} value={cat.key}>
-                    {cat.label}
-                  </option>
-                ))}
-              </select>
-            </SelectWrap>
-          </FormField>
+          !isPlotLand && (
+            <FormField
+              label="Category"
+              htmlFor="category"
+              required
+              hint={isApprovedListing ? lockedFieldHint : undefined}
+            >
+              <SelectWrap>
+                <select
+                  id="category"
+                  value={form.category}
+                  disabled={isApprovedListing}
+                  onChange={(e) => update("category", e.target.value)}
+                  className={errClass(`${selectClass} pr-10`, "category")}
+                >
+                  <option value="">Select category</option>
+                  {(CATEGORIES_BY_TYPE[form.section] || []).map((cat) => (
+                    <option key={cat.key} value={cat.key}>
+                      {cat.label}
+                    </option>
+                  ))}
+                </select>
+              </SelectWrap>
+            </FormField>
+          )
         )}
         <FormField label="Property Title" htmlFor="title" required hint={`${form.title.length}/80`}>
           <input
             id="title"
             type="text"
             maxLength={80}
-            placeholder="Spacious 2BHK near City Center"
             value={form.title}
             onChange={(e) => update("title", e.target.value)}
             className={errClass(`${inputClass}`, "title")}
@@ -1060,6 +1065,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
               id="areaSize"
               type="number"
               min="0"
+              step="any"
               autoComplete="off"
               value={form.areaSize}
               onChange={handleAreaSizeChange}

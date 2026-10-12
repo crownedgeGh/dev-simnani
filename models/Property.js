@@ -26,6 +26,7 @@ const PropertySchema = new mongoose.Schema(
         "industrial",
         "lease",
         "seized-property",
+        "plot-land",
       ],
       default: "buy",
       index: true,
