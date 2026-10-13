@@ -21,6 +21,7 @@ import {
 } from "react-icons/md";
 import AdminStatusBadge from "@/components/admin/ui/AdminStatusBadge";
 import AdminPhoneCell from "@/components/admin/ui/AdminPhoneCell";
+import { getServiceTypeLabel } from "@/lib/serviceProviders";
 
 const LEVEL_FOR_CP_TYPE = { company: "head-to-company", field: "company-to-field", digital: "company-to-digital" };
 const CP_TYPE_TITLES = { company: "Company CP", digital: "Digital CP", field: "Field CP" };
@@ -216,6 +217,8 @@ export default function PartnerPortalPage() {
   const [commissions, setCommissions] = useState([]);
   const [adLinks, setAdLinks] = useState([]);
   const [siteVisits, setSiteVisits] = useState([]);
+  const [receivedLeads, setReceivedLeads] = useState([]); // company only: leads Head CP routed here
+  const [delegations, setDelegations] = useState([]); // company only: projects handed on to Field/Digital CPs
 
   useEffect(() => {
     if (!accountId) return;
@@ -226,13 +229,15 @@ export default function PartnerPortalPage() {
       setLoading(true);
 
       const level = LEVEL_FOR_CP_TYPE[cpType];
-      const [userRes, asg, cpl, comm, links, visits] = await Promise.all([
+      const [userRes, asg, cpl, comm, links, visits, received, delegated] = await Promise.all([
         fetch(`/api/users/${accountId}`).then((res) => res.json()).catch(() => ({ success: false })),
         getJSON(`/api/assignments?assignedToAccountId=${accountId}${level ? `&level=${level}` : ""}`),
         getJSON(`/api/cp-leads?submittedByAccountId=${accountId}`),
         getJSON(`/api/commissions?cpAccountId=${accountId}`),
         cpType === "digital" ? getJSON(`/api/ad-links?digitalCpAccountId=${accountId}`) : Promise.resolve([]),
         cpType === "field" ? getJSON(`/api/site-visits?fieldCpAccountId=${accountId}`) : Promise.resolve([]),
+        cpType === "company" ? getJSON(`/api/cp-leads?routingStage=company-cp&assignedToAccountId=${accountId}`) : Promise.resolve([]),
+        cpType === "company" ? getJSON(`/api/assignments?assignedByAccountId=${accountId}`) : Promise.resolve([]),
       ]);
 
       if (!active) return;
@@ -247,6 +252,8 @@ export default function PartnerPortalPage() {
       setCommissions(comm);
       setAdLinks(links);
       setSiteVisits(visits);
+      setReceivedLeads(received);
+      setDelegations(delegated.filter((a) => a.level !== "head-to-company"));
       setLoading(false);
     });
 
@@ -409,6 +416,63 @@ export default function PartnerPortalPage() {
                   </div>
                 )}
               </Card>
+            )}
+
+            {cpType === "company" && (
+              <>
+                <Card title="Leads Received & Forwarded" count={receivedLeads.length} icon={MdSend}>
+                  {receivedLeads.length === 0 ? (
+                    <EmptyRow message="No leads forwarded to this Company CP yet." />
+                  ) : (
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      {receivedLeads.map((lead) => (
+                        <div key={lead.id} className="rounded-xl border border-[#e8e0d5] bg-[#faf8f5] p-3.5">
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium text-[#1a1a2e]">{lead.customer}</p>
+                              <p className="mt-0.5 flex items-center gap-1 text-xs text-[#9ca3af]">
+                                {lead.project || "—"} · <AdminPhoneCell value={lead.phone} />
+                              </p>
+                            </div>
+                            <AdminStatusBadge status={lead.status} />
+                          </div>
+                          {lead.serviceProvider?.accountId && (
+                            <p className="mt-2 flex flex-wrap items-center gap-1.5 border-t border-[#f0ebe3] pt-2 text-xs text-[#374151]">
+                              <MdSend size={13} className="text-[#d97706]" />
+                              Forwarded to <span className="font-medium">{lead.serviceProvider.name}</span>
+                              <span className="rounded-full bg-[#fff8e1] px-2 py-0.5 text-[10px] font-medium text-[#d97706]">
+                                {getServiceTypeLabel(lead.serviceProvider.serviceType)}
+                              </span>
+                              {lead.serviceProvider.forwardedAt && (
+                                <span className="text-[#9ca3af]">· {formatDateTime(lead.serviceProvider.forwardedAt)}</span>
+                              )}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </Card>
+
+                <Card title="Projects Delegated" count={delegations.length} icon={MdAssignmentInd}>
+                  {delegations.length === 0 ? (
+                    <EmptyRow message="This Company CP hasn't delegated any project to a Field or Digital CP yet." />
+                  ) : (
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                      {delegations.map((a) => (
+                        <div key={a.id} className="rounded-xl border border-[#e8e0d5] bg-[#faf8f5] p-3.5">
+                          <p className="truncate text-sm font-medium text-[#1a1a2e]">{a.propertyTitle || "—"}</p>
+                          <p className="mt-0.5 truncate text-xs text-[#9ca3af]">{a.propertyLocation || "—"}</p>
+                          <p className="mt-2 text-xs text-[#374151]">
+                            → {a.assignedToName || a.assignedToAccountId}{" "}
+                            <span className="text-[#9ca3af]">({a.level === "company-to-field" ? "Field CP" : "Digital CP"})</span>
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </Card>
+              </>
             )}
 
             <Card title="Leads Submitted" count={leads.length} icon={MdLeaderboard}>

@@ -2,6 +2,7 @@ import CommercialCategories from "@/components/property/CommercialCategories";
 import { COMMERCIAL_CATEGORIES } from "@/lib/properties";
 import { getPropertiesByType } from "@/lib/propertiesServer";
 import BackButton from "@/components/layout/BackButton";
+import VendorContactCard from "@/components/property/VendorContactCard";
 
 export const revalidate = 60;
 
@@ -36,6 +37,7 @@ export default async function CommercialPage() {
           propertiesByCategory={propertiesByCategory}
         />
       </div>
+      <VendorContactCard serviceType="civil-contractor" />
     </div>
   );
 }

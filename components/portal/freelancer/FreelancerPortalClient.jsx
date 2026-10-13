@@ -57,6 +57,7 @@ export default function FreelancerPortalClient({
   fieldStats,
   leads,
   network,
+  serviceProviders,
   commissions,
   siteVisits,
   projects,
@@ -140,6 +141,7 @@ export default function FreelancerPortalClient({
               stats={companyStats}
               leads={leads}
               network={network}
+              serviceProviders={serviceProviders}
               commissions={commissions}
               projects={projects}
               fieldActivity={fieldActivity}

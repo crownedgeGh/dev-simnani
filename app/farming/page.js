@@ -39,7 +39,7 @@ export default async function FarmingPage() {
         />
       </div>
 
-      <VendorContactCard />
+      <VendorContactCard serviceType="agri-infra" />
     </div>
   );
 }

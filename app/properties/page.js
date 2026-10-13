@@ -4,6 +4,7 @@ import { MdGavel } from "react-icons/md";
 import { FiArrowUpRight } from "react-icons/fi";
 import { getPropertiesByType } from "@/lib/propertiesServer";
 import BackButton from "@/components/layout/BackButton";
+import VendorContactCard from "@/components/property/VendorContactCard";
 
 export const revalidate = 60;
 
@@ -102,6 +103,7 @@ export default async function PropertiesPage() {
           );
         })}
       </div>
+      <VendorContactCard serviceType="civil-contractor" />
     </div>
   );
 }

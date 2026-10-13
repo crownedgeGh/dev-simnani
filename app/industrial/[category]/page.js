@@ -50,7 +50,7 @@ export default async function IndustrialCategoryPage({ params }) {
         />
       </div>
 
-      <VendorContactCard />
+      <VendorContactCard serviceType="industrial-epc" />
     </div>
   );
 }

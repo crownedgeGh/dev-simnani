@@ -275,7 +275,7 @@ function UserDropdown({ user, cityLabel, onSelectCp, onClose, onLogout }) {
   const perms = getAccountPermissions(user?.accountType, user?.cpType);
 
   const MENU_ITEMS = [
-    perms.canManageListings && {
+    perms.portalHref && perms.portalHref !== "/" && {
       icon: FiList,
       label: perms.portalLabel || "My Listings",
       desc: perms.portalDesc || "View & manage your properties",
@@ -974,7 +974,7 @@ export default function Navbar() {
                 <div className="mt-3 flex flex-col gap-1">
                   {[
                     { icon: FiBookmark, label: "Saved Properties", href: "/account/saved-properties" },
-                    perms.canManageListings && {
+                    perms.portalHref && perms.portalHref !== "/" && {
                       icon: FiList,
                       label: perms.portalLabel || "My Listings",
                       href: perms.portalHref,

@@ -4,7 +4,7 @@ import CPUnderReviewModal from "@/components/portal/freelancer/CPUnderReviewModa
 import { PROJECTS } from "@/lib/projects";
 import { requireCpUser } from "@/lib/freelancerPortalGuard";
 import { getOwnerPortalData } from "@/lib/ownerPortalData";
-import { getCpNetwork } from "@/lib/cpAssignments";
+import { getCpNetwork, getServiceProviderNetwork } from "@/lib/cpAssignments";
 import {
   CP_STATS,
   CP_LEADS,
@@ -28,6 +28,7 @@ export default async function CompanyCPPortalPage() {
   }
   const { listings: myListings } = await getOwnerPortalData(user.accountId);
   const network = await getCpNetwork();
+  const serviceProviders = await getServiceProviderNetwork();
 
   return (
     <Suspense fallback={null}>
@@ -37,6 +38,7 @@ export default async function CompanyCPPortalPage() {
         fieldStats={CP_STATS.field}
         leads={CP_LEADS}
         network={network}
+        serviceProviders={serviceProviders}
         commissions={CP_COMMISSIONS}
         siteVisits={CP_SITE_VISITS}
         projects={PROJECTS}

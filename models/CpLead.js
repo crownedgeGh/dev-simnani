@@ -48,6 +48,16 @@ const CpLeadSchema = new mongoose.Schema(
     },
     assignedTo: { type: String, default: "" },
     assignedToAccountId: { type: String, default: "" },
+    // Set when the owning Company CP hands the lead to a service provider
+    // (contractor / EPC / agri-infra). The lead stays with the Company CP
+    // (assignedTo* untouched) and is mirrored into the provider's Leads tab.
+    serviceProvider: {
+      accountId: { type: String, default: "" },
+      name: { type: String, default: "" },
+      serviceType: { type: String, default: "" },
+      forwardedAt: { type: Date },
+      _id: false,
+    },
     adLinkId: { type: String, default: "", index: true },
     notes: { type: String, default: "" },
     date: { type: String, default: "" },

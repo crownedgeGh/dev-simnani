@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
 import { inputClass, selectClass } from "@/components/auth/inputStyles";
@@ -13,7 +14,12 @@ const TIME_OPTIONS = [
   { value: "evening", label: "Evening (5PM - 8PM)" },
 ];
 
-export default function CallbackForm() {
+// `serviceType` is set when the form is opened from a service provider
+// section — the request is then persisted as a contractor lead so admin sees
+// which role it came from. Without it the form stays the standalone
+// /request-callback page and keeps its original local-only behaviour.
+export default function CallbackForm({ serviceType = "", onClose, onSubmitted }) {
+  const pathname = usePathname();
   const [fullName, setFullName] = useState("");
   const [mobile, setMobile] = useState("");
   const [bestTime, setBestTime] = useState("");
@@ -21,7 +27,7 @@ export default function CallbackForm() {
   const [submitting, setSubmitting] = useState(false);
   const [requestId, setRequestId] = useState("");
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
     if (!fullName.trim() || !isMobileValid(mobile)) {
       setError("Please fill in your name and a valid mobile number.");
@@ -29,32 +35,87 @@ export default function CallbackForm() {
     }
     setError("");
     setSubmitting(true);
-    setTimeout(() => {
+
+    if (!serviceType) {
+      setTimeout(() => {
+        setSubmitting(false);
+        setRequestId(generateAccountId("CB"));
+        onSubmitted?.();
+        trackEvent("generate_lead", {
+          form_name: "request_callback",
+          best_time: bestTime || undefined,
+        });
+      }, 900);
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/contractor-leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: fullName.trim(),
+          phone: mobile,
+          bestTime,
+          serviceType,
+          sourcePath: pathname,
+        }),
+      });
+      const json = await res.json();
+      if (!json.success)
+        throw new Error(json.error || "Could not submit your request.");
+      setRequestId(json.data.id);
+      onSubmitted?.();
+      trackEvent("generate_lead", {
+        form_name: "request_callback",
+        best_time: bestTime || undefined,
+        service_type: serviceType,
+      });
+    } catch (err) {
+      setError(err.message || "Could not submit your request.");
+    } finally {
       setSubmitting(false);
-      setRequestId(generateAccountId("CB"));
-      trackEvent("generate_lead", { form_name: "request_callback", best_time: bestTime || undefined });
-    }, 900);
+    }
   }
 
   if (requestId) {
     return (
-      <div className="flex flex-col items-center gap-6 border border-navy-700/60 bg-navy-900 p-8 text-center sm:p-10">
+      <div
+        className={`flex flex-col items-center gap-6 text-center ${
+          onClose ? "" : "border border-navy-700/60 bg-navy-900 p-8 sm:p-10"
+        }`}
+      >
         <span className="flex h-16 w-16 items-center justify-center rounded-full border border-gold-400 text-3xl text-gold-400">
           ✓
         </span>
         <div>
-          <h1 className="font-display text-2xl text-cream sm:text-3xl">Callback Requested</h1>
+          <h1 className="font-display text-2xl text-cream sm:text-3xl">
+            Callback Requested
+          </h1>
           <p className="mt-2 text-sm text-muted">
-            An advisor will call you back{bestTime ? ` in the ${bestTime}` : " shortly"}.
+            An advisor will call you back
+            {bestTime ? ` in the ${bestTime}` : " shortly"}.
           </p>
         </div>
-        <p className="tracked-label text-xs text-gold-400">Reference ID: {requestId}</p>
-        <Link
-          href="/"
-          className="tracked-label w-full rounded-full bg-gold-400 px-6 py-4 text-center text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 active:scale-[0.98]"
-        >
-          Return Home
-        </Link>
+        <p className="tracked-label text-xs text-gold-400">
+          Reference ID: {requestId}
+        </p>
+        {onClose ? (
+          <button
+            type="button"
+            onClick={onClose}
+            className="tracked-label w-full rounded-full bg-gold-400 px-6 py-4 text-center text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 active:scale-[0.98]"
+          >
+            Done
+          </button>
+        ) : (
+          <Link
+            href="/"
+            className="tracked-label w-full rounded-full bg-gold-400 px-6 py-4 text-center text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 active:scale-[0.98]"
+          >
+            Return Home
+          </Link>
+        )}
       </div>
     );
   }
@@ -62,12 +123,18 @@ export default function CallbackForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex flex-col gap-4 border border-navy-700/60 bg-navy-900 p-8 sm:p-10"
+      className={
+        onClose
+          ? "flex flex-col gap-4"
+          : "flex flex-col gap-4 border border-navy-700/60 bg-navy-900 p-8 sm:p-10"
+      }
     >
       <div className="flex items-center gap-3">
-        <BackButton />
+        {!onClose && <BackButton />}
         <div>
-          <h1 className="font-display text-2xl text-cream sm:text-3xl">Request Callback</h1>
+          <h1 className="font-display text-2xl text-cream sm:text-3xl">
+            Request Callback
+          </h1>
           <p className="mt-2 text-sm text-muted">
             Provide your details and an advisor will contact you shortly.
           </p>
@@ -75,7 +142,10 @@ export default function CallbackForm() {
       </div>
 
       <div className="flex flex-col gap-2">
-        <label htmlFor="fullName" className="tracked-label text-xs text-cream/80">
+        <label
+          htmlFor="fullName"
+          className="tracked-label text-xs text-cream/80"
+        >
           Full Name <span className="text-gold-400">*</span>
         </label>
         <input
@@ -107,9 +177,14 @@ export default function CallbackForm() {
       </div>
 
       <div className="flex flex-col gap-2">
-        <label htmlFor="bestTime" className="tracked-label text-xs text-cream/80">
+        <label
+          htmlFor="bestTime"
+          className="tracked-label text-xs text-cream/80"
+        >
           Best Time to Call{" "}
-          <span className="normal-case tracking-normal text-muted">(Optional)</span>
+          <span className="normal-case tracking-normal text-muted">
+            (Optional)
+          </span>
         </label>
         <select
           id="bestTime"

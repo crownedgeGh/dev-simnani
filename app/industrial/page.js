@@ -39,7 +39,7 @@ export default async function IndustrialPage() {
         />
       </div>
 
-      <VendorContactCard />
+      <VendorContactCard serviceType="industrial-epc" />
     </div>
   );
 }

@@ -27,6 +27,7 @@ import VideoModerationDialog from "@/components/admin/freelancer-cp/VideoModerat
 import AssignPropertyDialog from "@/components/admin/freelancer-cp/AssignPropertyDialog";
 import LeadDetailDialog from "@/components/admin/freelancer-cp/LeadDetailDialog";
 import PendingCpApprovals from "@/components/admin/freelancer-cp/PendingCpApprovals";
+import { SERVICE_PROVIDER_TYPES } from "@/lib/serviceProviders";
 
 const CP_LEAD_STATUSES = ["Pending Verification", "Verified", "Assigned", "Site Visit Scheduled", "Site Visit Completed", "Converted", "Lost"];
 const COMM_STATUSES = ["Pending", "Approved", "On Hold"];
@@ -113,7 +114,7 @@ export default function CPTypeWorkspace({
       company,
       digital,
       field,
-      "service-provider": serviceProviders.map((u) => ({ accountId: u.accountId, name: u.fullName })),
+      "service-provider": serviceProviders.map((u) => ({ accountId: u.accountId, name: u.fullName, serviceType: u.serviceType })),
     });
     setData({ cpLeads: cpl, campaignVideos: cv, commissions: comm, cpAssignments: asg, siteVisits: visits });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -460,14 +461,14 @@ export default function CPTypeWorkspace({
                 if (!e.target.value) return;
                 const [nextCpType, accountId] = e.target.value.split("::");
                 const partner = (networks[nextCpType] || []).find((p) => p.accountId === accountId);
-                const ok = await patchLead(row.id, {
-                  // Service providers aren't a routing stage — the lead stays
-                  // with the Company CP and is mirrored into their Leads tab.
-                  ...(nextCpType === "service-provider" ? {} : { routingStage: `${nextCpType}-cp` }),
-                  assignedTo: partner?.name,
-                  assignedToAccountId: accountId,
-                  status: "Assigned",
-                });
+                // Service providers aren't a routing stage — the lead stays with
+                // the Company CP; the API records the provider and mirrors it.
+                const ok = await patchLead(
+                  row.id,
+                  nextCpType === "service-provider"
+                    ? { serviceProviderAccountId: accountId }
+                    : { routingStage: `${nextCpType}-cp`, assignedTo: partner?.name, assignedToAccountId: accountId, status: "Assigned" }
+                );
                 if (ok) toast.success(`Lead delegated to ${partner?.name}`);
               }}
               disabled={networks.field.length === 0 && networks.digital.length === 0 && networks["service-provider"].length === 0}
@@ -489,11 +490,16 @@ export default function CPTypeWorkspace({
                 </optgroup>
               )}
               {networks["service-provider"].length > 0 && (
-                <optgroup label="Service Provider">
-                  {networks["service-provider"].map((p) => (
-                    <option key={`service-provider::${p.accountId}`} value={`service-provider::${p.accountId}`}>{p.name}</option>
-                  ))}
-                </optgroup>
+                SERVICE_PROVIDER_TYPES.map((t) => {
+                  const group = networks["service-provider"].filter((p) => p.serviceType === t.value);
+                  return group.length > 0 && (
+                    <optgroup key={t.value} label={t.label}>
+                      {group.map((p) => (
+                        <option key={`service-provider::${p.accountId}`} value={`service-provider::${p.accountId}`}>{p.name}</option>
+                      ))}
+                    </optgroup>
+                  );
+                })
               )}
             </select>
           )}

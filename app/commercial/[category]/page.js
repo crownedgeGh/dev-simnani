@@ -4,6 +4,7 @@ import { COMMERCIAL_CATEGORIES } from "@/lib/properties";
 import { getPropertiesByTypeAndCategory } from "@/lib/propertiesServer";
 import BackButton from "@/components/layout/BackButton";
 import PostOnCategoryButton from "@/components/property/PostOnCategoryButton";
+import VendorContactCard from "@/components/property/VendorContactCard";
 
 export const revalidate = 60; // cache listing HTML for 60s instead of hitting Mongo on every request
 
@@ -48,6 +49,7 @@ export default async function CommercialCategoryPage({ params }) {
           emptyMessage="No listings available in this category right now."
         />
       </div>
+      <VendorContactCard serviceType="civil-contractor" />
     </div>
   );
 }

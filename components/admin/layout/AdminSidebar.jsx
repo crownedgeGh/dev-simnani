@@ -19,6 +19,7 @@ import {
   MdThumbUp,
   MdRestoreFromTrash,
   MdSupportAgent,
+  MdEngineering,
 } from "react-icons/md";
 import { BiBuildingHouse } from "react-icons/bi";
 import { useState } from "react";
@@ -46,6 +47,7 @@ const NAV_ITEMS = [
     ],
   },
   { href: "/admin/leads", label: "Non User Leads", icon: MdLeaderboard },
+  { href: "/admin/contractor-leads", label: "Contractor Leads", icon: MdEngineering },
   { href: "/admin/helpdesk", label: "Helpdesk", icon: MdSupportAgent },
   { href: "/admin/interested", label: "Interested", icon: MdThumbUp },
   { href: "/admin/analytics", label: "Analytics", icon: MdInsights },

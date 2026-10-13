@@ -21,6 +21,7 @@ export async function GET(request) {
     const submittedByAccountId = searchParams.get("submittedByAccountId");
     const delegatedByAccountId = searchParams.get("delegatedByAccountId");
     const adLinkId = searchParams.get("adLinkId");
+    const assignedToAccountId = searchParams.get("assignedToAccountId");
     const forwarded = searchParams.get("forwarded");
 
     let submittedByAccountIds = null;
@@ -52,9 +53,19 @@ export async function GET(request) {
 
     const query = {};
     if (routingStage) query.routingStage = routingStage;
-    if (submittedByAccountIds) query["submittedBy.accountId"] = { $in: submittedByAccountIds };
+    // Delegated scope also includes leads Head CP forwarded to this Company CP
+    // from a Field/Digital CP, even if no Assignment row links them.
+    if (submittedByAccountIds) {
+      query.$or = [
+        { "submittedBy.accountId": { $in: submittedByAccountIds } },
+        { assignedToAccountId: delegatedByAccountId, "submittedBy.cpType": { $in: ["field", "digital"] } },
+      ];
+    }
     else if (submittedByAccountId) query["submittedBy.accountId"] = submittedByAccountId;
     if (adLinkId) query.adLinkId = adLinkId;
+    // Only reachable by admin — non-admin callers are rejected above unless
+    // they pass their own submittedBy/delegatedBy scope.
+    if (assignedToAccountId && isAdminRequest(request)) query.assignedToAccountId = assignedToAccountId;
     if (forwarded !== null && forwarded !== undefined && forwarded !== "") {
       query.forwarded = forwarded === "true";
     }

@@ -24,6 +24,7 @@ import EmptyState from "./EmptyState";
 import PropertyGrid from "@/components/property/PropertyGrid";
 import { CP_TYPE_LABEL, VIDEO_STATUS_TONE, VISIT_STATUS_TONE, LEAD_STATUS_TONE, APPROVAL_STATUS_TONE } from "./channel-partner/tones";
 import RefreshButton from "./RefreshButton";
+import { SERVICE_PROVIDER_TYPES, getServiceTypeLabel } from "@/lib/serviceProviders";
 import { usePersistentTab } from "@/lib/usePersistentTab";
 import { toast } from "sonner";
 import StateCitySearchFields from "@/components/shared/StateCitySearchFields";
@@ -171,6 +172,7 @@ const TABS = [
 export default function CompanyCPDashboard({
   stats,
   network,
+  serviceProviders = [],
   partner,
   myListings = [],
 }) {
@@ -257,9 +259,14 @@ export default function CompanyCPDashboard({
   const loadLeads = useCallback(async () => {
     if (!partner?.accountId) return;
     try {
-      const res = await fetch(`/api/cp-leads?routingStage=company-cp`);
+      // A bare routingStage query is admin-only (403 here), so read through the delegated scope.
+      const res = await fetch(`/api/cp-leads?delegatedByAccountId=${partner.accountId}`);
       const json = await res.json();
-      setLeads(json.success ? json.data.filter((l) => l.assignedToAccountId === partner.accountId) : []);
+      setLeads(
+        json.success
+          ? json.data.filter((l) => l.routingStage === "company-cp" && l.assignedToAccountId === partner.accountId)
+          : []
+      );
     } catch {
       setLeads([]);
     }
@@ -438,6 +445,62 @@ export default function CompanyCPDashboard({
     } catch (err) {
       toast.error(err.message || "Failed to delegate");
     }
+  }
+
+  async function forwardToProvider(leadId, serviceProviderAccountId) {
+    if (!serviceProviderAccountId) return;
+    try {
+      const res = await fetch(`/api/cp-leads/${leadId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ serviceProviderAccountId }),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || "Failed to forward lead");
+      const swap = (prev) => prev.map((l) => (l.id === leadId ? json.data : l));
+      setLeads(swap);
+      setDelegatedLeads(swap);
+      toast.success(`Lead forwarded to ${json.data.serviceProvider?.name}`);
+    } catch (err) {
+      toast.error(err.message || "Failed to forward lead");
+    }
+  }
+
+  function renderForward(lead) {
+    return (
+      <>
+        {lead.serviceProvider?.accountId && (
+          <p className="mb-1.5 text-xs text-gold-400">
+            {lead.serviceProvider.name} · {getServiceTypeLabel(lead.serviceProvider.serviceType)}
+          </p>
+        )}
+        <select
+          value=""
+          disabled={serviceProviders.length === 0}
+          onChange={(e) => forwardToProvider(lead.id, e.target.value)}
+          className="h-11 w-full min-w-[200px] border border-navy-700/60 bg-navy-950 px-3 text-xs text-cream outline-none transition focus:border-gold-400 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <option value="">
+            {serviceProviders.length === 0
+              ? "No service provider registered"
+              : lead.serviceProvider?.accountId ? "Forward to another…" : "Forward to…"}
+          </option>
+          {SERVICE_PROVIDER_TYPES.map((t) => {
+            const group = serviceProviders.filter((p) => p.serviceType === t.value);
+            if (group.length === 0) return null;
+            return (
+              <optgroup key={t.value} label={t.label}>
+                {group.map((p) => (
+                  <option key={p.accountId} value={p.accountId}>
+                    {p.name}{p.city ? ` — ${p.city}` : ""}
+                  </option>
+                ))}
+              </optgroup>
+            );
+          })}
+        </select>
+      </>
+    );
   }
 
   async function toggleSold(project) {
@@ -889,12 +952,13 @@ export default function CompanyCPDashboard({
                           <th className="px-4 py-3">Project</th>
                           {fieldFilterId === "all" && <th className="px-4 py-3">Partner</th>}
                           <th className="px-4 py-3">Status</th>
+                          <th className="px-4 py-3">Forward to Service Provider</th>
                         </tr>
                       </thead>
                       <tbody>
                         {visibleFieldLeads.length === 0 ? (
                           <tr>
-                            <td colSpan={fieldFilterId === "all" ? 5 : 4} className="px-4 py-10 text-center text-xs text-muted">
+                            <td colSpan={fieldFilterId === "all" ? 6 : 5} className="px-4 py-10 text-center text-xs text-muted">
                               No leads submitted yet.
                             </td>
                           </tr>
@@ -919,6 +983,7 @@ export default function CompanyCPDashboard({
                               <td className="px-4 py-3">
                                 <Badge tone={LEAD_STATUS_TONE[l.status] || "muted"}>{l.status}</Badge>
                               </td>
+                              <td className="px-4 py-3">{renderForward(l)}</td>
                             </tr>
                           ))
                         )}
@@ -1108,12 +1173,13 @@ export default function CompanyCPDashboard({
                             <th className="px-4 py-3">Source / Phone</th>
                             {digitalFilterId === "all" && <th className="px-4 py-3">Partner</th>}
                             <th className="px-4 py-3">Status</th>
+                            <th className="px-4 py-3">Forward to Service Provider</th>
                           </tr>
                         </thead>
                         <tbody>
                           {visibleDigitalLeads.length === 0 ? (
                             <tr>
-                              <td colSpan={digitalFilterId === "all" ? 4 : 3} className="px-4 py-10 text-center text-xs text-muted">
+                              <td colSpan={digitalFilterId === "all" ? 5 : 4} className="px-4 py-10 text-center text-xs text-muted">
                                 No leads submitted yet.
                               </td>
                             </tr>
@@ -1141,6 +1207,7 @@ export default function CompanyCPDashboard({
                                 <td className="px-4 py-3">
                                   <Badge tone={LEAD_STATUS_TONE[l.status] || "muted"}>{l.status}</Badge>
                                 </td>
+                                <td className="px-4 py-3">{renderForward(l)}</td>
                               </tr>
                             ))
                           )}
@@ -1325,12 +1392,13 @@ export default function CompanyCPDashboard({
                   <th className="px-4 py-3">Given By</th>
                   <th className="px-4 py-3">Role</th>
                   <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Forward to Service Provider</th>
                 </tr>
               </thead>
               <tbody>
                 {leads.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-4 py-10 text-center text-xs text-muted">
+                    <td colSpan={6} className="px-4 py-10 text-center text-xs text-muted">
                       No freelancer leads yet.
                     </td>
                   </tr>
@@ -1349,6 +1417,7 @@ export default function CompanyCPDashboard({
                         </Badge>
                       </td>
                       <td className="px-4 py-3 text-muted">{lead.status}</td>
+                      <td className="px-4 py-3">{renderForward(lead)}</td>
                     </tr>
                   ))
                 )}
