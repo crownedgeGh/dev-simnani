@@ -157,7 +157,7 @@ const TABS = [
   { key: "listings", label: "My Listings" },
 ];
 
-const INITIAL_DIRECT_FORM = { customer: "", phone: "", project: "", notes: "" };
+const INITIAL_DIRECT_FORM = { customer: "", phone: "", notes: "" };
 
 export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisits: initialSiteVisits, projects, partner, myListings = [] }) {
   const [tab, setTab] = usePersistentTab(
@@ -445,12 +445,11 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
       setDirectError("Select your Company CP from the dashboard before adding a lead.");
       return;
     }
-    if (!directForm.customer.trim() || !directForm.phone.trim() || !directForm.project) {
-      setDirectError("Please fill in customer name, phone and project.");
+    if (!directForm.customer.trim() || !directForm.phone.trim()) {
+      setDirectError("Please fill in customer name and phone.");
       return;
     }
     setDirectError("");
-    const project = projects.find((p) => p.id === directForm.project);
     try {
       const res = await fetch("/api/cp-leads", {
         method: "POST",
@@ -458,8 +457,6 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
         body: JSON.stringify({
           customer: directForm.customer.trim(),
           phone: directForm.phone.trim(),
-          project: project ? project.name : directForm.project,
-          projectId: directForm.project,
           source: "Field CP Direct Lead",
           notes: directForm.notes.trim(),
         }),
@@ -1073,21 +1070,6 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
                     className={inputClass}
                   />
                 </FormField>
-                <FormField label="Project" htmlFor="fcp-project" required>
-                  <select
-                    id="fcp-project"
-                    value={directForm.project}
-                    onChange={(e) => setDirectForm((prev) => ({ ...prev, project: e.target.value }))}
-                    className={selectClass}
-                  >
-                    <option value="">Select project</option>
-                    {projects.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name}
-                      </option>
-                    ))}
-                  </select>
-                </FormField>
               </div>
               <FormField label="Notes" htmlFor="fcp-notes" optional>
                 <textarea
@@ -1114,7 +1096,7 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
             </form>
 
             {directLeads.length === 0 ? (
-              <EmptyState title="No direct leads yet" message="Add a lead's name, phone, project and notes — it goes straight to your Company CP." />
+              <EmptyState title="No direct leads yet" message="Add a lead's name, phone and notes — it goes straight to your Company CP." />
             ) : (
               <div className="flex flex-col gap-3">
                 {directLeads.map((lead) => (
@@ -1124,9 +1106,7 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
                   >
                     <div className="min-w-0">
                       <p className="text-sm text-cream">{lead.customer}</p>
-                      <p className="mt-1 text-xs text-muted">
-                        {lead.phone} · {lead.project}
-                      </p>
+                      <p className="mt-1 text-xs text-muted">{lead.phone}</p>
                       {lead.notes && <p className="mt-1 text-xs text-muted">{lead.notes}</p>}
                     </div>
                   </div>
