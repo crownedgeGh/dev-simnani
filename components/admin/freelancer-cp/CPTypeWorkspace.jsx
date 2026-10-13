@@ -77,7 +77,7 @@ export default function CPTypeWorkspace({
     cpAssignments: [],
     siteVisits: [],
   });
-  const [networks, setNetworks] = useState({ company: [], digital: [], field: [] });
+  const [networks, setNetworks] = useState({ company: [], digital: [], field: [], "service-provider": [] });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [videoTarget, setVideoTarget] = useState(null);
@@ -92,10 +92,13 @@ export default function CPTypeWorkspace({
     t === cpType || (delegateToTypes || []).includes(t) || (t === "company" && !!routingStage);
 
   const load = useCallback(async () => {
-    const [company, digital, field, cpl, cv, comm, asg, visits] = await Promise.all([
+    const [company, digital, field, serviceProviders, cpl, cv, comm, asg, visits] = await Promise.all([
       needsNetwork("company") ? getJSON("/api/admin/cp-network?cpType=company") : Promise.resolve([]),
       needsNetwork("digital") ? getJSON("/api/admin/cp-network?cpType=digital") : Promise.resolve([]),
       needsNetwork("field") ? getJSON("/api/admin/field-cps") : Promise.resolve([]),
+      // A Company CP can also hand a lead to a service provider (contractor,
+      // EPC, agri-infra) — they have no CP dashboard, they get an owned Lead.
+      routingStage === "company-cp" ? getJSON("/api/users?accountType=service-provider") : Promise.resolve([]),
       showAllLeads
         ? getJSON("/api/cp-leads")
         : routingStage
@@ -106,7 +109,12 @@ export default function CPTypeWorkspace({
       assignmentLevel ? getJSON(`/api/assignments?level=${assignmentLevel}`) : Promise.resolve([]),
       showSiteVisits ? getJSON("/api/site-visits") : Promise.resolve([]),
     ]);
-    setNetworks({ company, digital, field });
+    setNetworks({
+      company,
+      digital,
+      field,
+      "service-provider": serviceProviders.map((u) => ({ accountId: u.accountId, name: u.fullName })),
+    });
     setData({ cpLeads: cpl, campaignVideos: cv, commissions: comm, cpAssignments: asg, siteVisits: visits });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cpType, routingStage, assignmentLevel, showCampaignVideos, showCommissions, showSiteVisits, showAllLeads, delegateToTypes]);
@@ -453,14 +461,16 @@ export default function CPTypeWorkspace({
                 const [nextCpType, accountId] = e.target.value.split("::");
                 const partner = (networks[nextCpType] || []).find((p) => p.accountId === accountId);
                 const ok = await patchLead(row.id, {
-                  routingStage: `${nextCpType}-cp`,
+                  // Service providers aren't a routing stage — the lead stays
+                  // with the Company CP and is mirrored into their Leads tab.
+                  ...(nextCpType === "service-provider" ? {} : { routingStage: `${nextCpType}-cp` }),
                   assignedTo: partner?.name,
                   assignedToAccountId: accountId,
                   status: "Assigned",
                 });
                 if (ok) toast.success(`Lead delegated to ${partner?.name}`);
               }}
-              disabled={networks.field.length === 0 && networks.digital.length === 0}
+              disabled={networks.field.length === 0 && networks.digital.length === 0 && networks["service-provider"].length === 0}
               className="h-8 rounded-lg border border-[#e8e0d5] bg-white px-1.5 text-xs outline-none focus:border-[#f0b429] cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
             >
               <option value="">Assign to…</option>
@@ -475,6 +485,13 @@ export default function CPTypeWorkspace({
                 <optgroup label="Digital CP">
                   {networks.digital.map((p) => (
                     <option key={`digital::${p.accountId}`} value={`digital::${p.accountId}`}>{p.name}</option>
+                  ))}
+                </optgroup>
+              )}
+              {networks["service-provider"].length > 0 && (
+                <optgroup label="Service Provider">
+                  {networks["service-provider"].map((p) => (
+                    <option key={`service-provider::${p.accountId}`} value={`service-provider::${p.accountId}`}>{p.name}</option>
                   ))}
                 </optgroup>
               )}

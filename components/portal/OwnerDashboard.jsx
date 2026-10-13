@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   MdCall,
   MdContentCopy,
@@ -18,6 +19,8 @@ import StatCard from "./StatCard";
 import Badge from "./Badge";
 import PropertyGrid from "@/components/property/PropertyGrid";
 import ConfirmDialog from "./ConfirmDialog";
+import EmptyState from "./EmptyState";
+import RefreshButton from "./RefreshButton";
 
 const BASE_TABS = [
   { key: "overview", label: "Overview" },
@@ -50,6 +53,11 @@ export default function OwnerDashboard({
   const [leadList, setLeadList] = useState(leads);
   const [clientList, setClientList] = useState(clients);
   const [convertingId, setConvertingId] = useState(null);
+  const router = useRouter();
+
+  // Refresh re-renders the server page, which hands down fresh props.
+  useEffect(() => setLeadList(leads), [leads]);
+  useEffect(() => setClientList(clients), [clients]);
 
   async function handleConvertToClient(lead) {
     if (convertingId) return;
@@ -205,8 +213,14 @@ export default function OwnerDashboard({
         )}
 
         {tab === "leads" && (
-          <div className="flex flex-col gap-3">
-            {leadList.length === 0 && <EmptyState message="No leads yet." />}
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <p className="tracked-label text-xs text-gold-400">Leads ({leadList.length})</p>
+              <RefreshButton onRefresh={() => router.refresh()} label="Refresh leads" />
+            </div>
+            {leadList.length === 0 && (
+              <EmptyState title="No leads yet" message="New enquiries and leads forwarded to you will show up here." />
+            )}
             {leadList.map((lead) => (
               <LeadCard
                 key={lead.id}
@@ -222,8 +236,14 @@ export default function OwnerDashboard({
         )}
 
         {tab === "clients" && (
-          <div className="flex flex-col gap-3">
-            {clientList.length === 0 && <EmptyState message="No clients yet." />}
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <p className="tracked-label text-xs text-gold-400">Clients ({clientList.length})</p>
+              <RefreshButton onRefresh={() => router.refresh()} label="Refresh clients" />
+            </div>
+            {clientList.length === 0 && (
+              <EmptyState title="No clients yet" message="Convert a lead from the Leads tab and they'll appear here." />
+            )}
             {clientList.map((client) => (
               <ClientCard
                 key={client.id || client.name}
@@ -238,7 +258,9 @@ export default function OwnerDashboard({
 
         {showCommissions && tab === "commissions" && (
           <div className="flex flex-col gap-3">
-            {commissions.length === 0 && <EmptyState message="No commissions recorded yet." />}
+            {commissions.length === 0 && (
+              <EmptyState title="No commissions yet" message="Commissions appear here once a deal closes." />
+            )}
             {commissions.map((c) => (
               <div
                 key={c.property}
@@ -279,7 +301,12 @@ function LeadCard({ lead, converting, onConvert, onAddNote, onToggleCallDone, on
   return (
     <div className="flex flex-col gap-4 border border-navy-700/60 bg-navy-900 p-4 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
       <div className="min-w-0 flex-1">
-        <p className="text-sm text-cream">{lead.name}</p>
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-sm text-cream">{lead.name}</p>
+          {lead.forwardedBy?.cpType === "company" && (
+            <Badge tone="gold">Forwarded by Company CP</Badge>
+          )}
+        </div>
         <div className="mt-1 flex flex-wrap items-center gap-1.5">
           <span className="text-xs text-muted">{lead.phone}</span>
           <button
@@ -319,6 +346,7 @@ function LeadCard({ lead, converting, onConvert, onAddNote, onToggleCallDone, on
       </div>
 
       <div className="flex flex-row items-center justify-between gap-2 sm:flex-col sm:items-end">
+        <Badge tone={lead.status === "Site Visit" ? "success" : "muted"}>{lead.status}</Badge>
         <button
           type="button"
           onClick={onConvert}
@@ -541,13 +569,5 @@ function PropertyLink({ propertyId, title, prefix }) {
       <span className="truncate">{title}</span>
       <MdOpenInNew className="h-3 w-3 shrink-0 opacity-70" />
     </Link>
-  );
-}
-
-function EmptyState({ message }) {
-  return (
-    <div className="border border-navy-700/60 bg-navy-900 px-6 py-16 text-center">
-      <p className="text-muted">{message}</p>
-    </div>
   );
 }

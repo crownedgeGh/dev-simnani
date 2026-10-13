@@ -335,7 +335,9 @@ function OwnerTabs({ data, tab }) {
               key={l._id || l.id}
               title={l.name}
               subtitle={<><AdminPhoneCell value={l.phone} /> · Interested in {l.interest || "—"}</>}
-              meta={`${l.source || "—"} · ${l.date || "—"}`}
+              meta={`${l.source || "—"} · ${l.date || "—"}${
+                l.forwardedBy?.cpType === "company" ? ` · Forwarded by ${l.forwardedBy.name || "Company CP"}` : ""
+              }`}
               status={l.status}
             />
           ))

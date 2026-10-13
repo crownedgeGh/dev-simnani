@@ -24,8 +24,11 @@ const LeadSchema = new mongoose.Schema(
       default: "",
     },
     propertyId: {
+      // Leads forwarded down the CP chain are tied to a project, not always a
+      // listing on this site — so they may arrive without a propertyId.
+      // /api/leads still rejects enquiry leads that omit it.
       type: String,
-      required: true,
+      default: "",
       index: true,
     },
     interest: {
@@ -50,6 +53,14 @@ const LeadSchema = new mongoose.Schema(
     source: {
       type: String,
       default: "Website",
+    },
+    // Set when a CP hands this lead to the account that owns it (Company CP ->
+    // service provider today). Drives the "Forwarded by Company CP" badge.
+    forwardedBy: {
+      cpType: { type: String, enum: ["company", "field", "digital"] },
+      name: { type: String, default: "" },
+      accountId: { type: String, default: "" },
+      _id: false,
     },
     callDone: {
       type: Boolean,
