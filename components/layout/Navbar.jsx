@@ -33,7 +33,6 @@ const NAV_LINKS = [
   { label: "Properties", href: "/properties", icon: BiBuildingHouse, matchPaths: ["/properties", "/buy", "/rent", "/sell", "/lease", "/seized-property", "/property"] },
   { label: "Invest", href: "/invest", icon: MdTrendingUp },
   { label: "Commercial", href: "/commercial", icon: BiBuildings },
-  { label: "Plot / Land", href: "/plot-land", icon: MdTerrain },
   { label: "Farming Land Projects", href: "/farming", icon: MdAgriculture },
   { label: "Industrial", href: "/industrial", icon: MdFactory },
   { label: "Services", href: "/services", icon: FiSettings },
@@ -57,6 +56,7 @@ const ACCOUNT_TYPE_LABEL = {
   owner: "Owner",
   employee: "Employee",
   builder: "Builder",
+  "service-provider": "Service Provider",
 };
 
 /** Freelancer accounts show their specific CP tier (Field/Digital/Company CP) instead of the generic "Freelancer" label. */

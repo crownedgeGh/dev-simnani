@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { getPlanById } from "@/lib/plans";
+import { getServiceTypeLabel } from "@/lib/serviceProviders";
 import PortalHeader from "@/components/portal/PortalHeader";
 import AccountProfile from "@/components/portal/AccountProfile";
 import UpgradePlanBanner from "@/components/portal/UpgradePlanBanner";
@@ -37,6 +38,8 @@ export default async function AccountPage() {
                 ? "Owner"
                 : user.accountType === "builder"
                 ? "Builder"
+                : user.accountType === "service-provider"
+                ? getServiceTypeLabel(user.serviceType) || "Service Provider"
                 : user.accountType,
             memberSince: user.registeredDate || "Recently",
           }}

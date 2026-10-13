@@ -4,6 +4,7 @@ import User from "@/models/User";
 import { isPasswordValid, isMobileValid } from "@/lib/auth";
 import { hashPassword } from "@/lib/password";
 import { isAdminRequest } from "@/lib/adminSession";
+import { SERVICE_PROVIDER_TYPE_VALUES } from "@/lib/serviceProviders";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -85,6 +86,24 @@ export async function POST(request) {
         { success: false, error: "RERA registration number is required for brokers" },
         { status: 400 }
       );
+    }
+
+    // Service providers must supply their trade, location and experience —
+    // every field on their registration form is mandatory.
+    if (body.accountType === "service-provider") {
+      if (!SERVICE_PROVIDER_TYPE_VALUES.includes(body.serviceType)) {
+        return NextResponse.json(
+          { success: false, error: "Select a valid service type" },
+          { status: 400 }
+        );
+      }
+      const years = Number(body.yearsOfExperience);
+      if (!body.state?.trim() || !body.city?.trim() || !Number.isFinite(years) || years < 0) {
+        return NextResponse.json(
+          { success: false, error: "State, city and years of experience are required" },
+          { status: 400 }
+        );
+      }
     }
 
     if (!isPasswordValid(body.password)) {

@@ -256,6 +256,10 @@ export async function GET(request, { params }) {
         portal = await getOwnerSnapshot(accountId, { includeCommissions: true, user });
         break;
       case "owner":
+      case "builder":
+      // Service providers have no listings of their own — the owner snapshot
+      // still gives admin their leads and clients.
+      case "service-provider":
         portal = await getOwnerSnapshot(accountId, { includeCommissions: false, user });
         break;
       case "buyer":

@@ -26,6 +26,10 @@ const BASE_TABS = [
   { key: "clients", label: "Clients" },
 ];
 
+// Accounts that never list properties (e.g. service providers) get the
+// leads/clients pair only.
+const NO_LISTING_TABS = BASE_TABS.filter((t) => t.key === "leads" || t.key === "clients");
+
 const COMMISSIONS_TAB = { key: "commissions", label: "Commissions" };
 
 export default function OwnerDashboard({
@@ -37,10 +41,12 @@ export default function OwnerDashboard({
   addPropertyHref = "/portal/broker/add-property",
   showCommissions = true,
   showAddProperty = true,
+  showListings = true,
 }) {
-  const TABS = showCommissions ? [...BASE_TABS, COMMISSIONS_TAB] : BASE_TABS;
+  const baseTabs = showListings ? BASE_TABS : NO_LISTING_TABS;
+  const TABS = showCommissions ? [...baseTabs, COMMISSIONS_TAB] : baseTabs;
   const listingsRemaining = stats?.listingsRemaining;
-  const [tab, setTab] = useState("overview");
+  const [tab, setTab] = useState(TABS[0].key);
   const [leadList, setLeadList] = useState(leads);
   const [clientList, setClientList] = useState(clients);
   const [convertingId, setConvertingId] = useState(null);
@@ -132,7 +138,7 @@ export default function OwnerDashboard({
       <Tabs tabs={TABS} active={tab} onChange={setTab} />
 
       <div className="mt-8">
-        {tab === "overview" && (
+        {showListings && tab === "overview" && (
           <div className="flex flex-col gap-8">
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
               <StatCard label="Active Listings" value={stats.activeListings} />
@@ -163,7 +169,7 @@ export default function OwnerDashboard({
           </div>
         )}
 
-        {tab === "listings" && (
+        {showListings && tab === "listings" && (
           <div>
             <div className="mb-1 flex items-center justify-between">
               <h2 className="font-display text-xl text-cream">My Listings</h2>

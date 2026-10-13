@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { MdHome, MdTrendingUp, MdDomain, MdWork, MdPerson, MdBadge, MdScience, MdApartment } from "react-icons/md";
+import { MdHome, MdTrendingUp, MdDomain, MdWork, MdPerson, MdBadge, MdScience, MdApartment, MdEngineering } from "react-icons/md";
 import { FiMapPin, FiSmartphone, FiBriefcase } from "react-icons/fi";
 import BackButton from "@/components/layout/BackButton";
 import { useAuth } from "@/context/AuthContext";
@@ -107,6 +107,12 @@ const ACCOUNT_TYPES = [
     label: "Employee",
     description: "Manage assigned leads and close sales for your district.",
     Icon: MdBadge,
+  },
+  {
+    value: "service-provider",
+    label: "Service Provider",
+    description: "Offer contracting, EPC or agri-infrastructure services.",
+    Icon: MdEngineering,
   },
   {
     value: "builder",

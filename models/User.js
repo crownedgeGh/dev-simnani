@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { SERVICE_PROVIDER_TYPE_VALUES } from "@/lib/serviceProviders";
 
 const UserSchema = new mongoose.Schema(
   {
@@ -43,6 +44,28 @@ const UserSchema = new mongoose.Schema(
       type: String,
       enum: ["company", "digital", "field"],
     },
+    // Service Provider sub-type — required for accountType "service-provider"
+    // (see lib/serviceProviders.js).
+    serviceType: {
+      type: String,
+      enum: SERVICE_PROVIDER_TYPE_VALUES,
+      required: [
+        function () {
+          return this.accountType === "service-provider";
+        },
+        "Service type is required for service providers",
+      ],
+    },
+    yearsOfExperience: {
+      type: Number,
+      min: 0,
+      required: [
+        function () {
+          return this.accountType === "service-provider";
+        },
+        "Years of experience is required for service providers",
+      ],
+    },
     // Channel Partners get portal access immediately by default. Self-
     // registered Company CPs start on "hold" until Head CP approves them
     // (see PendingCpApprovals) — admin can also place any CP on hold later;
@@ -55,7 +78,16 @@ const UserSchema = new mongoose.Schema(
     accountType: {
       type: String,
       required: [true, "Account type is required"],
-      enum: ["buyer", "broker", "investor", "freelancer", "owner", "employee", "builder"],
+      enum: [
+        "buyer",
+        "broker",
+        "investor",
+        "freelancer",
+        "owner",
+        "employee",
+        "builder",
+        "service-provider",
+      ],
       index: true,
     },
     status: {

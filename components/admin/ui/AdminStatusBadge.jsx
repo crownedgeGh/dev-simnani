@@ -53,6 +53,7 @@ const STATUS_COLORS = {
   owner: "bg-gray-100 text-gray-600 border-gray-200",
   employee: "bg-orange-50 text-orange-700 border-orange-200",
   builder: "bg-amber-50 text-amber-700 border-amber-200",
+  "service-provider": "bg-teal-50 text-teal-700 border-teal-200",
 };
 
 const DEFAULT_COLOR = "bg-gray-100 text-gray-600 border-gray-200";

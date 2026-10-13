@@ -7,6 +7,7 @@ import AdminDialog from "@/components/admin/ui/AdminDialog";
 import AdminStatusBadge from "@/components/admin/ui/AdminStatusBadge";
 import AdminPhoneCell from "@/components/admin/ui/AdminPhoneCell";
 import { PROPERTY_CATEGORIES } from "@/lib/propertyCategories";
+import { getServiceTypeLabel } from "@/lib/serviceProviders";
 
 const INVESTOR_BUDGET_LABELS = {
   "under-50l": "Under ₹50 Lakh",
@@ -74,6 +75,13 @@ export default function UserDetailDialog({ isOpen, onClose, accountId }) {
     fields.push(
       ["Coverage Areas", user.coverageAreas || "—"],
       ["Currently Working Elsewhere", user.currentlyWorking || "—"]
+    );
+  }
+
+  if (user?.accountType === "service-provider") {
+    fields.push(
+      ["Service Type", getServiceTypeLabel(user.serviceType) || "—"],
+      ["Years of Experience", user.yearsOfExperience !== undefined ? String(user.yearsOfExperience) : "—"]
     );
   }
 

@@ -10,6 +10,7 @@ import FeaturedLocationModal from "@/components/admin/ui/FeaturedLocationModal";
 import UserPortalSnapshot from "@/components/admin/users/UserPortalSnapshot";
 import { ADMIN_KEYS, readCollection } from "@/lib/adminStorage";
 import { PROPERTY_CATEGORIES } from "@/lib/propertyCategories";
+import { getServiceTypeLabel } from "@/lib/serviceProviders";
 
 const MAX_FEATURED_POSITIONS = 10;
 
@@ -166,6 +167,13 @@ export default function UserDetailPage() {
     fields.push(
       ["Coverage Areas", user.coverageAreas || "—"],
       ["Currently Working Elsewhere", user.currentlyWorking || "—"]
+    );
+  }
+
+  if (user.accountType === "service-provider") {
+    fields.push(
+      ["Service Type", getServiceTypeLabel(user.serviceType) || "—"],
+      ["Years of Experience", user.yearsOfExperience !== undefined ? String(user.yearsOfExperience) : "—"]
     );
   }
 
