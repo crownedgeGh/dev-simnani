@@ -1,9 +1,11 @@
 import { notFound } from "next/navigation";
-import PropertyFilterBar from "@/components/property/PropertyFilterBar";
+import PurposeTabs, { PurposeTabSwitcher } from "@/components/property/PurposeTabs";
 import { INVEST_CATEGORIES } from "@/lib/properties";
 import { getPropertiesByTypeAndCategory } from "@/lib/propertiesServer";
 import BackButton from "@/components/layout/BackButton";
 import PostOnCategoryButton from "@/components/property/PostOnCategoryButton";
+
+const TAB_PURPOSE = { buy: "sale", rent: "rent", lease: "lease" };
 
 export const revalidate = 60; // cache listing HTML for 60s instead of hitting Mongo on every request
 
@@ -18,7 +20,7 @@ export async function generateMetadata({ params }) {
   };
 }
 
-export default async function InvestCategoryPage({ params }) {
+export default async function InvestCategoryPage({ params, searchParams }) {
   const { category } = await params;
   const match = INVEST_CATEGORIES.find((item) => item.key === category);
 
@@ -27,26 +29,26 @@ export default async function InvestCategoryPage({ params }) {
   }
 
   const properties = await getPropertiesByTypeAndCategory("invest", category);
+  const { purpose: tab } = await searchParams;
+  const purpose = TAB_PURPOSE[tab] || "sale";
 
   return (
     <div className="mx-auto max-w-7xl px-4 pt-6 pb-16 sm:px-6 sm:pt-8 sm:pb-20 lg:px-8 lg:pt-10 lg:pb-24">
-      <div className="mt-6 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-        <div className="flex items-center gap-3 max-w-2xl">
+      <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
           <BackButton />
           <h1 className="font-display text-3xl text-cream sm:text-4xl">
             {match.label}
           </h1>
         </div>
-        <PostOnCategoryButton section="invest" category={category} />
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-3">
+          <PurposeTabSwitcher />
+          <PostOnCategoryButton section="invest" category={category} purpose={purpose} />
+        </div>
       </div>
 
-      <div className="mt-10">
-        <PropertyFilterBar
-          properties={properties}
-          pricingMode="sale"
-          showPropertyType={false}
-          emptyMessage="No investment opportunities available in this category right now."
-        />
+      <div className="mt-6">
+        <PurposeTabs properties={properties} emptyLabel="investment opportunities" />
       </div>
     </div>
   );
