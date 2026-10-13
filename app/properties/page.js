@@ -69,35 +69,39 @@ export default async function PropertiesPage() {
         </h1>
       </div>
 
-      <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
+      <div className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
         {CATEGORIES.map(({ label, href, type, icon: Icon, description }) => {
           const count = counts[type];
           return (
             <Link
               key={href}
               href={href}
-              className="group relative flex flex-col gap-5 rounded-xl border border-navy-700/60 bg-navy-900 p-6 shadow-lg shadow-black/20 transition duration-300 active:-translate-y-1 active:border-gold-500/70 active:shadow-xl active:shadow-gold-400/5 hover:-translate-y-1 hover:border-gold-500/70 hover:shadow-xl hover:shadow-gold-400/5 sm:p-7"
+              className="group relative flex flex-col gap-4 overflow-hidden rounded-xl border border-navy-700/60 bg-linear-to-b from-navy-900 to-navy-950 p-5 shadow-lg shadow-black/20 transition duration-300 active:-translate-y-1 active:border-gold-400 active:shadow-xl active:shadow-gold-400/10 hover:-translate-y-1 hover:border-gold-400 hover:shadow-xl hover:shadow-gold-400/10"
             >
               <div
-                className="pointer-events-none absolute inset-x-0 top-0 h-px scale-x-0 bg-linear-to-r from-transparent via-gold-400/70 to-transparent transition duration-300 group-active:scale-x-100 group-hover:scale-x-100"
+                className="pointer-events-none absolute inset-x-0 top-0 h-0.5 scale-x-0 bg-linear-to-r from-transparent via-gold-400 to-transparent transition duration-300 group-active:scale-x-100 group-hover:scale-x-100"
+                aria-hidden="true"
+              />
+              <div
+                className="pointer-events-none absolute -top-10 -right-10 h-24 w-24 rounded-full bg-gold-400/0 blur-2xl transition duration-300 group-active:bg-gold-400/20 group-hover:bg-gold-400/20"
                 aria-hidden="true"
               />
 
               <div className="flex items-center justify-between">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gold-400/10 text-gold-400 ring-1 ring-gold-400/20 transition duration-300 group-active:bg-gold-400/15 group-active:ring-gold-400/40 group-hover:bg-gold-400/15 group-hover:ring-gold-400/40 sm:h-14 sm:w-14">
-                  <Icon className="h-6 w-6 sm:h-7 sm:w-7" />
+                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gold-400/10 text-gold-400 ring-1 ring-gold-400/20 transition duration-300 group-active:bg-gold-400 group-active:text-navy-950 group-active:ring-gold-400 group-hover:bg-gold-400 group-hover:text-navy-950 group-hover:ring-gold-400">
+                  <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
                 </div>
-                <FiArrowUpRight className="h-5 w-5 -translate-x-1 translate-y-1 text-muted opacity-0 transition duration-300 group-active:translate-x-0 group-active:translate-y-0 group-active:text-gold-400 group-active:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 group-hover:text-gold-400 group-hover:opacity-100" />
+                <FiArrowUpRight className="h-4 w-4 -translate-x-1 translate-y-1 text-muted opacity-0 transition duration-300 group-active:translate-x-0 group-active:translate-y-0 group-active:text-gold-400 group-active:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 group-hover:text-gold-400 group-hover:opacity-100" />
               </div>
 
               <div>
-                <h2 className="font-display text-xl text-cream transition group-active:text-gold-300 group-hover:text-gold-300 sm:text-2xl">
+                <h2 className="font-display text-lg text-cream transition group-active:text-gold-300 group-hover:text-gold-300 sm:text-xl">
                   {label}
                 </h2>
-                <p className="mt-2 text-sm text-muted">{description}</p>
+                <p className="mt-1.5 text-xs text-muted sm:text-sm">{description}</p>
               </div>
 
-              <span className="tracked-label inline-block self-start border border-navy-700/60 bg-navy-800 px-3 py-1.5 text-[11px] text-gold-400 transition group-active:border-gold-500/40 group-hover:border-gold-500/40">
+              <span className="tracked-label inline-block self-start rounded-full border border-gold-500/30 bg-gold-400/10 px-3 py-1.5 text-[10px] text-gold-400 transition group-active:border-gold-400 group-active:bg-gold-400/20 group-hover:border-gold-400 group-hover:bg-gold-400/20">
                 {count} listings
               </span>
             </Link>

@@ -2,17 +2,30 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import User from "@/models/User";
 import { isAdminRequest } from "@/lib/adminSession";
+import { getSessionUser } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 // Directory of registered Channel Partners (with phone numbers), used to
-// populate "forward to" / "delegate to" pickers in the admin panel — never
-// shown to site visitors, so it's admin-only.
+// populate "forward to" / "delegate to" pickers in the admin panel, and the
+// "choose your Company CP" picker a Field/Digital CP sees on their own
+// dashboard — in the latter case, always scoped to company CPs in their own
+// city, never the full directory.
 export async function GET(request) {
   try {
-    if (!isAdminRequest(request)) {
-      return NextResponse.json({ success: false, error: "Admin access required" }, { status: 401 });
+    const admin = isAdminRequest(request);
+    let ownCity = null;
+    if (!admin) {
+      const sessionUser = await getSessionUser(request);
+      if (
+        !sessionUser ||
+        sessionUser.accountType !== "freelancer" ||
+        !["field", "digital"].includes(sessionUser.cpType)
+      ) {
+        return NextResponse.json({ success: false, error: "Not authorized" }, { status: 401 });
+      }
+      ownCity = sessionUser.city || "";
     }
 
     await dbConnect();
@@ -25,7 +38,13 @@ export async function GET(request) {
       status: "Active",
       cpApprovalStatus: "active",
     };
-    if (cpType) query.cpType = cpType;
+    if (admin) {
+      if (cpType) query.cpType = cpType;
+    } else {
+      // Non-admin callers can only ever see company CPs in their own city.
+      query.cpType = "company";
+      query.city = ownCity;
+    }
 
     const users = await User.find(query)
       .select("accountId fullName mobile city state cpType")

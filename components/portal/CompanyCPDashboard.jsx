@@ -5,8 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   FiCheck,
-  FiX,
-  FiEdit3,
   FiLink,
   FiPlus,
   FiSend,
@@ -22,7 +20,7 @@ import StatCard from "./StatCard";
 import Badge from "./Badge";
 import EmptyState from "./EmptyState";
 import PropertyGrid from "@/components/property/PropertyGrid";
-import { CP_TYPE_LABEL, VIDEO_STATUS_TONE, VISIT_STATUS_TONE, LEAD_STATUS_TONE, APPROVAL_STATUS_TONE } from "./channel-partner/tones";
+import { CP_TYPE_LABEL, VISIT_STATUS_TONE, LEAD_STATUS_TONE, APPROVAL_STATUS_TONE } from "./channel-partner/tones";
 import RefreshButton from "./RefreshButton";
 import { SERVICE_PROVIDER_TYPES, getServiceTypeLabel } from "@/lib/serviceProviders";
 import { usePersistentTab } from "@/lib/usePersistentTab";
@@ -185,14 +183,14 @@ export default function CompanyCPDashboard({
   const [openPicker, setOpenPicker] = useState({});
   const [pickerLocation, setPickerLocation] = useState({ state: "", city: "" });
   const [soldBusyId, setSoldBusyId] = useState(null);
-  const [videos, setVideos] = useState([]);
   const [leads, setLeads] = useState([]);
   const [siteVisits, setSiteVisits] = useState([]);
   const [delegatedLeads, setDelegatedLeads] = useState([]);
   const [cpCommissions, setCpCommissions] = useState([]);
   const [adLinks, setAdLinks] = useState([]);
-  const [editingNoteId, setEditingNoteId] = useState(null);
-  const [noteDraft, setNoteDraft] = useState("");
+  const [expandedForwardId, setExpandedForwardId] = useState(null);
+  const [forwardRoleByLead, setForwardRoleByLead] = useState({});
+  const [forwardSubTab, setForwardSubTab] = useState({});
 
   // Track Field CP / Track Digital CP — partner picker, sub-section tabs,
   // expanded live-tracking row, and "show more" pagination so the view
@@ -240,21 +238,6 @@ export default function CompanyCPDashboard({
       toast.error("Failed to load assigned projects");
     }
   }, [partner]);
-
-  const digitalPartnerAccountIds = useMemo(
-    () => new Set(network.filter((p) => p.cpType === "digital").map((p) => p.accountId)),
-    [network]
-  );
-
-  const loadVideos = useCallback(async () => {
-    try {
-      const res = await fetch("/api/campaign-videos");
-      const json = await res.json();
-      setVideos(json.success ? json.data.filter((v) => digitalPartnerAccountIds.has(v.partnerAccountId)) : []);
-    } catch {
-      setVideos([]);
-    }
-  }, [digitalPartnerAccountIds]);
 
   const loadLeads = useCallback(async () => {
     if (!partner?.accountId) return;
@@ -306,12 +289,11 @@ export default function CompanyCPDashboard({
     Promise.resolve().then(() => {
       if (!active) return;
       loadAssignments();
-      loadVideos();
       loadLeads();
       loadTracking();
     });
     return () => { active = false; };
-  }, [loadAssignments, loadVideos, loadLeads, loadTracking]);
+  }, [loadAssignments, loadLeads, loadTracking]);
 
   const refreshSection = useCallback(
     (section) => {
@@ -323,14 +305,11 @@ export default function CompanyCPDashboard({
         loadTracking();
       }
       if (section === "trackDigital") {
-        setEditingNoteId(null);
-        setNoteDraft("");
-        loadVideos();
         loadTracking();
       }
       if (section === "freelancerLeads") loadLeads();
     },
-    [loadAssignments, loadVideos, loadLeads, loadTracking]
+    [loadAssignments, loadLeads, loadTracking]
   );
 
   const fieldPartners = network.filter((p) => p.cpType === "field");
@@ -414,6 +393,17 @@ export default function CompanyCPDashboard({
     return delegationsByParent.get(projectId) || new Set();
   }
 
+  function forwardedTo(projectId, cpType) {
+    const level = cpType === "field" ? "company-to-field" : "company-to-digital";
+    return assignments
+      .filter((a) => a.parentAssignmentId === projectId && a.level === level)
+      .map((a) => ({
+        accountId: a.assignedToAccountId,
+        name: a.assignedToName || partnerName(a.assignedToAccountId),
+        createdAt: a.createdAt,
+      }));
+  }
+
   // Properties Head CP has handed down to this Company CP.
   const assignedProjects = assignments.filter(
     (a) => a.level === "head-to-company" && a.assignedToAccountId === partner?.accountId
@@ -467,6 +457,11 @@ export default function CompanyCPDashboard({
   }
 
   function renderForward(lead) {
+    const selectedRole = forwardRoleByLead[lead.id] || "";
+    const rolesWithProviders = SERVICE_PROVIDER_TYPES.filter((t) =>
+      serviceProviders.some((p) => p.serviceType === t.value)
+    );
+    const contractorsForRole = serviceProviders.filter((p) => p.serviceType === selectedRole);
     return (
       <>
         {lead.serviceProvider?.accountId && (
@@ -475,30 +470,41 @@ export default function CompanyCPDashboard({
           </p>
         )}
         <select
-          value=""
-          disabled={serviceProviders.length === 0}
-          onChange={(e) => forwardToProvider(lead.id, e.target.value)}
+          value={selectedRole}
+          disabled={rolesWithProviders.length === 0}
+          onChange={(e) =>
+            setForwardRoleByLead((prev) => ({ ...prev, [lead.id]: e.target.value }))
+          }
           className="h-11 w-full min-w-[200px] border border-navy-700/60 bg-navy-950 px-3 text-xs text-cream outline-none transition focus:border-gold-400 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <option value="">
-            {serviceProviders.length === 0
+            {rolesWithProviders.length === 0
               ? "No service provider registered"
-              : lead.serviceProvider?.accountId ? "Forward to another…" : "Forward to…"}
+              : lead.serviceProvider?.accountId ? "Forward to another role…" : "Forward to…"}
           </option>
-          {SERVICE_PROVIDER_TYPES.map((t) => {
-            const group = serviceProviders.filter((p) => p.serviceType === t.value);
-            if (group.length === 0) return null;
-            return (
-              <optgroup key={t.value} label={t.label}>
-                {group.map((p) => (
-                  <option key={p.accountId} value={p.accountId}>
-                    {p.name}{p.city ? ` — ${p.city}` : ""}
-                  </option>
-                ))}
-              </optgroup>
-            );
-          })}
+          {rolesWithProviders.map((t) => (
+            <option key={t.value} value={t.value}>
+              {t.label}
+            </option>
+          ))}
         </select>
+        {selectedRole && (
+          <select
+            value=""
+            onChange={(e) => {
+              forwardToProvider(lead.id, e.target.value);
+              setForwardRoleByLead((prev) => ({ ...prev, [lead.id]: "" }));
+            }}
+            className="mt-1.5 h-11 w-full min-w-[200px] border border-navy-700/60 bg-navy-950 px-3 text-xs text-cream outline-none transition focus:border-gold-400"
+          >
+            <option value="">Select contractor…</option>
+            {contractorsForRole.map((p) => (
+              <option key={p.accountId} value={p.accountId}>
+                {p.name}{p.city ? ` — ${p.city}` : ""}
+              </option>
+            ))}
+          </select>
+        )}
       </>
     );
   }
@@ -545,33 +551,6 @@ export default function CompanyCPDashboard({
         p.state?.trim().toLowerCase() === pickerLocation.state.trim().toLowerCase() &&
         p.city?.trim().toLowerCase() === pickerLocation.city.trim().toLowerCase()
     );
-  }
-
-  async function updateVideoStatus(id, status, note = "") {
-    setEditingNoteId(null);
-    setNoteDraft("");
-    try {
-      const res = await fetch(`/api/campaign-videos/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status, note }),
-      });
-      const json = await res.json();
-      if (!json.success) throw new Error(json.error || "Failed to update video");
-      setVideos((prev) => prev.map((v) => (v.id === id ? json.data : v)));
-    } catch (error) {
-      toast.error(error.message || "Couldn't update the video — please try again");
-    }
-  }
-
-  function startSuggestEdit(video) {
-    setEditingNoteId(video.id);
-    setNoteDraft(video.note || "");
-  }
-
-  function submitSuggestEdit(id) {
-    if (!noteDraft.trim()) return;
-    updateVideoStatus(id, "Suggested Edit", noteDraft.trim());
   }
 
   return (
@@ -767,6 +746,74 @@ export default function CompanyCPDashboard({
                                 })
                               )}
                             </div>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="mt-3 border-t border-navy-700/60 pt-3">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setExpandedForwardId((prev) => (prev === project.id ? null : project.id))
+                          }
+                          className="tracked-label flex w-full items-center justify-between text-[10px] text-muted transition hover:text-gold-400"
+                        >
+                          Forwarding Status
+                          <FiChevronDown
+                            className={`h-3.5 w-3.5 transition-transform ${
+                              expandedForwardId === project.id ? "rotate-180" : ""
+                            }`}
+                          />
+                        </button>
+
+                        {expandedForwardId === project.id && (
+                          <div className="mt-3 flex flex-col gap-3">
+                            <div className="flex gap-2">
+                              {[
+                                { key: "field", label: "Field CP" },
+                                { key: "digital", label: "Digital CP" },
+                              ].map((t) => {
+                                const active = (forwardSubTab[project.id] || "field") === t.key;
+                                return (
+                                  <button
+                                    key={t.key}
+                                    type="button"
+                                    onClick={() =>
+                                      setForwardSubTab((prev) => ({ ...prev, [project.id]: t.key }))
+                                    }
+                                    className={`tracked-label rounded-full border px-3 py-1.5 text-[10px] transition ${
+                                      active
+                                        ? "border-gold-400 bg-gold-400/10 text-gold-400"
+                                        : "border-navy-700/60 text-muted hover:border-gold-500/50"
+                                    }`}
+                                  >
+                                    {t.label}
+                                  </button>
+                                );
+                              })}
+                            </div>
+
+                            {(() => {
+                              const cpType = forwardSubTab[project.id] || "field";
+                              const list = forwardedTo(project.id, cpType);
+                              return list.length === 0 ? (
+                                <p className="px-1 text-xs text-muted">
+                                  Not forwarded to any {cpType === "field" ? "Field" : "Digital"} CP yet.
+                                </p>
+                              ) : (
+                                <ul className="flex flex-col gap-1.5">
+                                  {list.map((p) => (
+                                    <li
+                                      key={p.accountId}
+                                      className="flex items-center justify-between border border-navy-700/60 bg-navy-950 px-3 py-2 text-xs"
+                                    >
+                                      <span className="text-cream">{p.name}</span>
+                                      <span className="tracked-label text-[10px] text-gold-400">Forwarded</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              );
+                            })()}
                           </div>
                         )}
                       </div>
@@ -1058,9 +1105,8 @@ export default function CompanyCPDashboard({
               <p className="tracked-label text-xs text-gold-400">Digital Channel Partners</p>
               <RefreshButton onRefresh={() => refreshSection("trackDigital")} label="Refresh digital CP tracking" />
             </div>
-            <div key={refreshKeys.trackDigital} className="flex flex-col gap-8">
+            <div key={refreshKeys.trackDigital} className="flex flex-col gap-6">
             <div className="flex flex-col gap-4">
-              <h3 className="font-display text-lg text-cream">Digital Channel Partners</h3>
               {digitalPartners.length === 0 ? (
                 <EmptyState title="No Digital CPs yet" message="Digital Channel Partners in your network will appear here." />
               ) : (
@@ -1078,7 +1124,7 @@ export default function CompanyCPDashboard({
                     </div>
                   )}
 
-                  <div className="flex max-h-48 flex-wrap gap-2 overflow-y-auto border border-navy-700/60 bg-navy-950 p-3">
+                  <div className="flex max-h-48 flex-wrap gap-2 overflow-y-auto">
                     <PartnerChip
                       label={`All Partners (${digitalPartners.length})`}
                       active={digitalFilterId === "all"}
@@ -1108,19 +1154,21 @@ export default function CompanyCPDashboard({
                     </button>
                   )}
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <StatCard
-                      label="Leads Generated"
-                      value={digitalFilterId === "all" ? digitalLeadsAll.length : leadsForPartner(digitalFilterId).length}
-                    />
-                    <StatCard
-                      label="Deals Closed"
-                      value={
-                        digitalFilterId === "all"
+                  <div className="flex items-center gap-6 border-b border-navy-700/60 pb-4">
+                    <div>
+                      <p className="tracked-label text-[10px] text-muted">Leads Generated</p>
+                      <p className="mt-1 font-display text-xl text-gold-400">
+                        {digitalFilterId === "all" ? digitalLeadsAll.length : leadsForPartner(digitalFilterId).length}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="tracked-label text-[10px] text-muted">Deals Closed</p>
+                      <p className="mt-1 font-display text-xl text-gold-400">
+                        {digitalFilterId === "all"
                           ? digitalLeadsAll.filter((l) => l.status === "Converted").length
-                          : dealsClosedForPartner(digitalFilterId)
-                      }
-                    />
+                          : dealsClosedForPartner(digitalFilterId)}
+                      </p>
+                    </div>
                   </div>
 
                   <Tabs tabs={DIGITAL_SUBTABS} active={digitalSubTab} onChange={setDigitalSubTab} />
@@ -1271,106 +1319,6 @@ export default function CompanyCPDashboard({
                     </div>
                   )}
                 </>
-              )}
-            </div>
-
-            <div className="flex flex-col gap-4">
-              <h3 className="font-display text-lg text-cream">Campaign Videos</h3>
-              {videos.length === 0 ? (
-                <EmptyState title="No videos submitted" message="Videos submitted by Digital CPs for review will appear here." />
-              ) : (
-                videos.map((video) => (
-                  <div key={video.id} className="flex flex-col gap-4 border border-navy-700/60 bg-navy-900 p-4">
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="text-sm text-cream">{video.videoName}</p>
-                        <p className="mt-1 text-xs text-muted">
-                          {video.partnerName} · {video.project}
-                        </p>
-                      </div>
-                      <Badge tone={VIDEO_STATUS_TONE[video.status] || "muted"}>{video.status}</Badge>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-2 border-t border-navy-700/60 pt-4">
-                      <button
-                        type="button"
-                        onClick={() => updateVideoStatus(video.id, "Approved")}
-                        className="tracked-label flex items-center gap-1.5 rounded-full border border-gold-400/70 px-3.5 py-2 text-[10px] text-gold-400 transition hover:bg-gold-400/10 active:scale-[0.98]"
-                      >
-                        <FiCheck className="h-3.5 w-3.5" />
-                        Approve
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => startSuggestEdit(video)}
-                        className="tracked-label flex items-center gap-1.5 rounded-full border border-navy-700/60 px-3.5 py-2 text-[10px] text-muted transition hover:border-gold-400/70 hover:text-gold-400 active:scale-[0.98]"
-                      >
-                        <FiEdit3 className="h-3.5 w-3.5" />
-                        Suggest Edit
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => updateVideoStatus(video.id, "Rejected")}
-                        className="tracked-label flex items-center gap-1.5 rounded-full border border-navy-700/60 px-3.5 py-2 text-[10px] text-muted transition hover:border-red-500/50 hover:text-red-400 active:scale-[0.98]"
-                      >
-                        <FiX className="h-3.5 w-3.5" />
-                        Reject
-                      </button>
-                    </div>
-
-                    {editingNoteId === video.id && (
-                      <div className="flex flex-col gap-2 border-t border-navy-700/60 pt-4">
-                        <textarea
-                          rows={2}
-                          placeholder="What changes are needed before this can be posted?"
-                          value={noteDraft}
-                          onChange={(e) => setNoteDraft(e.target.value)}
-                          className="w-full border border-navy-700/60 bg-navy-950 p-3 text-sm text-cream placeholder:text-muted outline-none transition focus:border-gold-400"
-                        />
-                        <div className="flex justify-end">
-                          <button
-                            type="button"
-                            onClick={() => submitSuggestEdit(video.id)}
-                            className="tracked-label rounded-full bg-gold-400 px-4 py-2 text-[10px] text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 active:scale-[0.98]"
-                          >
-                            Save Note
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
-                    {video.status === "Suggested Edit" && video.note && editingNoteId !== video.id && (
-                      <p className="border-t border-navy-700/60 pt-4 text-xs text-muted">
-                        <span className="text-gold-400">Note: </span>
-                        {video.note}
-                      </p>
-                    )}
-
-                    <div className="border-t border-navy-700/60 pt-4">
-                      <p className="tracked-label text-xs text-gold-400">Posted On</p>
-                      {video.postedLinks.length === 0 ? (
-                        <p className="mt-2 text-xs text-muted">Not posted yet.</p>
-                      ) : (
-                        <div className="mt-2 flex flex-col gap-2">
-                          {video.postedLinks.map((link) => (
-                            <div key={link.url} className="flex items-center gap-2">
-                              <FiLink className="h-3.5 w-3.5 shrink-0 text-gold-400" />
-                              <span className="tracked-label text-[10px] text-muted">{link.platform}</span>
-                              <a
-                                href={link.url}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="truncate text-xs text-cream hover:text-gold-400"
-                              >
-                                {link.url}
-                              </a>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))
               )}
             </div>
             </div>

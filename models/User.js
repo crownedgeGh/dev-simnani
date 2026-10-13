@@ -44,6 +44,16 @@ const UserSchema = new mongoose.Schema(
       type: String,
       enum: ["company", "digital", "field"],
     },
+    // Field/Digital CP's chosen Company CP (same city) — leads they add get
+    // forwarded straight to this CP instead of the usual head-cp routing.
+    selectedCompanyCpId: {
+      type: String,
+      default: "",
+    },
+    selectedCompanyCpName: {
+      type: String,
+      default: "",
+    },
     // Service Provider sub-type — required for accountType "service-provider"
     // (see lib/serviceProviders.js).
     serviceType: {

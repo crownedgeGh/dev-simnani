@@ -186,6 +186,41 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
     return () => { active = false; };
   }, [partner]);
 
+  const [companyCpOptions, setCompanyCpOptions] = useState([]);
+  const [selectedCompanyCpId, setSelectedCompanyCpId] = useState(partner?.selectedCompanyCpId || "");
+  const [savingCompanyCp, setSavingCompanyCp] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/cp-network")
+      .then((res) => res.json())
+      .then((json) => setCompanyCpOptions(json.success ? json.data : []))
+      .catch(() => setCompanyCpOptions([]));
+  }, []);
+
+  async function handleCompanyCpChange(accountId) {
+    const cp = companyCpOptions.find((c) => c.accountId === accountId);
+    setSelectedCompanyCpId(accountId);
+    setSavingCompanyCp(true);
+    try {
+      const res = await fetch(`/api/users/${partner.accountId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          selectedCompanyCpId: accountId,
+          selectedCompanyCpName: cp ? cp.name : "",
+        }),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || "Failed to save");
+      toast.success("Company CP updated");
+    } catch (error) {
+      toast.error(error.message || "Couldn't save your Company CP — please try again.");
+      setSelectedCompanyCpId(partner?.selectedCompanyCpId || "");
+    } finally {
+      setSavingCompanyCp(false);
+    }
+  }
+
   const [directForm, setDirectForm] = useState(INITIAL_DIRECT_FORM);
   const [directError, setDirectError] = useState("");
   const [directLeads, setDirectLeads] = useState([]);
@@ -406,6 +441,10 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
 
   async function handleDirectSubmit(e) {
     e.preventDefault();
+    if (!selectedCompanyCpId) {
+      setDirectError("Select your Company CP from the dashboard before adding a lead.");
+      return;
+    }
     if (!directForm.customer.trim() || !directForm.phone.trim() || !directForm.project) {
       setDirectError("Please fill in customer name, phone and project.");
       return;
@@ -441,6 +480,28 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
       <div className="mt-8">
         {tab === "overview" && (
           <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3 border border-navy-700/60 bg-navy-900 p-4 sm:p-6">
+              <p className="tracked-label text-xs text-gold-400">Your Company CP</p>
+              <FormField label="Choose your Company CP" htmlFor="fcp-company-cp" required>
+                <select
+                  id="fcp-company-cp"
+                  value={selectedCompanyCpId}
+                  disabled={savingCompanyCp}
+                  onChange={(e) => handleCompanyCpChange(e.target.value)}
+                  className={selectClass}
+                >
+                  <option value="">Select Company CP</option>
+                  {companyCpOptions.map((cp) => (
+                    <option key={cp.accountId} value={cp.accountId}>
+                      {formatCpLabel(cp.name, cp.city, cp.state)}
+                    </option>
+                  ))}
+                </select>
+              </FormField>
+              <p className="text-xs text-muted">
+                Leads you add are forwarded straight to this Company CP. Only Company CPs in your own city ({partner?.city || "—"}) are listed.
+              </p>
+            </div>
             <div className="flex items-center justify-between">
               <p className="tracked-label text-xs text-gold-400">Performance Overview</p>
               <RefreshButton onRefresh={() => refreshSection("overview")} label="Refresh overview" />
@@ -1053,7 +1114,7 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
             </form>
 
             {directLeads.length === 0 ? (
-              <EmptyState title="No direct leads yet" message="Add a lead's name, phone, project and notes — it goes straight to the Head CP." />
+              <EmptyState title="No direct leads yet" message="Add a lead's name, phone, project and notes — it goes straight to your Company CP." />
             ) : (
               <div className="flex flex-col gap-3">
                 {directLeads.map((lead) => (

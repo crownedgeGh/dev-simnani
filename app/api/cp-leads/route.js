@@ -84,7 +84,8 @@ export async function GET(request) {
 
 // Creates a lead — a Digital CP logging a lead under an ad link, or a
 // Field CP logging a direct lead. Requires a logged-in Digital/Field CP
-// session; the lead enters the shared pipeline at Head CP immediately.
+// session with a Company CP already selected; the lead is forwarded
+// straight to that Company CP.
 export async function POST(request) {
   try {
     await dbConnect();
@@ -94,6 +95,13 @@ export async function POST(request) {
       return NextResponse.json(
         { success: false, error: "You must be logged in as a Digital or Field CP to add a lead" },
         { status: 401 }
+      );
+    }
+
+    if (!sessionUser.selectedCompanyCpId) {
+      return NextResponse.json(
+        { success: false, error: "Select your Company CP from the dashboard before adding a lead" },
+        { status: 400 }
       );
     }
 
@@ -117,8 +125,10 @@ export async function POST(request) {
         name: sessionUser.fullName,
         accountId: sessionUser.accountId,
       },
-      routingStage: "head-cp",
+      routingStage: "company-cp",
       forwarded: true,
+      assignedTo: sessionUser.selectedCompanyCpName || "",
+      assignedToAccountId: sessionUser.selectedCompanyCpId,
       adLinkId: adLinkId || "",
       notes: notes || "",
       date: new Date().toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" }),

@@ -14,7 +14,7 @@ import ConfirmDialog from "./ConfirmDialog";
 import PropertyGrid from "@/components/property/PropertyGrid";
 import ChipGroup from "@/components/auth/ChipGroup";
 import FormField from "@/components/auth/FormField";
-import { inputClass, textareaClass } from "@/components/auth/inputStyles";
+import { inputClass, selectClass, textareaClass } from "@/components/auth/inputStyles";
 import { toast } from "sonner";
 import RefreshButton from "./RefreshButton";
 import { usePersistentTab } from "@/lib/usePersistentTab";
@@ -55,6 +55,11 @@ function slugify(name) {
   return name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 }
 
+function formatCpLabel(name, city, state) {
+  const place = [city, state].filter(Boolean).join(", ");
+  return place ? `${name} — ${place}` : name;
+}
+
 export default function DigitalCPDashboard({ stats, assets, partner, myListings = [] }) {
   const [tab, setTab] = usePersistentTab(
     "cp_tab_digital",
@@ -66,6 +71,41 @@ export default function DigitalCPDashboard({ stats, assets, partner, myListings 
   const [linkError, setLinkError] = useState("");
   const [socialLinks, setSocialLinks] = useState([]);
   const [linkSaving, setLinkSaving] = useState(false);
+
+  const [companyCpOptions, setCompanyCpOptions] = useState([]);
+  const [selectedCompanyCpId, setSelectedCompanyCpId] = useState(partner?.selectedCompanyCpId || "");
+  const [savingCompanyCp, setSavingCompanyCp] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/cp-network")
+      .then((res) => res.json())
+      .then((json) => setCompanyCpOptions(json.success ? json.data : []))
+      .catch(() => setCompanyCpOptions([]));
+  }, []);
+
+  async function handleCompanyCpChange(accountId) {
+    const cp = companyCpOptions.find((c) => c.accountId === accountId);
+    setSelectedCompanyCpId(accountId);
+    setSavingCompanyCp(true);
+    try {
+      const res = await fetch(`/api/users/${partner.accountId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          selectedCompanyCpId: accountId,
+          selectedCompanyCpName: cp ? cp.name : "",
+        }),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || "Failed to save");
+      toast.success("Company CP updated");
+    } catch (error) {
+      toast.error(error.message || "Couldn't save your Company CP — please try again.");
+      setSelectedCompanyCpId(partner?.selectedCompanyCpId || "");
+    } finally {
+      setSavingCompanyCp(false);
+    }
+  }
 
   // Properties forwarded to this Digital CP by their Company CP. "Joined"
   // is persisted as the assignment's own status ("In Progress" = joined).
@@ -196,6 +236,10 @@ export default function DigitalCPDashboard({ stats, assets, partner, myListings 
 
   async function handleAddLeadForLink(linkId, e) {
     e.preventDefault();
+    if (!selectedCompanyCpId) {
+      setLeadDraftErrors((prev) => ({ ...prev, [linkId]: "Select your Company CP from the dashboard before adding a lead." }));
+      return;
+    }
     const draft = leadDrafts[linkId] || INITIAL_LEAD_FORM;
     if (!draft.name?.trim() || !draft.contact?.trim()) {
       setLeadDraftErrors((prev) => ({ ...prev, [linkId]: "Please fill in the name and contact number." }));
@@ -272,6 +316,28 @@ export default function DigitalCPDashboard({ stats, assets, partner, myListings 
       <div className="mt-8">
         {tab === "overview" && (
           <div className="flex flex-col gap-8">
+            <div className="flex flex-col gap-3 border border-navy-700/60 bg-navy-900 p-4 sm:p-6">
+              <p className="tracked-label text-xs text-gold-400">Your Company CP</p>
+              <FormField label="Choose your Company CP" htmlFor="dcp-company-cp" required>
+                <select
+                  id="dcp-company-cp"
+                  value={selectedCompanyCpId}
+                  disabled={savingCompanyCp}
+                  onChange={(e) => handleCompanyCpChange(e.target.value)}
+                  className={selectClass}
+                >
+                  <option value="">Select Company CP</option>
+                  {companyCpOptions.map((cp) => (
+                    <option key={cp.accountId} value={cp.accountId}>
+                      {formatCpLabel(cp.name, cp.city, cp.state)}
+                    </option>
+                  ))}
+                </select>
+              </FormField>
+              <p className="text-xs text-muted">
+                Leads you add are forwarded straight to this Company CP. Only Company CPs in your own city ({partner?.city || "—"}) are listed.
+              </p>
+            </div>
             <div className="flex items-center justify-between">
               <p className="tracked-label text-xs text-gold-400">Performance Overview</p>
               <RefreshButton onRefresh={() => refreshSection("overview")} label="Refresh overview" />
