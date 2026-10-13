@@ -30,6 +30,13 @@ const CATEGORIES = [
     description: "Monthly rental listings",
   },
   {
+    label: "Plot / Land",
+    href: "/plot-land",
+    type: "plot-land",
+    icon: BiArea,
+    description: "Residential, commercial & agricultural plots",
+  },
+  {
     label: "Lease",
     href: "/lease",
     type: "lease",
@@ -43,13 +50,7 @@ const CATEGORIES = [
     icon: MdGavel,
     description: "Bank-auctioned & SARFAESI listings",
   },
-  {
-    label: "Plot / Land",
-    href: "/plot-land",
-    type: "plot-land",
-    icon: BiArea,
-    description: "Residential, commercial & agricultural plots",
-  },
+  
 ];
 
 export default async function PropertiesPage() {
