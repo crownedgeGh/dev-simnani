@@ -3,24 +3,32 @@ import dbConnect from "@/lib/mongodb";
 import Lead from "@/models/Lead";
 import Property from "@/models/Property";
 import { getSessionUser } from "@/lib/session";
+import { isAdminRequest } from "@/lib/adminSession";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET(request) {
   try {
-    const sessionUser = await getSessionUser(request);
-    if (!sessionUser) {
-      return NextResponse.json({ success: false, error: "You must be logged in" }, { status: 401 });
+    const { searchParams } = new URL(request.url);
+    const ownerId = searchParams.get("ownerId");
+
+    let filter;
+    if (ownerId) {
+      if (!isAdminRequest(request)) {
+        return NextResponse.json({ success: false, error: "Admin access required" }, { status: 401 });
+      }
+      filter = { ownerId };
+    } else {
+      const sessionUser = await getSessionUser(request);
+      if (!sessionUser) {
+        return NextResponse.json({ success: false, error: "You must be logged in" }, { status: 401 });
+      }
+      const scope = searchParams.get("scope");
+      filter = scope === "buyer" ? { buyerId: sessionUser.accountId } : { ownerId: sessionUser.accountId };
     }
 
     await dbConnect();
-    const { searchParams } = new URL(request.url);
-    const scope = searchParams.get("scope");
-    const filter =
-      scope === "buyer"
-        ? { buyerId: sessionUser.accountId }
-        : { ownerId: sessionUser.accountId };
     const leads = await Lead.find(filter).sort({ createdAt: -1 }).lean();
 
     return NextResponse.json({ success: true, data: leads });

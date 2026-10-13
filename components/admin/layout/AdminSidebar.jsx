@@ -66,10 +66,12 @@ const NAV_ITEMS = [
     icon: MdSupervisedUserCircle,
     children: [
       { href: "/admin/freelancer-cp", label: "Overview" },
+      
       { href: "/admin/freelancer-cp/company", label: "Company CP" },
       { href: "/admin/freelancer-cp/head-cp", label: "Head CP" },
       { href: "/admin/freelancer-cp/digital", label: "Digital CP" },
       { href: "/admin/freelancer-cp/field", label: "Field CP" },
+      { href: "/admin/freelancer-cp/contractor", label: "Contractors" },
     ],
   },
     { href: "/admin/deleted-accounts", label: "Deleted Accounts", icon: MdRestoreFromTrash },

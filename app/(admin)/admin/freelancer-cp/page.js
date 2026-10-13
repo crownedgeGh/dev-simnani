@@ -16,6 +16,7 @@ import {
   MdPlayCircle,
   MdCancel,
   MdAdd,
+  MdEngineering,
 } from "react-icons/md";
 import AdminPageHeader from "@/components/admin/layout/AdminPageHeader";
 import AdminTable from "@/components/admin/ui/AdminTable";
@@ -76,6 +77,7 @@ export default function FreelancerCPPage() {
   const router = useRouter();
   const [freelancers, setFreelancers] = useState([]);
   const [cpLeads, setCpLeads] = useState([]);
+  const [contractorCount, setContractorCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [updatingId, setUpdatingId] = useState(null);
@@ -85,14 +87,17 @@ export default function FreelancerCPPage() {
 
   const load = useCallback(async () => {
     try {
-      const [usersRes, leadsRes] = await Promise.all([
+      const [usersRes, leadsRes, contractorsRes] = await Promise.all([
         fetch("/api/users?accountType=freelancer"),
         fetch("/api/cp-leads"),
+        fetch("/api/users?accountType=service-provider"),
       ]);
       const usersJson = await usersRes.json();
       const leadsJson = await leadsRes.json();
+      const contractorsJson = await contractorsRes.json();
       setFreelancers((usersJson.success ? usersJson.data : []).map((u) => ({ ...u, id: u.accountId })));
       setCpLeads(leadsJson.success ? leadsJson.data : []);
+      setContractorCount(contractorsJson.success ? contractorsJson.data.length : 0);
     } catch {
       toast.error("Failed to load channel partners");
     }
@@ -256,7 +261,25 @@ export default function FreelancerCPPage() {
       {/* CP Type — dedicated management pages */}
       <div className="mb-6">
         <h3 className="mb-3 text-sm font-semibold text-[#1a1a2e]">Channel Partner Networks</h3>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <Link
+            href="/admin/freelancer-cp/contractor"
+            className="group flex flex-col gap-3 rounded-2xl border border-teal-200 bg-teal-50 p-5 text-teal-700 transition hover:shadow-md"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/70">
+                <MdEngineering size={20} />
+              </div>
+              <MdArrowForward size={18} className="opacity-50 transition group-hover:translate-x-1 group-hover:opacity-100" />
+            </div>
+            <div>
+              <p className="text-sm font-bold">Contractor</p>
+              <p className="mt-1 text-xs opacity-80">Civil, Industrial EPC and Agri Infra contractors — view each one&apos;s portal.</p>
+            </div>
+            <div className="mt-1 flex items-center gap-4 border-t border-current/15 pt-3 text-xs font-semibold">
+              <span className="flex items-center gap-1.5"><MdGroups size={14} /> {contractorCount} contractors</span>
+            </div>
+          </Link>
           {CP_SEGMENTS.map((seg) => {
             const SegIcon = seg.icon;
             const counts = segmentCounts[seg.key] || { partners: 0, leads: 0 };
