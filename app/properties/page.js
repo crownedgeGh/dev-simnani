@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BiBuildingHouse, BiKey, BiFile } from "react-icons/bi";
+import { BiBuildingHouse, BiKey, BiFile, BiArea } from "react-icons/bi";
 import { MdGavel } from "react-icons/md";
 import { FiArrowUpRight } from "react-icons/fi";
 import { getPropertiesByType } from "@/lib/propertiesServer";
@@ -41,6 +41,13 @@ const CATEGORIES = [
     type: "seized-property",
     icon: MdGavel,
     description: "Bank-auctioned & SARFAESI listings",
+  },
+  {
+    label: "Plot / Land",
+    href: "/plot-land",
+    type: "plot-land",
+    icon: BiArea,
+    description: "Residential, commercial & agricultural plots",
   },
 ];
 

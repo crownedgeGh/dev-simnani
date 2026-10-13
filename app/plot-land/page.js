@@ -1,4 +1,4 @@
-import PropertyFilterBar from "@/components/property/PropertyFilterBar";
+import PlotLandTabs from "@/components/property/PlotLandTabs";
 import { getPropertiesByType } from "@/lib/propertiesServer";
 import BackButton from "@/components/layout/BackButton";
 import PostOnCategoryButton from "@/components/property/PostOnCategoryButton";
@@ -11,8 +11,12 @@ export const metadata = {
     "Browse plots and land for sale — residential, commercial, agricultural, industrial and investment.",
 };
 
-export default async function PlotLandPage() {
+const TAB_PURPOSE = { buy: "sale", rent: "rent", lease: "lease" };
+
+export default async function PlotLandPage({ searchParams }) {
   const properties = await getPropertiesByType("plot-land");
+  const { purpose: tab } = await searchParams;
+  const purpose = TAB_PURPOSE[tab] || "sale";
 
   return (
     <div className="mx-auto max-w-7xl px-4 pt-6 pb-16 sm:px-6 sm:pt-8 sm:pb-20 lg:px-8 lg:pt-10 lg:pb-24">
@@ -23,16 +27,11 @@ export default async function PlotLandPage() {
             Plot / Land
           </h1>
         </div>
-        <PostOnCategoryButton section="plot-land" />
+        <PostOnCategoryButton section="plot-land" purpose={purpose} />
       </div>
 
       <div className="mt-10">
-        <PropertyFilterBar
-          properties={properties}
-          pricingMode="sale"
-          showPropertyType={false}
-          emptyMessage="No plots or land listed right now. Check back soon."
-        />
+        <PlotLandTabs properties={properties} />
       </div>
     </div>
   );
