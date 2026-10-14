@@ -7,6 +7,7 @@ import { verifyPassword } from "@/lib/password";
 import { SESSION_MAX_AGE, setSessionCookie } from "@/lib/session";
 import { isRateLimited, rateLimitResponse } from "@/lib/rateLimit";
 import { isMobileValid } from "@/lib/auth";
+import { verifyTurnstile } from "@/lib/turnstile";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +21,15 @@ export async function POST(request) {
     }
 
     await dbConnect();
-    const { mobile, password } = await request.json();
+    const { mobile, password, turnstileToken } = await request.json();
+
+    if (!(await verifyTurnstile(turnstileToken, request))) {
+      return NextResponse.json(
+        { success: false, error: "Verification failed. Please try again." },
+        { status: 400 }
+      );
+    }
+
     const digits = (mobile || "").replace(/\D/g, "").slice(-10);
 
     if (!isMobileValid(digits)) {

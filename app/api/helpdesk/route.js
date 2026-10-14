@@ -5,6 +5,7 @@ import Property from "@/models/Property";
 import { getSessionUser } from "@/lib/session";
 import { isMobileValid } from "@/lib/auth";
 import { isRateLimited, rateLimitResponse } from "@/lib/rateLimit";
+import { verifyTurnstile } from "@/lib/turnstile";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -21,7 +22,14 @@ export async function POST(request) {
 
     const user = await getSessionUser(request);
     const body = await request.json();
-    const { propertyId, message, name, phone } = body;
+    const { propertyId, message, name, phone, turnstileToken } = body;
+
+    if (!user && !(await verifyTurnstile(turnstileToken, request))) {
+      return NextResponse.json(
+        { success: false, error: "Verification failed. Please try again." },
+        { status: 400 }
+      );
+    }
 
     if (!message?.trim()) {
       return NextResponse.json({ success: false, error: "Message is required" }, { status: 400 });

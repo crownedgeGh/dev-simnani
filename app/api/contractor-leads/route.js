@@ -5,6 +5,7 @@ import { isMobileValid } from "@/lib/auth";
 import { isAdminRequest } from "@/lib/adminSession";
 import { isRateLimited, rateLimitResponse } from "@/lib/rateLimit";
 import { SERVICE_PROVIDER_TYPE_VALUES } from "@/lib/serviceProviders";
+import { verifyTurnstile } from "@/lib/turnstile";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -22,8 +23,15 @@ export async function POST(request) {
       return rateLimitResponse();
     }
 
-    const { name, phone, bestTime, serviceType, sourcePath } =
+    const { name, phone, bestTime, serviceType, sourcePath, turnstileToken } =
       await request.json();
+
+    if (!(await verifyTurnstile(turnstileToken, request))) {
+      return NextResponse.json(
+        { success: false, error: "Verification failed. Please try again." },
+        { status: 400 },
+      );
+    }
 
     if (!name?.trim() || !isMobileValid(phone || "")) {
       return NextResponse.json(

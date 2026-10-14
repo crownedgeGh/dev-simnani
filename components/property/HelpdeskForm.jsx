@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { formatMobile, isMobileValid } from "@/lib/auth";
 import { inputClass, textareaClass } from "@/components/auth/inputStyles";
+import Turnstile from "@/components/shared/Turnstile";
 
 export default function HelpdeskForm() {
   const [name, setName] = useState("");
@@ -11,6 +12,7 @@ export default function HelpdeskForm() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState("");
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -28,6 +30,7 @@ export default function HelpdeskForm() {
           name: name.trim(),
           phone: mobile,
           message: query.trim(),
+          turnstileToken,
         }),
       });
       const json = await res.json();
@@ -107,6 +110,8 @@ export default function HelpdeskForm() {
           className={textareaClass}
         />
       </div>
+
+      <Turnstile onVerify={setTurnstileToken} onExpire={() => setTurnstileToken("")} />
 
       {error && <p className="text-xs text-red-400">{error}</p>}
 

@@ -20,9 +20,7 @@ export async function POST(request) {
     await dbConnect();
     const { mobile, turnstileToken, purpose = "login" } = await request.json();
 
-    // Registration OTP has no Turnstile widget in its UI (kept minimal) —
-    // it's still covered by the rate limit above.
-    if (purpose !== "register" && !(await verifyTurnstile(turnstileToken, request))) {
+    if (!(await verifyTurnstile(turnstileToken, request))) {
       return NextResponse.json(
         { success: false, error: "Verification failed. Please try again." },
         { status: 400 }

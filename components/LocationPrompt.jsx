@@ -33,6 +33,11 @@ export default function LocationPrompt() {
     setVisible(false);
   }
 
+  useEffect(() => {
+    window.addEventListener("se-location-detected", dismiss);
+    return () => window.removeEventListener("se-location-detected", dismiss);
+  }, []);
+
   function markGranted() {
     setVisible(false);
     try {

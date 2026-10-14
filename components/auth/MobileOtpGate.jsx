@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { MdCheckCircle } from "react-icons/md";
+import Turnstile from "@/components/shared/Turnstile";
 
 const OTP_LENGTH = parseInt(process.env.NEXT_PUBLIC_OTP_LENGTH || "4", 10);
 
@@ -14,6 +15,7 @@ export default function MobileOtpGate({ mobile, mobileValid, verified, onVerifie
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [resendIn, setResendIn] = useState(0);
+  const [turnstileToken, setTurnstileToken] = useState("");
   const otpRefs = useRef([]);
   const timerRef = useRef(null);
   const verifiedMobileRef = useRef("");
@@ -69,7 +71,7 @@ export default function MobileOtpGate({ mobile, mobileValid, verified, onVerifie
       const res = await fetch("/api/auth/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mobile, purpose: "register" }),
+        body: JSON.stringify({ mobile, purpose: "register", turnstileToken }),
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.error || "Failed to send OTP");
@@ -141,6 +143,7 @@ export default function MobileOtpGate({ mobile, mobileValid, verified, onVerifie
       {!sent ? (
         <>
           <p className="text-xs text-muted">Verify your mobile number to continue.</p>
+          <Turnstile onVerify={setTurnstileToken} onExpire={() => setTurnstileToken("")} />
           <button
             type="button"
             onClick={sendCode}

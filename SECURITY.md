@@ -10,10 +10,15 @@ Status of the 4-layer protection plan.
 Covers DDoS, scrapers, zero-day attacks at the edge, before traffic reaches the app.
 
 ## 2. Form & Lead Protection — Cloudflare Turnstile ✅ implemented
-Added to `/api/contact-inquiry` (ContactForm) and `/api/auth/send-otp` (OTP login/reset).
+Added to every public, unauthenticated form a bot could bulk-submit:
+- `/api/contact-inquiry` (ContactForm)
+- `/api/auth/send-otp` (OTP login/reset **and** registration — covers all 8 registration wizards via the shared `MobileOtpGate`)
+- `/api/auth/login-password` (password login — blocks scripted credential stuffing)
+- `/api/contractor-leads` (CallbackForm / request-callback)
+- `/api/helpdesk` (public HelpdeskForm; skipped for logged-in users submitting via the portal)
 - `lib/turnstile.js` — server-side token verification.
 - `components/shared/Turnstile.jsx` — client widget.
-- Both routes 400 if the token fails verification; no-op (allows through) until keys are set, so nothing breaks today.
+- All routes 400 if the token fails verification; no-op (allows through) only if the Turnstile keys are unset — they're already set in `.env.local` / `prod.env`, so this is live now.
 
 **To activate:** create a free Turnstile widget at the Cloudflare dashboard → Turnstile, then add:
 ```

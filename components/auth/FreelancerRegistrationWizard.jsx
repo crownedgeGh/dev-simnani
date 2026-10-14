@@ -236,9 +236,20 @@ export default function FreelancerRegistrationWizard() {
     }
   }
 
+  const selectedCpType = CP_TYPES.find((t) => t.value === form.cpType);
+
   return (
-    <AuthShell size="lg">
+    <AuthShell
+      size="lg"
+      onBack={step === 1 ? () => router.push("/auth/register/freelancer") : goBack}
+    >
       <Stepper step={step} total={TOTAL_STEPS} label={STEP_LABELS[step - 1]} />
+
+      {step === 2 && selectedCpType && (
+        <h2 className="font-display mb-4 text-center text-2xl text-gold-400 sm:text-3xl">
+          You are registering as {selectedCpType.shortLabel}
+        </h2>
+      )}
 
       <div className="mb-6 text-center">
         <h1 className="font-display text-2xl text-cream sm:text-3xl">

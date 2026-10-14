@@ -7,6 +7,7 @@ import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
 import { inputClass, selectClass } from "@/components/auth/inputStyles";
 import BackButton from "@/components/layout/BackButton";
 import { trackEvent } from "@/lib/gtag";
+import Turnstile from "@/components/shared/Turnstile";
 
 const TIME_OPTIONS = [
   { value: "morning", label: "Morning (9AM - 12PM)" },
@@ -26,6 +27,7 @@ export default function CallbackForm({ serviceType = "", onClose, onSubmitted })
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [requestId, setRequestId] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState("");
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -59,6 +61,7 @@ export default function CallbackForm({ serviceType = "", onClose, onSubmitted })
           bestTime,
           serviceType,
           sourcePath: pathname,
+          turnstileToken,
         }),
       });
       const json = await res.json();
@@ -200,6 +203,10 @@ export default function CallbackForm({ serviceType = "", onClose, onSubmitted })
           ))}
         </select>
       </div>
+
+      {serviceType && (
+        <Turnstile onVerify={setTurnstileToken} onExpire={() => setTurnstileToken("")} />
+      )}
 
       {error && <p className="text-xs text-red-400">{error}</p>}
 

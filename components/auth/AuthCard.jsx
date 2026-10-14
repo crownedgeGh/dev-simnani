@@ -73,7 +73,7 @@ export default function AuthCard() {
     setError("");
     setNotRegistered(false);
     try {
-      await loginWithPassword(mobile, password);
+      await loginWithPassword(mobile, password, turnstileToken);
       router.push("/");
     } catch (err) {
       if (err.notRegistered) {

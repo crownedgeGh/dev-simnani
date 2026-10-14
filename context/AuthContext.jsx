@@ -124,11 +124,11 @@ export function AuthProvider({ children }) {
    * the OTP flow above. Fails if the account has no password set (e.g. it
    * was only ever used via OTP login).
    */
-  const loginWithPassword = useCallback(async (mobile, password) => {
+  const loginWithPassword = useCallback(async (mobile, password, turnstileToken) => {
     const res = await fetch("/api/auth/login-password", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ mobile, password }),
+      body: JSON.stringify({ mobile, password, turnstileToken }),
     });
     const data = await res.json();
     if (!data.success) {

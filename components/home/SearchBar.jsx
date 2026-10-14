@@ -135,6 +135,12 @@ export default function SearchBar() {
       setCitySuggestions([]);
       setShowSuggestions(false);
       saveRecentSearch({ city, state, label });
+      try {
+        window.localStorage.setItem("se_location_prompt_seen", "1");
+      } catch {
+        /* localStorage unavailable */
+      }
+      window.dispatchEvent(new Event("se-location-detected"));
     } catch (err) {
       toast.error(err.message || "Couldn't get your location. Please allow location access and try again.", { duration: 6000 });
     } finally {
