@@ -3,11 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { MdHome, MdTrendingUp, MdDomain, MdWork, MdPerson, MdBadge, MdScience, MdApartment, MdEngineering } from "react-icons/md";
+import { MdHome, MdTrendingUp, MdDomain, MdWork, MdPerson, MdBadge, MdScience, MdApartment, MdEngineering, MdFactory, MdAgriculture } from "react-icons/md";
 import { FiMapPin, FiSmartphone, FiBriefcase } from "react-icons/fi";
 import BackButton from "@/components/layout/BackButton";
 import { useAuth } from "@/context/AuthContext";
-import { TEST_MODE_CP_PROFILES } from "@/lib/testModeCp";
+import { TEST_MODE_CP_PROFILES, TEST_MODE_SERVICE_PROVIDER_PROFILES } from "@/lib/testModeCp";
+import { SERVICE_PROVIDER_TYPES } from "@/lib/serviceProviders";
 
 // Test Mode (registration bypass) is a dev/staging-only convenience — never
 // reachable in production. Gate it behind an env flag set only outside prod.
@@ -19,6 +20,19 @@ const TEST_MODE_CP_OPTIONS = [
   { cpType: "company", label: "Company CP", description: "Company Channel Partner demo dashboard.", Icon: FiBriefcase },
 ];
 
+const SERVICE_TYPE_ICONS = {
+  "civil-contractor": MdEngineering,
+  "industrial-epc": MdFactory,
+  "agri-infra": MdAgriculture,
+};
+
+const TEST_MODE_SERVICE_PROVIDER_OPTIONS = SERVICE_PROVIDER_TYPES.map(({ value, label, description }) => ({
+  serviceType: value,
+  label,
+  description,
+  Icon: SERVICE_TYPE_ICONS[value],
+}));
+
 const TEST_MODE_DIRECT_OPTIONS = [
   {
     key: "owner",
@@ -27,9 +41,9 @@ const TEST_MODE_DIRECT_OPTIONS = [
     Icon: MdPerson,
     href: "/portal/owner",
     profile: {
-      fullName: "Test Owner",
+      fullName: "TM Owner",
       mobile: "90000 00001",
-      email: "test.owner@simnaniestate.com",
+      email: "tm.owner@simnaniestate.com",
       accountType: "owner",
       accountId: "SG-IND-TEST-COMMON",
       city: "Mumbai",
@@ -43,9 +57,9 @@ const TEST_MODE_DIRECT_OPTIONS = [
     Icon: MdDomain,
     href: "/portal/broker",
     profile: {
-      fullName: "Test Broker",
+      fullName: "TM Broker",
       mobile: "90000 00002",
-      email: "test.broker@simnaniestate.com",
+      email: "tm.broker@simnaniestate.com",
       accountType: "broker",
       accountId: "SG-BRK-TEST",
       city: "Mumbai",
@@ -60,9 +74,9 @@ const TEST_MODE_DIRECT_OPTIONS = [
     Icon: MdHome,
     href: "/",
     profile: {
-      fullName: "Test Buyer",
+      fullName: "TM Buyer",
       mobile: "90000 00003",
-      email: "test.buyer@simnaniestate.com",
+      email: "tm.buyer@simnaniestate.com",
       accountType: "buyer",
       accountId: "SG-BUY-TEST",
       city: "Mumbai",
@@ -225,6 +239,31 @@ export default function AccountTypeSelect() {
                 <Icon className="h-7 w-7 text-gold-400 sm:h-8 sm:w-8" />
                 <span className="tracked-label text-xs text-cream">
                   {bypassLoading === cpType ? "Loading…" : label}
+                </span>
+                <p className="text-xs text-muted">{description}</p>
+              </button>
+            ))}
+          </div>
+
+          <p className="mt-6 tracked-label text-xs text-gold-400">Test Mode — Choose a Service Provider Dashboard</p>
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
+            {TEST_MODE_SERVICE_PROVIDER_OPTIONS.map(({ serviceType, label, description, Icon }) => (
+              <button
+                key={serviceType}
+                type="button"
+                disabled={bypassLoading !== null}
+                onClick={() =>
+                  handleDirectBypass(
+                    serviceType,
+                    TEST_MODE_SERVICE_PROVIDER_PROFILES[serviceType],
+                    "/portal/service-provider"
+                  )
+                }
+                className="flex flex-col items-center gap-2 rounded-2xl border border-navy-700/60 p-4 text-center transition hover:border-gold-500 active:scale-[0.98] disabled:opacity-60 sm:gap-3 sm:p-6"
+              >
+                <Icon className="h-7 w-7 text-gold-400 sm:h-8 sm:w-8" />
+                <span className="tracked-label text-xs text-cream">
+                  {bypassLoading === serviceType ? "Loading…" : label}
                 </span>
                 <p className="text-xs text-muted">{description}</p>
               </button>
