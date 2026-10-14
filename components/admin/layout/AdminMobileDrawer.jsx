@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MdClose, MdDashboard, MdApartment, MdPeople, MdLeaderboard, MdSupervisedUserCircle, MdPhone, MdSettings, MdLightMode, MdDarkMode, MdWorkspacePremium, MdInsights, MdAdminPanelSettings, MdCategory, MdSupportAgent, MdEngineering } from "react-icons/md";
+import { MdClose, MdDashboard, MdApartment, MdPeople, MdLeaderboard, MdSupervisedUserCircle, MdPhone, MdSettings, MdLightMode, MdDarkMode, MdWorkspacePremium, MdInsights, MdAdminPanelSettings, MdCategory, MdSupportAgent, MdEngineering, MdAccountBalance } from "react-icons/md";
 import { BiBuildingHouse } from "react-icons/bi";
 import { useAdminTheme } from "@/context/AdminThemeContext";
 import { useCorrectionReviewCount } from "@/lib/useCorrectionReviewCount";
@@ -25,6 +25,15 @@ const NAV_ITEMS = [
   { href: "/admin/helpdesk", label: "Helpdesk", icon: MdSupportAgent },
   { href: "/admin/analytics", label: "Analytics", icon: MdInsights },
   { href: "/admin/plans", label: "Plans", icon: MdWorkspacePremium },
+  {
+    href: "/admin/home-loan-banks",
+    label: "Home Loan Banks",
+    icon: MdAccountBalance,
+    children: [
+      { href: "/admin/home-loan-banks", label: "All Banks" },
+      { href: "/admin/home-loan-banks/leads", label: "Home Loan Leads" },
+    ],
+  },
   {
     href: "/admin/brokers",
     label: "Brokers",

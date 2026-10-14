@@ -20,6 +20,7 @@ import {
   MdRestoreFromTrash,
   MdSupportAgent,
   MdEngineering,
+  MdAccountBalance,
 } from "react-icons/md";
 import { BiBuildingHouse } from "react-icons/bi";
 import { useState } from "react";
@@ -52,6 +53,15 @@ const NAV_ITEMS = [
   { href: "/admin/interested", label: "Interested", icon: MdThumbUp },
   { href: "/admin/analytics", label: "Analytics", icon: MdInsights },
   { href: "/admin/plans", label: "Plans", icon: MdWorkspacePremium },
+  {
+    href: "/admin/home-loan-banks",
+    label: "Home Loan Banks",
+    icon: MdAccountBalance,
+    children: [
+      { href: "/admin/home-loan-banks", label: "All Banks" },
+      { href: "/admin/home-loan-banks/leads", label: "Home Loan Leads" },
+    ],
+  },
   {
     href: "/admin/brokers",
     label: "Brokers",
