@@ -38,6 +38,16 @@ export default function LocationPrompt() {
     return () => window.removeEventListener("se-location-detected", dismiss);
   }, []);
 
+  useEffect(() => {
+    function openPrompt() {
+      if (isAdminRoute) return;
+      setVisible(true);
+      setExpanded(true);
+    }
+    window.addEventListener("se-open-location-prompt", openPrompt);
+    return () => window.removeEventListener("se-open-location-prompt", openPrompt);
+  }, [isAdminRoute]);
+
   function markGranted() {
     setVisible(false);
     try {

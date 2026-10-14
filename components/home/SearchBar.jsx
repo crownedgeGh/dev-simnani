@@ -4,11 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { MdLocationOn, MdMyLocation, MdSearch } from "react-icons/md";
 import { FiChevronDown, FiAlertCircle, FiClock, FiX } from "react-icons/fi";
-import { toast } from "sonner";
 import { INVEST_CATEGORIES, RESIDENTIAL_TYPE_OPTIONS } from "@/lib/properties";
 import { searchIndianCities } from "@/lib/indianCities";
 import { trackEvent } from "@/lib/gtag";
-import { getCurrentCoords, reverseGeocode } from "@/lib/geo";
 
 const MODES = [
   { label: "Buy", slug: "buy" },
@@ -64,7 +62,6 @@ export default function SearchBar() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showErrors, setShowErrors] = useState(false);
   const [recentSearches, setRecentSearches] = useState([]);
-  const [locating, setLocating] = useState(false);
   const locationFieldRef = useRef(null);
 
   const locationInvalid = showErrors && !location.trim();
@@ -121,32 +118,22 @@ export default function SearchBar() {
     setShowSuggestions(true);
   }
 
-  async function handleUseMyLocation() {
-    setLocating(true);
-    try {
-      const { lat, lng } = await getCurrentCoords();
-      const { city, state } = await reverseGeocode(lat, lng);
-      if (!city) {
-        toast.error("Couldn't detect your city. Please enter it manually.");
-        return;
-      }
-      const label = state ? `${city}, ${state}` : city;
-      setLocation(label);
+  function handleUseMyLocation() {
+    window.dispatchEvent(new Event("se-open-location-prompt"));
+  }
+
+  useEffect(() => {
+    function handleLocationUpdated(event) {
+      const city = event.detail;
+      if (!city) return;
+      setLocation(city);
       setCitySuggestions([]);
       setShowSuggestions(false);
-      saveRecentSearch({ city, state, label });
-      try {
-        window.localStorage.setItem("se_location_prompt_seen", "1");
-      } catch {
-        /* localStorage unavailable */
-      }
-      window.dispatchEvent(new Event("se-location-detected"));
-    } catch (err) {
-      toast.error(err.message || "Couldn't get your location. Please allow location access and try again.", { duration: 6000 });
-    } finally {
-      setLocating(false);
+      saveRecentSearch({ city, label: city });
     }
-  }
+    window.addEventListener("se-location-updated", handleLocationUpdated);
+    return () => window.removeEventListener("se-location-updated", handleLocationUpdated);
+  }, []);
 
   function handleCitySelect(entry) {
     setLocation(entry.label);
@@ -336,10 +323,9 @@ export default function SearchBar() {
               type="button"
               aria-label="Use current location"
               onClick={handleUseMyLocation}
-              disabled={locating}
-              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-muted transition hover:bg-navy-800 hover:text-gold-400 disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-muted transition hover:bg-navy-800 hover:text-gold-400"
             >
-              <MdMyLocation className={`h-4 w-4 ${locating ? "animate-pulse" : ""}`} />
+              <MdMyLocation className="h-4 w-4" />
             </button>
           </div>
 
