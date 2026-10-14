@@ -15,6 +15,8 @@ const STATIC_ROUTES = [
   "/plot-land",
   "/farming",
   "/industrial",
+  "/others",
+  "/home-loan",
   "/lease",
   "/projects",
   "/help",

@@ -30,6 +30,7 @@ function AdminShell({ children }) {
     "/admin/helpdesk": "Helpdesk",
     "/admin/analytics": "Analytics",
     "/admin/plans": "Plans & Subscriptions",
+    "/admin/tnc-rera": "T&C RERA Plot Inventory",
     "/admin/brokers/featured": "Featured Brokers",
     "/admin/brokers": "Brokers",
     "/admin/freelancer-cp": "Freelancer & CP Management",

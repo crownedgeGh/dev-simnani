@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MdClose, MdDashboard, MdApartment, MdPeople, MdLeaderboard, MdSupervisedUserCircle, MdPhone, MdSettings, MdLightMode, MdDarkMode, MdWorkspacePremium, MdInsights, MdAdminPanelSettings, MdCategory, MdSupportAgent, MdEngineering, MdAccountBalance } from "react-icons/md";
+import { MdClose, MdDashboard, MdApartment, MdPeople, MdLeaderboard, MdSupervisedUserCircle, MdPhone, MdSettings, MdLightMode, MdDarkMode, MdWorkspacePremium, MdInsights, MdAdminPanelSettings, MdCategory, MdSupportAgent, MdEngineering, MdAccountBalance, MdGridView } from "react-icons/md";
 import { BiBuildingHouse } from "react-icons/bi";
 import { useAdminTheme } from "@/context/AdminThemeContext";
 import { useCorrectionReviewCount } from "@/lib/useCorrectionReviewCount";
@@ -25,6 +25,7 @@ const NAV_ITEMS = [
   { href: "/admin/helpdesk", label: "Helpdesk", icon: MdSupportAgent },
   { href: "/admin/analytics", label: "Analytics", icon: MdInsights },
   { href: "/admin/plans", label: "Plans", icon: MdWorkspacePremium },
+  { href: "/admin/tnc-rera", label: "T&C RERA", icon: MdGridView },
   {
     href: "/admin/home-loan-banks",
     label: "Home Loan Banks",

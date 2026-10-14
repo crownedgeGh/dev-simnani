@@ -9,7 +9,7 @@ import { getAccountPermissions } from "@/lib/accountPermissions";
 import { TEST_MODE_CP_PROFILES } from "@/lib/testModeCp";
 import AuthGateModal from "@/components/auth/AuthGateModal";
 import CompleteProfileModal from "@/components/auth/CompleteProfileModal";
-import { MdHome, MdTrendingUp, MdPersonAdd, MdAgriculture, MdFactory, MdScience, MdTerrain, MdAccountBalance } from "react-icons/md";
+import { MdHome, MdTrendingUp, MdPersonAdd, MdAgriculture, MdFactory, MdScience, MdTerrain, MdApps } from "react-icons/md";
 import {
   FiUser, FiMenu, FiX,
   FiList, FiBookmark, FiLogOut, FiHelpCircle, FiInfo,
@@ -35,7 +35,7 @@ const NAV_LINKS = [
   { label: "Commercial", href: "/commercial", icon: BiBuildings },
   { label: "Farming Land Projects", href: "/farming", icon: MdAgriculture },
   { label: "Industrial", href: "/industrial", icon: MdFactory },
-  { label: "Home Loans", href: "/home-loan", icon: MdAccountBalance },
+  { label: "Others", href: "/others", icon: MdApps, matchPaths: ["/others", "/home-loan"] },
   { label: "Pricing", href: "/pricing", icon: BiTag },
   { label: "About Us", href: "/about", icon: FiInfo },
 ];

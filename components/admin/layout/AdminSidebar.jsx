@@ -21,6 +21,7 @@ import {
   MdSupportAgent,
   MdEngineering,
   MdAccountBalance,
+  MdGridView,
 } from "react-icons/md";
 import { BiBuildingHouse } from "react-icons/bi";
 import { useState } from "react";
@@ -53,6 +54,7 @@ const NAV_ITEMS = [
   { href: "/admin/interested", label: "Interested", icon: MdThumbUp },
   { href: "/admin/analytics", label: "Analytics", icon: MdInsights },
   { href: "/admin/plans", label: "Plans", icon: MdWorkspacePremium },
+  { href: "/admin/tnc-rera", label: "T&C RERA", icon: MdGridView },
   {
     href: "/admin/home-loan-banks",
     label: "Home Loan Banks",
