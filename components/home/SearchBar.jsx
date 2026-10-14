@@ -142,10 +142,7 @@ export default function SearchBar() {
       }
       window.dispatchEvent(new Event("se-location-detected"));
     } catch (err) {
-      toast.error(err.message || "Couldn't get your location. Please allow location access and try again.", {
-        duration: 6000,
-        action: { label: "Enable Location", onClick: handleUseMyLocation },
-      });
+      toast.error(err.message || "Couldn't get your location. Please allow location access and try again.", { duration: 6000 });
     } finally {
       setLocating(false);
     }

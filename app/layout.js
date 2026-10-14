@@ -55,10 +55,11 @@ export default function RootLayout({ children }) {
           toastOptions={{
             style: {
               fontFamily: "var(--font-inter, Inter, sans-serif)",
+              width: "380px",
             },
             classNames: {
               toast:
-                "!w-[calc(100vw-2rem)] !max-w-[380px] !rounded-2xl !border !border-navy-700/60 !bg-navy-900 !p-4 !shadow-2xl",
+                "!rounded-2xl !border !border-navy-700/60 !bg-navy-900 !p-4 !shadow-2xl",
               title: "!font-display !text-[15px] !leading-snug !text-cream",
               description: "!mt-1.5 !text-xs !leading-relaxed !text-muted",
               actionButton:
