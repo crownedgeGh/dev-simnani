@@ -1,4 +1,4 @@
-import { MdWorkspacePremium } from "react-icons/md";
+import { MdWorkspacePremium, MdArrowForward } from "react-icons/md";
 
 const ROWS = [
   { label: "Free Listings (Owners)", others: "1 Listing", us: "10 Listings" },
@@ -19,79 +19,65 @@ export default function ComparisonSection() {
       </div>
 
       {/* Framed card wrapper */}
-      <div
-        className="mx-auto mt-10 max-w-3xl rounded-2xl border border-gold-500/30 bg-navy-900 p-1.5 sm:p-2"
-        style={{
-          boxShadow:
-            "0 20px 60px -15px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,198,51,0.06), 0 0 40px -10px var(--color-gold-400)",
-        }}
-      >
+      <div className="mx-auto mt-10 max-w-3xl overflow-hidden rounded-xl border border-navy-700/60 bg-navy-900">
         {/* Desktop / tablet table */}
-        <div className="hidden overflow-hidden rounded-xl border border-navy-700/60 sm:block">
-          <div className="grid grid-cols-[1.6fr_1fr_1fr] bg-navy-950">
-            <div className="p-3 text-sm text-muted">Feature</div>
-            <div className="tracked-label border-l border-navy-700/60 p-3 text-center text-xs text-muted">
+        <div className="hidden sm:block">
+          <div className="grid grid-cols-[1.6fr_1fr_1fr] border-b border-navy-700/60 bg-navy-950">
+            <div className="tracked-label p-4 text-xs text-muted">Feature</div>
+            <div className="tracked-label border-l border-navy-700/60 p-4 text-center text-xs text-muted">
               Other Portals
             </div>
-            <div
-              className="relative border-l border-gold-500/40 bg-gradient-to-b from-gold-400/25 via-gold-400/10 to-transparent p-3 text-center"
-              style={{ boxShadow: "inset 0 1px 0 0 rgba(255,198,51,0.3)" }}
-            >
-              <span className="tracked-label inline-flex items-center gap-1.5 text-xs text-gold-300">
-                <MdWorkspacePremium className="h-4 w-4" />
-                Simnani Estate
-              </span>
+            <div className="tracked-label flex items-center justify-center gap-1.5 border-l border-navy-700/60 bg-gold-400/5 p-4 text-center text-xs text-gold-400">
+              <MdWorkspacePremium className="h-4 w-4" />
+              Simnani Estate
             </div>
           </div>
 
           {ROWS.map((row, i) => (
             <div
               key={row.label}
-              className={`grid grid-cols-[1.6fr_1fr_1fr] ${
-                i % 2 === 0 ? "bg-navy-950" : "bg-navy-900"
+              className={`relative grid grid-cols-[1.6fr_1fr_1fr] ${
+                i !== ROWS.length - 1 ? "border-b border-navy-700/60" : ""
               }`}
             >
-              <div className="border-t border-navy-700/60 p-3 text-sm text-cream">
-                {row.label}
-              </div>
-              <div className="border-t border-l border-navy-700/60 p-3 text-center text-sm text-muted">
+              <div className="p-4 text-sm text-cream">{row.label}</div>
+              <div className="border-l border-navy-700/60 p-4 text-center text-sm text-muted">
                 {row.others}
               </div>
-              <div
-                className="border-t border-l border-gold-500/30 bg-gradient-to-b from-gold-400/15 to-gold-400/5 p-3 text-center text-sm font-display font-semibold text-gold-300"
-                style={{ textShadow: "0 0 16px rgba(255,198,51,0.35)" }}
-              >
+              <div className="border-l border-navy-700/60 bg-gold-400/5 p-4 text-center font-display text-sm font-semibold text-gold-400">
                 {row.us}
               </div>
+              <span className="absolute left-[calc(1.6/3.6*100%)] top-1/2 flex h-7 w-7 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-gold-500/40 bg-navy-950">
+                <MdArrowForward className="h-3.5 w-3.5 text-gold-400" />
+              </span>
             </div>
           ))}
         </div>
 
         {/* Mobile stacked cards */}
-        <div className="space-y-3 p-1.5 sm:hidden">
+        <div className="divide-y divide-navy-700/60 sm:hidden">
           {ROWS.map((row) => (
-            <div
-              key={row.label}
-              className="rounded-xl border border-navy-700/60 bg-navy-950 p-3"
-            >
+            <div key={row.label} className="p-4">
               <h3 className="font-display text-sm text-cream">{row.label}</h3>
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                <div className="rounded-lg border border-navy-700/60 bg-navy-900 p-2 text-center">
+              <div className="relative mt-3 grid grid-cols-2 gap-3">
+                <div className="rounded-lg border border-navy-700/60 bg-navy-950 p-3 text-center">
                   <p className="tracked-label text-[10px] text-muted">Others</p>
-                  <p className="mt-1 text-sm text-muted">{row.others}</p>
+                  <p className="mt-1 text-sm text-muted">
+                    {row.others}
+                  </p>
                 </div>
-                <div
-                  className="rounded-lg border border-gold-500/40 bg-gradient-to-b from-gold-400/25 to-gold-400/5 p-2 text-center"
-                  style={{ boxShadow: "0 0 20px -6px var(--color-gold-400)" }}
-                >
-                  <p className="tracked-label flex items-center justify-center gap-1 text-[10px] text-gold-300">
+                <div className="rounded-lg border border-gold-500/30 bg-gold-400/5 p-3 text-center">
+                  <p className="tracked-label flex items-center justify-center gap-1 text-[10px] text-gold-400">
                     <MdWorkspacePremium className="h-3 w-3" />
                     Simnani Estate
                   </p>
-                  <p className="mt-1 text-sm font-display font-semibold text-gold-300">
+                  <p className="mt-1 font-display text-sm font-semibold text-gold-400">
                     {row.us}
                   </p>
                 </div>
+                <span className="absolute left-1/2 top-1/2 flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-gold-500/40 bg-navy-950">
+                  <MdArrowForward className="h-4 w-4 text-gold-400" />
+                </span>
               </div>
             </div>
           ))}
