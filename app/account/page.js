@@ -32,6 +32,7 @@ export default async function AccountPage() {
             name: user.fullName,
             email: user.email,
             city: user.city,
+            state: user.state,
             mobile: user.mobile,
             role:
               user.accountType === "owner"

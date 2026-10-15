@@ -46,6 +46,7 @@ export async function POST(request) {
         mobile: body.mobile || "",
         email: body.email || "",
         city: body.city || "",
+        state: body.state || "",
         accountType: body.accountType || "owner",
         cpType: body.cpType,
         serviceType: body.serviceType,

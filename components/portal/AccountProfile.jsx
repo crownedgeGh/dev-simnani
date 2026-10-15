@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { FiEdit3, FiZap, FiArrowUpCircle } from "react-icons/fi";
 import { MdStar, MdWorkspacePremium } from "react-icons/md";
@@ -8,6 +8,8 @@ import Badge from "./Badge";
 import SectionCard from "./SectionCard";
 import DeleteAccountModal from "./DeleteAccountModal";
 import { inputClass } from "@/components/auth/inputStyles";
+import SearchableSelect from "@/components/auth/SearchableSelect";
+import { RTO_STATES, getCitiesForState } from "@/lib/cityRto";
 import { useAuth } from "@/context/AuthContext";
 
 const PLAN_META = {
@@ -30,6 +32,7 @@ export default function AccountProfile({ user }) {
     name: authUser?.fullName || user.name,
     email: authUser?.email || user.email,
     city: authUser?.city || user.city,
+    state: authUser?.state || user.state || "",
     dealsClosed: authUser?.dealsClosed ?? 0,
   });
   const [saved, setSaved] = useState(false);
@@ -41,10 +44,21 @@ export default function AccountProfile({ user }) {
         name: authUser.fullName || user.name,
         email: authUser.email || user.email,
         city: authUser.city || user.city,
+        state: authUser.state || user.state || "",
         dealsClosed: authUser.dealsClosed ?? 0,
       });
     }
   }, [authUser, user]);
+
+  const cityOptions = useMemo(
+    () => (form.state ? getCitiesForState(form.state).map((c) => c.city) : []),
+    [form.state]
+  );
+
+  function handleStateChange(state) {
+    setForm((prev) => ({ ...prev, state, city: "" }));
+    setSaved(false);
+  }
 
   const displayRole = authUser?.accountType === "owner"
     ? "Owner"
@@ -68,6 +82,7 @@ export default function AccountProfile({ user }) {
         fullName: form.name,
         email: form.email,
         city: form.city,
+        state: form.state,
       };
       if (authUser?.accountType === "broker") {
         patch.dealsClosed = form.dealsClosed !== "" ? Math.max(0, parseInt(form.dealsClosed, 10) || 0) : 0;
@@ -130,12 +145,24 @@ export default function AccountProfile({ user }) {
                 className={inputClass}
               />
             </Field>
+            <Field label="State">
+              <SearchableSelect
+                value={form.state}
+                onChange={handleStateChange}
+                options={RTO_STATES}
+                placeholder="Select your state"
+                searchPlaceholder="Search states…"
+              />
+            </Field>
             <Field label="City">
-              <input
-                type="text"
+              <SearchableSelect
                 value={form.city}
-                onChange={(e) => update("city", e.target.value)}
-                className={inputClass}
+                onChange={(city) => update("city", city)}
+                options={cityOptions}
+                placeholder={form.state ? "Select your city" : "Select a state first"}
+                searchPlaceholder="Search cities…"
+                disabled={!form.state}
+                emptyMessage="No cities found for this state"
               />
             </Field>
             {authUser?.accountType === "broker" && (
@@ -189,7 +216,10 @@ export default function AccountProfile({ user }) {
               <p className="text-[15px] font-medium text-cream">+91 {displayMobile}</p>
             </Field>
             <Field label="City">
-              <p className="text-[15px] font-medium text-cream">{form.city}</p>
+              <p className="text-[15px] font-medium text-cream">{form.city || "—"}</p>
+            </Field>
+            <Field label="State">
+              <p className="text-[15px] font-medium text-cream">{form.state || "—"}</p>
             </Field>
             {authUser?.accountType === "broker" && (
               <Field label="Deals Closed">
