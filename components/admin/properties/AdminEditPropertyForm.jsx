@@ -552,7 +552,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
       errs.bathroomType = "Bathroom type is required";
     if (!form.fullName.trim()) errs.fullName = "Contact name is required";
     const cleanMobile = form.mobile.replace(/\s+/g, "");
-    if (!/^[6-9]\d{9}$/.test(cleanMobile)) {
+    if (!/^\d{10}$/.test(cleanMobile)) {
       errs.mobile = "Enter a valid 10-digit mobile number";
     }
     return errs;
