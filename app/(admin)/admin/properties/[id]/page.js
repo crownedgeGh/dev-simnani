@@ -304,7 +304,7 @@ export default function PropertyDetailPage() {
   // Category-aware: bare land (e.g. Agricultural Land, Plantation Farming)
   // has no structure, so floor/furnishing/parking/bathrooms don't apply,
   // and only Farmhouse/Apartments-style categories have bedrooms & halls.
-  const isStructural = isStructureCategory(property.type, property.category);
+  const isStructural = isStructureCategory(property.type, property.category, property.propertyType);
   const hasBedrooms = categoryHasBedrooms(property.type, property.category, property.propertyType);
   const isResidentialListing = !CATEGORIES_BY_TYPE[property.type];
 

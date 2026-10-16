@@ -75,6 +75,19 @@ export default function LeadDetailDialog({ isOpen, onClose, lead }) {
         <DetailRow label="Date" value={lead.date} />
         {lead.notes && <DetailRow label="Notes" value={lead.notes} />}
       </div>
+      {lead.photos?.length > 0 && (
+        <div className="mt-4">
+          <span className="tracked-label text-[10px] text-[#9ca3af]">Photos</span>
+          <div className="mt-2 grid grid-cols-3 gap-2">
+            {lead.photos.map((url) => (
+              <a key={url} href={url} target="_blank" rel="noreferrer">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={url} alt="" className="h-20 w-full rounded-lg border border-[#e8e0d5] object-cover" />
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
     </AdminDialog>
   );
 }

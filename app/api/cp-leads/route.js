@@ -106,7 +106,7 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const { customer, phone, project, projectId, source, notes, adLinkId } = body;
+    const { customer, phone, project, projectId, source, notes, adLinkId, photos } = body;
 
     if (!customer || !customer.trim()) {
       return NextResponse.json({ success: false, error: "Customer name is required" }, { status: 400 });
@@ -117,6 +117,7 @@ export async function POST(request) {
       id,
       customer: customer.trim(),
       phone: phone || "",
+      photos: Array.isArray(photos) ? photos : [],
       project: project || "",
       projectId: projectId || "",
       source: source || "",

@@ -60,7 +60,7 @@ export default function PropertyFormDialog({ isOpen, onClose, property, onSave }
   };
 
   const isPgHostel = isPgOrHostel(form.propertyType);
-  const needsStructureFields = isStructureCategory(form.type, form.category) && !isPgHostel;
+  const needsStructureFields = isStructureCategory(form.type, form.category, form.propertyType) && !isPgHostel;
   const needsBedrooms = categoryHasBedrooms(form.type, form.category, form.propertyType);
 
   const validate = () => {

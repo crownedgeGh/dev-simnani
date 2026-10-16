@@ -376,7 +376,21 @@ export default function CPTypeWorkspace({
 
   const LEAD_COLUMNS = [
     { key: "id", label: "Lead ID", render: (v) => <span className="font-mono text-xs text-[#9ca3af]">{v}</span> },
-    { key: "customer", label: "Customer", sortable: true, primary: true },
+    {
+      key: "customer",
+      label: "Customer",
+      sortable: true,
+      primary: true,
+      render: (v, row) => (
+        <span className="flex items-center gap-2">
+          {row.photos?.[0] && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={row.photos[0]} alt="" className="h-7 w-7 shrink-0 rounded-full border border-[#e8e0d5] object-cover" />
+          )}
+          <span>{v}</span>
+        </span>
+      ),
+    },
     { key: "project", label: "Project", sortable: true },
     { key: "source", label: "Source" },
     {

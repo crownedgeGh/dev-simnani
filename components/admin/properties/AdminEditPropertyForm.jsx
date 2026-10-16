@@ -251,7 +251,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
 
   const isResidentialType = !CATEGORIES_BY_TYPE[form.type];
   const isPgHostelType = isResidentialType && isPgOrHostel(form.propertyType);
-  const needsStructureFields = isStructureCategory(form.type, form.category);
+  const needsStructureFields = isStructureCategory(form.type, form.category, form.propertyType);
   const needsBedrooms = categoryHasBedrooms(form.type, form.category, form.propertyType);
 
   // Populate form with existing property data

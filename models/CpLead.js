@@ -14,6 +14,7 @@ const CpLeadSchema = new mongoose.Schema(
     },
     customer: { type: String, required: true, trim: true },
     phone: { type: String, default: "" },
+    photos: { type: [String], default: [] },
     project: { type: String, default: "" },
     projectId: { type: String, default: "" },
     source: { type: String, default: "" },

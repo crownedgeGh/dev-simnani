@@ -695,8 +695,12 @@ export default function DigitalCPDashboard({ stats, assets, partner, myListings 
                               {leads.map((lead) => (
                                 <div
                                   key={lead.id}
-                                  className="flex flex-col gap-3 py-3 first:pt-0 last:pb-0"
+                                  className="flex gap-3 py-3 first:pt-0 last:pb-0"
                                 >
+                                  {lead.photos?.[0] && (
+                                    // eslint-disable-next-line @next/next/no-img-element
+                                    <img src={lead.photos[0]} alt="" className="h-10 w-10 shrink-0 rounded-full border border-navy-700/60 object-cover" />
+                                  )}
                                   <div className="min-w-0">
                                     <p className="text-sm text-cream">{lead.customer}</p>
                                     <p className="mt-1 text-xs text-muted">{lead.phone}</p>

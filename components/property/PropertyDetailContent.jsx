@@ -53,7 +53,7 @@ export default function PropertyDetailContent({ property, eyebrow, sidebar, back
   // e.g. Plantation Farming / Agricultural Land are bare land with no
   // structure, so floor/furnishing/parking/bathrooms don't apply, and only
   // Farmhouse/Apartments-style categories have bedrooms & halls.
-  const isStructural = isStructureCategory(property.type, property.category);
+  const isStructural = isStructureCategory(property.type, property.category, property.propertyType);
   const hasBedrooms = categoryHasBedrooms(property.type, property.category, property.propertyType);
   const isResidentialListing = !CATEGORIES_BY_TYPE[property.type];
 

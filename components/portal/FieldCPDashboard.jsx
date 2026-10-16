@@ -157,7 +157,75 @@ const TABS = [
   { key: "listings", label: "My Listings" },
 ];
 
-const INITIAL_DIRECT_FORM = { customer: "", phone: "", notes: "" };
+const INITIAL_DIRECT_FORM = { customer: "", phone: "", notes: "", photos: [] };
+
+function DirectLeadPhotoDrop({ photos, uploading, onFiles, onRemove }) {
+  const [isDragging, setIsDragging] = useState(false);
+
+  function handleDrop(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    if (e.dataTransfer.files?.length) onFiles(e.dataTransfer.files);
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      {photos.length > 0 && (
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+          {photos.map((url, index) => (
+            <div key={url} className="relative aspect-square overflow-hidden rounded-2xl border border-gold-400">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={url} alt="" className="h-full w-full object-cover" />
+              <button
+                type="button"
+                onClick={() => onRemove(index)}
+                aria-label="Remove photo"
+                className="absolute right-1 top-1 flex h-7 w-7 items-center justify-center rounded-full bg-navy-950/80 text-cream transition hover:bg-red-500/80 active:scale-[0.98]"
+              >
+                <FiX className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      <label
+        htmlFor="fcp-photo"
+        onDragEnter={(e) => {
+          e.preventDefault();
+          setIsDragging(true);
+        }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = "copy";
+          setIsDragging(true);
+        }}
+        onDragLeave={() => setIsDragging(false)}
+        onDrop={handleDrop}
+        className={`flex min-h-[7rem] cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed px-4 py-6 text-center transition ${
+          isDragging ? "border-gold-400 bg-navy-900" : "border-navy-700/60 bg-navy-950 hover:border-gold-400"
+        }`}
+      >
+        <FiCamera className="h-6 w-6 text-gold-400" />
+        <span className="text-xs text-cream">
+          {uploading ? "Uploading…" : "Click to upload or drag and drop — multiple photos allowed"}
+        </span>
+        <input
+          id="fcp-photo"
+          type="file"
+          accept="image/*"
+          multiple
+          disabled={uploading}
+          className="hidden"
+          onChange={(e) => {
+            if (e.target.files?.length) onFiles(e.target.files);
+            e.target.value = "";
+          }}
+        />
+      </label>
+    </div>
+  );
+}
 
 export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisits: initialSiteVisits, projects, partner, myListings = [] }) {
   const [tab, setTab] = usePersistentTab(
@@ -224,6 +292,19 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
   const [directForm, setDirectForm] = useState(INITIAL_DIRECT_FORM);
   const [directError, setDirectError] = useState("");
   const [directLeads, setDirectLeads] = useState([]);
+  const [directPhotoUploading, setDirectPhotoUploading] = useState(false);
+
+  async function handleDirectPhotos(fileList) {
+    setDirectPhotoUploading(true);
+    try {
+      const urls = await Promise.all(Array.from(fileList).map((file) => uploadFileToR2(file, "cp-leads")));
+      setDirectForm((prev) => ({ ...prev, photos: [...prev.photos, ...urls] }));
+    } catch (error) {
+      toast.error(error.message || "Couldn't upload the photo — please try again");
+    } finally {
+      setDirectPhotoUploading(false);
+    }
+  }
 
   const loadDirectLeads = useCallback(() => {
     if (!partner?.accountId) return;
@@ -459,6 +540,7 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
           phone: directForm.phone.trim(),
           source: "Field CP Direct Lead",
           notes: directForm.notes.trim(),
+          photos: directForm.photos,
         }),
       });
       const json = await res.json();
@@ -1066,7 +1148,12 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
                     type="tel"
                     placeholder="+91 98765 43210"
                     value={directForm.phone}
-                    onChange={(e) => setDirectForm((prev) => ({ ...prev, phone: e.target.value }))}
+                    onChange={(e) =>
+                      setDirectForm((prev) => ({
+                        ...prev,
+                        phone: e.target.value.replace(/\D/g, "").slice(0, 10),
+                      }))
+                    }
                     className={inputClass}
                   />
                 </FormField>
@@ -1081,13 +1168,24 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
                   className={textareaClass}
                 />
               </FormField>
+              <FormField label="Photos" htmlFor="fcp-photo" optional>
+                <DirectLeadPhotoDrop
+                  photos={directForm.photos}
+                  uploading={directPhotoUploading}
+                  onFiles={handleDirectPhotos}
+                  onRemove={(index) =>
+                    setDirectForm((prev) => ({ ...prev, photos: prev.photos.filter((_, i) => i !== index) }))
+                  }
+                />
+              </FormField>
 
               {directError && <p className="text-xs text-red-400">{directError}</p>}
 
               <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:justify-end">
                 <button
                   type="submit"
-                  className="tracked-label flex items-center justify-center gap-2 rounded-full bg-gold-400 px-6 py-3 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 hover:shadow-gold-400/20 active:scale-[0.98]"
+                  disabled={directPhotoUploading}
+                  className="tracked-label flex items-center justify-center gap-2 rounded-full bg-gold-400 px-6 py-3 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 hover:shadow-gold-400/20 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <FiPlus className="h-4 w-4" />
                   Add Lead
@@ -1102,8 +1200,21 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
                 {directLeads.map((lead) => (
                   <div
                     key={lead.id}
-                    className="flex flex-col gap-3 border border-navy-700/60 bg-navy-900 p-4"
+                    className="flex gap-3 border border-navy-700/60 bg-navy-900 p-4"
                   >
+                    {lead.photos?.length > 0 && (
+                      <div className="flex shrink-0 gap-1.5">
+                        {lead.photos.slice(0, 3).map((url) => (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            key={url}
+                            src={url}
+                            alt=""
+                            className="h-14 w-14 rounded-xl border border-navy-700/60 object-cover"
+                          />
+                        ))}
+                      </div>
+                    )}
                     <div className="min-w-0">
                       <p className="text-sm text-cream">{lead.customer}</p>
                       <p className="mt-1 text-xs text-muted">{lead.phone}</p>

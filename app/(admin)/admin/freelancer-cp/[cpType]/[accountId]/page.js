@@ -428,14 +428,30 @@ export default function PartnerPortalPage() {
                       {receivedLeads.map((lead) => (
                         <div key={lead.id} className="rounded-xl border border-[#e8e0d5] bg-[#faf8f5] p-3.5">
                           <div className="flex items-center justify-between gap-3">
-                            <div className="min-w-0">
-                              <p className="text-sm font-medium text-[#1a1a2e]">{lead.customer}</p>
-                              <p className="mt-0.5 flex items-center gap-1 text-xs text-[#9ca3af]">
-                                {lead.project || "—"} · <AdminPhoneCell value={lead.phone} />
-                              </p>
+                            <div className="flex min-w-0 items-center gap-2">
+                              {lead.photos?.[0] && (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={lead.photos[0]} alt="" className="h-8 w-8 shrink-0 rounded-full border border-[#e8e0d5] object-cover" />
+                              )}
+                              <div className="min-w-0">
+                                <p className="text-sm font-medium text-[#1a1a2e]">{lead.customer}</p>
+                                <p className="mt-0.5 flex items-center gap-1 text-xs text-[#9ca3af]">
+                                  {lead.project || "—"} · <AdminPhoneCell value={lead.phone} />
+                                </p>
+                              </div>
                             </div>
                             <AdminStatusBadge status={lead.status} />
                           </div>
+                          {lead.photos?.length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-1.5 border-t border-[#f0ebe3] pt-2">
+                              {lead.photos.map((url) => (
+                                <a key={url} href={url} target="_blank" rel="noreferrer">
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img src={url} alt="" className="h-12 w-12 rounded-lg border border-[#e8e0d5] object-cover" />
+                                </a>
+                              ))}
+                            </div>
+                          )}
                           {lead.serviceProvider?.accountId && (
                             <p className="mt-2 flex flex-wrap items-center gap-1.5 border-t border-[#f0ebe3] pt-2 text-xs text-[#374151]">
                               <MdSend size={13} className="text-[#d97706]" />
@@ -481,14 +497,32 @@ export default function PartnerPortalPage() {
               ) : (
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {leads.map((lead) => (
-                    <div key={lead.id} className="flex items-center justify-between gap-3 rounded-xl border border-[#e8e0d5] bg-[#faf8f5] p-3.5">
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-[#1a1a2e]">{lead.customer}</p>
-                        <p className="mt-0.5 flex items-center gap-1 text-xs text-[#9ca3af]">
-                          {lead.project || "—"} · <AdminPhoneCell value={lead.phone} />
-                        </p>
+                    <div key={lead.id} className="rounded-xl border border-[#e8e0d5] bg-[#faf8f5] p-3.5">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex min-w-0 items-center gap-2">
+                          {lead.photos?.[0] && (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={lead.photos[0]} alt="" className="h-8 w-8 shrink-0 rounded-full border border-[#e8e0d5] object-cover" />
+                          )}
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-[#1a1a2e]">{lead.customer}</p>
+                            <p className="mt-0.5 flex items-center gap-1 text-xs text-[#9ca3af]">
+                              {lead.project || "—"} · <AdminPhoneCell value={lead.phone} />
+                            </p>
+                          </div>
+                        </div>
+                        <AdminStatusBadge status={lead.status} />
                       </div>
-                      <AdminStatusBadge status={lead.status} />
+                      {lead.photos?.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1.5 border-t border-[#f0ebe3] pt-2">
+                          {lead.photos.map((url) => (
+                            <a key={url} href={url} target="_blank" rel="noreferrer">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={url} alt="" className="h-12 w-12 rounded-lg border border-[#e8e0d5] object-cover" />
+                            </a>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

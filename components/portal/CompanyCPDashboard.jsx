@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, Fragment } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -196,6 +196,7 @@ export default function CompanyCPDashboard({
   // expanded live-tracking row, and "show more" pagination so the view
   // stays scannable as the network grows past a handful of partners.
   const [fieldFilterId, setFieldFilterId] = useState("all");
+  const [expandedLeadPhotos, setExpandedLeadPhotos] = useState(null);
   const [digitalFilterId, setDigitalFilterId] = useState("all");
   const [fieldPartnerQuery, setFieldPartnerQuery] = useState("");
   const [digitalPartnerQuery, setDigitalPartnerQuery] = useState("");
@@ -1010,29 +1011,74 @@ export default function CompanyCPDashboard({
                             </td>
                           </tr>
                         ) : (
-                          visibleFieldLeads.slice(0, shownFor("fieldLeads")).map((l) => (
-                            <tr key={l.id} className="border-b border-navy-700/60 last:border-0">
-                              <td className="px-4 py-3 text-cream">{l.customer}</td>
-                              <td className="px-4 py-3 text-muted">
-                                {l.phone ? (
-                                  <div className="flex items-center gap-1.5">
-                                    <span>{l.phone}</span>
-                                    <PhoneActions phone={l.phone} />
-                                  </div>
-                                ) : (
-                                  "—"
+                          visibleFieldLeads.slice(0, shownFor("fieldLeads")).map((l) => {
+                            const hasPhotos = l.photos?.length > 0;
+                            const isExpanded = expandedLeadPhotos === l.id;
+                            return (
+                              <Fragment key={l.id}>
+                                <tr className="border-b border-navy-700/60 last:border-0">
+                                  <td className="px-4 py-3 text-cream">
+                                    <button
+                                      type="button"
+                                      disabled={!hasPhotos}
+                                      onClick={() => setExpandedLeadPhotos(isExpanded ? null : l.id)}
+                                      className="flex items-center gap-2 disabled:cursor-default"
+                                    >
+                                      {l.photos?.[0] && (
+                                        // eslint-disable-next-line @next/next/no-img-element
+                                        <img src={l.photos[0]} alt="" className="h-7 w-7 shrink-0 rounded-full border border-navy-700/60 object-cover" />
+                                      )}
+                                      <span>{l.customer}</span>
+                                      {hasPhotos && (
+                                        <span className="flex items-center gap-1 text-[10px] text-muted">
+                                          {l.photos.length}
+                                          <FiChevronDown
+                                            className={`h-3 w-3 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                                          />
+                                        </span>
+                                      )}
+                                    </button>
+                                  </td>
+                                  <td className="px-4 py-3 text-muted">
+                                    {l.phone ? (
+                                      <div className="flex items-center gap-1.5">
+                                        <span>{l.phone}</span>
+                                        <PhoneActions phone={l.phone} />
+                                      </div>
+                                    ) : (
+                                      "—"
+                                    )}
+                                  </td>
+                                  <td className="px-4 py-3 text-muted">{l.project || "—"}</td>
+                                  {fieldFilterId === "all" && (
+                                    <td className="px-4 py-3 text-muted">{partnerName(l.submittedBy?.accountId)}</td>
+                                  )}
+                                  <td className="px-4 py-3">
+                                    <Badge tone={LEAD_STATUS_TONE[l.status] || "muted"}>{l.status}</Badge>
+                                  </td>
+                                  <td className="px-4 py-3">{renderForward(l)}</td>
+                                </tr>
+                                {isExpanded && (
+                                  <tr className="border-b border-navy-700/60 last:border-0">
+                                    <td colSpan={fieldFilterId === "all" ? 6 : 5} className="bg-navy-950 px-4 py-4">
+                                      <div className="flex flex-wrap gap-3">
+                                        {l.photos.map((url) => (
+                                          <a key={url} href={url} target="_blank" rel="noreferrer">
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                            <img
+                                              src={url}
+                                              alt=""
+                                              className="h-24 w-24 rounded-xl border border-navy-700/60 object-cover transition hover:border-gold-400"
+                                            />
+                                          </a>
+                                        ))}
+                                      </div>
+                                    </td>
+                                  </tr>
                                 )}
-                              </td>
-                              <td className="px-4 py-3 text-muted">{l.project || "—"}</td>
-                              {fieldFilterId === "all" && (
-                                <td className="px-4 py-3 text-muted">{partnerName(l.submittedBy?.accountId)}</td>
-                              )}
-                              <td className="px-4 py-3">
-                                <Badge tone={LEAD_STATUS_TONE[l.status] || "muted"}>{l.status}</Badge>
-                              </td>
-                              <td className="px-4 py-3">{renderForward(l)}</td>
-                            </tr>
-                          ))
+                              </Fragment>
+                            );
+                          })
                         )}
                       </tbody>
                     </table>
@@ -1235,8 +1281,14 @@ export default function CompanyCPDashboard({
                             visibleDigitalLeads.slice(0, shownFor("digitalLeads")).map((l) => (
                               <tr key={l.id} className="border-b border-navy-700/60 last:border-0">
                                 <td className="px-4 py-3 text-cream">
-                                  {l.customer}
-                                  <span className="tracked-label ml-2 text-[10px] text-muted">{l.project || ""}</span>
+                                  <div className="flex items-center gap-2">
+                                    {l.photos?.[0] && (
+                                      // eslint-disable-next-line @next/next/no-img-element
+                                      <img src={l.photos[0]} alt="" className="h-7 w-7 shrink-0 rounded-full border border-navy-700/60 object-cover" />
+                                    )}
+                                    <span>{l.customer}</span>
+                                    <span className="tracked-label text-[10px] text-muted">{l.project || ""}</span>
+                                  </div>
                                 </td>
                                 <td className="px-4 py-3 text-muted">
                                   <div className="flex items-center gap-1.5">
@@ -1355,8 +1407,14 @@ export default function CompanyCPDashboard({
                     <tr key={lead.id} className="border-b border-navy-700/60 last:border-0">
                       <td className="px-4 py-3 text-cream">{lead.project}</td>
                       <td className="px-4 py-3 text-muted">
-                        {lead.customer}
-                        <span className="tracked-label ml-2 text-[10px] text-muted">{lead.id}</span>
+                        <div className="flex items-center gap-2">
+                          {lead.photos?.[0] && (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={lead.photos[0]} alt="" className="h-7 w-7 shrink-0 rounded-full border border-navy-700/60 object-cover" />
+                          )}
+                          <span>{lead.customer}</span>
+                          <span className="tracked-label text-[10px] text-muted">{lead.id}</span>
+                        </div>
                       </td>
                       <td className="px-4 py-3 text-cream">{lead.submittedBy?.name || "—"}</td>
                       <td className="px-4 py-3">
