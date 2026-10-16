@@ -3,7 +3,8 @@ import { MdAccountBalance, MdArrowForward, MdGridView } from "react-icons/md";
 import dbConnect from "@/lib/mongodb";
 import Plot from "@/models/Plot";
 import BackButton from "@/components/layout/BackButton";
-import PlotLayoutViewer from "@/components/project/PlotLayoutViewer";
+import PlotAvailabilitySection from "@/components/project/PlotAvailabilitySection";
+import TestPaymentSection from "@/components/payment/TestPaymentSection";
 
 export const revalidate = 60; // admin plot edits show up within a minute
 
@@ -82,15 +83,15 @@ export default async function OthersPage() {
         ))}
       </div>
 
-      <section id="plot-availability" className="scroll-mt-24 pt-16 sm:pt-20 lg:pt-24">
-        <span className="tracked-label text-xs text-gold-400">Live Inventory</span>
-        <h2 className="mt-2 font-display text-3xl text-cream sm:text-4xl">Plot Availability</h2>
+      <PlotAvailabilitySection plots={plots} />
+
+      <section className="pt-16 sm:pt-20 lg:pt-24">
+        <span className="tracked-label text-xs text-gold-400">Testing</span>
+        <h2 className="mt-2 font-display text-3xl text-cream sm:text-4xl">Razorpay Test Payment</h2>
         <p className="mt-2 max-w-2xl text-sm text-muted">
-          Tap any plot to see its size, facing and price. Yellow plots are open for booking.
+          Dev-mode checkout — enter any amount. Use Razorpay test card <span className="text-cream">4111 1111 1111 1111</span>, any future expiry, any CVV.
         </p>
-        <div className="mt-8">
-          <PlotLayoutViewer plots={plots} />
-        </div>
+        <TestPaymentSection />
       </section>
     </div>
   );
