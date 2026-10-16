@@ -135,7 +135,7 @@ const INITIAL_FORM = {
   description: "",
   fullName: "",
   mobile: "",
-  status: "Active",
+  status: "Pending Review",
   featured: false,
   badge: "",
   postedByRole: POSTED_BY_ROLES.SUPER_ADMIN,

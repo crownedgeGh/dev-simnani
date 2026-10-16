@@ -115,8 +115,9 @@ export async function POST(request) {
   try {
     await dbConnect();
 
-    const sessionUser = await getSessionUser(request);
-    if (!sessionUser) {
+    const isAdmin = isAdminRequest(request);
+    const sessionUser = isAdmin ? null : await getSessionUser(request);
+    if (!isAdmin && !sessionUser) {
       return NextResponse.json(
         { success: false, error: "You must be logged in to post a property" },
         { status: 401 }
@@ -125,16 +126,18 @@ export async function POST(request) {
 
     const body = await request.json();
 
-    const limit = getListingLimit(sessionUser.accountType);
-    const existingCount = await Property.countDocuments({ ownerId: sessionUser.accountId });
-    if (existingCount >= limit) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: `You have reached your listing limit of ${limit}. Remove an existing listing to post more.`,
-        },
-        { status: 403 }
-      );
+    if (sessionUser) {
+      const limit = getListingLimit(sessionUser.accountType);
+      const existingCount = await Property.countDocuments({ ownerId: sessionUser.accountId });
+      if (existingCount >= limit) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `You have reached your listing limit of ${limit}. Remove an existing listing to post more.`,
+          },
+          { status: 403 }
+        );
+      }
     }
 
     if (isResidentialSection(body.type) && !RESIDENTIAL_PROPERTY_TYPES.includes(body.propertyType)) {
@@ -177,9 +180,9 @@ export async function POST(request) {
       bedsPlus: Boolean(body.bedsPlus),
       halls,
       baths,
-      ownerId: sessionUser.accountId,
+      ownerId: sessionUser ? sessionUser.accountId : "",
       postedByRole: body.postedByRole || "public",
-      postedByAccountType: sessionUser.accountType || "",
+      postedByAccountType: sessionUser ? sessionUser.accountType || "" : "admin",
       addedDate:
         body.addedDate ||
         new Date().toLocaleDateString("en-IN", {

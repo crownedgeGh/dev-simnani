@@ -57,8 +57,9 @@ export async function PUT(request, { params }) {
     const resolvedParams = await params;
     const id = resolvedParams.id;
 
-    const sessionUser = await getSessionUser(request);
-    if (!sessionUser) {
+    const isAdmin = isAdminRequest(request);
+    const sessionUser = isAdmin ? null : await getSessionUser(request);
+    if (!isAdmin && !sessionUser) {
       return NextResponse.json({ success: false, error: "You must be logged in" }, { status: 401 });
     }
 
@@ -70,7 +71,7 @@ export async function PUT(request, { params }) {
       return NextResponse.json({ success: false, error: "Property not found" }, { status: 404 });
     }
 
-    if (existing.ownerId !== sessionUser.accountId) {
+    if (!isAdmin && existing.ownerId !== sessionUser.accountId) {
       return NextResponse.json(
         { success: false, error: "You can only manage your own listings" },
         { status: 403 }
@@ -219,8 +220,9 @@ export async function DELETE(request, { params }) {
     const resolvedParams = await params;
     const id = resolvedParams.id;
 
-    const sessionUser = await getSessionUser(request);
-    if (!sessionUser) {
+    const isAdmin = isAdminRequest(request);
+    const sessionUser = isAdmin ? null : await getSessionUser(request);
+    if (!isAdmin && !sessionUser) {
       return NextResponse.json({ success: false, error: "You must be logged in" }, { status: 401 });
     }
 
@@ -232,7 +234,7 @@ export async function DELETE(request, { params }) {
       return NextResponse.json({ success: false, error: "Property not found" }, { status: 404 });
     }
 
-    if (existing.ownerId !== sessionUser.accountId) {
+    if (!isAdmin && existing.ownerId !== sessionUser.accountId) {
       return NextResponse.json(
         { success: false, error: "You can only manage your own listings" },
         { status: 403 }

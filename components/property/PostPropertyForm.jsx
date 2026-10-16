@@ -173,7 +173,7 @@ const INITIAL_FORM = {
 const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, logout } = useAuth();
   const portalHref = getAccountPermissions(user?.accountType, user?.cpType).portalHref;
   // Channel Partners posting through the public form get attributed to
   // their CP tier (routes them to /admin/sg-properties) instead of the
@@ -728,6 +728,13 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
       });
       const data = await res.json();
       if (!res.ok || !data.success) {
+        // The client-side session cache can outlive the real server session
+        // (cookie expired/cleared elsewhere) — the UI then shows a logged-in
+        // form that always 401s. Log out locally so the user gets a clear
+        // "log in again" prompt instead of a form stuck forever.
+        if (res.status === 401) {
+          logout();
+        }
         throw new Error(data.error || "Submission failed");
       }
       submittedRef.current = true;
