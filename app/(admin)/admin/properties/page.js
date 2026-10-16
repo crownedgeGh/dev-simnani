@@ -346,7 +346,7 @@ export default function AdminPropertiesPage() {
         label: "Status",
         type: "status",
         sortable: true,
-        filterOptions: ["Active", "Pending Review", "Rejected", "Closed"],
+        filterOptions: ["Active", "Pending Review", "Rejected", "Closed", "Draft"],
       },
       {
         key: "featured",

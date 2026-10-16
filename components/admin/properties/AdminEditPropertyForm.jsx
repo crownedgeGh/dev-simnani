@@ -19,6 +19,7 @@ import {
   MdImage,
   MdRefresh,
   MdDescription,
+  MdOutlineSaveAlt,
 } from "react-icons/md";
 import AdminFormField, {
   adminInputClass,
@@ -106,7 +107,7 @@ const PREFERRED_FOR_OPTIONS = [
   "Anyone",
 ];
 
-const STATUS_OPTIONS = ["Active", "Pending Review", "Rejected"];
+const STATUS_OPTIONS = ["Active", "Pending Review", "Rejected", "Draft"];
 
 // Helper to parse price string to pure numeric string
 function parsePriceToNumber(rawVal) {
@@ -191,6 +192,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
   const [saving, setSaving] = useState(false);
   const [uploadStatus, setUploadStatus] = useState("");
   const [errors, setErrors] = useState({});
+  const [showDraftOption, setShowDraftOption] = useState(false);
 
   // Cover image mode: "file" | "url"
   const [coverMode, setCoverMode] = useState("url");
@@ -203,6 +205,9 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
   // Parallel array: File object if the entry at the same index is a pending upload, null if it's already a URL
   const [galleryMeta, setGalleryMeta] = useState([]);
   const [galleryUrlInput, setGalleryUrlInput] = useState("");
+  const [draggedIndex, setDraggedIndex] = useState(null);
+  const [coverDragActive, setCoverDragActive] = useState(false);
+  const [galleryDragActive, setGalleryDragActive] = useState(false);
 
   // Property video
   const [videoFile, setVideoFile] = useState(null);
@@ -412,9 +417,12 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
   };
 
   // Cover Image File selection
-  const handleCoverFile = (e) => {
-    const file = e.target.files?.[0];
+  const processCoverFile = (file) => {
     if (!file) return;
+    if (!file.type?.startsWith("image/")) {
+      toast.error("Please drop an image file");
+      return;
+    }
     if (file.size > 5 * 1024 * 1024) {
       toast.error("Cover image should be under 5MB");
       return;
@@ -424,13 +432,18 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
       setCoverPreview(reader.result);
       setCoverFile(file);
       setCoverUrl("");
+      setCoverMode("file");
     };
     reader.readAsDataURL(file);
   };
 
+  const handleCoverFile = (e) => {
+    processCoverFile(e.target.files?.[0]);
+    e.target.value = "";
+  };
+
   // Gallery File selection
-  const handleGalleryFiles = (e) => {
-    const files = Array.from(e.target.files || []);
+  const processGalleryFiles = (files) => {
     if (!files.length) return;
 
     if (galleryImages.length + files.length > 10) {
@@ -439,6 +452,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
     }
 
     files.forEach((file) => {
+      if (!file.type?.startsWith("image/")) return;
       if (file.size > 5 * 1024 * 1024) {
         toast.error(`File ${file.name} exceeds 5MB limit`);
         return;
@@ -450,12 +464,28 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
       };
       reader.readAsDataURL(file);
     });
+  };
+
+  const handleGalleryFiles = (e) => {
+    processGalleryFiles(Array.from(e.target.files || []));
     e.target.value = "";
   };
 
   const removeGalleryImage = (index) => {
     setGalleryImages((prev) => prev.filter((_, i) => i !== index));
     setGalleryMeta((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const reorderGallery = (fromIndex, toIndex) => {
+    if (fromIndex === toIndex) return;
+    const moveItem = (arr) => {
+      const next = [...arr];
+      const [moved] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, moved);
+      return next;
+    };
+    setGalleryImages((prev) => moveItem(prev));
+    setGalleryMeta((prev) => moveItem(prev));
   };
 
   const addGalleryFromUrl = () => {
@@ -494,6 +524,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
         setVideoFile(null);
         populateFormData(originalProperty);
         setErrors({});
+        setShowDraftOption(false);
         toast.info("Form reset to original values");
       }
     }
@@ -532,11 +563,21 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
     const errs = validate();
     if (Object.keys(errs).length > 0) {
       setErrors(errs);
-      toast.error("Please fill in all required fields marked with *");
+      setShowDraftOption(true);
+      toast.error("Some required fields are missing — fix them or save as a draft.");
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
 
+    setShowDraftOption(false);
+    await saveProperty(form.status);
+  };
+
+  const handleSaveDraft = async () => {
+    await saveProperty("Draft");
+  };
+
+  const saveProperty = async (statusToUse) => {
     setSaving(true);
     try {
       if (coverFile || galleryMeta.some(Boolean) || videoFile) {
@@ -581,7 +622,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
       const updatedPayload = {
         ...(originalProperty || {}),
         id: propertyId,
-        title: form.title.trim(),
+        title: form.title.trim() || "Untitled Draft",
         purpose: form.purpose,
         type: form.type,
         propertyType: form.propertyType,
@@ -617,9 +658,9 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
         video: finalVideo || "",
         contact: {
           fullName: form.fullName.trim(),
-          mobile: `+91 ${form.mobile.trim()}`,
+          mobile: form.mobile.trim() ? `+91 ${form.mobile.trim()}` : "",
         },
-        status: form.status,
+        status: statusToUse,
         featured: form.featured,
         badge: form.badge.trim() || (form.featured ? "Featured" : ""),
         postedByRole: form.postedByRole,
@@ -650,7 +691,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
         // non-fatal
       }
 
-      toast.success("Property updated successfully in database!");
+      toast.success(statusToUse === "Draft" ? "Property saved as draft." : "Property updated successfully in database!");
       router.push(isPublicPostedByRole(updatedPayload.postedByRole) ? "/admin/properties" : "/admin/sg-properties");
     } catch (err) {
       console.error("Edit property error:", err);
@@ -736,6 +777,16 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
           >
             <MdRefresh size={16} /> Reset Changes
           </button>
+          {showDraftOption && (
+            <button
+              type="button"
+              onClick={handleSaveDraft}
+              disabled={saving}
+              className="flex h-10 items-center gap-2 rounded-xl border border-[#f0b429] bg-white px-4 text-xs font-semibold text-[#d97706] transition hover:bg-[#fff8e1] disabled:opacity-50"
+            >
+              <MdOutlineSaveAlt size={16} /> Save as Draft
+            </button>
+          )}
           <button
             type="submit"
             form="admin-edit-property-form"
@@ -1281,7 +1332,19 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
         >
           <div className="space-y-6">
             {/* Primary Cover Image Box */}
-            <div>
+            <div
+              onDragOver={(e) => {
+                e.preventDefault();
+                setCoverDragActive(true);
+              }}
+              onDragLeave={() => setCoverDragActive(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setCoverDragActive(false);
+                processCoverFile(e.dataTransfer.files?.[0]);
+              }}
+              className={`rounded-2xl transition ${coverDragActive ? "ring-2 ring-[#f0b429] ring-offset-2" : ""}`}
+            >
               <div className="mb-2 flex items-center justify-between">
                 <label className="text-xs font-semibold text-[#1a1a2e]">
                   Primary Cover Image <span className="text-red-500">*</span>
@@ -1397,7 +1460,19 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
             <hr className="border-[#e8e0d5]" />
 
             {/* Gallery Images Section */}
-            <div>
+            <div
+              onDragOver={(e) => {
+                e.preventDefault();
+                setGalleryDragActive(true);
+              }}
+              onDragLeave={() => setGalleryDragActive(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setGalleryDragActive(false);
+                processGalleryFiles(Array.from(e.dataTransfer.files || []));
+              }}
+              className={`rounded-2xl transition ${galleryDragActive ? "ring-2 ring-[#f0b429] ring-offset-2" : ""}`}
+            >
               <div className="mb-2 flex items-center justify-between">
                 <div>
                   <label className="text-xs font-semibold text-[#1a1a2e]">
@@ -1451,11 +1526,24 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
                   {galleryImages.map((img, idx) => (
                     <div
                       key={idx}
-                      className="group relative h-24 overflow-hidden rounded-xl border border-[#e8e0d5] bg-gray-100"
+                      draggable
+                      onDragStart={() => setDraggedIndex(idx)}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        if (draggedIndex === null) return;
+                        reorderGallery(draggedIndex, idx);
+                        setDraggedIndex(null);
+                      }}
+                      onDragEnd={() => setDraggedIndex(null)}
+                      className={`group relative h-24 cursor-grab overflow-hidden rounded-xl border bg-gray-100 transition active:cursor-grabbing ${
+                        draggedIndex === idx ? "opacity-40 border-[#f0b429]" : "border-[#e8e0d5]"
+                      }`}
                     >
                       <img
                         src={img}
                         alt={`Gallery ${idx + 1}`}
+                        draggable={false}
                         className="h-full w-full object-cover transition group-hover:scale-105"
                       />
                       <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition group-hover:opacity-100">
@@ -1551,15 +1639,13 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
                 label="Full Name"
                 required
                 error={errors.fullName}
-                hint="Locked — the lister's name cannot be changed from the admin panel"
               >
                 <input
                   type="text"
                   value={form.fullName}
-                  disabled
-                  readOnly
+                  onChange={(e) => update("fullName", e.target.value)}
                   placeholder="e.g. Rahul Sharma"
-                  className={`${adminInputClass} cursor-not-allowed bg-[#f3f4f6] text-[#6b7280]`}
+                  className={adminInputClass}
                 />
               </AdminFormField>
             </div>
@@ -1569,7 +1655,6 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
                 label="Mobile Number"
                 required
                 error={errors.mobile}
-                hint="Locked — the lister's mobile number cannot be changed from the admin panel"
               >
                 <div className="relative">
                   <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#9ca3af]">
@@ -1578,10 +1663,9 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
                   <input
                     type="tel"
                     value={form.mobile}
-                    disabled
-                    readOnly
+                    onChange={(e) => update("mobile", e.target.value)}
                     placeholder="98765 43210"
-                    className={`${adminInputClass} pl-11 cursor-not-allowed bg-[#f3f4f6] text-[#6b7280]`}
+                    className={`${adminInputClass} pl-11`}
                   />
                 </div>
               </AdminFormField>
@@ -1678,6 +1762,16 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
           >
             Cancel
           </button>
+          {showDraftOption && (
+            <button
+              type="button"
+              onClick={handleSaveDraft}
+              disabled={saving}
+              className="flex h-11 items-center justify-center gap-2 rounded-xl border border-[#f0b429] bg-white px-6 text-sm font-semibold text-[#d97706] transition hover:bg-[#fff8e1] disabled:opacity-50"
+            >
+              <MdOutlineSaveAlt size={18} /> Save as Draft
+            </button>
+          )}
           <button
             type="submit"
             disabled={saving}

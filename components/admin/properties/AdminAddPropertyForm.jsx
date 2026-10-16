@@ -17,6 +17,7 @@ import {
   MdCheckCircle,
   MdImage,
   MdDescription,
+  MdOutlineSaveAlt,
 } from "react-icons/md";
 import AdminFormField, {
   adminInputClass,
@@ -103,7 +104,7 @@ const PREFERRED_FOR_OPTIONS = [
   "Anyone",
 ];
 
-const STATUS_OPTIONS = ["Active", "Pending Review", "Rejected"];
+const STATUS_OPTIONS = ["Active", "Pending Review", "Rejected", "Draft"];
 
 const INITIAL_FORM = {
   purpose: "sale",
@@ -148,6 +149,7 @@ export default function AdminAddPropertyForm() {
   const [saving, setSaving] = useState(false);
   const [uploadStatus, setUploadStatus] = useState("");
   const [errors, setErrors] = useState({});
+  const [showDraftOption, setShowDraftOption] = useState(false);
   const [pendingLeave, setPendingLeave] = useState(null);
   const submittedRef = useRef(false);
   const initialSnapshotRef = useRef(INITIAL_FORM);
@@ -384,7 +386,8 @@ export default function AdminAddPropertyForm() {
     const errs = validate();
     if (Object.keys(errs).length > 0) {
       setErrors(errs);
-      toast.error("Please fill in all required fields marked with *");
+      setShowDraftOption(true);
+      toast.error("Some required fields are missing — fix them or save as a draft.");
       const firstField = FIELD_ORDER.find((id) => errs[id]);
       const target = firstField ? document.getElementById(FIELD_ID_MAP[firstField]) : null;
       if (target) {
@@ -396,6 +399,15 @@ export default function AdminAddPropertyForm() {
       return;
     }
 
+    setShowDraftOption(false);
+    await saveProperty(form.status);
+  };
+
+  const handleSaveDraft = async () => {
+    await saveProperty("Draft");
+  };
+
+  const saveProperty = async (statusToUse) => {
     setSaving(true);
     try {
       let finalImage = "";
@@ -445,7 +457,7 @@ export default function AdminAddPropertyForm() {
 
       const propertyPayload = {
         id: propertyId || `PROP-${Date.now()}`,
-        title: form.title.trim(),
+        title: form.title.trim() || "Untitled Draft",
         purpose: form.purpose,
         type: derivedType,
         propertyType: isResidentialType ? form.propertyType : categoryLabel,
@@ -481,9 +493,9 @@ export default function AdminAddPropertyForm() {
         video: finalVideo,
         contact: {
           fullName: form.fullName.trim(),
-          mobile: `+91 ${form.mobile.trim()}`,
+          mobile: form.mobile.trim() ? `+91 ${form.mobile.trim()}` : "",
         },
-        status: form.status,
+        status: statusToUse,
         featured: form.featured,
         badge: form.badge.trim() || (form.featured ? "Featured" : ""),
         postedByRole: form.postedByRole,
@@ -513,7 +525,7 @@ export default function AdminAddPropertyForm() {
         // non-fatal
       }
 
-      toast.success("Property added successfully to database!");
+      toast.success(statusToUse === "Draft" ? "Property saved as draft." : "Property added successfully to database!");
       submittedRef.current = true;
       router.push(isPublicPostedByRole(propertyPayload.postedByRole) ? "/admin/properties" : "/admin/sg-properties");
     } catch (err) {
@@ -535,6 +547,7 @@ export default function AdminAddPropertyForm() {
       setVideoFile(null);
       setVideoPreview("");
       setErrors({});
+      setShowDraftOption(false);
       toast.info("Form reset to default values");
     }
   };
@@ -571,6 +584,16 @@ export default function AdminAddPropertyForm() {
           >
             Reset Form
           </button>
+          {showDraftOption && (
+            <button
+              type="button"
+              onClick={handleSaveDraft}
+              disabled={saving}
+              className="flex h-10 items-center gap-2 rounded-xl border border-[#f0b429] bg-white px-4 text-xs font-semibold text-[#d97706] transition hover:bg-[#fff8e1] disabled:opacity-50"
+            >
+              <MdOutlineSaveAlt size={16} /> Save as Draft
+            </button>
+          )}
           <button
             type="submit"
             form="admin-add-property-form"
@@ -1465,6 +1488,16 @@ export default function AdminAddPropertyForm() {
           >
             Cancel
           </button>
+          {showDraftOption && (
+            <button
+              type="button"
+              onClick={handleSaveDraft}
+              disabled={saving}
+              className="flex h-11 items-center justify-center gap-2 rounded-xl border border-[#f0b429] bg-white px-6 text-sm font-semibold text-[#d97706] transition hover:bg-[#fff8e1] disabled:opacity-50"
+            >
+              <MdOutlineSaveAlt size={18} /> Save as Draft
+            </button>
+          )}
           <button
             type="submit"
             disabled={saving}

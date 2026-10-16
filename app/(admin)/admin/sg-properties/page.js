@@ -313,7 +313,7 @@ export default function AdminSgPropertiesPage() {
         label: "Status",
         type: "status",
         sortable: true,
-        filterOptions: ["Active", "Pending Review", "Rejected", "Closed", "Sold"],
+        filterOptions: ["Active", "Pending Review", "Rejected", "Closed", "Sold", "Draft"],
       },
       {
         key: "actions",
