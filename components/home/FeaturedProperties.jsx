@@ -1,4 +1,4 @@
-import PropertyGrid from "@/components/property/PropertyGrid";
+import FeaturedPropertiesClient from "@/components/home/FeaturedPropertiesClient";
 import { getFeaturedProperties } from "@/lib/propertiesServer";
 
 export default async function FeaturedProperties() {
@@ -18,7 +18,7 @@ export default async function FeaturedProperties() {
         </div>
 
         <div className="mt-8 sm:mt-12">
-          <PropertyGrid properties={properties} />
+          <FeaturedPropertiesClient properties={properties} />
         </div>
       </div>
     </section>

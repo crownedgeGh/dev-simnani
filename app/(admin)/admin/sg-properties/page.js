@@ -9,6 +9,7 @@ import AdminPageHeader from "@/components/admin/layout/AdminPageHeader";
 import AdminTable from "@/components/admin/ui/AdminTable";
 import AdminConfirmModal from "@/components/admin/ui/AdminConfirmModal";
 import AssignPropertyDialog from "@/components/admin/freelancer-cp/AssignPropertyDialog";
+import FeaturedLocationModal from "@/components/admin/ui/FeaturedLocationModal";
 import adminAxios from "@/lib/adminAxios";
 import { ADMIN_KEYS, readCollection, writeCollection } from "@/lib/adminStorage";
 import { getLocationCity } from "@/lib/properties";
@@ -56,6 +57,8 @@ export default function AdminSgPropertiesPage() {
   const [assignments, setAssignments] = useState([]);
   const [assignTarget, setAssignTarget] = useState(null);
   const [activeTab, setActiveTab] = useState("all");
+  const [featuredModalRow, setFeaturedModalRow] = useState(null);
+  const [featuredSaving, setFeaturedSaving] = useState(false);
 
   const loadCpData = useCallback(async () => {
     try {
@@ -137,6 +140,50 @@ export default function AdminSgPropertiesPage() {
       toast.error(err.message || "Failed to update property");
     }
   }, []);
+
+  const MAX_FEATURED = 6;
+  const persistFeatured = async (row, patch) => {
+    try {
+      const res = await fetch(`/api/admin/properties/${row.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patch),
+      });
+      const json = await res.json();
+      if (json.success && json.data) {
+        const updated = normalizeProperty(json.data);
+        setProperties((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+        toast.success(patch.featured ? "Featured on the public site" : "Removed from public site");
+        return true;
+      }
+      toast.error(json.error || "Failed to update featured status");
+      return false;
+    } catch {
+      toast.error("Failed to update featured status — check your connection and try again");
+      return false;
+    }
+  };
+
+  const handleFeaturedToggle = async (row, val) => {
+    if (!val) {
+      await persistFeatured(row, { featured: false });
+      return;
+    }
+    const featuredCount = properties.filter((p) => p.featured && p.id !== row.id).length;
+    if (featuredCount >= MAX_FEATURED) {
+      toast.error(`Only ${MAX_FEATURED} properties can be featured at a time. Unfeature one first.`);
+      return;
+    }
+    setFeaturedModalRow(row);
+  };
+
+  const handleFeaturedLocationConfirm = async ({ locations }) => {
+    if (!featuredModalRow) return;
+    setFeaturedSaving(true);
+    const ok = await persistFeatured(featuredModalRow, { featured: true, featuredLocations: locations });
+    setFeaturedSaving(false);
+    if (ok) setFeaturedModalRow(null);
+  };
 
   const handleAssignToCompanyCp = async (partner) => {
     const res = await fetch("/api/assignments", {
@@ -316,6 +363,17 @@ export default function AdminSgPropertiesPage() {
         filterOptions: ["Active", "Pending Review", "Rejected", "Closed", "Sold", "Draft"],
       },
       {
+        key: "featured",
+        label: "Featured",
+        type: "toggle",
+        onToggle: handleFeaturedToggle,
+        filterOptions: [
+          { value: "true", label: "Yes" },
+          { value: "false", label: "No" },
+        ],
+        render: null,
+      },
+      {
         key: "actions",
         label: "",
         type: "actions",
@@ -356,7 +414,7 @@ export default function AdminSgPropertiesPage() {
         },
       },
     ],
-    [cityOptions, router, handleToggleSold]
+    [cityOptions, router, handleToggleSold, handleFeaturedToggle]
   );
 
   return (
@@ -433,6 +491,23 @@ export default function AdminSgPropertiesPage() {
         partners={companyPartners}
         currentAssigneeId={assignments.find((a) => a.propertyId === assignTarget?.id && a.level === "head-to-company")?.assignedToAccountId}
         onAssign={handleAssignToCompanyCp}
+      />
+
+      <FeaturedLocationModal
+        isOpen={!!featuredModalRow}
+        onClose={() => setFeaturedModalRow(null)}
+        onConfirm={handleFeaturedLocationConfirm}
+        isLoading={featuredSaving}
+        title="Feature this property"
+        description="Choose the states and cities this property should be featured for."
+        multiple
+        initialLocations={
+          featuredModalRow?.featuredLocations?.length
+            ? featuredModalRow.featuredLocations
+            : featuredModalRow?.state && featuredModalRow?.city
+              ? [{ state: featuredModalRow.state, city: featuredModalRow.city }]
+              : []
+        }
       />
     </div>
   );

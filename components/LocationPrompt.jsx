@@ -3,6 +3,13 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { FiMapPin, FiX } from "react-icons/fi";
+import StateCitySearchFields from "@/components/shared/StateCitySearchFields";
+
+const DARK_INPUT_CLASS =
+  "h-10 w-full rounded-lg border border-navy-700/60 bg-navy-950 px-3 text-xs text-cream placeholder:text-muted outline-none transition focus:border-gold-400";
+const DARK_LABEL_CLASS = "text-[11px] font-medium text-muted";
+const DARK_MENU_CLASS = "border border-navy-700/60 bg-navy-900 text-cream";
+const DARK_OPTION_CLASS = "text-cream hover:bg-navy-800 hover:text-gold-400";
 
 const STORAGE_KEY = "se_location_prompt_seen";
 const LOCATION_KEY = "se_user_location";
@@ -13,6 +20,9 @@ export default function LocationPrompt() {
   const [visible, setVisible] = useState(false);
   const [requesting, setRequesting] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [manual, setManual] = useState(false);
+  const [manualState, setManualState] = useState("");
+  const [manualCity, setManualCity] = useState("");
 
   const isAdminRoute = pathname?.startsWith("/admin");
   const isHomePage = pathname === "/";
@@ -57,14 +67,23 @@ export default function LocationPrompt() {
     }
   }
 
-  function saveCity(city) {
+  function saveCity(city, state) {
     if (!city) return;
     try {
       localStorage.setItem("se_user_city", city);
+      if (state) localStorage.setItem("se_user_state", state);
     } catch {
       // ignore
     }
     window.dispatchEvent(new CustomEvent("se-location-updated", { detail: city }));
+  }
+
+  function handleManualSave() {
+    if (!manualState || !manualCity) return;
+    markGranted();
+    saveCity(manualCity, manualState);
+    setManual(false);
+    dismiss();
   }
 
   // IP-based fallback — used when GPS is denied, times out, or isn't available
@@ -179,29 +198,73 @@ export default function LocationPrompt() {
               <FiMapPin className="h-3.5 w-3.5 text-gold-400" />
             </span>
             <p className="font-display text-sm text-cream">
-              Use your current location?
+              {manual ? "Set your location" : "Use your current location?"}
             </p>
           </div>
 
-          <p className="text-xs leading-relaxed text-muted">
-            Allow location access for better, more relevant property results near you.
-          </p>
+          {manual ? (
+            <>
+              <StateCitySearchFields
+                state={manualState}
+                city={manualCity}
+                onChange={({ state, city }) => {
+                  setManualState(state);
+                  setManualCity(city);
+                }}
+                inputClassName={DARK_INPUT_CLASS}
+                labelClassName={DARK_LABEL_CLASS}
+                menuClassName={DARK_MENU_CLASS}
+                optionClassName={DARK_OPTION_CLASS}
+              />
+              <div className="mt-0.5 flex flex-col gap-2">
+                <button
+                  onClick={handleManualSave}
+                  disabled={!manualState || !manualCity}
+                  className="tracked-label w-full rounded-lg bg-gold-400 px-4 py-2 text-[11px] text-navy-950 shadow-lg shadow-gold-400/10 transition active:scale-[0.98] hover:bg-gold-300 hover:shadow-gold-400/20 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Save Location
+                </button>
+                <button
+                  onClick={() => setManual(false)}
+                  className="tracked-label w-full rounded-lg border border-navy-700/60 px-4 py-2 text-[11px] text-cream transition active:scale-[0.98] hover:border-gold-500/60 hover:text-gold-400"
+                >
+                  Back
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-xs leading-relaxed text-muted">
+                Allow location access for better, more relevant property results near you.
+              </p>
 
-          <div className="mt-0.5 flex flex-col gap-2">
-            <button
-              onClick={handleAllow}
-              disabled={requesting}
-              className="tracked-label w-full rounded-lg bg-gold-400 px-4 py-2 text-[11px] text-navy-950 shadow-lg shadow-gold-400/10 transition active:scale-[0.98] hover:bg-gold-300 hover:shadow-gold-400/20 disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100"
-            >
-              {requesting ? "Requesting…" : "Allow Location"}
-            </button>
-            <button
-              onClick={dismiss}
-              className="tracked-label w-full rounded-lg border border-navy-700/60 px-4 py-2 text-[11px] text-cream transition active:scale-[0.98] hover:border-gold-500/60 hover:text-gold-400"
-            >
-              Not Now
-            </button>
-          </div>
+              <div className="mt-0.5 flex flex-col gap-2">
+                <button
+                  onClick={handleAllow}
+                  disabled={requesting}
+                  className="tracked-label w-full rounded-lg bg-gold-400 px-4 py-2 text-[11px] text-navy-950 shadow-lg shadow-gold-400/10 transition active:scale-[0.98] hover:bg-gold-300 hover:shadow-gold-400/20 disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100"
+                >
+                  {requesting ? "Requesting…" : "Allow Location"}
+                </button>
+                <button
+                  onClick={() => {
+                    setManualState("");
+                    setManualCity("");
+                    setManual(true);
+                  }}
+                  className="tracked-label w-full rounded-lg border border-navy-700/60 px-4 py-2 text-[11px] text-cream transition active:scale-[0.98] hover:border-gold-500/60 hover:text-gold-400"
+                >
+                  Set City Manually
+                </button>
+                <button
+                  onClick={dismiss}
+                  className="tracked-label w-full text-center text-[11px] text-muted transition hover:text-cream"
+                >
+                  Not Now
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </>

@@ -353,18 +353,26 @@ function UserDropdown({ user, cityLabel, onSelectCp, onClose, onLogout }) {
                 {typeLabel}
               </span>
               {cityLabel && (
-                <span className="tracked-label" style={{
-                  display: "inline-flex", alignItems: "center", gap: 4,
-                  padding: "2px 9px",
-                  background: "rgba(10,14,26,1)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  borderRadius: 20,
-                  fontSize: 10, fontWeight: 700,
-                  color: "#ffc633", whiteSpace: "nowrap",
-                }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose?.();
+                    window.dispatchEvent(new Event("se-open-location-prompt"));
+                  }}
+                  className="tracked-label"
+                  style={{
+                    display: "inline-flex", alignItems: "center", gap: 4,
+                    padding: "2px 9px",
+                    background: "rgba(10,14,26,1)",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    borderRadius: 20,
+                    fontSize: 10, fontWeight: 700,
+                    color: "#ffc633", whiteSpace: "nowrap", cursor: "pointer",
+                  }}
+                >
                   <FiMapPin style={{ width: 10, height: 10 }} />
                   {cityLabel}
-                </span>
+                </button>
               )}
             </div>
           </div>
@@ -875,10 +883,17 @@ export default function Navbar() {
                         {typeLabel}
                       </span>
                       {cityLabel && (
-                        <span className="tracked-label flex items-center gap-1 whitespace-nowrap rounded-full border border-navy-700/60 bg-navy-900 px-2 py-[3px] text-[9px] text-gold-400">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMobileOpen(false);
+                            window.dispatchEvent(new Event("se-open-location-prompt"));
+                          }}
+                          className="tracked-label flex items-center gap-1 whitespace-nowrap rounded-full border border-navy-700/60 bg-navy-900 px-2 py-[3px] text-[9px] text-gold-400"
+                        >
                           <FiMapPin className="h-2.5 w-2.5" />
                           {cityLabel}
-                        </span>
+                        </button>
                       )}
                     </div>
                   </div>
@@ -909,10 +924,17 @@ export default function Navbar() {
             {/* Detected city badge — authenticated users get it inline next to their name above */}
             {cityLabel && !isAuthenticated && (
               <div className="px-4 pt-3.5">
-                <span className="tracked-label flex w-fit items-center gap-1.5 whitespace-nowrap rounded-full border border-navy-700/60 bg-navy-900 px-3 py-1.5 text-[10px] text-gold-400">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileOpen(false);
+                    window.dispatchEvent(new Event("se-open-location-prompt"));
+                  }}
+                  className="tracked-label flex w-fit items-center gap-1.5 whitespace-nowrap rounded-full border border-navy-700/60 bg-navy-900 px-3 py-1.5 text-[10px] text-gold-400"
+                >
                   <FiMapPin className="h-3 w-3" />
                   {cityLabel}
-                </span>
+                </button>
               </div>
             )}
 
