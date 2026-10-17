@@ -89,6 +89,13 @@ const PropertySchema = new mongoose.Schema(
       default: false,
       index: true,
     },
+    // Cities this property is featured in — a property can be featured
+    // across multiple cities at once, separate from its real location
+    // (city/state above).
+    featuredLocations: {
+      type: [{ state: String, city: String, _id: false }],
+      default: [],
+    },
     status: {
       type: String,
       enum: ["Active", "Pending Review", "Rejected", "Closed", "Sold", "Draft"],

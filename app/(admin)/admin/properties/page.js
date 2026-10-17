@@ -207,10 +207,10 @@ export default function AdminPropertiesPage() {
     setFeaturedModalRow(row);
   };
 
-  const handleFeaturedLocationConfirm = async ({ state, city }) => {
+  const handleFeaturedLocationConfirm = async ({ locations }) => {
     if (!featuredModalRow) return;
     setFeaturedSaving(true);
-    const ok = await persistFeatured(featuredModalRow, { featured: true, state, city });
+    const ok = await persistFeatured(featuredModalRow, { featured: true, featuredLocations: locations });
     setFeaturedSaving(false);
     if (ok) setFeaturedModalRow(null);
   };
@@ -482,9 +482,15 @@ export default function AdminPropertiesPage() {
         onConfirm={handleFeaturedLocationConfirm}
         isLoading={featuredSaving}
         title="Feature this property"
-        description="Choose the state and city this property should be featured for."
-        initialState={featuredModalRow?.state}
-        initialCity={featuredModalRow?.city}
+        description="Choose the states and cities this property should be featured for."
+        multiple
+        initialLocations={
+          featuredModalRow?.featuredLocations?.length
+            ? featuredModalRow.featuredLocations
+            : featuredModalRow?.state && featuredModalRow?.city
+              ? [{ state: featuredModalRow.state, city: featuredModalRow.city }]
+              : []
+        }
       />
 
       {/* Forward to Company CP */}
