@@ -21,6 +21,7 @@ import {
 } from "react-icons/md";
 import AdminStatusBadge from "@/components/admin/ui/AdminStatusBadge";
 import AdminPhoneCell from "@/components/admin/ui/AdminPhoneCell";
+import PhotoLightbox from "@/components/common/PhotoLightbox";
 import { getServiceTypeLabel } from "@/lib/serviceProviders";
 
 const LEVEL_FOR_CP_TYPE = { company: "head-to-company", field: "company-to-field", digital: "company-to-digital" };
@@ -219,6 +220,7 @@ export default function PartnerPortalPage() {
   const [siteVisits, setSiteVisits] = useState([]);
   const [receivedLeads, setReceivedLeads] = useState([]); // company only: leads Head CP routed here
   const [delegations, setDelegations] = useState([]); // company only: projects handed on to Field/Digital CPs
+  const [lightboxUrl, setLightboxUrl] = useState(null);
 
   useEffect(() => {
     if (!accountId) return;
@@ -445,10 +447,10 @@ export default function PartnerPortalPage() {
                           {lead.photos?.length > 0 && (
                             <div className="mt-2 flex flex-wrap gap-1.5 border-t border-[#f0ebe3] pt-2">
                               {lead.photos.map((url) => (
-                                <a key={url} href={url} target="_blank" rel="noreferrer">
+                                <button key={url} type="button" onClick={() => setLightboxUrl(url)}>
                                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                                  <img src={url} alt="" className="h-12 w-12 rounded-lg border border-[#e8e0d5] object-cover" />
-                                </a>
+                                  <img src={url} alt="" className="h-12 w-12 rounded-lg border border-[#e8e0d5] object-cover transition hover:opacity-80" />
+                                </button>
                               ))}
                             </div>
                           )}
@@ -516,10 +518,10 @@ export default function PartnerPortalPage() {
                       {lead.photos?.length > 0 && (
                         <div className="mt-2 flex flex-wrap gap-1.5 border-t border-[#f0ebe3] pt-2">
                           {lead.photos.map((url) => (
-                            <a key={url} href={url} target="_blank" rel="noreferrer">
+                            <button key={url} type="button" onClick={() => setLightboxUrl(url)}>
                               {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img src={url} alt="" className="h-12 w-12 rounded-lg border border-[#e8e0d5] object-cover" />
-                            </a>
+                              <img src={url} alt="" className="h-12 w-12 rounded-lg border border-[#e8e0d5] object-cover transition hover:opacity-80" />
+                            </button>
                           ))}
                         </div>
                       )}
@@ -563,6 +565,7 @@ export default function PartnerPortalPage() {
           </div>
         </>
       )}
+      <PhotoLightbox url={lightboxUrl} onClose={() => setLightboxUrl(null)} />
     </div>
   );
 }

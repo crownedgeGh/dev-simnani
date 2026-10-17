@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { MdOpenInNew } from "react-icons/md";
 import AdminDialog from "@/components/admin/ui/AdminDialog";
 import AdminStatusBadge from "@/components/admin/ui/AdminStatusBadge";
 import AdminPhoneCell from "@/components/admin/ui/AdminPhoneCell";
+import PhotoLightbox from "@/components/common/PhotoLightbox";
 
 function DetailRow({ label, value }) {
   return (
@@ -23,6 +25,7 @@ const ROUTING_STAGE_LABELS = {
 };
 
 export default function LeadDetailDialog({ isOpen, onClose, lead }) {
+  const [lightboxUrl, setLightboxUrl] = useState(null);
   if (!lead) return null;
 
   return (
@@ -80,14 +83,15 @@ export default function LeadDetailDialog({ isOpen, onClose, lead }) {
           <span className="tracked-label text-[10px] text-[#9ca3af]">Photos</span>
           <div className="mt-2 grid grid-cols-3 gap-2">
             {lead.photos.map((url) => (
-              <a key={url} href={url} target="_blank" rel="noreferrer">
+              <button key={url} type="button" onClick={() => setLightboxUrl(url)}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={url} alt="" className="h-20 w-full rounded-lg border border-[#e8e0d5] object-cover" />
-              </a>
+                <img src={url} alt="" className="h-20 w-full rounded-lg border border-[#e8e0d5] object-cover transition hover:opacity-80" />
+              </button>
             ))}
           </div>
         </div>
       )}
+      <PhotoLightbox url={lightboxUrl} onClose={() => setLightboxUrl(null)} />
     </AdminDialog>
   );
 }

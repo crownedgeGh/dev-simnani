@@ -22,6 +22,7 @@ import EmptyState from "./EmptyState";
 import PropertyGrid from "@/components/property/PropertyGrid";
 import { CP_TYPE_LABEL, VISIT_STATUS_TONE, LEAD_STATUS_TONE, APPROVAL_STATUS_TONE } from "./channel-partner/tones";
 import RefreshButton from "./RefreshButton";
+import PhotoLightbox from "@/components/common/PhotoLightbox";
 import { SERVICE_PROVIDER_TYPES, getServiceTypeLabel } from "@/lib/serviceProviders";
 import { usePersistentTab } from "@/lib/usePersistentTab";
 import { toast } from "sonner";
@@ -197,6 +198,7 @@ export default function CompanyCPDashboard({
   // stays scannable as the network grows past a handful of partners.
   const [fieldFilterId, setFieldFilterId] = useState("all");
   const [expandedLeadPhotos, setExpandedLeadPhotos] = useState(null);
+  const [lightboxUrl, setLightboxUrl] = useState(null);
   const [digitalFilterId, setDigitalFilterId] = useState("all");
   const [fieldPartnerQuery, setFieldPartnerQuery] = useState("");
   const [digitalPartnerQuery, setDigitalPartnerQuery] = useState("");
@@ -1063,14 +1065,14 @@ export default function CompanyCPDashboard({
                                     <td colSpan={fieldFilterId === "all" ? 6 : 5} className="bg-navy-950 px-4 py-4">
                                       <div className="flex flex-wrap gap-3">
                                         {l.photos.map((url) => (
-                                          <a key={url} href={url} target="_blank" rel="noreferrer">
+                                          <button key={url} type="button" onClick={() => setLightboxUrl(url)}>
                                             {/* eslint-disable-next-line @next/next/no-img-element */}
                                             <img
                                               src={url}
                                               alt=""
                                               className="h-24 w-24 rounded-xl border border-navy-700/60 object-cover transition hover:border-gold-400"
                                             />
-                                          </a>
+                                          </button>
                                         ))}
                                       </div>
                                     </td>
@@ -1449,6 +1451,7 @@ export default function CompanyCPDashboard({
           </div>
         )}
       </div>
+      <PhotoLightbox url={lightboxUrl} onClose={() => setLightboxUrl(null)} />
     </div>
   );
 }
