@@ -79,6 +79,7 @@ const LeadSchema = new mongoose.Schema(
                 year: "numeric",
               }),
           },
+          _id: false,
         },
       ],
       default: [],

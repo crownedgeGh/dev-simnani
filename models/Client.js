@@ -56,6 +56,7 @@ const ClientSchema = new mongoose.Schema(
                 year: "numeric",
               }),
           },
+          _id: false,
         },
       ],
       default: [],
