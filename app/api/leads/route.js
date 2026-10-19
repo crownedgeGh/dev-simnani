@@ -50,9 +50,23 @@ export async function POST(request) {
 
     await dbConnect();
     const body = await request.json();
-    const { propertyId } = body;
+    const { propertyId, name, phone, note } = body;
+
     if (!propertyId) {
-      return NextResponse.json({ success: false, error: "propertyId is required" }, { status: 400 });
+      // Manual lead added from a portal's "Add Lead" form — no property, owned
+      // by whoever is adding it.
+      if (!name?.trim() || !phone?.trim()) {
+        return NextResponse.json({ success: false, error: "Name and phone are required" }, { status: 400 });
+      }
+      const lead = await Lead.create({
+        id: `LD-${Math.floor(100000 + Math.random() * 900000)}`,
+        name: name.trim(),
+        phone: phone.trim(),
+        ownerId: sessionUser.accountId,
+        source: "Manually Added",
+        notes: note?.trim() ? [{ text: note.trim() }] : [],
+      });
+      return NextResponse.json({ success: true, data: lead });
     }
 
     const property = await Property.findOne({

@@ -11,6 +11,8 @@ import {
   MdLeaderboard,
   MdGroups,
   MdWorkHistory,
+  MdTaskAlt,
+  MdOutlineStickyNote2,
 } from "react-icons/md";
 import AdminStatusBadge from "@/components/admin/ui/AdminStatusBadge";
 import AdminPhoneCell from "@/components/admin/ui/AdminPhoneCell";
@@ -51,6 +53,33 @@ function EmptyRow({ message }) {
     <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-[#e8e0d5] py-8">
       <MdInbox size={22} className="text-[#c9c3bc]" />
       <p className="text-xs text-[#9ca3af]">{message}</p>
+    </div>
+  );
+}
+
+function Activity({ callDone, notes }) {
+  const noteList = Array.isArray(notes) ? notes : [];
+  if (!callDone && noteList.length === 0) return null;
+
+  return (
+    <div className="mt-2 border-t border-[#e8e0d5] pt-2">
+      {callDone && (
+        <span className="tracked-label inline-flex w-fit items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700">
+          <MdTaskAlt size={11} /> Call Done
+        </span>
+      )}
+      {noteList.length > 0 && (
+        <div className={`flex flex-col gap-1 ${callDone ? "mt-1.5" : ""}`}>
+          {noteList.map((n, i) => (
+            <p key={i} className="flex items-start gap-1 text-xs text-[#6b7280]">
+              <MdOutlineStickyNote2 size={12} className="mt-0.5 shrink-0 text-[#c9c3bc]" />
+              <span>
+                <span className="font-medium text-[#1a1a2e]">{n.date}</span> — {n.text}
+              </span>
+            </p>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -196,14 +225,17 @@ export default function ContractorPortalPage() {
               ) : (
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {leads.map((lead) => (
-                    <div key={lead._id || lead.id} className="flex items-center justify-between gap-3 rounded-xl border border-[#e8e0d5] bg-[#faf8f5] p-3.5">
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-[#1a1a2e]">{lead.name}</p>
-                        <p className="mt-0.5 flex items-center gap-1 text-xs text-[#9ca3af]">
-                          {lead.interest || "—"} · <AdminPhoneCell value={lead.phone} />
-                        </p>
+                    <div key={lead._id || lead.id} className="rounded-xl border border-[#e8e0d5] bg-[#faf8f5] p-3.5">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-[#1a1a2e]">{lead.name}</p>
+                          <p className="mt-0.5 flex items-center gap-1 text-xs text-[#9ca3af]">
+                            {lead.interest || "—"} · <AdminPhoneCell value={lead.phone} />
+                          </p>
+                        </div>
+                        <AdminStatusBadge status={lead.status} />
                       </div>
-                      <AdminStatusBadge status={lead.status} />
+                      <Activity callDone={lead.callDone} notes={lead.notes} />
                     </div>
                   ))}
                 </div>
@@ -216,14 +248,17 @@ export default function ContractorPortalPage() {
               ) : (
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {clients.map((client) => (
-                    <div key={client._id || client.id} className="flex items-center justify-between gap-3 rounded-xl border border-[#e8e0d5] bg-[#faf8f5] p-3.5">
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-[#1a1a2e]">{client.name}</p>
-                        <p className="mt-0.5 flex items-center gap-1 text-xs text-[#9ca3af]">
-                          {client.property || "—"} · <AdminPhoneCell value={client.phone} />
-                        </p>
+                    <div key={client._id || client.id} className="rounded-xl border border-[#e8e0d5] bg-[#faf8f5] p-3.5">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-[#1a1a2e]">{client.name}</p>
+                          <p className="mt-0.5 flex items-center gap-1 text-xs text-[#9ca3af]">
+                            {client.property || "—"} · <AdminPhoneCell value={client.phone} />
+                          </p>
+                        </div>
+                        <AdminStatusBadge status={client.status} />
                       </div>
-                      <AdminStatusBadge status={client.status} />
+                      <Activity callDone={client.callDone} notes={client.notes} />
                     </div>
                   ))}
                 </div>

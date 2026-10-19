@@ -12,6 +12,7 @@ import {
   MdOutlineStickyNote2,
   MdDeleteOutline,
   MdOpenInNew,
+  MdAdd,
 } from "react-icons/md";
 import { BiBuildingHouse } from "react-icons/bi";
 import Tabs from "./Tabs";
@@ -21,6 +22,8 @@ import PropertyGrid from "@/components/property/PropertyGrid";
 import ConfirmDialog from "./ConfirmDialog";
 import EmptyState from "./EmptyState";
 import RefreshButton from "./RefreshButton";
+import FormField from "@/components/auth/FormField";
+import { inputClass, textareaClass } from "@/components/auth/inputStyles";
 
 const BASE_TABS = [
   { key: "overview", label: "Overview" },
@@ -53,6 +56,10 @@ export default function OwnerDashboard({
   const [leadList, setLeadList] = useState(leads);
   const [clientList, setClientList] = useState(clients);
   const [convertingId, setConvertingId] = useState(null);
+  const [showAddLead, setShowAddLead] = useState(false);
+  const [addLeadForm, setAddLeadForm] = useState({ name: "", phone: "", note: "" });
+  const [addingLead, setAddingLead] = useState(false);
+  const [addLeadError, setAddLeadError] = useState("");
   const router = useRouter();
 
   // Refresh re-renders the server page, which hands down fresh props.
@@ -72,6 +79,36 @@ export default function OwnerDashboard({
       // best-effort — leave the lead in place if the conversion failed
     } finally {
       setConvertingId(null);
+    }
+  }
+
+  async function handleAddLead(e) {
+    e.preventDefault();
+    if (!addLeadForm.name.trim() || !addLeadForm.phone.trim()) {
+      setAddLeadError("Please fill in full name and mobile number.");
+      return;
+    }
+    setAddLeadError("");
+    setAddingLead(true);
+    try {
+      const res = await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: addLeadForm.name.trim(),
+          phone: addLeadForm.phone.trim(),
+          note: addLeadForm.note.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
+      setLeadList((prev) => [data.data, ...prev]);
+      setAddLeadForm({ name: "", phone: "", note: "" });
+      setShowAddLead(false);
+    } catch (error) {
+      setAddLeadError(error.message || "Couldn't add the lead — please try again.");
+    } finally {
+      setAddingLead(false);
     }
   }
 
@@ -216,8 +253,75 @@ export default function OwnerDashboard({
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <p className="tracked-label text-xs text-gold-400">Leads ({leadList.length})</p>
-              <RefreshButton onRefresh={() => router.refresh()} label="Refresh leads" />
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowAddLead((prev) => !prev)}
+                  className="tracked-label flex min-h-[44px] items-center gap-2 rounded-full bg-gold-400 px-5 py-2 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 hover:shadow-gold-400/20 active:scale-[0.98] sm:min-h-0"
+                >
+                  <MdAdd className="h-4 w-4" />
+                  Add Lead
+                </button>
+                <RefreshButton onRefresh={() => router.refresh()} label="Refresh leads" />
+              </div>
             </div>
+
+            {showAddLead && (
+              <form
+                onSubmit={handleAddLead}
+                className="flex flex-col gap-4 border border-navy-700/60 bg-navy-900 p-4 sm:p-6"
+              >
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <FormField label="Full Name" htmlFor="owner-lead-name" required>
+                    <input
+                      id="owner-lead-name"
+                      type="text"
+                      placeholder="e.g. Vivek Nair"
+                      value={addLeadForm.name}
+                      onChange={(e) => setAddLeadForm((prev) => ({ ...prev, name: e.target.value }))}
+                      className={inputClass}
+                    />
+                  </FormField>
+                  <FormField label="Mobile Number" htmlFor="owner-lead-phone" required>
+                    <input
+                      id="owner-lead-phone"
+                      type="tel"
+                      placeholder="+91 98765 43210"
+                      value={addLeadForm.phone}
+                      onChange={(e) =>
+                        setAddLeadForm((prev) => ({
+                          ...prev,
+                          phone: e.target.value.replace(/\D/g, "").slice(0, 10),
+                        }))
+                      }
+                      className={inputClass}
+                    />
+                  </FormField>
+                </div>
+                <FormField label="Follow-up" htmlFor="owner-lead-note" optional>
+                  <textarea
+                    id="owner-lead-note"
+                    rows={3}
+                    placeholder="Any follow-up notes about this lead"
+                    value={addLeadForm.note}
+                    onChange={(e) => setAddLeadForm((prev) => ({ ...prev, note: e.target.value }))}
+                    className={textareaClass}
+                  />
+                </FormField>
+                {addLeadError && <p className="text-xs text-red-400">{addLeadError}</p>}
+                <div className="flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={addingLead}
+                    className="tracked-label flex items-center justify-center gap-2 rounded-full bg-gold-400 px-6 py-3 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 hover:shadow-gold-400/20 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <MdAdd className="h-4 w-4" />
+                    {addingLead ? "Adding…" : "Add Lead"}
+                  </button>
+                </div>
+              </form>
+            )}
+
             {leadList.length === 0 && (
               <EmptyState title="No leads yet" message="New enquiries and leads forwarded to you will show up here." />
             )}
