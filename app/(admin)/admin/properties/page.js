@@ -198,17 +198,32 @@ export default function AdminPropertiesPage() {
       await persistFeatured(row, { featured: false });
       return;
     }
-    const featuredCount = properties.filter((p) => p.featured && p.id !== row.id).length;
-    if (featuredCount >= MAX_FEATURED) {
-      toast.error(`Only ${MAX_FEATURED} properties can be featured at a time. Unfeature one first.`);
-      return;
-    }
-    // Ask which state/city this featured listing should be shown for.
+    // Cap is per-city, not global — ask which state/city first, then check.
     setFeaturedModalRow(row);
   };
 
+  // A property counts toward a city's cap if it's explicitly featured for
+  // that city, or (legacy rows with no featuredLocations) its own city matches.
+  function featuredCountForCity(city, excludeId) {
+    return properties.filter(
+      (p) =>
+        p.id !== excludeId &&
+        p.featured &&
+        (p.featuredLocations?.length
+          ? p.featuredLocations.some((l) => l.city?.toLowerCase() === city.toLowerCase())
+          : p.city?.toLowerCase() === city.toLowerCase())
+    ).length;
+  }
+
   const handleFeaturedLocationConfirm = async ({ locations }) => {
     if (!featuredModalRow) return;
+    for (const loc of locations) {
+      if (!loc.city) continue;
+      if (featuredCountForCity(loc.city, featuredModalRow.id) >= MAX_FEATURED) {
+        toast.error(`Only ${MAX_FEATURED} properties can be featured for ${loc.city} at a time. Unfeature one there first.`);
+        return;
+      }
+    }
     setFeaturedSaving(true);
     const ok = await persistFeatured(featuredModalRow, { featured: true, featuredLocations: locations });
     setFeaturedSaving(false);

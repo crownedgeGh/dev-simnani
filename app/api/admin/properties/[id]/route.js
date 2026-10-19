@@ -46,16 +46,38 @@ export async function PATCH(request, { params }) {
       updateData.city = getLocationCity(updateData.location) || "Other";
     }
 
-    if (updateData.featured === true && !existing.featured) {
-      const featuredCount = await Property.countDocuments({ featured: true });
-      if (featuredCount >= 6) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: "Only 6 properties can be featured at a time. Unfeature another property first.",
-          },
-          { status: 400 }
-        );
+    if (updateData.featured === true) {
+      const targetLocations = updateData.featuredLocations?.length
+        ? updateData.featuredLocations
+        : existing.featuredLocations?.length
+          ? existing.featuredLocations
+          : existing.city && existing.state
+            ? [{ state: existing.state, city: existing.city }]
+            : [];
+
+      for (const loc of targetLocations) {
+        if (!loc.city) continue;
+        const cityRegex = new RegExp(`^${loc.city.trim()}$`, "i");
+        // A property counts toward a city's cap if it's explicitly featured
+        // for that city, or (legacy rows with no featuredLocations) its own
+        // city matches — mirrors the fallback used to build targetLocations.
+        const count = await Property.countDocuments({
+          id: { $ne: id },
+          featured: true,
+          $or: [
+            { featuredLocations: { $elemMatch: { city: cityRegex } } },
+            { featuredLocations: { $size: 0 }, city: cityRegex },
+          ],
+        });
+        if (count >= 6) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: `Only 6 properties can be featured for ${loc.city} at a time. Unfeature another property in ${loc.city} first.`,
+            },
+            { status: 400 }
+          );
+        }
       }
     }
 
