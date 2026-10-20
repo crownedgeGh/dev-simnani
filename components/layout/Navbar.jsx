@@ -661,16 +661,16 @@ export default function Navbar() {
       />
 
       <header className="sticky top-0 z-50 border-b border-navy-700/60 bg-navy-950/95 backdrop-blur">
-        <div className="flex w-full items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-14">
+        <div className="flex w-full items-center justify-between gap-4 py-3 pl-2 pr-4 sm:pl-3 sm:pr-6 lg:pl-4 lg:pr-8 xl:pl-5 xl:pr-10 2xl:pl-6 2xl:pr-14">
 
           {/* Logo */}
           <Link href="/" className="flex shrink-0 items-center">
-            <span className="relative h-10 w-[172px] shrink-0 sm:h-12 sm:w-[206px] xl:h-14 xl:w-[241px]">
+            <span className="relative h-10 w-[172px] shrink-0 sm:h-12 sm:w-[206px] 2xl:h-14 2xl:w-[241px]">
               <Image
                 src="/logo-se.png"
                 alt="Simnani Estates"
                 fill
-                sizes="(min-width: 1280px) 241px, (min-width: 640px) 206px, 172px"
+                sizes="(min-width: 1536px) 241px, (min-width: 640px) 206px, 172px"
                 className="object-contain object-left"
                 priority
               />
@@ -678,7 +678,7 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop nav links */}
-          <nav className="hidden min-w-0 flex-1 items-center justify-center gap-2.5 2xl:flex 2xl:gap-4">
+          <nav className="hidden min-w-0 flex-1 items-center justify-center gap-2.5 min-[1400px]:flex 2xl:gap-4">
             {visibleNavLinks.map((link) => {
               const active = isNavLinkActive(link, pathname);
               return (
@@ -699,7 +699,7 @@ export default function Navbar() {
           </nav>
 
           {/* Desktop right section */}
-          <div className="hidden shrink-0 items-center gap-3 2xl:flex">
+          <div className="hidden shrink-0 items-center gap-3 min-[1400px]:flex">
             {/* Post Property button */}
             {canPostProperty && (
               <button
@@ -775,22 +775,14 @@ export default function Navbar() {
                 )}
               </div>
             ) : (
-              /* ── Guest: Login + Sign Up ── */
-              <>
-                <Link
-                  href="/auth"
-                  className="tracked-label flex shrink-0 items-center gap-1.5 whitespace-nowrap text-xs text-cream/80 transition hover:text-gold-400"
-                >
-                  <FiUser className="h-4 w-4" />
-                  Login
-                </Link>
-                <Link
-                  href="/auth/register"
-                  className="tracked-label shrink-0 whitespace-nowrap rounded-full border border-gold-500/70 px-3.5 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10 active:scale-[0.98]"
-                >
-                  Sign Up
-                </Link>
-              </>
+              /* ── Guest: single compact Login/Sign Up pill ── */
+              <Link
+                href="/auth"
+                className="tracked-label flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-gold-500/70 px-3 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10 active:scale-[0.98]"
+              >
+                <FiUser className="h-4 w-4" />
+                Login
+              </Link>
             )}
           </div>
 
@@ -800,7 +792,7 @@ export default function Navbar() {
             onClick={() => setMobileOpen((v) => !v)}
             aria-label="Toggle navigation menu"
             aria-expanded={mobileOpen}
-            className="flex h-9 w-9 items-center justify-center text-cream 2xl:hidden"
+            className="flex h-9 w-9 items-center justify-center text-cream min-[1400px]:hidden"
           >
             {mobileOpen ? <FiX className="h-6 w-6" /> : <FiMenu className="h-6 w-6" />}
           </button>
@@ -814,7 +806,7 @@ export default function Navbar() {
           which would confine this overlay to the header's own height instead of
           the full viewport. */}
       {mobileOpen && (
-        <div className="2xl:hidden" style={{ position: "fixed", inset: 0, zIndex: 9999 }}>
+        <div className="min-[1400px]:hidden" style={{ position: "fixed", inset: 0, zIndex: 9999 }}>
           <style>{`
             @keyframes sidebarBackdropFadeIn { from { opacity: 0; } to { opacity: 1; } }
             @keyframes sidebarSlideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
