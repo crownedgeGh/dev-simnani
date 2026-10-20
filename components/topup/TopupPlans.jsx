@@ -13,6 +13,17 @@ export default function TopupPlans() {
   const [showAuthGate, setShowAuthGate] = useState(false);
   const [creditingId, setCreditingId] = useState(null);
 
+  if (isAuthenticated && user?.accountType !== "broker") {
+    return (
+      <div className="mx-auto max-w-2xl px-4 py-24 text-center sm:px-6 lg:px-8">
+        <h1 className="font-display text-2xl text-cream sm:text-3xl">Top Up Unavailable</h1>
+        <p className="mt-3 text-sm text-muted">
+          Listing top-ups are available to Broker accounts only.
+        </p>
+      </div>
+    );
+  }
+
   async function handlePaid(topup, response) {
     setCreditingId(topup.id);
     try {

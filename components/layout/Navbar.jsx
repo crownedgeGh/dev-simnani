@@ -645,7 +645,9 @@ export default function Navbar() {
   const initials = getInitials(user?.fullName);
   const perms = getAccountPermissions(user?.accountType, user?.cpType);
   const canPostProperty = !isAuthenticated || perms.canPostProperty;
-  const visibleNavLinks = NAV_LINKS;
+  const visibleNavLinks = NAV_LINKS.filter(
+    (link) => link.href !== "/topup" || user?.accountType === "broker"
+  );
 
   return (
     <>
