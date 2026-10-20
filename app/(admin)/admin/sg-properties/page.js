@@ -9,7 +9,6 @@ import AdminPageHeader from "@/components/admin/layout/AdminPageHeader";
 import AdminTable from "@/components/admin/ui/AdminTable";
 import AdminConfirmModal from "@/components/admin/ui/AdminConfirmModal";
 import AssignPropertyDialog from "@/components/admin/freelancer-cp/AssignPropertyDialog";
-import FeaturedLocationModal from "@/components/admin/ui/FeaturedLocationModal";
 import adminAxios from "@/lib/adminAxios";
 import { ADMIN_KEYS, readCollection, writeCollection } from "@/lib/adminStorage";
 import { getLocationCity } from "@/lib/properties";
@@ -43,6 +42,7 @@ function normalizeProperty(p) {
     ...p,
     city: p.city || (p.location ? getLocationCity(p.location) : "") || "Other",
     postedByRole: p.postedByRole || "public",
+    approved: p.status === "Active",
   };
 }
 
@@ -57,8 +57,6 @@ export default function AdminSgPropertiesPage() {
   const [assignments, setAssignments] = useState([]);
   const [assignTarget, setAssignTarget] = useState(null);
   const [activeTab, setActiveTab] = useState("all");
-  const [featuredModalRow, setFeaturedModalRow] = useState(null);
-  const [featuredSaving, setFeaturedSaving] = useState(false);
 
   const loadCpData = useCallback(async () => {
     try {
@@ -141,49 +139,22 @@ export default function AdminSgPropertiesPage() {
     }
   }, []);
 
-  const MAX_FEATURED = 6;
-  const persistFeatured = async (row, patch) => {
+  const handleApproveToggle = useCallback(async (row, val) => {
     try {
       const res = await fetch(`/api/admin/properties/${row.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(patch),
+        body: JSON.stringify({ status: val ? "Active" : "Pending Review" }),
       });
       const json = await res.json();
-      if (json.success && json.data) {
-        const updated = normalizeProperty(json.data);
-        setProperties((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
-        toast.success(patch.featured ? "Featured on the public site" : "Removed from public site");
-        return true;
-      }
-      toast.error(json.error || "Failed to update featured status");
-      return false;
-    } catch {
-      toast.error("Failed to update featured status — check your connection and try again");
-      return false;
+      if (!json.success) throw new Error(json.error || "Failed to update property");
+      const updated = normalizeProperty(json.data);
+      setProperties((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+      toast.success(val ? "Property approved" : "Property moved back to pending review");
+    } catch (err) {
+      toast.error(err.message || "Failed to update property");
     }
-  };
-
-  const handleFeaturedToggle = async (row, val) => {
-    if (!val) {
-      await persistFeatured(row, { featured: false });
-      return;
-    }
-    const featuredCount = properties.filter((p) => p.featured && p.id !== row.id).length;
-    if (featuredCount >= MAX_FEATURED) {
-      toast.error(`Only ${MAX_FEATURED} properties can be featured at a time. Unfeature one first.`);
-      return;
-    }
-    setFeaturedModalRow(row);
-  };
-
-  const handleFeaturedLocationConfirm = async ({ locations }) => {
-    if (!featuredModalRow) return;
-    setFeaturedSaving(true);
-    const ok = await persistFeatured(featuredModalRow, { featured: true, featuredLocations: locations });
-    setFeaturedSaving(false);
-    if (ok) setFeaturedModalRow(null);
-  };
+  }, []);
 
   const handleAssignToCompanyCp = async (partner) => {
     const res = await fetch("/api/assignments", {
@@ -347,15 +318,6 @@ export default function AdminSgPropertiesPage() {
         render: (val) => <span className="text-sm font-semibold text-[#d97706]">{val}</span>,
       },
       {
-        key: "beds",
-        label: "Beds/Baths",
-        render: (val, row) => (
-          <span className="text-sm text-[#374151]">
-            {row.beds ? `${row.beds}B / ${row.baths}Ba` : "—"}
-          </span>
-        ),
-      },
-      {
         key: "status",
         label: "Status",
         type: "status",
@@ -363,15 +325,14 @@ export default function AdminSgPropertiesPage() {
         filterOptions: ["Active", "Pending Review", "Rejected", "Closed", "Sold", "Draft"],
       },
       {
-        key: "featured",
-        label: "Featured",
+        key: "approved",
+        label: "Action",
         type: "toggle",
-        onToggle: handleFeaturedToggle,
+        onToggle: handleApproveToggle,
         filterOptions: [
-          { value: "true", label: "Yes" },
-          { value: "false", label: "No" },
+          { value: "true", label: "Approved" },
+          { value: "false", label: "Pending" },
         ],
-        render: null,
       },
       {
         key: "actions",
@@ -414,7 +375,7 @@ export default function AdminSgPropertiesPage() {
         },
       },
     ],
-    [cityOptions, router, handleToggleSold, handleFeaturedToggle]
+    [cityOptions, router, handleToggleSold, handleApproveToggle]
   );
 
   return (
@@ -491,23 +452,6 @@ export default function AdminSgPropertiesPage() {
         partners={companyPartners}
         currentAssigneeId={assignments.find((a) => a.propertyId === assignTarget?.id && a.level === "head-to-company")?.assignedToAccountId}
         onAssign={handleAssignToCompanyCp}
-      />
-
-      <FeaturedLocationModal
-        isOpen={!!featuredModalRow}
-        onClose={() => setFeaturedModalRow(null)}
-        onConfirm={handleFeaturedLocationConfirm}
-        isLoading={featuredSaving}
-        title="Feature this property"
-        description="Choose the states and cities this property should be featured for."
-        multiple
-        initialLocations={
-          featuredModalRow?.featuredLocations?.length
-            ? featuredModalRow.featuredLocations
-            : featuredModalRow?.state && featuredModalRow?.city
-              ? [{ state: featuredModalRow.state, city: featuredModalRow.city }]
-              : []
-        }
       />
     </div>
   );

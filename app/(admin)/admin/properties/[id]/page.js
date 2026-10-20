@@ -44,6 +44,8 @@ import {
   MdBusiness,
   MdArrowForward,
   MdMyLocation,
+  MdStar,
+  MdStarBorder,
 } from "react-icons/md";
 import AdminStatusBadge from "@/components/admin/ui/AdminStatusBadge";
 import LocationLink from "@/components/common/LocationLink";
@@ -54,6 +56,7 @@ import PropertyFormDialog from "@/components/admin/properties/PropertyFormDialog
 import CorrectionRequestDialog from "@/components/admin/properties/CorrectionRequestDialog";
 import CompanyCPAssignmentDialog from "@/components/admin/freelancer-cp/CompanyCPAssignmentDialog";
 import PropertyOwnerDetailModal from "@/components/admin/properties/PropertyOwnerDetailModal";
+import FeaturedLocationModal from "@/components/admin/ui/FeaturedLocationModal";
 import { ADMIN_KEYS, readCollection } from "@/lib/adminStorage";
 import {
   formatPostedDate,
@@ -95,6 +98,9 @@ export default function PropertyDetailPage() {
   const [ownerModalOpen, setOwnerModalOpen] = useState(false);
   const [ownerDetail, setOwnerDetail] = useState(null);
   const [ownerLoading, setOwnerLoading] = useState(false);
+  const [allProperties, setAllProperties] = useState([]);
+  const [featuredModalOpen, setFeaturedModalOpen] = useState(false);
+  const [featuredSaving, setFeaturedSaving] = useState(false);
 
   const handleViewOwner = async () => {
     setOwnerModalOpen(true);
@@ -160,6 +166,23 @@ export default function PropertyDetailPage() {
     };
   }, [id]);
 
+  useEffect(() => {
+    let active = true;
+    async function loadAllProperties() {
+      try {
+        const res = await fetch("/api/properties", { cache: "no-store" });
+        const json = await res.json();
+        if (active && json.success && Array.isArray(json.data)) setAllProperties(json.data);
+      } catch {
+        // featured cap just won't be enforced if this fails
+      }
+    }
+    loadAllProperties();
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const handleOpenAssignmentDetail = async (assignment) => {
     setAssignmentDetailTarget(assignment);
     setAssignmentDetailCp(null);
@@ -205,6 +228,75 @@ export default function PropertyDetailPage() {
       return;
     }
     toast.error(json.error || "Failed to update property");
+  };
+
+  const MAX_FEATURED = 6;
+  const isSgBasePath = basePath === "/admin/sg-properties";
+
+  // A property counts toward a city's cap if it's explicitly featured for
+  // that city, or (legacy rows with no featuredLocations) its own city matches.
+  function featuredCountForCity(city) {
+    return allProperties.filter(
+      (p) =>
+        p.id !== id &&
+        p.featured &&
+        (p.featuredLocations?.length
+          ? p.featuredLocations.some((l) => l.city?.toLowerCase() === city.toLowerCase())
+          : p.city?.toLowerCase() === city.toLowerCase())
+    ).length;
+  }
+
+  const persistFeatured = async (patch) => {
+    try {
+      const res = await fetch(`/api/admin/properties/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patch),
+      });
+      const json = await res.json();
+      if (json.success && json.data) {
+        setProperty(json.data);
+        toast.success(patch.featured ? "Featured on the public site" : "Removed from public site");
+        return true;
+      }
+      toast.error(json.error || "Failed to update featured status");
+      return false;
+    } catch {
+      toast.error("Failed to update featured status — check your connection and try again");
+      return false;
+    }
+  };
+
+  const handleFeaturedToggle = async () => {
+    if (property.featured) {
+      await persistFeatured({ featured: false });
+      return;
+    }
+    // Public listings cap featured count per-city; SG listings cap globally.
+    if (isSgBasePath) {
+      const featuredCount = allProperties.filter((p) => p.featured && p.id !== id).length;
+      if (featuredCount >= MAX_FEATURED) {
+        toast.error(`Only ${MAX_FEATURED} properties can be featured at a time. Unfeature one first.`);
+        return;
+      }
+    }
+    setFeaturedModalOpen(true);
+  };
+
+  const handleFeaturedLocationConfirm = async ({ locations }) => {
+    if (!isSgBasePath) {
+      for (const loc of locations) {
+        if (!loc.city) continue;
+        if (featuredCountForCity(loc.city) >= MAX_FEATURED) {
+          toast.error(`Only ${MAX_FEATURED} properties can be featured for ${loc.city} at a time. Unfeature one there first.`);
+          return;
+        }
+      }
+    }
+    setFeaturedSaving(true);
+    const ok = await persistFeatured({ featured: true, featuredLocations: locations });
+    setFeaturedSaving(false);
+    if (ok) setFeaturedModalOpen(false);
   };
 
   const STATUS_MESSAGES = {
@@ -633,6 +725,17 @@ export default function PropertyDetailPage() {
                   <MdCancel size={16} /> Reject
                 </button>
               </div>
+              <button
+                onClick={handleFeaturedToggle}
+                className={`flex h-12 items-center justify-center gap-1.5 rounded-xl border text-sm font-medium transition ${
+                  property.featured
+                    ? "border-[#f0b429]/50 bg-[#fff8e1] text-[#d97706] hover:bg-[#fff2c2]"
+                    : "border-[#e8e0d5] bg-white text-[#374151] hover:bg-[#faf8f5]"
+                }`}
+              >
+                {property.featured ? <MdStar size={16} /> : <MdStarBorder size={16} />}
+                {property.featured ? "Remove from Featured" : "Feature on Public Site"}
+              </button>
               {property.correctionRequest?.active || property.correctionRequest?.underReview ? (
                 <button
                   onClick={handleClearHold}
@@ -713,6 +816,22 @@ export default function PropertyDetailPage() {
           const usersBasePath = basePath === "/admin/sg-properties" ? "/admin/sg-users" : "/admin/users";
           router.push(`${usersBasePath}/${property.ownerId}`);
         }}
+      />
+      <FeaturedLocationModal
+        isOpen={featuredModalOpen}
+        onClose={() => setFeaturedModalOpen(false)}
+        onConfirm={handleFeaturedLocationConfirm}
+        isLoading={featuredSaving}
+        title="Feature this property"
+        description="Choose the states and cities this property should be featured for."
+        multiple
+        initialLocations={
+          property.featuredLocations?.length
+            ? property.featuredLocations
+            : property.state && property.city
+              ? [{ state: property.state, city: property.city }]
+              : []
+        }
       />
       <PropertyFormDialog isOpen={editOpen} onClose={() => setEditOpen(false)} property={property} onSave={handleEdit} />
       <CorrectionRequestDialog
