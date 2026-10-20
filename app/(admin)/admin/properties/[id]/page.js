@@ -53,6 +53,7 @@ import AdminPhoneCell from "@/components/admin/ui/AdminPhoneCell";
 import PropertyFormDialog from "@/components/admin/properties/PropertyFormDialog";
 import CorrectionRequestDialog from "@/components/admin/properties/CorrectionRequestDialog";
 import CompanyCPAssignmentDialog from "@/components/admin/freelancer-cp/CompanyCPAssignmentDialog";
+import PropertyOwnerDetailModal from "@/components/admin/properties/PropertyOwnerDetailModal";
 import { ADMIN_KEYS, readCollection } from "@/lib/adminStorage";
 import {
   formatPostedDate,
@@ -91,6 +92,25 @@ export default function PropertyDetailPage() {
   const [loadingAssignmentDetail, setLoadingAssignmentDetail] = useState(false);
   const [unassignTarget, setUnassignTarget] = useState(null);
   const [unassigning, setUnassigning] = useState(false);
+  const [ownerModalOpen, setOwnerModalOpen] = useState(false);
+  const [ownerDetail, setOwnerDetail] = useState(null);
+  const [ownerLoading, setOwnerLoading] = useState(false);
+
+  const handleViewOwner = async () => {
+    setOwnerModalOpen(true);
+    setOwnerDetail(null);
+    if (!property?.ownerId) return;
+    setOwnerLoading(true);
+    try {
+      const res = await fetch(`/api/users/${property.ownerId}`);
+      const json = await res.json();
+      if (json.success) setOwnerDetail(json.data);
+    } catch {
+      // modal shows "not found" fallback
+    } finally {
+      setOwnerLoading(false);
+    }
+  };
 
   useEffect(() => {
     let active = true;
@@ -353,14 +373,25 @@ export default function PropertyDetailPage() {
           </div>
 
           <h1 className="mt-3 text-3xl font-bold text-[#1a1a2e] sm:text-4xl">{property.title}</h1>
-          <p className="mt-2 text-sm text-[#9ca3af]">
-            <LocationLink
-              mapLocation={property.mapLocation}
-              address={property.address}
-              location={property.location}
-              className="hover:text-[#f0b429]"
-            />
-          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-3">
+            <p className="text-sm text-[#9ca3af]">
+              <LocationLink
+                mapLocation={property.mapLocation}
+                address={property.address}
+                location={property.location}
+                className="hover:text-[#f0b429]"
+              />
+            </p>
+            {property.ownerId && (
+              <button
+                type="button"
+                onClick={handleViewOwner}
+                className="flex h-8 items-center gap-1.5 rounded-full border border-[#f0b429]/40 bg-[#fff8e1] px-3 text-xs font-semibold text-[#d97706] transition hover:bg-[#fff2c2]"
+              >
+                <MdPerson size={14} /> View User Details
+              </button>
+            )}
+          </div>
           <p className="mt-4 text-2xl font-bold text-[#d97706]">{property.price}</p>
 
           {property.correctionRequest?.active && (
@@ -672,6 +703,16 @@ export default function PropertyDetailPage() {
         confirmLabel="Unassign"
         confirmVariant="danger"
         isLoading={unassigning}
+      />
+      <PropertyOwnerDetailModal
+        isOpen={ownerModalOpen}
+        onClose={() => setOwnerModalOpen(false)}
+        user={ownerDetail}
+        loading={ownerLoading}
+        onViewFullDetails={() => {
+          const usersBasePath = basePath === "/admin/sg-properties" ? "/admin/sg-users" : "/admin/users";
+          router.push(`${usersBasePath}/${property.ownerId}`);
+        }}
       />
       <PropertyFormDialog isOpen={editOpen} onClose={() => setEditOpen(false)} property={property} onSave={handleEdit} />
       <CorrectionRequestDialog
