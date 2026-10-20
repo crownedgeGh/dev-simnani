@@ -11,6 +11,8 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const ADMIN_PATCHABLE_FIELDS = ["status", "routingStage", "assignedTo", "assignedToAccountId"];
+// A CP may always edit their own direct lead (customer/phone/notes/photos only).
+const OWNER_PATCHABLE_FIELDS = ["customer", "phone", "notes", "photos"];
 
 // Service providers have no CP dashboard — they work the same Leads tab as
 // owners/brokers. So when a lead is handed to one, mirror it into the Lead
@@ -54,27 +56,38 @@ export async function PATCH(request, { params }) {
 
     const body = await request.json();
     const isAdmin = isAdminRequest(request);
+    let isOwnerEdit = false;
 
     if (!isAdmin) {
       const user = await getSessionUser(request);
-      const isCompany = user?.accountType === "freelancer" && user.cpType === "company";
-      // Owns it directly (Head CP forwarded it) or via a Field/Digital CP it delegated a project to.
-      const ownsLead =
-        isCompany &&
-        ((existing.routingStage === "company-cp" && existing.assignedToAccountId === user.accountId) ||
-          !!(await Assignment.exists({
-            level: { $in: ["company-to-field", "company-to-digital"] },
-            assignedByAccountId: user.accountId,
-            assignedToAccountId: existing.submittedBy?.accountId,
-          })));
-      if (!ownsLead || !body.serviceProviderAccountId) {
-        return NextResponse.json({ success: false, error: "Admin access required" }, { status: 401 });
+      const isSubmitter = !!user && existing.submittedBy?.accountId === user.accountId;
+
+      if (isSubmitter) {
+        isOwnerEdit = true;
+      } else {
+        const isCompany = user?.accountType === "freelancer" && user.cpType === "company";
+        // Owns it directly (Head CP forwarded it) or via a Field/Digital CP it delegated a project to.
+        const ownsLead =
+          isCompany &&
+          ((existing.routingStage === "company-cp" && existing.assignedToAccountId === user.accountId) ||
+            !!(await Assignment.exists({
+              level: { $in: ["company-to-field", "company-to-digital"] },
+              assignedByAccountId: user.accountId,
+              assignedToAccountId: existing.submittedBy?.accountId,
+            })));
+        if (!ownsLead || !body.serviceProviderAccountId) {
+          return NextResponse.json({ success: false, error: "Admin access required" }, { status: 401 });
+        }
       }
     }
 
     const update = {};
     if (isAdmin) {
       for (const key of ADMIN_PATCHABLE_FIELDS) {
+        if (body[key] !== undefined) update[key] = body[key];
+      }
+    } else if (isOwnerEdit) {
+      for (const key of OWNER_PATCHABLE_FIELDS) {
         if (body[key] !== undefined) update[key] = body[key];
       }
     }
@@ -113,6 +126,37 @@ export async function PATCH(request, { params }) {
     console.error("PATCH /api/cp-leads/[id] error:", error);
     return NextResponse.json(
       { success: false, error: error.message || "Failed to update lead" },
+      { status: 500 }
+    );
+  }
+}
+
+// A CP may delete their own direct lead; admin may delete any.
+export async function DELETE(request, { params }) {
+  try {
+    await dbConnect();
+    const { id } = await params;
+
+    const existing = await CpLead.findOne({ id }).lean();
+    if (!existing) {
+      return NextResponse.json({ success: false, error: "Lead not found" }, { status: 404 });
+    }
+
+    if (!isAdminRequest(request)) {
+      const user = await getSessionUser(request);
+      const isSubmitter = !!user && existing.submittedBy?.accountId === user.accountId;
+      if (!isSubmitter) {
+        return NextResponse.json({ success: false, error: "Admin access required" }, { status: 401 });
+      }
+    }
+
+    await CpLead.deleteOne({ id });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("DELETE /api/cp-leads/[id] error:", error);
+    return NextResponse.json(
+      { success: false, error: error.message || "Failed to delete lead" },
       { status: 500 }
     );
   }

@@ -18,6 +18,7 @@ import {
   MdLink,
   MdAttachMoney,
   MdOpenInNew,
+  MdExpandMore,
 } from "react-icons/md";
 import AdminStatusBadge from "@/components/admin/ui/AdminStatusBadge";
 import AdminPhoneCell from "@/components/admin/ui/AdminPhoneCell";
@@ -134,7 +135,7 @@ function StepTracker({ steps }) {
   );
 }
 
-function VisitCard({ visit }) {
+function VisitCard({ visit, isExpanded, onToggle }) {
   const readyDone = Boolean(visit.movingAt);
   const photoDone = (visit.livePhotos?.length || 0) > 0;
   const doneDone = Boolean(visit.doneAt);
@@ -148,55 +149,73 @@ function VisitCard({ visit }) {
   ];
 
   return (
-    <div className="rounded-2xl border border-[#e8e0d5] bg-white p-4">
-      <div className="flex items-start justify-between gap-3">
+    <div className="rounded-2xl border border-[#e8e0d5] bg-white">
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={onToggle}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onToggle();
+          }
+        }}
+        className="flex cursor-pointer items-start justify-between gap-3 p-4"
+      >
         <div>
           <p className="text-sm font-semibold text-[#1a1a2e]">{visit.customer || "Untitled visit"}</p>
           <p className="mt-0.5 text-xs text-[#9ca3af]">{visit.project || "—"}</p>
           <p className="mt-0.5 text-xs text-[#9ca3af]">{visit.scheduledAt}</p>
         </div>
-        <AdminStatusBadge status={visit.status} />
+        <div className="flex shrink-0 items-center gap-2">
+          <AdminStatusBadge status={visit.status} />
+          <MdExpandMore className={`h-5 w-5 text-[#9ca3af] transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+        </div>
       </div>
 
-      <div className="mt-3 grid grid-cols-1 gap-2 border-t border-[#f0ebe3] pt-3 sm:grid-cols-2">
-        <p className="flex items-center gap-1.5 text-xs text-[#374151]">
-          <MdPerson size={14} className="text-[#9ca3af]" />
-          {visit.customer || "—"}
-        </p>
-        <p className="flex items-center gap-1.5 text-xs text-[#374151]">
-          <MdPhone size={14} className="text-[#9ca3af]" />
-          <AdminPhoneCell value={visit.phone} />
-        </p>
-      </div>
+      {isExpanded && (
+        <div className="px-4 pb-4">
+          <div className="grid grid-cols-1 gap-2 border-t border-[#f0ebe3] pt-3 sm:grid-cols-2">
+            <p className="flex items-center gap-1.5 text-xs text-[#374151]">
+              <MdPerson size={14} className="text-[#9ca3af]" />
+              {visit.customer || "—"}
+            </p>
+            <p className="flex items-center gap-1.5 text-xs text-[#374151]">
+              <MdPhone size={14} className="text-[#9ca3af]" />
+              <AdminPhoneCell value={visit.phone} />
+            </p>
+          </div>
 
-      {visit.notes && (
-        <p className="mt-2 rounded-lg bg-[#faf8f5] px-3 py-2 text-xs text-[#374151]">{visit.notes}</p>
-      )}
+          {visit.notes && (
+            <p className="mt-2 rounded-lg bg-[#faf8f5] px-3 py-2 text-xs text-[#374151]">{visit.notes}</p>
+          )}
 
-      {visit.livePhotos?.length > 0 && (
-        <div className="mt-3">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9ca3af]">
-            Live Photos ({visit.livePhotos.length})
-          </p>
-          <div className="mt-1.5 grid grid-cols-4 gap-1.5 sm:grid-cols-6">
-            {visit.livePhotos.map((photo, i) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                key={i}
-                src={photo.url}
-                alt={photo.name || "Live photo"}
-                className="aspect-square w-full rounded-lg border border-[#e8e0d5] object-cover"
-              />
-            ))}
+          {visit.livePhotos?.length > 0 && (
+            <div className="mt-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9ca3af]">
+                Live Photos ({visit.livePhotos.length})
+              </p>
+              <div className="mt-1.5 grid grid-cols-4 gap-1.5 sm:grid-cols-6">
+                {visit.livePhotos.map((photo, i) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    key={i}
+                    src={photo.url}
+                    alt={photo.name || "Live photo"}
+                    className="aspect-square w-full rounded-lg border border-[#e8e0d5] object-cover"
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="mt-4 overflow-x-auto border-t border-[#f0ebe3] pt-4">
+            <div className="min-w-[360px]">
+              <StepTracker steps={steps} />
+            </div>
           </div>
         </div>
       )}
-
-      <div className="mt-4 overflow-x-auto border-t border-[#f0ebe3] pt-4">
-        <div className="min-w-[360px]">
-          <StepTracker steps={steps} />
-        </div>
-      </div>
     </div>
   );
 }
@@ -221,6 +240,8 @@ export default function PartnerPortalPage() {
   const [receivedLeads, setReceivedLeads] = useState([]); // company only: leads Head CP routed here
   const [delegations, setDelegations] = useState([]); // company only: projects handed on to Field/Digital CPs
   const [lightboxUrl, setLightboxUrl] = useState(null);
+  const [expandedLeads, setExpandedLeads] = useState({});
+  const [expandedVisits, setExpandedVisits] = useState({});
 
   useEffect(() => {
     if (!accountId) return;
@@ -411,9 +432,14 @@ export default function PartnerPortalPage() {
                 {siteVisits.length === 0 ? (
                   <EmptyRow message="No site visits logged by this partner yet." />
                 ) : (
-                  <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+                  <div className="flex flex-col gap-3">
                     {siteVisits.map((visit) => (
-                      <VisitCard key={visit.id} visit={visit} />
+                      <VisitCard
+                        key={visit.id}
+                        visit={visit}
+                        isExpanded={!!expandedVisits[visit.id]}
+                        onToggle={() => setExpandedVisits((prev) => ({ ...prev, [visit.id]: !prev[visit.id] }))}
+                      />
                     ))}
                   </div>
                 )}
@@ -498,35 +524,60 @@ export default function PartnerPortalPage() {
                 <EmptyRow message="No leads submitted by this partner yet." />
               ) : (
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  {leads.map((lead) => (
-                    <div key={lead.id} className="rounded-xl border border-[#e8e0d5] bg-[#faf8f5] p-3.5">
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="flex min-w-0 items-center gap-2">
-                          {lead.photos?.[0] && (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={lead.photos[0]} alt="" className="h-8 w-8 shrink-0 rounded-full border border-[#e8e0d5] object-cover" />
-                          )}
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium text-[#1a1a2e]">{lead.customer}</p>
-                            <p className="mt-0.5 flex items-center gap-1 text-xs text-[#9ca3af]">
-                              {lead.project || "—"} · <AdminPhoneCell value={lead.phone} />
-                            </p>
+                  {leads.map((lead) => {
+                    const isExpanded = !!expandedLeads[lead.id];
+                    return (
+                      <div key={lead.id} className="rounded-xl border border-[#e8e0d5] bg-[#faf8f5] p-3.5">
+                        <div
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => setExpandedLeads((prev) => ({ ...prev, [lead.id]: !prev[lead.id] }))}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              setExpandedLeads((prev) => ({ ...prev, [lead.id]: !prev[lead.id] }));
+                            }
+                          }}
+                          className="flex w-full cursor-pointer items-center justify-between gap-3 text-left"
+                        >
+                          <div className="flex min-w-0 items-center gap-2">
+                            {lead.photos?.[0] && (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={lead.photos[0]} alt="" className="h-8 w-8 shrink-0 rounded-full border border-[#e8e0d5] object-cover" />
+                            )}
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium text-[#1a1a2e]">{lead.customer}</p>
+                              <p className="mt-0.5 flex items-center gap-1 text-xs text-[#9ca3af]">
+                                {lead.project || "—"} ·{" "}
+                                <span onClick={(e) => e.stopPropagation()}>
+                                  <AdminPhoneCell value={lead.phone} />
+                                </span>
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex shrink-0 items-center gap-2">
+                            <AdminStatusBadge status={lead.status} />
+                            <MdExpandMore className={`h-5 w-5 text-[#9ca3af] transition-transform ${isExpanded ? "rotate-180" : ""}`} />
                           </div>
                         </div>
-                        <AdminStatusBadge status={lead.status} />
+                        {isExpanded && (
+                          <div className="mt-2 border-t border-[#f0ebe3] pt-2">
+                            {lead.notes && <p className="text-xs text-[#6b7280]">{lead.notes}</p>}
+                            {lead.photos?.length > 0 && (
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                {lead.photos.map((url) => (
+                                  <button key={url} type="button" onClick={() => setLightboxUrl(url)}>
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img src={url} alt="" className="h-24 w-24 rounded-lg border border-[#e8e0d5] object-cover transition hover:opacity-80" />
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
-                      {lead.photos?.length > 0 && (
-                        <div className="mt-2 flex flex-wrap gap-1.5 border-t border-[#f0ebe3] pt-2">
-                          {lead.photos.map((url) => (
-                            <button key={url} type="button" onClick={() => setLightboxUrl(url)}>
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img src={url} alt="" className="h-12 w-12 rounded-lg border border-[#e8e0d5] object-cover transition hover:opacity-80" />
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </Card>

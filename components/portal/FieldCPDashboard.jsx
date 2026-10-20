@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { FiPlus, FiCheck, FiSend, FiNavigation, FiCamera, FiUser, FiPhone, FiArrowRight, FiX, FiEdit2, FiChevronDown } from "react-icons/fi";
+import { FiPlus, FiCheck, FiSend, FiNavigation, FiCamera, FiUser, FiPhone, FiArrowRight, FiX, FiEdit2, FiChevronDown, FiTrash2 } from "react-icons/fi";
 import { MdContentCopy, MdCheck, MdCall } from "react-icons/md";
 import LocationLink from "@/components/common/LocationLink";
 import Tabs from "./Tabs";
@@ -159,7 +159,7 @@ const TABS = [
 
 const INITIAL_DIRECT_FORM = { customer: "", phone: "", notes: "", photos: [] };
 
-function DirectLeadPhotoDrop({ photos, uploading, onFiles, onRemove }) {
+function DirectLeadPhotoDrop({ photos, uploading, onFiles, onRemove, inputId = "fcp-photo" }) {
   const [isDragging, setIsDragging] = useState(false);
 
   function handleDrop(e) {
@@ -190,7 +190,7 @@ function DirectLeadPhotoDrop({ photos, uploading, onFiles, onRemove }) {
         </div>
       )}
       <label
-        htmlFor="fcp-photo"
+        htmlFor={inputId}
         onDragEnter={(e) => {
           e.preventDefault();
           setIsDragging(true);
@@ -211,7 +211,7 @@ function DirectLeadPhotoDrop({ photos, uploading, onFiles, onRemove }) {
           {uploading ? "Uploading…" : "Click to upload or drag and drop — multiple photos allowed"}
         </span>
         <input
-          id="fcp-photo"
+          id={inputId}
           type="file"
           accept="image/*"
           multiple
@@ -293,6 +293,13 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
   const [directError, setDirectError] = useState("");
   const [directLeads, setDirectLeads] = useState([]);
   const [directPhotoUploading, setDirectPhotoUploading] = useState(false);
+  const [expandedDirectLeads, setExpandedDirectLeads] = useState({});
+  const [editingDirectLeadId, setEditingDirectLeadId] = useState(null);
+  const [directEditForm, setDirectEditForm] = useState(null);
+  const [directEditPhotoUploading, setDirectEditPhotoUploading] = useState(false);
+  const [directEditSaving, setDirectEditSaving] = useState(false);
+  const [deletingDirectLeadId, setDeletingDirectLeadId] = useState(null);
+  const [confirmDeleteLeadId, setConfirmDeleteLeadId] = useState(null);
 
   async function handleDirectPhotos(fileList) {
     setDirectPhotoUploading(true);
@@ -303,6 +310,78 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
       toast.error(error.message || "Couldn't upload the photo — please try again");
     } finally {
       setDirectPhotoUploading(false);
+    }
+  }
+
+  function toggleDirectLeadExpanded(id) {
+    setExpandedDirectLeads((prev) => ({ ...prev, [id]: !prev[id] }));
+  }
+
+  function startEditDirectLead(lead) {
+    setEditingDirectLeadId(lead.id);
+    setDirectEditForm({ customer: lead.customer || "", phone: lead.phone || "", notes: lead.notes || "", photos: lead.photos || [] });
+    setExpandedDirectLeads((prev) => ({ ...prev, [lead.id]: true }));
+  }
+
+  function cancelEditDirectLead() {
+    setEditingDirectLeadId(null);
+    setDirectEditForm(null);
+  }
+
+  async function handleDirectEditPhotos(fileList) {
+    setDirectEditPhotoUploading(true);
+    try {
+      const urls = await Promise.all(Array.from(fileList).map((file) => uploadFileToR2(file, "cp-leads")));
+      setDirectEditForm((prev) => ({ ...prev, photos: [...prev.photos, ...urls] }));
+    } catch (error) {
+      toast.error(error.message || "Couldn't upload the photo — please try again");
+    } finally {
+      setDirectEditPhotoUploading(false);
+    }
+  }
+
+  async function saveDirectLeadEdit(id) {
+    if (!directEditForm?.customer.trim() || !directEditForm?.phone.trim()) {
+      toast.error("Please fill in customer name and phone.");
+      return;
+    }
+    setDirectEditSaving(true);
+    try {
+      const res = await fetch(`/api/cp-leads/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customer: directEditForm.customer.trim(),
+          phone: directEditForm.phone.trim(),
+          notes: directEditForm.notes.trim(),
+          photos: directEditForm.photos,
+        }),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || "Failed to update lead");
+      setDirectLeads((prev) => prev.map((l) => (l.id === id ? json.data : l)));
+      cancelEditDirectLead();
+      toast.success("Lead updated");
+    } catch (error) {
+      toast.error(error.message || "Couldn't update the lead — please try again");
+    } finally {
+      setDirectEditSaving(false);
+    }
+  }
+
+  async function deleteDirectLead(id) {
+    setDeletingDirectLeadId(id);
+    try {
+      const res = await fetch(`/api/cp-leads/${id}`, { method: "DELETE" });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || "Failed to delete lead");
+      setDirectLeads((prev) => prev.filter((l) => l.id !== id));
+      setConfirmDeleteLeadId(null);
+      toast.success("Lead deleted");
+    } catch (error) {
+      toast.error(error.message || "Couldn't delete the lead — please try again");
+    } finally {
+      setDeletingDirectLeadId(null);
     }
   }
 
@@ -1197,31 +1276,156 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
               <EmptyState title="No direct leads yet" message="Add a lead's name, phone and notes — it goes straight to your Company CP." />
             ) : (
               <div className="flex flex-col gap-3">
-                {directLeads.map((lead) => (
-                  <div
-                    key={lead.id}
-                    className="flex gap-3 border border-navy-700/60 bg-navy-900 p-4"
-                  >
-                    {lead.photos?.length > 0 && (
-                      <div className="flex shrink-0 gap-1.5">
-                        {lead.photos.slice(0, 3).map((url) => (
+                {directLeads.map((lead) => {
+                  const isExpanded = !!expandedDirectLeads[lead.id];
+                  const isEditing = editingDirectLeadId === lead.id;
+                  return (
+                    <div key={lead.id} className="border border-navy-700/60 bg-navy-900">
+                      <button
+                        type="button"
+                        onClick={() => toggleDirectLeadExpanded(lead.id)}
+                        className="flex w-full items-center gap-3 p-4 text-left"
+                      >
+                        {lead.photos?.length > 0 && (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
-                            key={url}
-                            src={url}
+                            src={lead.photos[0]}
                             alt=""
-                            className="h-14 w-14 rounded-xl border border-navy-700/60 object-cover"
+                            className="h-14 w-14 shrink-0 rounded-xl border border-navy-700/60 object-cover"
                           />
-                        ))}
-                      </div>
-                    )}
-                    <div className="min-w-0">
-                      <p className="text-sm text-cream">{lead.customer}</p>
-                      <p className="mt-1 text-xs text-muted">{lead.phone}</p>
-                      {lead.notes && <p className="mt-1 text-xs text-muted">{lead.notes}</p>}
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm text-cream">{lead.customer}</p>
+                          <p className="mt-1 text-xs text-muted">{lead.phone}</p>
+                        </div>
+                        <FiChevronDown
+                          className={`h-4 w-4 shrink-0 text-muted transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                        />
+                      </button>
+
+                      {isExpanded && !isEditing && (
+                        <div className="border-t border-navy-700/60 p-4">
+                          {lead.notes && <p className="text-sm text-muted">{lead.notes}</p>}
+                          {lead.photos?.length > 0 && (
+                            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                              {lead.photos.map((url) => (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                  key={url}
+                                  src={url}
+                                  alt=""
+                                  className="aspect-square w-full rounded-xl border border-navy-700/60 object-cover"
+                                />
+                              ))}
+                            </div>
+                          )}
+                          <div className="mt-4 flex flex-wrap items-center gap-3">
+                            <button
+                              type="button"
+                              onClick={() => startEditDirectLead(lead)}
+                              className="tracked-label flex items-center gap-2 rounded-full border border-gold-500/70 px-4 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10"
+                            >
+                              <FiEdit2 className="h-3.5 w-3.5" />
+                              Edit Lead
+                            </button>
+                            {confirmDeleteLeadId === lead.id ? (
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-muted">Delete this lead?</span>
+                                <button
+                                  type="button"
+                                  disabled={deletingDirectLeadId === lead.id}
+                                  onClick={() => deleteDirectLead(lead.id)}
+                                  className="tracked-label rounded-full bg-red-500/90 px-4 py-2 text-xs text-cream transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                  Confirm
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setConfirmDeleteLeadId(null)}
+                                  className="tracked-label rounded-full border border-navy-700/60 px-4 py-2 text-xs text-muted transition hover:border-navy-600"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => setConfirmDeleteLeadId(lead.id)}
+                                className="tracked-label flex items-center gap-2 rounded-full border border-red-500/50 px-4 py-2 text-xs text-red-400 transition hover:bg-red-500/10"
+                              >
+                                <FiTrash2 className="h-3.5 w-3.5" />
+                                Delete Lead
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {isEditing && (
+                        <div className="flex flex-col gap-4 border-t border-navy-700/60 p-4">
+                          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <FormField label="Customer Name" htmlFor={`edit-customer-${lead.id}`}>
+                              <input
+                                id={`edit-customer-${lead.id}`}
+                                value={directEditForm.customer}
+                                onChange={(e) => setDirectEditForm((prev) => ({ ...prev, customer: e.target.value }))}
+                                className={inputClass}
+                              />
+                            </FormField>
+                            <FormField label="Phone" htmlFor={`edit-phone-${lead.id}`}>
+                              <input
+                                id={`edit-phone-${lead.id}`}
+                                value={directEditForm.phone}
+                                onChange={(e) =>
+                                  setDirectEditForm((prev) => ({ ...prev, phone: e.target.value.replace(/\D/g, "").slice(0, 10) }))
+                                }
+                                className={inputClass}
+                              />
+                            </FormField>
+                          </div>
+                          <FormField label="Notes" htmlFor={`edit-notes-${lead.id}`} optional>
+                            <textarea
+                              id={`edit-notes-${lead.id}`}
+                              rows={3}
+                              value={directEditForm.notes}
+                              onChange={(e) => setDirectEditForm((prev) => ({ ...prev, notes: e.target.value }))}
+                              className={textareaClass}
+                            />
+                          </FormField>
+                          <FormField label="Photos" htmlFor={`edit-photo-${lead.id}`} optional>
+                            <DirectLeadPhotoDrop
+                              inputId={`edit-photo-${lead.id}`}
+                              photos={directEditForm.photos}
+                              uploading={directEditPhotoUploading}
+                              onFiles={handleDirectEditPhotos}
+                              onRemove={(index) =>
+                                setDirectEditForm((prev) => ({ ...prev, photos: prev.photos.filter((_, i) => i !== index) }))
+                              }
+                            />
+                          </FormField>
+                          <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+                            <button
+                              type="button"
+                              onClick={cancelEditDirectLead}
+                              className="tracked-label rounded-full border border-navy-700/60 px-6 py-3 text-xs text-muted transition hover:border-navy-600"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              type="button"
+                              disabled={directEditSaving || directEditPhotoUploading}
+                              onClick={() => saveDirectLeadEdit(lead.id)}
+                              className="tracked-label flex items-center justify-center gap-2 rounded-full bg-gold-400 px-6 py-3 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 hover:shadow-gold-400/20 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              <FiCheck className="h-4 w-4" />
+                              Save Changes
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
