@@ -48,6 +48,19 @@ export default function PayButton({ amount, label = "Pay Now", name = "", notes,
         description: label,
         theme: { color: "#ffc633" },
         prefill: name ? { name } : undefined,
+        config: {
+          display: {
+            blocks: {
+              upi: { name: "Pay via UPI", instruments: [{ method: "upi" }] },
+              other: {
+                name: "Other Payment Methods",
+                instruments: [{ method: "card" }, { method: "netbanking" }, { method: "wallet" }],
+              },
+            },
+            sequence: ["block.upi", "block.other"],
+            preferences: { show_default_blocks: false },
+          },
+        },
         handler: async (response) => {
           const verifyRes = await fetch("/api/payments/verify", {
             method: "POST",
@@ -58,7 +71,7 @@ export default function PayButton({ amount, label = "Pay Now", name = "", notes,
 
           if (verify.success) {
             toast.success("Payment successful");
-            onSuccess?.(response.razorpay_payment_id);
+            onSuccess?.(response);
           } else {
             toast.error("Payment could not be verified");
           }

@@ -9,6 +9,7 @@ import {
   RESIDENTIAL_PROPERTY_TYPES,
 } from "@/lib/properties";
 import { getPropertyById } from "@/lib/propertiesServer";
+import { canDeleteListing } from "@/lib/properties";
 import { getSessionUser } from "@/lib/session";
 import { isAdminRequest } from "@/lib/adminSession";
 import { isRateLimited, rateLimitResponse } from "@/lib/rateLimit";
@@ -237,6 +238,18 @@ export async function DELETE(request, { params }) {
     if (!isAdmin && existing.ownerId !== sessionUser.accountId) {
       return NextResponse.json(
         { success: false, error: "You can only manage your own listings" },
+        { status: 403 }
+      );
+    }
+
+    // Owner/broker listings can only be closed for the first 3 months after
+    // creation — deletion is locked until then (admin bypasses the lock).
+    if (!isAdmin && !canDeleteListing(existing.postedByAccountType, existing.createdAt)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "This listing can only be closed for its first 3 months. Close it instead, or wait until the lock period ends to delete it.",
+        },
         { status: 403 }
       );
     }

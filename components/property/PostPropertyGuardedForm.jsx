@@ -1,9 +1,10 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import AuthGateModal from "@/components/auth/AuthGateModal";
+import ListingLimitModal from "@/components/property/ListingLimitModal";
 import BackButton from "@/components/layout/BackButton";
 import PostPropertyForm from "@/components/property/PostPropertyForm";
 
@@ -20,7 +21,18 @@ import PostPropertyForm from "@/components/property/PostPropertyForm";
 export default function PostPropertyGuardedForm({ editId, backButtonClassName = "", children }) {
   const router = useRouter();
   const formRef = useRef(null);
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
+  const [limitStatus, setLimitStatus] = useState(null);
+
+  useEffect(() => {
+    if (editId || !isAuthenticated) return;
+    fetch("/api/properties/limit-status")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) setLimitStatus(data.data);
+      })
+      .catch(() => {});
+  }, [editId, isAuthenticated]);
 
   function handleBack() {
     if (formRef.current) {
@@ -34,6 +46,17 @@ export default function PostPropertyGuardedForm({ editId, backButtonClassName = 
 
   if (!isAuthenticated) {
     return <AuthGateModal isOpen onClose={() => router.push("/")} />;
+  }
+
+  if (limitStatus?.limitReached) {
+    return (
+      <ListingLimitModal
+        isOpen
+        onClose={() => router.push("/")}
+        waitUntil={limitStatus.waitUntil}
+        isBroker={user?.accountType === "broker" || user?.accountType === "freelancer"}
+      />
+    );
   }
 
   return (

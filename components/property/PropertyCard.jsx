@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   MdFavorite,
   MdFavoriteBorder,
@@ -17,6 +19,8 @@ import {
   MdReportProblem,
   MdHourglassTop,
   MdCheckCircle,
+  MdLockOutline,
+  MdLockOpen,
 } from "react-icons/md";
 import { formatPostedDate, getPropertyCategoryLabels, formatBhkLabel } from "@/lib/properties";
 import { useSavedPropertyIds } from "@/lib/savedProperties";
@@ -39,12 +43,38 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
   const [copied, setCopied] = useState(false);
   const [showAuthGate, setShowAuthGate] = useState(false);
   const [contactClicked, setContactClicked] = useState(false);
+  const [status, setStatus] = useState(property.status);
+  const [reopening, setReopening] = useState(false);
+  const router = useRouter();
   const postedLabel = formatPostedDate(property);
   const { typeLabel, categoryLabel } = getPropertyCategoryLabels(property);
   const onHold = ownerView && property.correctionRequest?.active;
   const underReview = ownerView && !property.correctionRequest?.active && property.correctionRequest?.underReview;
-  const pendingApproval = ownerView && property.status === "Pending Review" && !onHold && !underReview;
-  const approved = ownerView && property.status === "Active" && !onHold && !underReview;
+  const closed = ownerView && status === "Closed";
+  const pendingApproval = ownerView && status === "Pending Review" && !onHold && !underReview;
+  const approved = ownerView && status === "Active" && !onHold && !underReview;
+
+  async function handleReopen(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    setReopening(true);
+    try {
+      const res = await fetch(`/api/properties/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "Active" }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || "Failed to reopen listing");
+      setStatus("Active");
+      toast.success("Listing reopened.");
+      router.refresh();
+    } catch (err) {
+      toast.error(err.message || "Failed to reopen listing.");
+    } finally {
+      setReopening(false);
+    }
+  }
   const { isSaved, toggle } = useSavedPropertyIds();
   const { isAuthenticated, user } = useAuth();
   const saved = isSaved(id);
@@ -133,9 +163,16 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
           alt={title}
           fill
           sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-          className="object-cover transition duration-500 group-active:scale-105 group-hover:scale-105"
+          className={`object-cover transition duration-500 group-active:scale-105 group-hover:scale-105 ${
+            closed ? "grayscale" : ""
+          }`}
         />
-        {onHold ? (
+        {closed ? (
+          <span className="tracked-label absolute left-3 top-3 flex items-center gap-1 rounded-full bg-navy-950/90 px-2.5 py-1 text-[10px] font-semibold text-muted">
+            <MdLockOutline className="h-3 w-3 shrink-0" />
+            Closed
+          </span>
+        ) : onHold ? (
           <span className="tracked-label absolute left-3 top-3 flex items-center gap-1 rounded-full bg-gold-500 px-2.5 py-1 text-[10px] font-semibold text-navy-950">
             <MdReportProblem className="h-3 w-3 shrink-0" />
             On Hold
@@ -246,15 +283,27 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
           )}
         </div>
 
-        {showViewProperty && (
+        {closed ? (
+          <div className="mt-auto pt-5">
+            <button
+              type="button"
+              disabled={reopening}
+              onClick={handleReopen}
+              className="tracked-label flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full border border-gold-500/70 py-2.5 text-center text-xs text-gold-400 transition hover:bg-gold-500/10 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <MdLockOpen className="h-4 w-4 shrink-0" />
+              {reopening ? "Reopening…" : "Reopen Listing"}
+            </button>
+          </div>
+        ) : showViewProperty ? (
           <div className="mt-auto pt-5">
             <span className="tracked-label flex min-h-[44px] w-full items-center justify-center rounded-full border border-gold-500/70 py-2.5 text-center text-xs text-gold-400 transition group-active:bg-gold-500 group-active:text-navy-950 group-hover:bg-gold-500 group-hover:text-navy-950">
               View Property
             </span>
           </div>
-        )}
+        ) : null}
 
-        {!showViewProperty && (
+        {!closed && !showViewProperty && (
           <div className="mt-auto pt-5">
             {isRent ? (
               <>

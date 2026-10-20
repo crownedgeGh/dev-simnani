@@ -116,7 +116,7 @@ export async function POST(request) {
     await dbConnect();
 
     const isAdmin = isAdminRequest(request);
-    const sessionUser = isAdmin ? null : await getSessionUser(request);
+    const sessionUser = await getSessionUser(request);
     if (!isAdmin && !sessionUser) {
       return NextResponse.json(
         { success: false, error: "You must be logged in to post a property" },
@@ -127,7 +127,7 @@ export async function POST(request) {
     const body = await request.json();
 
     if (sessionUser) {
-      const limit = getListingLimit(sessionUser.accountType);
+      const limit = getListingLimit(sessionUser.accountType, sessionUser.topupCredits);
       const existingCount = await Property.countDocuments({ ownerId: sessionUser.accountId });
       if (existingCount >= limit) {
         return NextResponse.json(
@@ -183,6 +183,8 @@ export async function POST(request) {
       ownerId: sessionUser ? sessionUser.accountId : "",
       postedByRole: body.postedByRole || "public",
       postedByAccountType: sessionUser ? sessionUser.accountType || "" : "admin",
+      // ponytail: dev convenience, auto-approve so local testing doesn't need admin review
+      ...(process.env.NODE_ENV !== "production" ? { status: "Active" } : {}),
       addedDate:
         body.addedDate ||
         new Date().toLocaleDateString("en-IN", {

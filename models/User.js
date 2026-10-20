@@ -170,6 +170,13 @@ const UserSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    // Extra listing credits bought on /topup, stacked on top of the base
+    // listing limit — see lib/topups.js + /api/topup.
+    topupCredits: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
     // Homepage broker showcase — admin-controlled, only meaningful for
     // brokers on the "premium" plan (see /admin/brokers/featured).
     isFeaturedBroker: {

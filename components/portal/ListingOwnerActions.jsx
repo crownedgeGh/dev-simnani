@@ -5,15 +5,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { MdEdit, MdLockOutline, MdLockOpen, MdVisibility } from "react-icons/md";
-import { useAuth } from "@/context/AuthContext";
-import { getAccountPermissions } from "@/lib/accountPermissions";
 
 export default function ListingOwnerActions({ property }) {
   const router = useRouter();
-  const { user } = useAuth();
   const [status, setStatus] = useState(property.status);
   const [busy, setBusy] = useState(false);
-  const portalHref = getAccountPermissions(user?.accountType, user?.cpType)?.portalHref || "/";
 
   async function updateStatus(nextStatus, successMessage) {
     setBusy(true);

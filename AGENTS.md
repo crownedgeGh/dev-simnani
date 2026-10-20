@@ -226,6 +226,14 @@ These enforce consistent `h-14`, `border-navy-700/60`, `bg-navy-950`, `focus:bor
 - Images: Unsplash URLs (already whitelisted). Format: `?w=1200&q=80&auto=format&fit=crop`.
 - Property IDs format: `SG-PROP-XXXXXX` (6 random digits). Generate client-side inside `useEffect` to avoid SSR hydration mismatch.
 
+### Free listing tiers, visibility & delete lock
+- `owner`: 5 free listings, free visibility for 3 months from `createdAt`.
+- `broker` / `freelancer` (CP): 20 free listings, free visibility for 6 months from `createdAt`.
+- Everyone else: `DEFAULT_LISTING_LIMIT` (10), no visibility expiry.
+- Owner and broker/freelancer listings cannot be deleted for the first 3 months after creation — only **Closed** (`Property.status = "Closed"`, toggled via `PUT /api/properties/[id]`). After 3 months they can delete any/all listings.
+- Logic lives in `lib/properties.js`: `getListingLimit()`, `getVisibilityMonths()`, `canDeleteListing()`, `monthsSince()`. The `DELETE` handler in `app/api/properties/[id]/route.js` enforces the lock server-side via `canDeleteListing(property.postedByAccountType, property.createdAt)` (admin bypasses it). UI for Close/Delete lives in `components/portal/ListingOwnerActions.jsx`.
+- Always key this logic off `Property.postedByAccountType` (snapshotted at creation time), not a fresh `User` lookup.
+
 ---
 
 ## 9. Common Pitfalls & Anti-Patterns
