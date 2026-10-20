@@ -155,6 +155,13 @@ export default function AdminFeaturedBrokersPage() {
         <div>
           <p className="font-medium text-[#1a1a2e] text-sm">{val || "—"}</p>
           <p className="text-xs text-[#9ca3af]">{row.accountId}</p>
+          <span
+            className={`mt-1 inline-block rounded px-1.5 py-0.5 text-[10px] font-medium ${
+              row.plan === "premium" ? "bg-purple-100 text-purple-700" : "bg-amber-100 text-amber-700"
+            }`}
+          >
+            {row.plan === "premium" ? "Premium Plan" : `Topup (${row.topupCredits} credits)`}
+          </span>
         </div>
       ),
     },
@@ -224,14 +231,14 @@ export default function AdminFeaturedBrokersPage() {
     <div>
       <AdminPageHeader
         title="Featured Brokers"
-        description="Feature premium-plan brokers on the homepage and set their display position (1–10)."
-        badge={`${brokers.length} premium brokers`}
+        description="Feature premium-plan and topup-paying brokers on the homepage and set their display position (1–10)."
+        badge={`${brokers.length} eligible brokers`}
         onRefresh={handleRefresh}
         isRefreshing={refreshing}
       />
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <AdminKpiCard title="Premium Brokers" value={kpis.total} icon={MdWorkspacePremium} color="purple" />
+        <AdminKpiCard title="Eligible Brokers" value={kpis.total} icon={MdWorkspacePremium} color="purple" />
         <AdminKpiCard title="Featured on Homepage" value={kpis.featured} icon={MdStar} color="gold" />
         <AdminKpiCard title="Slots Available" value={kpis.free} icon={MdApartment} color="blue" />
       </div>
@@ -240,7 +247,7 @@ export default function AdminFeaturedBrokersPage() {
         columns={COLUMNS}
         data={brokers}
         loading={loading}
-        emptyMessage="No premium-plan brokers yet"
+        emptyMessage="No premium-plan or topup brokers yet"
         pageSize={10}
       />
 

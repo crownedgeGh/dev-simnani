@@ -559,8 +559,15 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
   const isApprovedListing = !!editId && originalStatus === "Active";
   const lockedFieldHint = "Locked — approved listings can't change this. Close this listing and post a new one instead.";
 
-  async function handleSubmit(event) {
+  const [savingDraft, setSavingDraft] = useState(false);
+
+  async function handleSubmit(event, { isDraft = false } = {}) {
     event.preventDefault();
+
+    // Draft = save whatever's filled in so far, no required-field gate.
+    if (isDraft) {
+      return submitProperty({ isDraft: true });
+    }
 
     const fieldChecks = [
       { id: "purpose", invalid: !form.purpose },
@@ -605,6 +612,11 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
     }
     setInvalidFields(new Set());
     setError("");
+    return submitProperty({ isDraft: false });
+  }
+
+  async function submitProperty({ isDraft }) {
+    if (isDraft) setSavingDraft(true);
     setSubmitting(true);
 
     try {
@@ -696,7 +708,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
         },
         ownerId: user?.accountId || "",
         postedByRole,
-        status: "Pending Review",
+        status: isDraft ? "Draft" : "Pending Review",
         featured: false,
         image: coverImageUrl,
         galleryImages: galleryImageUrls,
@@ -738,8 +750,14 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
         throw new Error(data.error || "Submission failed");
       }
       submittedRef.current = true;
-      toast.success(editId ? "Property updated successfully." : "Property submitted successfully.");
-      trackEvent(editId ? "post_property_update" : "post_property_submit", {
+      toast.success(
+        isDraft
+          ? "Saved as draft — finish it anytime from My Listings."
+          : editId
+            ? "Property updated successfully."
+            : "Property submitted successfully."
+      );
+      trackEvent(isDraft ? "post_property_draft_save" : editId ? "post_property_update" : "post_property_submit", {
         property_type: payload.type,
         city: payload.city,
       });
@@ -747,6 +765,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
     } catch (err) {
       console.error("PostPropertyForm submit error:", err);
       setSubmitting(false);
+      setSavingDraft(false);
       setUploadStatus("");
       setError(err.message || "Failed to submit property. Please try again.");
       toast.error(err.message || "Failed to submit property. Please try again.");
@@ -1363,14 +1382,26 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
         </p>
       )}
 
-      <button
-        type="submit"
-        disabled={submitting}
-        className="tracked-label flex items-center justify-center gap-2 rounded-full bg-gold-400 px-6 py-4 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
-      >
-        {submitting ? "Saving..." : editId ? "Save Changes" : "Submit Property"}
-        {!submitting && <MdArrowForward className="h-4 w-4" />}
-      </button>
+      <div className="flex flex-col gap-3 sm:flex-row">
+        {!isApprovedListing && (
+          <button
+            type="button"
+            disabled={submitting || !purposeSelected}
+            onClick={(e) => handleSubmit(e, { isDraft: true })}
+            className="tracked-label flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full border border-navy-700/60 px-6 py-4 text-xs text-cream transition hover:border-gold-500/50 hover:text-gold-400 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {savingDraft ? "Saving Draft…" : "Save as Draft"}
+          </button>
+        )}
+        <button
+          type="submit"
+          disabled={submitting}
+          className="tracked-label flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full bg-gold-400 px-6 py-4 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {submitting && !savingDraft ? "Saving..." : editId ? "Save Changes" : "Submit Property"}
+          {!submitting && <MdArrowForward className="h-4 w-4" />}
+        </button>
+      </div>
       <p className="text-center text-xs text-muted">
         By submitting, you agree to our{" "}
         <Link href="/legal/privacy-policy" className="text-gold-400 hover:text-gold-300">

@@ -21,6 +21,8 @@ import {
   MdCheckCircle,
   MdLockOutline,
   MdLockOpen,
+  MdEditNote,
+  MdPublish,
 } from "react-icons/md";
 import { formatPostedDate, getPropertyCategoryLabels, formatBhkLabel } from "@/lib/properties";
 import { useSavedPropertyIds } from "@/lib/savedProperties";
@@ -51,6 +53,7 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
   const onHold = ownerView && property.correctionRequest?.active;
   const underReview = ownerView && !property.correctionRequest?.active && property.correctionRequest?.underReview;
   const closed = ownerView && status === "Closed";
+  const draft = ownerView && status === "Draft";
   const pendingApproval = ownerView && status === "Pending Review" && !onHold && !underReview;
   const approved = ownerView && status === "Active" && !onHold && !underReview;
 
@@ -171,6 +174,11 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
           <span className="tracked-label absolute left-3 top-3 flex items-center gap-1 rounded-full bg-navy-950/90 px-2.5 py-1 text-[10px] font-semibold text-muted">
             <MdLockOutline className="h-3 w-3 shrink-0" />
             Closed
+          </span>
+        ) : draft ? (
+          <span className="tracked-label absolute left-3 top-3 flex items-center gap-1 rounded-full bg-navy-950/90 px-2.5 py-1 text-[10px] font-semibold text-muted">
+            <MdEditNote className="h-3 w-3 shrink-0" />
+            Draft
           </span>
         ) : onHold ? (
           <span className="tracked-label absolute left-3 top-3 flex items-center gap-1 rounded-full bg-gold-500 px-2.5 py-1 text-[10px] font-semibold text-navy-950">
@@ -293,6 +301,21 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
             >
               <MdLockOpen className="h-4 w-4 shrink-0" />
               {reopening ? "Reopening…" : "Reopen Listing"}
+            </button>
+          </div>
+        ) : draft ? (
+          <div className="mt-auto pt-5">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                router.push(`/post-property/edit/${id}`);
+              }}
+              className="tracked-label flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full bg-gold-400 py-2.5 text-center text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 active:scale-[0.98]"
+            >
+              <MdPublish className="h-4 w-4 shrink-0" />
+              Live this Property
             </button>
           </div>
         ) : showViewProperty ? (

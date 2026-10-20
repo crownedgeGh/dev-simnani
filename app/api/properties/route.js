@@ -183,8 +183,8 @@ export async function POST(request) {
       ownerId: sessionUser ? sessionUser.accountId : "",
       postedByRole: body.postedByRole || "public",
       postedByAccountType: sessionUser ? sessionUser.accountType || "" : "admin",
-      // ponytail: dev convenience, auto-approve so local testing doesn't need admin review
-      ...(process.env.NODE_ENV !== "production" ? { status: "Active" } : {}),
+      // ponytail: dev convenience, auto-approve so local testing doesn't need admin review — but never for a Draft, that's an explicit "not ready yet" state
+      ...(process.env.NODE_ENV !== "production" && body.status !== "Draft" ? { status: "Active" } : {}),
       addedDate:
         body.addedDate ||
         new Date().toLocaleDateString("en-IN", {

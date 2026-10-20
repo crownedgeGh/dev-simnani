@@ -14,7 +14,14 @@ export default function LocateButton({ onLocate, label = "Use Current Location",
       const coords = await getCurrentCoords();
       await onLocate(coords);
     } catch (err) {
-      toast.error(err.message || "Couldn't get your location. Please allow location access and try again.", { duration: 6000 });
+      if (err.code === 1) {
+        toast.error("Location blocked. Tap the lock/location icon in your address bar, choose Allow, then retry.", {
+          duration: 10000,
+          action: { label: "Retry", onClick: handleClick },
+        });
+      } else {
+        toast.error(err.message || "Couldn't get your location. Please allow location access and try again.", { duration: 6000 });
+      }
     } finally {
       setLocating(false);
     }
