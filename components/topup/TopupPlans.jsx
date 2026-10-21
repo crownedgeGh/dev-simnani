@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { MdCheckCircle, MdBolt } from "react-icons/md";
 import { useAuth } from "@/context/AuthContext";
@@ -10,15 +11,16 @@ import { TOPUPS } from "@/lib/topups";
 
 export default function TopupPlans() {
   const { isAuthenticated, user, refreshUser } = useAuth();
+  const router = useRouter();
   const [showAuthGate, setShowAuthGate] = useState(false);
   const [creditingId, setCreditingId] = useState(null);
 
-  if (isAuthenticated && user?.accountType !== "broker") {
+  if (isAuthenticated && user?.accountType !== "broker" && user?.accountType !== "freelancer") {
     return (
       <div className="mx-auto max-w-2xl px-4 py-24 text-center sm:px-6 lg:px-8">
         <h1 className="font-display text-2xl text-cream sm:text-3xl">Top Up Unavailable</h1>
         <p className="mt-3 text-sm text-muted">
-          Listing top-ups are available to Broker accounts only.
+          Listing top-ups are available to Broker and Channel Partner accounts only.
         </p>
       </div>
     );
@@ -39,6 +41,7 @@ export default function TopupPlans() {
       toast.success(`${topup.listings} listings added!`, {
         description: "Your new listing credits are ready to use.",
       });
+      router.push("/portal/broker");
     } catch (err) {
       toast.error(err.message || "Payment succeeded but credit failed — contact support.");
     } finally {

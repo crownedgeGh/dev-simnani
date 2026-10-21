@@ -231,7 +231,7 @@ export default function FieldCPDashboard({ stats, leads: initialLeads, siteVisit
   const [tab, setTab] = usePersistentTab(
     "cp_tab_field",
     TABS.map((t) => t.key),
-    "overview"
+    "listings"
   );
   const [leads] = useState(initialLeads);
   const [siteVisits, setSiteVisits] = useState(initialSiteVisits);

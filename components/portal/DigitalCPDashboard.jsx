@@ -64,7 +64,7 @@ export default function DigitalCPDashboard({ stats, assets, partner, myListings 
   const [tab, setTab] = usePersistentTab(
     "cp_tab_digital",
     TABS.map((t) => t.key),
-    "overview"
+    "listings"
   );
 
   const [linkForm, setLinkForm] = useState(INITIAL_LINK_FORM);

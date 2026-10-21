@@ -13,6 +13,7 @@ import {
   MdDeleteOutline,
   MdOpenInNew,
   MdAdd,
+  MdBolt,
 } from "react-icons/md";
 import { BiBuildingHouse } from "react-icons/bi";
 import Tabs from "./Tabs";
@@ -48,11 +49,13 @@ export default function OwnerDashboard({
   showCommissions = true,
   showAddProperty = true,
   showListings = true,
+  isBroker = false,
 }) {
   const baseTabs = showListings ? BASE_TABS : NO_LISTING_TABS;
   const TABS = showCommissions ? [...baseTabs, COMMISSIONS_TAB] : baseTabs;
   const listingsRemaining = stats?.listingsRemaining;
-  const [tab, setTab] = useState(TABS[0].key);
+  const listingLimit = stats?.listingLimit;
+  const [tab, setTab] = useState(showListings ? "listings" : TABS[0].key);
   const [leadList, setLeadList] = useState(leads);
   const [clientList, setClientList] = useState(clients);
   const [convertingId, setConvertingId] = useState(null);
@@ -216,34 +219,60 @@ export default function OwnerDashboard({
 
         {showListings && tab === "listings" && (
           <div>
-            <div className="mb-1 flex items-center justify-between">
+            <div className="mb-1 flex items-center justify-between gap-2">
               <h2 className="font-display text-xl text-cream">My Listings</h2>
-              {showAddProperty && (
-                listingsRemaining > 0 ? (
+              <div className="flex items-center gap-2">
+                {isBroker && (
                   <Link
-                    href={addPropertyHref}
-                    className="tracked-label rounded-full bg-gold-400 px-5 py-2 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 hover:shadow-gold-400/20 active:scale-[0.98]"
+                    href="/topup"
+                    className="tracked-label flex items-center gap-1.5 rounded-full bg-gold-400 px-5 py-2 text-xs font-bold text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 hover:shadow-gold-400/20 active:scale-[0.98]"
                   >
-                    Add Property
+                    <MdBolt className="h-[15px] w-[15px]" />
+                    Top Up Listings
                   </Link>
-                ) : (
-                  <span className="tracked-label rounded-full border border-navy-700/60 px-5 py-2 text-xs text-muted">
-                    Add Property
-                  </span>
-                )
-              )}
-            </div>
-            {typeof listingsRemaining === "number" && (
-              <p className="mb-4 text-sm text-muted">
-                {listingsRemaining > 0 ? (
-                  <>
-                    You have <span className="font-display text-gold-400">{listingsRemaining}</span>{" "}
-                    listing{listingsRemaining === 1 ? "" : "s"} left.
-                  </>
-                ) : (
-                  "You've reached your listing limit. Remove a listing to add a new one."
                 )}
-              </p>
+                {showAddProperty && (
+                  listingsRemaining > 0 ? (
+                    <Link
+                      href={addPropertyHref}
+                      className="tracked-label rounded-full border border-gold-500/70 px-5 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10"
+                    >
+                      Add Property
+                    </Link>
+                  ) : (
+                    <span className="tracked-label rounded-full border border-navy-700/60 px-5 py-2 text-xs text-muted">
+                      Add Property
+                    </span>
+                  )
+                )}
+              </div>
+            </div>
+            {typeof listingsRemaining === "number" && typeof listingLimit === "number" && (
+              <div className="mb-4">
+                <div className="flex items-center justify-between text-sm text-muted">
+                  <span>
+                    {listingsRemaining > 0 ? (
+                      <>
+                        You have <span className="font-display text-gold-400">{listingsRemaining}</span>{" "}
+                        listing{listingsRemaining === 1 ? "" : "s"} left.
+                      </>
+                    ) : (
+                      "You've used all your listings."
+                    )}
+                  </span>
+                  <span className="tracked-label text-xs text-gold-400">
+                    {listingLimit - listingsRemaining}/{listingLimit}
+                  </span>
+                </div>
+                <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-navy-800">
+                  <div
+                    className="h-full rounded-full bg-gold-400 transition-all"
+                    style={{
+                      width: `${Math.min(((listingLimit - listingsRemaining) / listingLimit) * 100, 100)}%`,
+                    }}
+                  />
+                </div>
+              </div>
             )}
             <PropertyGrid properties={listings} emptyMessage="You don't have any listings yet." ownerView />
           </div>

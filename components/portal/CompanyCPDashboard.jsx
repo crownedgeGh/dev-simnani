@@ -178,7 +178,7 @@ export default function CompanyCPDashboard({
   const [tab, setTab] = usePersistentTab(
     "cp_tab_company",
     TABS.map((t) => t.key),
-    "overview"
+    "listings"
   );
   const [assignments, setAssignments] = useState([]);
   const [openPicker, setOpenPicker] = useState({});

@@ -39,6 +39,7 @@ export default async function BrokerPortalPage() {
           commissions={[]}
           showAddProperty={false}
           showCommissions={false}
+          isBroker={user.accountType === "broker" || user.accountType === "freelancer"}
         />
       </div>
     </div>

@@ -36,6 +36,7 @@ export default async function OwnerPortalPage() {
           addPropertyHref="/post-property"
           showCommissions={false}
           showAddProperty={user.accountType !== "builder"}
+          isBroker={user.accountType === "broker" || user.accountType === "freelancer"}
         />
       </div>
     </div>
