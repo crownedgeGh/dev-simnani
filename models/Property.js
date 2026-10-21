@@ -141,6 +141,9 @@ const PropertySchema = new mongoose.Schema(
     mapLocation: { type: String, default: "" },
     areaSize: { type: Number },
     areaUnit: { type: String, default: "sq ft" },
+    // Only meaningful for Plot/Land and Farming Land listings — whether the
+    // price is a flat total or a rate per sq ft / per acre.
+    priceUnit: { type: String, enum: ["total", "per-sqft", "per-acre"], default: "total" },
     floorNo: { type: String, default: "" },
     totalFloors: { type: Number },
     furnishing: { type: String, default: "Unfurnished" },

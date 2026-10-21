@@ -57,6 +57,12 @@ const YES_NO_OPTIONS = [
   { value: "no", label: "No" },
 ];
 
+const PRICE_UNIT_OPTIONS = [
+  { value: "total", label: "Total Price" },
+  { value: "per-sqft", label: "Per Sq Ft" },
+  { value: "per-acre", label: "Per Acre" },
+];
+
 const SECTION_OPTIONS = [
   { value: "residential", label: "Residential" },
   { value: "commercial", label: "Commercial" },
@@ -147,6 +153,7 @@ const INITIAL_FORM = {
   address: "",
   mapLocation: "",
   price: "",
+  priceUnit: "total",
   negotiable: "",
   areaSize: "",
   areaUnit: "sq ft",
@@ -406,6 +413,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
           address: p.address || "",
           mapLocation: p.mapLocation || "",
           price: p.rawPrice ? String(p.rawPrice) : "",
+          priceUnit: p.priceUnit || "total",
           negotiable: p.negotiable || "",
           areaSize: p.areaSize ? String(p.areaSize) : "",
           areaUnit: p.areaUnit || "sq ft",
@@ -532,6 +540,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
 
   const isResidential = form.section === "residential";
   const isPlotLand = form.section === "plot-land";
+  const isPlotOrFarming = form.section === "plot-land" || form.section === "farming";
   const isPgHostelType = isResidential && isPgOrHostel(form.propertyType);
   // Real-world spec sheets differ by what's actually selected — a warehouse
   // has no bedrooms/bathrooms/furnishing, a bare plot has no structure
@@ -650,6 +659,10 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
       }
       if (form.purpose === "rent" || form.purpose === "lease") {
         formattedPrice += " /month";
+      } else if (isPlotOrFarming && form.priceUnit === "per-sqft") {
+        formattedPrice += " / sq ft";
+      } else if (isPlotOrFarming && form.priceUnit === "per-acre") {
+        formattedPrice += " / acre";
       }
 
       const localityStr = (form.locality || "").trim();
@@ -678,6 +691,7 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
         category: isResidential ? "" : form.category,
         price: formattedPrice,
         rawPrice: numericPrice,
+        priceUnit: isPlotOrFarming ? form.priceUnit || "total" : "total",
         location: locationStr,
         state: (form.state || "").trim(),
         city: cityStr,
@@ -1050,22 +1064,39 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
           required
           hint={originalRawPrice ? `Max allowed: ₹${varianceMax(originalRawPrice).toLocaleString("en-IN")}` : undefined}
         >
-          <div
-            className={errClass(
-              "flex items-center rounded-full border border-navy-700/60 bg-navy-950 pl-4 transition focus-within:border-gold-400",
-              "price"
+          <div className="flex gap-2">
+            <div
+              className={errClass(
+                "flex min-w-0 flex-1 items-center rounded-full border border-navy-700/60 bg-navy-950 pl-4 transition focus-within:border-gold-400",
+                "price"
+              )}
+            >
+              <span className="text-sm text-muted">₹</span>
+              <input
+                id="price"
+                type="number"
+                min="0"
+                autoComplete="off"
+                value={form.price}
+                onChange={handlePriceChange}
+                className="h-14 w-full bg-transparent px-3 text-cream placeholder:text-muted focus:outline-none"
+              />
+            </div>
+            {isPlotOrFarming && (
+              <SelectWrap className="w-36 shrink-0">
+                <select
+                  value={form.priceUnit}
+                  onChange={(e) => update("priceUnit", e.target.value)}
+                  className="h-14 w-full appearance-none rounded-full border border-navy-700/60 bg-navy-950 px-3 text-cream outline-none transition focus:border-gold-400"
+                >
+                  {PRICE_UNIT_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </SelectWrap>
             )}
-          >
-            <span className="text-sm text-muted">₹</span>
-            <input
-              id="price"
-              type="number"
-              min="0"
-              autoComplete="off"
-              value={form.price}
-              onChange={handlePriceChange}
-              className="h-14 w-full bg-transparent px-3 text-cream placeholder:text-muted focus:outline-none"
-            />
           </div>
           {priceVarianceError && <p className="text-xs text-red-400">{priceVarianceError}</p>}
         </FormField>

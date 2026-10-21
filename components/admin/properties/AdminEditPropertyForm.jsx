@@ -109,6 +109,12 @@ const PREFERRED_FOR_OPTIONS = [
 
 const STATUS_OPTIONS = ["Active", "Pending Review", "Rejected", "Draft"];
 
+const PRICE_UNIT_OPTIONS = [
+  { value: "total", label: "Total Price" },
+  { value: "per-sqft", label: "Per Sq Ft" },
+  { value: "per-acre", label: "Per Acre" },
+];
+
 // Helper to parse price string to pure numeric string
 function parsePriceToNumber(rawVal) {
   if (!rawVal && rawVal !== 0) return "";
@@ -225,6 +231,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
     address: "",
     mapLocation: "",
     price: "",
+    priceUnit: "total",
     negotiable: "no",
     areaSize: "",
     areaUnit: "sq ft",
@@ -250,6 +257,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
   });
 
   const isResidentialType = !CATEGORIES_BY_TYPE[form.type];
+  const isPlotOrFarming = form.type === "plot-land" || form.type === "farming";
   const isPgHostelType = isResidentialType && isPgOrHostel(form.propertyType);
   const needsStructureFields = isStructureCategory(form.type, form.category, form.propertyType);
   const needsBedrooms = categoryHasBedrooms(form.type, form.category, form.propertyType);
@@ -289,6 +297,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
       address: loc.address,
       mapLocation: loc.mapLocation,
       price: numPrice,
+      priceUnit: prop.priceUnit || "total",
       negotiable: prop.negotiable || "no",
       areaSize: area.size,
       areaUnit: area.unit,
@@ -617,6 +626,10 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
       }
       if (form.purpose === "rent" || form.purpose === "lease") {
         formattedPrice += " /month";
+      } else if (isPlotOrFarming && form.priceUnit === "per-sqft") {
+        formattedPrice += " / sq ft";
+      } else if (isPlotOrFarming && form.priceUnit === "per-acre") {
+        formattedPrice += " / acre";
       }
 
       const updatedPayload = {
@@ -629,6 +642,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
         category: form.category || "",
         price: formattedPrice,
         rawPrice: numericPrice,
+        priceUnit: isPlotOrFarming ? form.priceUnit || "total" : "total",
         negotiable: form.negotiable,
         location: `${form.locality.trim()}, ${form.city.trim()}`,
         city: form.city.trim(),
@@ -1051,19 +1065,34 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
                     : "Enter total numeric amount"
                 }
               >
-                <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-semibold text-[#9ca3af]">
-                    ₹
-                  </span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="any"
-                    value={form.price}
-                    onChange={(e) => update("price", e.target.value)}
-                    placeholder={form.purpose === "rent" || form.purpose === "lease" ? "35000" : "12500000"}
-                    className={`${adminInputClass} pl-8`}
-                  />
+                <div className="flex gap-2">
+                  <div className="relative min-w-0 flex-1">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-semibold text-[#9ca3af]">
+                      ₹
+                    </span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="any"
+                      value={form.price}
+                      onChange={(e) => update("price", e.target.value)}
+                      placeholder={form.purpose === "rent" || form.purpose === "lease" ? "35000" : "12500000"}
+                      className={`${adminInputClass} pl-8`}
+                    />
+                  </div>
+                  {isPlotOrFarming && (
+                    <select
+                      value={form.priceUnit}
+                      onChange={(e) => update("priceUnit", e.target.value)}
+                      className="h-11 w-36 shrink-0 rounded-xl border border-[#e8e0d5] bg-[#faf8f5] px-3 text-sm text-[#1a1a2e] outline-none transition focus:border-[#f0b429] focus:ring-2 focus:ring-[#f0b429]/20 cursor-pointer"
+                    >
+                      {PRICE_UNIT_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
               </AdminFormField>
             </div>

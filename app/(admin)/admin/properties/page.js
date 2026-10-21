@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import LocationLink from "@/components/common/LocationLink";
-import { MdAdd, MdEdit, MdDelete, MdOpenInNew, MdLocationOn, MdReportProblem, MdSend } from "react-icons/md";
+import { MdEdit, MdDelete, MdOpenInNew, MdLocationOn, MdReportProblem, MdSend } from "react-icons/md";
 import AdminPageHeader from "@/components/admin/layout/AdminPageHeader";
 import AdminTable from "@/components/admin/ui/AdminTable";
 import AdminConfirmModal from "@/components/admin/ui/AdminConfirmModal";
@@ -359,16 +359,6 @@ export default function AdminPropertiesPage() {
         badge={`${publicProperties.length} total`}
         onRefresh={handleRefresh}
         isRefreshing={refreshing}
-        actions={
-          <button
-            id="admin-add-property-btn"
-            onClick={() => router.push("/admin/properties/add")}
-            className="flex h-9 items-center gap-1.5 rounded-xl bg-[#f0b429] px-4 text-sm font-semibold text-white transition hover:bg-[#d97706]"
-          >
-            <MdAdd size={18} />
-            Add Property
-          </button>
-        }
       />
 
       {reviewList.length > 0 && (
