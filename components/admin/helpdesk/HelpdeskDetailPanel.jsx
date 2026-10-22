@@ -14,10 +14,6 @@ export default function HelpdeskDetailPanel({ isOpen, onClose, ticket }) {
     ["Account ID", ticket.accountId, "copy"],
     ["Name", ticket.userName || "—"],
     ["Phone", ticket.userPhone, "phone"],
-    ["Email", ticket.userEmail || "—"],
-    ["Account Type", ticket.accountType || "—"],
-    ["Property ID", ticket.propertyId || "—", ticket.propertyId ? "copy" : undefined],
-    ["Property", ticket.propertyTitle || "—"],
     ["Date", ticket.date],
   ];
 

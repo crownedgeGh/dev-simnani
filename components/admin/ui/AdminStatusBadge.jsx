@@ -37,6 +37,7 @@ const STATUS_COLORS = {
   // Callback statuses
   "In Progress": "bg-blue-50 text-blue-700 border-blue-200",
   Handled: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  Resolved: "bg-emerald-50 text-emerald-700 border-emerald-200",
   // Project statuses
   "Under Construction": "bg-orange-50 text-orange-700 border-orange-200",
   "Ready to Move": "bg-emerald-50 text-emerald-700 border-emerald-200",

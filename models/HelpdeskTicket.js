@@ -26,7 +26,7 @@ const HelpdeskTicketSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Pending", "In Progress", "Handled"],
+      enum: ["Pending", "In Progress", "Resolved"],
       default: "Pending",
     },
     date: {

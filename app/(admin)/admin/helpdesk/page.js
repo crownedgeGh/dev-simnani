@@ -8,7 +8,7 @@ import AdminTable from "@/components/admin/ui/AdminTable";
 import AdminPhoneCell from "@/components/admin/ui/AdminPhoneCell";
 import HelpdeskDetailPanel from "@/components/admin/helpdesk/HelpdeskDetailPanel";
 
-const ALL_STATUSES = ["Pending", "In Progress", "Handled"];
+const ALL_STATUSES = ["Pending", "In Progress", "Resolved"];
 
 export default function AdminHelpdeskPage() {
   const [tickets, setTickets] = useState([]);
@@ -77,25 +77,6 @@ export default function AdminHelpdeskPage() {
         <div>
           <p className="text-sm font-medium text-[#1a1a2e]">{v || "—"}</p>
           <AdminPhoneCell value={row.userPhone} className="text-xs text-[#9ca3af]" />
-        </div>
-      ),
-    },
-    {
-      key: "accountType",
-      label: "Account Type",
-      sortable: true,
-      render: (v) => <span className="capitalize text-sm text-[#374151]">{v || "—"}</span>,
-    },
-    {
-      key: "propertyId",
-      label: "Property",
-      sortable: true,
-      render: (v, row) => (
-        <div>
-          <p className="font-mono text-xs text-[#374151]">{v || "—"}</p>
-          {row.propertyTitle && (
-            <p className="text-xs text-[#9ca3af] max-w-[160px] truncate">{row.propertyTitle}</p>
-          )}
         </div>
       ),
     },
