@@ -1,6 +1,7 @@
 "use client";
 
 import { FiChevronDown } from "react-icons/fi";
+import BackButton from "@/components/layout/BackButton";
 
 const WORDS_ONES = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"];
 
@@ -26,7 +27,10 @@ export default function LoanCalculatorHero({ loanAmount, setLoanAmount, tenure, 
     <div className="relative overflow-hidden bg-navy-950">
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
         <div className="mb-6 max-w-xl">
-          <span className="tracked-label text-xs text-gold-400">Home Loans</span>
+          <div className="flex items-center gap-3">
+            <BackButton href="/" />
+            <span className="tracked-label text-xs text-gold-400">Home Loans</span>
+          </div>
           <h1 className="mt-2 font-display text-3xl text-cream sm:text-4xl lg:text-5xl">
             Compare &amp; get the best home loan deal
           </h1>

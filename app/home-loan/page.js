@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import BackButton from "@/components/layout/BackButton";
 import LoanCalculatorHero from "@/components/home-loan/LoanCalculatorHero";
 import BankDealsTable from "@/components/home-loan/BankDealsTable";
 import LoanEnquiryModal from "@/components/home-loan/LoanEnquiryModal";
@@ -36,11 +35,8 @@ export default function HomeLoanPage() {
         onGetStarted={() => setQuickApply(true)}
       />
 
-      <div id="bank-deals" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
-        <div className="flex items-center gap-3">
-          <BackButton href="/" />
-          <h2 className="font-display text-2xl text-cream sm:text-3xl">Bank(s) Deals</h2>
-        </div>
+      <div id="bank-deals" className="mx-auto max-w-7xl px-4 pb-16 pt-4 sm:px-6 sm:pb-20 sm:pt-6 lg:px-8 lg:pb-24">
+        <h2 className="font-display text-2xl text-cream sm:text-3xl">Bank(s) Deals</h2>
 
         {loadingBanks ? (
           <p className="mt-6 text-sm text-muted">Loading bank deals…</p>
