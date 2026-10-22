@@ -8,8 +8,10 @@ import AdminTable from "@/components/admin/ui/AdminTable";
 import AdminStatusBadge from "@/components/admin/ui/AdminStatusBadge";
 import AdminPhoneCell from "@/components/admin/ui/AdminPhoneCell";
 import InquiryDetailPanel from "@/components/admin/leads/InquiryDetailPanel";
+import AdminDialog from "@/components/admin/ui/AdminDialog";
 
 const ALL_STATUSES = ["New", "Contacted", "Closed"];
+const NOTE_REQUIRED_STATUSES = ["Contacted", "Closed"];
 const USER_TYPES = ["buyer", "tenant", "agent", "investor", "other"];
 
 export default function AdminLeadsPage() {
@@ -17,6 +19,8 @@ export default function AdminLeadsPage() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [detailLead, setDetailLead] = useState(null);
+  const [statusModal, setStatusModal] = useState(null); // { row, status }
+  const [statusNote, setStatusNote] = useState("");
 
   const load = useCallback(async () => {
     try {
@@ -145,8 +149,14 @@ export default function AdminLeadsPage() {
           value={row.status || "New"}
           onClick={(e) => e.stopPropagation()}
           onChange={async (e) => {
-            const ok = await patchLead(row.id, { status: e.target.value });
-            if (ok) toast.success(`Status updated to ${e.target.value}`);
+            const newStatus = e.target.value;
+            if (NOTE_REQUIRED_STATUSES.includes(newStatus)) {
+              setStatusNote("");
+              setStatusModal({ row, status: newStatus });
+              return;
+            }
+            const ok = await patchLead(row.id, { status: newStatus });
+            if (ok) toast.success(`Status updated to ${newStatus}`);
           }}
           className="h-8 rounded-lg border border-[#e8e0d5] bg-white px-2 text-xs text-[#374151] outline-none focus:border-[#f0b429] cursor-pointer max-w-[140px]"
         >
@@ -198,6 +208,42 @@ export default function AdminLeadsPage() {
         onClose={() => setDetailLead(null)}
         lead={detailLead}
       />
+
+      <AdminDialog
+        isOpen={!!statusModal}
+        onClose={() => setStatusModal(null)}
+        title={`Mark as ${statusModal?.status}`}
+        description="Add a note for this status change"
+        footer={
+          <>
+            <button
+              onClick={() => setStatusModal(null)}
+              className="h-10 rounded-lg border border-[#e8e0d5] px-4 text-sm text-[#374151] transition hover:bg-[#faf8f5]"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={async () => {
+                const { row, status } = statusModal;
+                const ok = await patchLead(row.id, { status, statusNote });
+                if (ok) toast.success(`Status updated to ${status}`);
+                setStatusModal(null);
+              }}
+              className="h-10 rounded-lg bg-[#f0b429] px-4 text-sm font-medium text-[#1a1a2e] transition hover:bg-[#d99e1f]"
+            >
+              Save
+            </button>
+          </>
+        }
+      >
+        <textarea
+          value={statusNote}
+          onChange={(e) => setStatusNote(e.target.value)}
+          placeholder="Enter a message..."
+          rows={4}
+          className="w-full rounded-lg border border-[#e8e0d5] bg-white px-3 py-2 text-sm text-[#374151] outline-none focus:border-[#f0b429]"
+        />
+      </AdminDialog>
     </div>
   );
 }

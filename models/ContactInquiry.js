@@ -49,6 +49,11 @@ const ContactInquirySchema = new mongoose.Schema(
       enum: ["New", "Contacted", "Closed"],
       default: "New",
     },
+    statusNote: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     date: {
       type: String,
       default: () =>

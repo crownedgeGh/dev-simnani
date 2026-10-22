@@ -73,6 +73,16 @@ export default function InquiryDetailPanel({ isOpen, onClose, lead }) {
             <p className="text-sm text-[#374151] whitespace-pre-line">{lead.message}</p>
           </div>
         )}
+
+        {/* Status note */}
+        {lead.statusNote && (
+          <div className="rounded-xl border border-[#e8e0d5] p-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#9ca3af] mb-1.5">
+              Status Note ({lead.status})
+            </p>
+            <p className="text-sm text-[#374151] whitespace-pre-line">{lead.statusNote}</p>
+          </div>
+        )}
       </div>
     </AdminDialog>
   );

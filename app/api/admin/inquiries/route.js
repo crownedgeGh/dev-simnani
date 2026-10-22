@@ -38,16 +38,18 @@ export async function PATCH(request) {
 
     await dbConnect();
     const body = await request.json();
-    const { id, status } = body;
+    const { id, status, statusNote } = body;
     if (!id) {
       return NextResponse.json(
         { success: false, error: "id is required" },
         { status: 400 }
       );
     }
+    const update = { status };
+    if (statusNote !== undefined) update.statusNote = statusNote;
     const updated = await ContactInquiry.findOneAndUpdate(
       { id },
-      { $set: { status } },
+      { $set: update },
       { new: true }
     ).lean();
     return NextResponse.json({ success: true, data: updated });
