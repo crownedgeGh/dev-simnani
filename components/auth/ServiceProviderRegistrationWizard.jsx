@@ -14,6 +14,7 @@ import { formatMobile, isMobileValid, isPasswordValid, generateAccountId } from 
 import { useAuth } from "@/context/AuthContext";
 import { RTO_STATES, getCitiesForState } from "@/lib/cityRto";
 import { SERVICE_PROVIDER_TYPES, getServiceTypeLabel } from "@/lib/serviceProviders";
+import ServiceProviderPlanCards from "@/components/payment/ServiceProviderPlanCards";
 
 const TYPE_ICONS = {
   "civil-contractor": MdEngineering,
@@ -42,6 +43,7 @@ export default function ServiceProviderRegistrationWizard() {
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [otpVerified, setOtpVerified] = useState(false);
+  const [registeredName, setRegisteredName] = useState("");
 
   const cityOptions = useMemo(() => {
     if (!form.state) return [];
@@ -124,12 +126,21 @@ export default function ServiceProviderRegistrationWizard() {
       if (!json.success) throw new Error(json.error || "Registration failed");
       const token = `se_mock_${form.mobile.replace(/\D/g, "")}_${Date.now()}`;
       await login(token, json.data);
-      router.push("/portal/service-provider");
+      setRegisteredName(form.fullName);
     } catch (err) {
       setError(err.message || "Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);
     }
+  }
+
+  if (registeredName) {
+    return (
+      <ServiceProviderPlanCards
+        fullName={registeredName}
+        onDone={() => router.push("/portal/service-provider")}
+      />
+    );
   }
 
   if (!serviceType) {
@@ -198,7 +209,8 @@ export default function ServiceProviderRegistrationWizard() {
               placeholder="0000 000 000"
               value={form.mobile}
               onChange={(e) => update("mobile", formatMobile(e.target.value))}
-              className="h-14 w-full bg-transparent px-3 text-cream placeholder:text-muted focus:outline-none"
+              disabled={otpVerified}
+              className="h-14 w-full bg-transparent px-3 text-cream placeholder:text-muted focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
             />
           </div>
         </FormField>

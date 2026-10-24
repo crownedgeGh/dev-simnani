@@ -7,8 +7,8 @@ import Turnstile from "@/components/shared/Turnstile";
 const OTP_LENGTH = parseInt(process.env.NEXT_PUBLIC_OTP_LENGTH || "4", 10);
 
 // Gates the rest of a registration form behind mobile OTP verification.
-// Once an OTP has been sent, back/refresh is blocked so a half-verified
-// number can't be abandoned and silently re-entered.
+// Back/refresh is blocked for the whole page until verified, so in-progress
+// registration data can't be lost or abandoned mid-way.
 export default function MobileOtpGate({ mobile, mobileValid, verified, onVerified }) {
   const [sent, setSent] = useState(false);
   const [otp, setOtp] = useState(Array(OTP_LENGTH).fill(""));
@@ -34,7 +34,7 @@ export default function MobileOtpGate({ mobile, mobileValid, verified, onVerifie
   }, [mobile]);
 
   useEffect(() => {
-    if (!sent || verified) return;
+    if (verified) return;
     window.history.pushState(null, "", window.location.href);
     const blockBack = () => window.history.pushState(null, "", window.location.href);
     const warnUnload = (e) => {
@@ -47,7 +47,7 @@ export default function MobileOtpGate({ mobile, mobileValid, verified, onVerifie
       window.removeEventListener("popstate", blockBack);
       window.removeEventListener("beforeunload", warnUnload);
     };
-  }, [sent, verified]);
+  }, [verified]);
 
   function startResendTimer() {
     clearInterval(timerRef.current);
@@ -131,9 +131,23 @@ export default function MobileOtpGate({ mobile, mobileValid, verified, onVerifie
 
   if (verified) {
     return (
-      <div className="flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-xs text-emerald-400">
-        <MdCheckCircle className="h-4 w-4 shrink-0" />
-        Mobile number verified
+      <div className="flex items-center justify-between gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-xs text-emerald-400">
+        <span className="flex items-center gap-2">
+          <MdCheckCircle className="h-4 w-4 shrink-0" />
+          Mobile number verified
+        </span>
+        <button
+          type="button"
+          onClick={() => {
+            verifiedMobileRef.current = "";
+            setSent(false);
+            setOtp(Array(OTP_LENGTH).fill(""));
+            onVerified(false);
+          }}
+          className="tracked-label text-emerald-300 underline-offset-2 hover:text-emerald-200 hover:underline"
+        >
+          Edit mobile number
+        </button>
       </div>
     );
   }

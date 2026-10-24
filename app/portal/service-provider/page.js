@@ -4,6 +4,7 @@ import { getOwnerPortalData } from "@/lib/ownerPortalData";
 import { getServiceTypeLabel } from "@/lib/serviceProviders";
 import PortalHeader from "@/components/portal/PortalHeader";
 import OwnerDashboard from "@/components/portal/OwnerDashboard";
+import ServiceProviderPlanCards from "@/components/payment/ServiceProviderPlanCards";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,12 @@ export const metadata = {
 export default async function ServiceProviderPortalPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/auth");
+
+  // Portal access is locked until a lead plan is paid for — checked
+  // server-side so it can't be bypassed by navigating here directly.
+  if (!user.servicePlan || user.servicePlan === "none") {
+    return <ServiceProviderPlanCards fullName={user.fullName} />;
+  }
 
   const { leads, clients, stats } = await getOwnerPortalData(user.accountId);
 

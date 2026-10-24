@@ -189,6 +189,22 @@ const UserSchema = new mongoose.Schema(
       max: 10,
       default: null,
     },
+    // Service Provider lead plan — purchased right after signup (see
+    // ServiceProviderRegistrationWizard + /api/service-plans). "none" means
+    // unpaid — see /admin/contractor-leads/paid and /unpaid.
+    servicePlan: {
+      type: String,
+      enum: ["none", "leads-499", "leads-799"],
+      default: "none",
+    },
+    servicePlanExpiresAt: {
+      type: Date,
+      default: null,
+    },
+    servicePlanPaymentId: {
+      type: String,
+      default: "",
+    },
     // Freelancer skills — each entry pairs a SkillCategory name with one of
     // its subcategories (see /api/skills, models/SkillCategory.js).
     skills: {

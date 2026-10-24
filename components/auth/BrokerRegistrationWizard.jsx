@@ -389,7 +389,8 @@ export default function BrokerRegistrationWizard() {
                 placeholder="0000 000 000"
                 value={form.mobile}
                 onChange={(e) => update("mobile", formatMobile(e.target.value))}
-                className="h-14 w-full bg-transparent px-3 text-cream placeholder:text-muted focus:outline-none"
+                disabled={otpVerified}
+                className="h-14 w-full bg-transparent px-3 text-cream placeholder:text-muted focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
               />
             </div>
           </FormField>

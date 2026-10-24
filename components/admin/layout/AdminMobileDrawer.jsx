@@ -55,7 +55,16 @@ const NAV_ITEMS = [
       { href: "/admin/freelancer-cp/field", label: "Field CP" },
     ],
   },
-  { href: "/admin/contractor-leads", label: "Contractor Leads", icon: MdEngineering },
+  {
+    href: "/admin/contractor-leads",
+    label: "Contractor Leads",
+    icon: MdEngineering,
+    children: [
+      { href: "/admin/contractor-leads", label: "All Requests" },
+      { href: "/admin/contractor-leads/paid", label: "Paid Contractors" },
+      { href: "/admin/contractor-leads/unpaid", label: "Unpaid Contractors" },
+    ],
+  },
   { href: "/admin/callbacks", label: "Callbacks", icon: MdPhone },
   { href: "/admin/skills", label: "Skills", icon: MdCategory },
   { href: "/admin/settings", label: "Settings", icon: MdSettings },

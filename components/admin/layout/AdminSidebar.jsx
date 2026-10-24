@@ -49,7 +49,16 @@ const NAV_ITEMS = [
     ],
   },
   { href: "/admin/leads", label: "Non User Leads", icon: MdLeaderboard },
-  { href: "/admin/contractor-leads", label: "Contractor Leads", icon: MdEngineering },
+  {
+    href: "/admin/contractor-leads",
+    label: "Contractor Leads",
+    icon: MdEngineering,
+    children: [
+      { href: "/admin/contractor-leads", label: "All Requests" },
+      { href: "/admin/contractor-leads/paid", label: "Paid Contractors" },
+      { href: "/admin/contractor-leads/unpaid", label: "Unpaid Contractors" },
+    ],
+  },
   { href: "/admin/helpdesk", label: "Helpdesk", icon: MdSupportAgent },
   { href: "/admin/interested", label: "Interested", icon: MdThumbUp },
   { href: "/admin/analytics", label: "Analytics", icon: MdInsights },
