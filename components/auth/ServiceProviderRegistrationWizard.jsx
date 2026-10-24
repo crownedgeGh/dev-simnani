@@ -164,7 +164,7 @@ export default function ServiceProviderRegistrationWizard() {
                 key={value}
                 type="button"
                 onClick={() => setServiceType(value)}
-                className="flex min-h-[44px] flex-col items-center gap-2 rounded-2xl border border-navy-700/60 p-4 text-center transition hover:border-gold-500 active:scale-[0.98] sm:gap-3 sm:p-6"
+                className="flex min-h-[44px] flex-col items-center gap-2 rounded-2xl border border-navy-600 bg-navy-900 p-4 text-center transition hover:border-gold-500 hover:bg-gold-500/5 active:scale-[0.98] sm:gap-3 sm:p-6"
               >
                 <Icon className="h-7 w-7 text-cream sm:h-9 sm:w-9" />
                 <span className="tracked-label text-xs text-cream">{label}</span>
