@@ -165,6 +165,7 @@ export default function UserDetailPage() {
 
   if (user.accountType === "freelancer") {
     fields.push(
+      ["Years of Experience", user.yearsOfExperience !== undefined ? String(user.yearsOfExperience) : "—"],
       ["Coverage Areas", user.coverageAreas || "—"],
       ["Currently Working Elsewhere", user.currentlyWorking || "—"]
     );

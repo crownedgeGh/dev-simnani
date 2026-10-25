@@ -297,11 +297,18 @@ function PropertyFilterBarInner({
       if (city && getLocationCity(property.location) !== city) return false;
 
       if (propertyType) {
-        const categoryLabel = getPropertyCategoryLabels(property).categoryLabel;
-        const matches =
-          categoryLabel === propertyType ||
-          (propertyType === "Office" && OFFICE_SUBTYPE_LABELS.includes(categoryLabel));
-        if (!matches) return false;
+        if (propertyType === "Plot") {
+          // Plot listings live under the dedicated "plot-land" category
+          // (Residential Plot, Commercial Plot, etc.) rather than carrying
+          // a literal "Plot" category label, so match on type instead.
+          if (property.type !== "plot-land") return false;
+        } else {
+          const categoryLabel = getPropertyCategoryLabels(property).categoryLabel;
+          const matches =
+            categoryLabel === propertyType ||
+            (propertyType === "Office" && OFFICE_SUBTYPE_LABELS.includes(categoryLabel));
+          if (!matches) return false;
+        }
       }
 
       if (selectedRange) {

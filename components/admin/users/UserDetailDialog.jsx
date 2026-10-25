@@ -73,6 +73,7 @@ export default function UserDetailDialog({ isOpen, onClose, accountId }) {
 
   if (user?.accountType === "freelancer") {
     fields.push(
+      ["Years of Experience", user.yearsOfExperience !== undefined ? String(user.yearsOfExperience) : "—"],
       ["Coverage Areas", user.coverageAreas || "—"],
       ["Currently Working Elsewhere", user.currentlyWorking || "—"]
     );
