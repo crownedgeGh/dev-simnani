@@ -10,6 +10,8 @@ const ContractorLeadSchema = new mongoose.Schema(
     id: { type: String, required: true, unique: true, index: true },
     name: { type: String, required: [true, "Name is required"], trim: true },
     phone: { type: String, required: [true, "Phone is required"], trim: true },
+    city: { type: String, trim: true, default: "" },
+    state: { type: String, trim: true, default: "" },
     bestTime: {
       type: String,
       enum: ["", "morning", "afternoon", "evening"],

@@ -126,6 +126,15 @@ export default function AdminContractorLeadsPage() {
       ),
     },
     {
+      key: "city",
+      label: "Location",
+      render: (v, row) => (
+        <span className="text-xs text-[#374151]">
+          {[v, row.state].filter(Boolean).join(", ") || "—"}
+        </span>
+      ),
+    },
+    {
       key: "bestTime",
       label: "Best Time",
       render: (v) => (
@@ -206,7 +215,7 @@ export default function AdminContractorLeadsPage() {
         loading={loading}
         emptyMessage={`No ${getServiceTypeLabel(tab)} callback requests yet`}
         pageSize={10}
-        searchKeys={["name", "phone", "id", "sourcePath"]}
+        searchKeys={["name", "phone", "id", "sourcePath", "city", "state"]}
       />
     </div>
   );
