@@ -106,6 +106,16 @@ export async function POST(request) {
       }
     }
 
+    if (body.accountType === "freelancer") {
+      const years = Number(body.yearsOfExperience);
+      if (!Number.isFinite(years) || years < 0) {
+        return NextResponse.json(
+          { success: false, error: "Years of experience is required" },
+          { status: 400 }
+        );
+      }
+    }
+
     if (!isPasswordValid(body.password)) {
       return NextResponse.json(
         { success: false, error: "Password must be at least 8 characters" },

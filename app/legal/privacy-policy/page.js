@@ -67,6 +67,25 @@ const DATA_BY_ACCOUNT = [
   },
 ];
 
+const RETENTION_TABLE = [
+  {
+    title: "Enquiries & Leads",
+    items: "Retained for 6 months to 1 year, deleted/anonymised sooner once the lead is closed, converted, or withdrawn (DPDP Act, s. 8(7)). If never converted, auto-archived/deleted after 12 months. Never retained beyond 2 years.",
+  },
+  {
+    title: "Buyer / Tenant / Investor Accounts",
+    items: "Retained while your account is active. Deleted within 30 days of an account-deletion request. If inactive for 3 years, you will be notified before the account is deleted or anonymised.",
+  },
+  {
+    title: "Broker / Freelancer / Contractor Verification Documents (RERA, PAN, ID proof)",
+    items: "Kept securely (encrypted) for the full duration of the active business relationship, then retained for a further 5 years after the relationship ends, as required for identity/KYC records under PMLA and related rules. Records tied to a commission, payout or invoice are retained for 6–8 years under the Income Tax Act and GST Rules.",
+  },
+  {
+    title: "Server & Access Logs",
+    items: "Retained for a minimum of 1 year as required under the IT Act, 2000 rules.",
+  },
+];
+
 const SECTIONS = [
   {
     title: "Who We Are",
@@ -94,7 +113,7 @@ const SECTIONS = [
   },
   {
     title: "Data Retention",
-    body: "We retain your account and enquiry data for as long as your account is active and for [RETENTION PERIOD, e.g. 3 years] after account closure or your last activity, whichever is later, unless a longer period is required to comply with a legal obligation or resolve a dispute. Server and access logs are retained for a minimum of one year as required under the IT Act, 2000 rules. Verification documents (RERA/PAN/identity/business proof) are retained for [RETENTION PERIOD] after your broker/freelancer account is closed. Data is erased or anonymised once the applicable retention period lapses and there is no legal basis to keep it.",
+    body: null,
   },
   {
     title: "Security Safeguards & Breach Notification",
@@ -166,6 +185,20 @@ export default function PrivacyPolicyPage() {
                   >
                     <p className="tracked-label text-xs text-gold-400">{account.title}</p>
                     <p className="mt-2 text-sm leading-relaxed text-muted">{account.items}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {section.title === "Data Retention" && (
+              <div className="mt-4 flex flex-col gap-4">
+                {RETENTION_TABLE.map((row) => (
+                  <div
+                    key={row.title}
+                    className="border border-navy-700/60 bg-navy-900 p-4 sm:p-5"
+                  >
+                    <p className="tracked-label text-xs text-gold-400">{row.title}</p>
+                    <p className="mt-2 text-sm leading-relaxed text-muted">{row.items}</p>
                   </div>
                 ))}
               </div>

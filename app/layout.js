@@ -39,6 +39,10 @@ export default function RootLayout({ children }) {
       lang="en"
       className={`${inter.variable} ${openSans.variable} h-full antialiased`}
     >
+      <head>
+        <link rel="preconnect" href="https://challenges.cloudflare.com" />
+        <link rel="dns-prefetch" href="https://challenges.cloudflare.com" />
+      </head>
       <body className="min-h-full flex flex-col bg-navy-950 text-cream">
         <GoogleAnalytics />
         <AuthProvider>

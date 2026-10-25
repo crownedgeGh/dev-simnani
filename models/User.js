@@ -71,9 +71,9 @@ const UserSchema = new mongoose.Schema(
       min: 0,
       required: [
         function () {
-          return this.accountType === "service-provider";
+          return this.accountType === "service-provider" || this.accountType === "freelancer";
         },
-        "Years of experience is required for service providers",
+        "Years of experience is required",
       ],
     },
     // Channel Partners get portal access immediately by default. Self-

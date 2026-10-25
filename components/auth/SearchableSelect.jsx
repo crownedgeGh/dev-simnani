@@ -41,7 +41,7 @@ export default function SearchableSelect({
     if (disabled) return;
     setOpen(true);
     setQuery("");
-    requestAnimationFrame(() => inputRef.current?.focus());
+    requestAnimationFrame(() => inputRef.current?.focus({ preventScroll: true }));
   };
 
   const selectOption = (option) => {

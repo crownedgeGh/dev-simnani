@@ -34,6 +34,7 @@ export default function AccountProfile({ user }) {
     city: authUser?.city || user.city,
     state: authUser?.state || user.state || "",
     dealsClosed: authUser?.dealsClosed ?? 0,
+    yearsOfExperience: authUser?.yearsOfExperience ?? "",
   });
   const [saved, setSaved] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -46,6 +47,7 @@ export default function AccountProfile({ user }) {
         city: authUser.city || user.city,
         state: authUser.state || user.state || "",
         dealsClosed: authUser.dealsClosed ?? 0,
+        yearsOfExperience: authUser.yearsOfExperience ?? "",
       });
     }
   }, [authUser, user]);
@@ -86,6 +88,9 @@ export default function AccountProfile({ user }) {
       };
       if (authUser?.accountType === "broker") {
         patch.dealsClosed = form.dealsClosed !== "" ? Math.max(0, parseInt(form.dealsClosed, 10) || 0) : 0;
+      }
+      if (authUser?.accountType === "freelancer") {
+        patch.yearsOfExperience = form.yearsOfExperience !== "" ? Math.max(0, parseInt(form.yearsOfExperience, 10) || 0) : 0;
       }
       updateProfile(patch);
     }
@@ -181,6 +186,22 @@ export default function AccountProfile({ user }) {
                 />
               </Field>
             )}
+            {authUser?.accountType === "freelancer" && (
+              <Field label="Years of Experience">
+                <input
+                  type="number"
+                  min="0"
+                  maxLength={2}
+                  inputMode="numeric"
+                  value={form.yearsOfExperience ?? ""}
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, "").slice(0, 2);
+                    update("yearsOfExperience", digits);
+                  }}
+                  className={inputClass}
+                />
+              </Field>
+            )}
             <Field label="Mobile Number">
               <div className="flex items-center justify-between border border-navy-700/60 bg-navy-950 px-4 py-4 text-sm text-muted">
                 <span>+91 {displayMobile}</span>
@@ -226,8 +247,16 @@ export default function AccountProfile({ user }) {
                 <p className="text-[15px] font-medium text-cream">{authUser?.dealsClosed ?? form.dealsClosed ?? 0}</p>
               </Field>
             )}
+            {authUser?.accountType === "freelancer" && (
+              <Field label="Years of Experience">
+                <p className="text-[15px] font-medium text-cream">
+                  {authUser?.yearsOfExperience !== undefined ? `${authUser.yearsOfExperience} yrs` : "—"}
+                </p>
+              </Field>
+            )}
           </div>
         )}
+
 
         {saved && <p className="mt-4 text-xs text-gold-400">Changes saved.</p>}
       </SectionCard>

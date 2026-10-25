@@ -65,6 +65,7 @@ const INITIAL_FORM = {
   currentlyWorking: "",
   coverageAreas: "",
   skills: [],
+  yearsOfExperience: "",
   agree: false,
 };
 
@@ -131,6 +132,10 @@ export default function FreelancerRegistrationWizard() {
         showFieldError(["skills"], "Please add at least one skill.");
         return;
       }
+      if (!form.yearsOfExperience.trim() || Number(form.yearsOfExperience) < 0) {
+        showFieldError(["yearsOfExperience"], "Please enter your years of experience.");
+        return;
+      }
       if (form.cpType === "digital" && !form.currentlyWorking) {
         showFieldError(["currentlyWorking"], "Please let us know if you are currently working anywhere.");
         return;
@@ -176,6 +181,10 @@ export default function FreelancerRegistrationWizard() {
       showFieldError(["skills"], "Please select at least one skill.");
       return;
     }
+    if (!form.yearsOfExperience.trim() || Number(form.yearsOfExperience) < 0) {
+      showFieldError(["yearsOfExperience"], "Please enter your years of experience.");
+      return;
+    }
     if (form.cpType === "digital" && !form.currentlyWorking) {
       showFieldError(["currentlyWorking"], "Please let us know if you are currently working anywhere.");
       return;
@@ -213,6 +222,7 @@ export default function FreelancerRegistrationWizard() {
       currentlyWorking: form.currentlyWorking,
       coverageAreas: form.coverageAreas,
       skills: form.skills,
+      yearsOfExperience: Number(form.yearsOfExperience),
       registeredAt: new Date().toISOString(),
       profileComplete: true,
       cpApprovalStatus: form.cpType === "company" ? "hold" : "active",
@@ -408,6 +418,19 @@ export default function FreelancerRegistrationWizard() {
                   onChange={(skills) => update("skills", skills)}
                 />
               </div>
+            </FormField>
+
+            <FormField label="Years of Experience" htmlFor="yearsOfExperience" required>
+              <input
+                id="yearsOfExperience"
+                type="number"
+                min="0"
+                inputMode="numeric"
+                placeholder="e.g. 2"
+                value={form.yearsOfExperience}
+                onChange={(e) => update("yearsOfExperience", e.target.value)}
+                className={`${inputClass} ${fieldErrors.yearsOfExperience ? "border-red-500 focus:border-red-400" : ""}`}
+              />
             </FormField>
 
             <PasswordFields
