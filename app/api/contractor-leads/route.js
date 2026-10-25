@@ -19,7 +19,7 @@ const exactly = (v) =>
 // Routes the request straight into the matching contractor(s)' own portal
 // lead list — city match first, falling back to the rest of the state so a
 // request never reaches a provider outside that city/state.
-async function routeToMatchingProviders({ name, phone, city, state, serviceType }) {
+async function routeToMatchingProviders({ name, phone, city, state, serviceType, requirement }) {
   const base = { accountType: "service-provider", status: "Active", serviceType };
   const find = (extra) =>
     User.find({ ...base, ...extra }).select("accountId city").lean();
@@ -37,6 +37,7 @@ async function routeToMatchingProviders({ name, phone, city, state, serviceType 
         phone,
         address: [city, state].filter(Boolean).join(", "),
         interest: `${getServiceTypeLabel(serviceType)} request`,
+        requirement,
         ownerId: provider.accountId,
         source: "Service Request",
       }),
@@ -66,6 +67,7 @@ export async function POST(request) {
       bestTime,
       serviceType,
       sourcePath,
+      requirement,
       turnstileToken,
       city,
       state,
@@ -98,6 +100,7 @@ export async function POST(request) {
 
     const trimmedCity = (city || "").trim();
     const trimmedState = (state || "").trim();
+    const trimmedRequirement = (requirement || "").trim().slice(0, 1000);
 
     const lead = await ContractorLead.create({
       id: `CB-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
@@ -108,6 +111,7 @@ export async function POST(request) {
         : "",
       serviceType,
       sourcePath: (sourcePath || "").trim().slice(0, 200),
+      requirement: trimmedRequirement,
       city: trimmedCity,
       state: trimmedState,
     });
@@ -118,6 +122,7 @@ export async function POST(request) {
       city: trimmedCity,
       state: trimmedState,
       serviceType,
+      requirement: trimmedRequirement,
     });
 
     return NextResponse.json(

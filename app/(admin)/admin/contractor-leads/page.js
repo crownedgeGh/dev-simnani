@@ -6,6 +6,7 @@ import { MdCheckCircle, MdPhoneForwarded, MdClose } from "react-icons/md";
 import AdminPageHeader from "@/components/admin/layout/AdminPageHeader";
 import AdminTable from "@/components/admin/ui/AdminTable";
 import AdminPhoneCell from "@/components/admin/ui/AdminPhoneCell";
+import ContractorLeadDetailPanel from "@/components/admin/contractorLeads/ContractorLeadDetailPanel";
 import {
   SERVICE_PROVIDER_TYPES,
   getServiceTypeLabel,
@@ -24,6 +25,7 @@ export default function AdminContractorLeadsPage() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [tab, setTab] = useState(SERVICE_PROVIDER_TYPES[0].value);
+  const [detailLead, setDetailLead] = useState(null);
 
   const load = useCallback(async () => {
     try {
@@ -216,6 +218,13 @@ export default function AdminContractorLeadsPage() {
         emptyMessage={`No ${getServiceTypeLabel(tab)} callback requests yet`}
         pageSize={10}
         searchKeys={["name", "phone", "id", "sourcePath", "city", "state"]}
+        onRowClick={(row) => setDetailLead(row)}
+      />
+
+      <ContractorLeadDetailPanel
+        isOpen={!!detailLead}
+        onClose={() => setDetailLead(null)}
+        lead={detailLead}
       />
     </div>
   );

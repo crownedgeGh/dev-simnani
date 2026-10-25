@@ -4,7 +4,7 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
-import { inputClass, selectClass } from "@/components/auth/inputStyles";
+import { inputClass, selectClass, textareaClass } from "@/components/auth/inputStyles";
 import BackButton from "@/components/layout/BackButton";
 import { trackEvent } from "@/lib/gtag";
 import Turnstile from "@/components/shared/Turnstile";
@@ -24,6 +24,7 @@ export default function CallbackForm({ serviceType = "", onClose, onSubmitted })
   const [fullName, setFullName] = useState("");
   const [mobile, setMobile] = useState("");
   const [bestTime, setBestTime] = useState("");
+  const [requirement, setRequirement] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [requestId, setRequestId] = useState("");
@@ -61,6 +62,7 @@ export default function CallbackForm({ serviceType = "", onClose, onSubmitted })
           bestTime,
           serviceType,
           sourcePath: pathname,
+          requirement,
           turnstileToken,
         }),
       });
@@ -203,6 +205,29 @@ export default function CallbackForm({ serviceType = "", onClose, onSubmitted })
           ))}
         </select>
       </div>
+
+      {serviceType && (
+        <div className="flex flex-col gap-2">
+          <label
+            htmlFor="requirement"
+            className="tracked-label text-xs text-cream/80"
+          >
+            Your Requirement{" "}
+            <span className="normal-case tracking-normal text-muted">
+              (Optional)
+            </span>
+          </label>
+          <textarea
+            id="requirement"
+            rows={3}
+            placeholder="Tell us what you need…"
+            value={requirement}
+            onChange={(e) => setRequirement(e.target.value)}
+            maxLength={1000}
+            className={textareaClass}
+          />
+        </div>
+      )}
 
       {serviceType && (
         <Turnstile onVerify={setTurnstileToken} onExpire={() => setTurnstileToken("")} />

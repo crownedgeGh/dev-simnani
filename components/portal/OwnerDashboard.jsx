@@ -483,6 +483,15 @@ function LeadCard({ lead, converting, onConvert, onAddNote, onToggleCallDone, on
         {lead.source} · {lead.date}
       </p>
 
+      {lead.source === "Service Request" && (
+        <div className="border border-navy-700/60 bg-navy-950 p-3">
+          <p className="tracked-label text-[10px] text-muted/80">Requirement</p>
+          <p className="mt-1 text-sm text-cream/90 whitespace-pre-line">
+            {lead.requirement || "NA"}
+          </p>
+        </div>
+      )}
+
       <NoteSection
         callDone={lead.callDone}
         notes={lead.notes}

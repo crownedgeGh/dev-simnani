@@ -35,6 +35,12 @@ const LeadSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    // Free-text requirement the visitor typed in on a service-provider callback form.
+    requirement: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     ownerId: {
       type: String,
       required: true,

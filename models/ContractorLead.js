@@ -25,6 +25,8 @@ const ContractorLeadSchema = new mongoose.Schema(
     },
     // Page the request was raised from, e.g. "/farming/orchards".
     sourcePath: { type: String, trim: true, default: "" },
+    // Free-text requirement the visitor typed in, e.g. "Need a 50kW solar EPC quote".
+    requirement: { type: String, trim: true, default: "" },
     status: {
       type: String,
       enum: ["New", "Contacted", "Closed"],

@@ -7,7 +7,7 @@ import SearchableSelect from "@/components/auth/SearchableSelect";
 import { RTO_STATES, getCitiesForState, normalizeCityState } from "@/lib/cityRto";
 import { getServiceTypeLabel } from "@/lib/serviceProviders";
 import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
-import { inputClass } from "@/components/auth/inputStyles";
+import { inputClass, textareaClass } from "@/components/auth/inputStyles";
 import { trackEvent } from "@/lib/gtag";
 import { useAuth } from "@/context/AuthContext";
 import Turnstile from "@/components/shared/Turnstile";
@@ -59,6 +59,7 @@ export default function VendorContactCard({
 
   const [fullName, setFullName] = useState("");
   const [mobile, setMobile] = useState("");
+  const [requirement, setRequirement] = useState("");
   const [turnstileToken, setTurnstileToken] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -203,6 +204,7 @@ export default function VendorContactCard({
           phone: mobile,
           serviceType,
           sourcePath: pathname,
+          requirement,
           city,
           state,
           turnstileToken,
@@ -388,6 +390,27 @@ export default function VendorContactCard({
                     className="h-14 w-full bg-transparent px-3 text-cream placeholder:text-muted focus:outline-none"
                   />
                 </div>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label
+                  htmlFor="vc-requirement"
+                  className="tracked-label text-xs text-cream/80"
+                >
+                  Your Requirement{" "}
+                  <span className="normal-case tracking-normal text-muted">
+                    (Optional)
+                  </span>
+                </label>
+                <textarea
+                  id="vc-requirement"
+                  rows={3}
+                  placeholder="Tell us what you need…"
+                  value={requirement}
+                  onChange={(e) => setRequirement(e.target.value)}
+                  maxLength={1000}
+                  className={textareaClass}
+                />
               </div>
 
               <Turnstile
