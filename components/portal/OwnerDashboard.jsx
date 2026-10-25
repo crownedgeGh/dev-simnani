@@ -14,6 +14,8 @@ import {
   MdOpenInNew,
   MdAdd,
   MdBolt,
+  MdExpandMore,
+  MdExpandLess,
 } from "react-icons/md";
 import { BiBuildingHouse } from "react-icons/bi";
 import Tabs from "./Tabs";
@@ -432,64 +434,62 @@ function LeadCard({ lead, converting, onConvert, onAddNote, onToggleCallDone, on
   }
 
   return (
-    <div className="flex flex-col gap-4 border border-navy-700/60 bg-navy-900 p-4 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <p className="text-sm text-cream">{lead.name}</p>
-          {lead.forwardedBy?.cpType === "company" && (
-            <Badge tone="gold">Forwarded by Company CP</Badge>
-          )}
+    <div className="flex flex-col gap-3 border border-navy-700/60 bg-navy-900 p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-sm text-cream">{lead.name}</p>
+            <Badge tone={lead.status === "Site Visit" ? "success" : "muted"}>{lead.status}</Badge>
+            {lead.forwardedBy?.cpType === "company" && (
+              <Badge tone="gold">Forwarded by Company CP</Badge>
+            )}
+          </div>
+          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+            <span className="text-xs text-muted">{lead.phone}</span>
+            <button
+              type="button"
+              onClick={handleCopy}
+              aria-label="Copy phone number"
+              className={`hidden h-6 w-6 shrink-0 items-center justify-center rounded-full border transition active:scale-95 sm:inline-flex ${
+                copied
+                  ? "border-gold-400 bg-gold-400 text-navy-950"
+                  : "border-navy-700/60 text-gold-400 hover:border-gold-400"
+              }`}
+            >
+              {copied ? <MdCheck className="h-3.5 w-3.5" /> : <MdContentCopy className="h-3.5 w-3.5" />}
+            </button>
+            <a
+              href={`tel:${lead.phone.replace(/\s+/g, "")}`}
+              aria-label="Call now"
+              className="flex h-9 min-w-[44px] items-center justify-center gap-1.5 rounded-full border border-navy-700/60 px-3 text-xs text-gold-400 transition hover:border-gold-400 active:scale-[0.98] sm:hidden"
+            >
+              <MdCall className="h-4 w-4 shrink-0" />
+              Call Now
+            </a>
+          </div>
         </div>
-        <div className="mt-1 flex flex-wrap items-center gap-1.5">
-          <span className="text-xs text-muted">{lead.phone}</span>
-          <button
-            type="button"
-            onClick={handleCopy}
-            aria-label="Copy phone number"
-            className={`hidden h-6 w-6 shrink-0 items-center justify-center rounded-full border transition active:scale-95 sm:inline-flex ${
-              copied
-                ? "border-gold-400 bg-gold-400 text-navy-950"
-                : "border-navy-700/60 text-gold-400 hover:border-gold-400"
-            }`}
-          >
-            {copied ? <MdCheck className="h-3.5 w-3.5" /> : <MdContentCopy className="h-3.5 w-3.5" />}
-          </button>
-          <a
-            href={`tel:${lead.phone.replace(/\s+/g, "")}`}
-            aria-label="Call now"
-            className="flex h-9 min-w-[44px] items-center justify-center gap-1.5 rounded-full border border-navy-700/60 px-3 text-xs text-gold-400 transition hover:border-gold-400 active:scale-[0.98] sm:hidden"
-          >
-            <MdCall className="h-4 w-4 shrink-0" />
-            Call Now
-          </a>
-        </div>
-        <PropertyLink propertyId={lead.propertyId} title={lead.interest} prefix="Interested in" />
-        {lead.address && <p className="mt-1 break-words text-xs text-muted">{lead.address}</p>}
-        <p className="tracked-label mt-1 text-[10px] text-muted">
-          {lead.source} · {lead.date}
-        </p>
-
-        <NoteSection
-          callDone={lead.callDone}
-          notes={lead.notes}
-          onAddNote={onAddNote}
-          onToggleCallDone={() => onToggleCallDone(!lead.callDone)}
-          onClearNotes={onClearNotes}
-        />
-      </div>
-
-      <div className="flex flex-row items-center justify-between gap-2 sm:flex-col sm:items-end">
-        <Badge tone={lead.status === "Site Visit" ? "success" : "muted"}>{lead.status}</Badge>
         <button
           type="button"
           onClick={onConvert}
           disabled={converting}
-          className="tracked-label flex min-h-[44px] items-center justify-center gap-1.5 rounded-full border border-gold-500/70 px-4 py-2 text-[10px] text-gold-400 transition hover:bg-gold-500/10 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-0 sm:py-2"
+          className="tracked-label flex min-h-[44px] shrink-0 items-center justify-center gap-1.5 rounded-full border border-gold-500/70 px-3 py-2 text-[10px] text-gold-400 transition hover:bg-gold-500/10 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-0"
         >
           <MdPersonAddAlt1 className="h-4 w-4 shrink-0" />
-          {converting ? "Converting…" : "Convert to Client"}
+          <span className="hidden sm:inline">{converting ? "Converting…" : "Convert to Client"}</span>
         </button>
       </div>
+
+      <p className="tracked-label text-[10px] text-muted/80">
+        {lead.source} · {lead.date}
+      </p>
+
+      <NoteSection
+        callDone={lead.callDone}
+        notes={lead.notes}
+        onAddNote={onAddNote}
+        onToggleCallDone={() => onToggleCallDone(!lead.callDone)}
+        onClearNotes={onClearNotes}
+      />
     </div>
   );
 }
@@ -508,55 +508,59 @@ function ClientCard({ client, onAddNote, onToggleCallDone, onClearNotes }) {
   }
 
   return (
-    <div className="flex flex-col gap-4 border border-navy-700/60 bg-navy-900 p-4 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
-      <div className="min-w-0 flex-1">
-        <p className="text-sm text-cream">{client.name}</p>
-        <div className="mt-1 flex flex-wrap items-center gap-1.5">
-          <span className="text-xs text-muted">{client.phone}</span>
-          <button
-            type="button"
-            onClick={handleCopy}
-            aria-label="Copy phone number"
-            className={`hidden h-6 w-6 shrink-0 items-center justify-center rounded-full border transition active:scale-95 sm:inline-flex ${
-              copied
-                ? "border-gold-400 bg-gold-400 text-navy-950"
-                : "border-navy-700/60 text-gold-400 hover:border-gold-400"
-            }`}
-          >
-            {copied ? <MdCheck className="h-3.5 w-3.5" /> : <MdContentCopy className="h-3.5 w-3.5" />}
-          </button>
-          <a
-            href={`tel:${client.phone.replace(/\s+/g, "")}`}
-            aria-label="Call now"
-            className="flex h-9 min-w-[44px] items-center justify-center gap-1.5 rounded-full border border-navy-700/60 px-3 text-xs text-gold-400 transition hover:border-gold-400 active:scale-[0.98] sm:hidden"
-          >
-            <MdCall className="h-4 w-4 shrink-0" />
-            Call Now
-          </a>
+    <div className="flex flex-col gap-3 border border-navy-700/60 bg-navy-900 p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-sm text-cream">{client.name}</p>
+            <Badge tone="gold">{client.status}</Badge>
+          </div>
+          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+            <span className="text-xs text-muted">{client.phone}</span>
+            <button
+              type="button"
+              onClick={handleCopy}
+              aria-label="Copy phone number"
+              className={`hidden h-6 w-6 shrink-0 items-center justify-center rounded-full border transition active:scale-95 sm:inline-flex ${
+                copied
+                  ? "border-gold-400 bg-gold-400 text-navy-950"
+                  : "border-navy-700/60 text-gold-400 hover:border-gold-400"
+              }`}
+            >
+              {copied ? <MdCheck className="h-3.5 w-3.5" /> : <MdContentCopy className="h-3.5 w-3.5" />}
+            </button>
+            <a
+              href={`tel:${client.phone.replace(/\s+/g, "")}`}
+              aria-label="Call now"
+              className="flex h-9 min-w-[44px] items-center justify-center gap-1.5 rounded-full border border-navy-700/60 px-3 text-xs text-gold-400 transition hover:border-gold-400 active:scale-[0.98] sm:hidden"
+            >
+              <MdCall className="h-4 w-4 shrink-0" />
+              Call Now
+            </a>
+          </div>
         </div>
-        {client.address && <p className="mt-1 break-words text-xs text-muted">{client.address}</p>}
-        <PropertyLink propertyId={client.propertyId} title={client.property} prefix="Deal on" />
-
-        <NoteSection
-          callDone={client.callDone}
-          notes={client.notes}
-          onAddNote={onAddNote}
-          onToggleCallDone={() => onToggleCallDone(!client.callDone)}
-          onClearNotes={onClearNotes}
-        />
-      </div>
-
-      <div className="flex flex-row items-center justify-between gap-2 sm:flex-col sm:items-end">
         <a
           href={`tel:${client.phone.replace(/\s+/g, "")}`}
-          className="tracked-label hidden min-h-[44px] items-center justify-center gap-1.5 rounded-full border border-navy-700/60 px-4 py-2 text-[10px] text-gold-400 transition hover:border-gold-400 active:scale-[0.98] sm:inline-flex sm:min-h-0"
+          className="tracked-label hidden min-h-[44px] shrink-0 items-center justify-center gap-1.5 rounded-full border border-navy-700/60 px-4 py-2 text-[10px] text-gold-400 transition hover:border-gold-400 active:scale-[0.98] sm:inline-flex sm:min-h-0"
         >
           <MdCall className="h-4 w-4 shrink-0" />
           Call
         </a>
-        <Badge tone="gold">{client.status}</Badge>
-        <p className="text-xs text-muted">{client.lastActivity}</p>
       </div>
+
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
+        <PropertyLink propertyId={client.propertyId} title={client.property} prefix="Deal on" />
+        {client.address && <span className="break-words">{client.address}</span>}
+        <span className="tracked-label text-[10px] text-muted/80">{client.lastActivity}</span>
+      </div>
+
+      <NoteSection
+        callDone={client.callDone}
+        notes={client.notes}
+        onAddNote={onAddNote}
+        onToggleCallDone={() => onToggleCallDone(!client.callDone)}
+        onClearNotes={onClearNotes}
+      />
     </div>
   );
 }
@@ -567,6 +571,7 @@ function NoteSection({ callDone, notes, onAddNote, onToggleCallDone, onClearNote
   const [saving, setSaving] = useState(false);
   const [clearing, setClearing] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   async function handleAdd() {
     const text = draft.trim();
@@ -603,69 +608,86 @@ function NoteSection({ callDone, notes, onAddNote, onToggleCallDone, onClearNote
   }
 
   return (
-    <div className="mt-3 flex flex-col gap-2">
-      <button
-        type="button"
-        onClick={onToggleCallDone}
-        className={`tracked-label inline-flex w-fit items-center gap-1.5 rounded-full border px-3 py-1.5 text-[10px] transition active:scale-[0.98] ${
-          callDone
-            ? "border-gold-400 bg-gold-400/10 text-gold-400"
-            : "border-navy-700/60 text-muted hover:border-navy-600"
-        }`}
-      >
-        <MdTaskAlt className="h-3.5 w-3.5 shrink-0" />
-        {callDone ? "Call Done" : "Mark Call Done"}
-      </button>
+    <div className="flex flex-col gap-2 border-t border-navy-800 pt-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <button
+          type="button"
+          onClick={onToggleCallDone}
+          className={`tracked-label inline-flex w-fit items-center gap-1.5 rounded-full border px-3 py-1.5 text-[10px] transition active:scale-[0.98] ${
+            callDone
+              ? "border-gold-400 bg-gold-400/10 text-gold-400"
+              : "border-navy-700/60 text-muted hover:border-navy-600"
+          }`}
+        >
+          <MdTaskAlt className="h-3.5 w-3.5 shrink-0" />
+          {callDone ? "Call Done" : "Mark Call Done"}
+        </button>
 
-      {noteList.length > 0 && (
-        <div>
-          <div className="flex items-center justify-between gap-2">
-            <p className="tracked-label text-[10px] text-gold-400">Follow-ups</p>
+        <button
+          type="button"
+          onClick={() => setExpanded((prev) => !prev)}
+          className="tracked-label inline-flex items-center gap-1 text-[10px] text-muted transition hover:text-gold-400"
+        >
+          <MdOutlineStickyNote2 className="h-3.5 w-3.5 shrink-0" />
+          {noteList.length > 0 ? `${noteList.length} Follow-up${noteList.length === 1 ? "" : "s"}` : "Add Note"}
+          {expanded ? <MdExpandLess className="h-3.5 w-3.5" /> : <MdExpandMore className="h-3.5 w-3.5" />}
+        </button>
+      </div>
+
+      {expanded && (
+        <div className="flex flex-col gap-2">
+          {noteList.length > 0 && (
+            <div>
+              <div className="flex items-center justify-between gap-2">
+                <p className="tracked-label text-[10px] text-gold-400">Follow-ups</p>
+                <button
+                  type="button"
+                  onClick={() => setConfirmOpen(true)}
+                  disabled={clearing}
+                  className="tracked-label inline-flex items-center gap-1 text-[10px] text-muted transition hover:text-gold-400 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <MdDeleteOutline className="h-3.5 w-3.5 shrink-0" />
+                  {clearing ? "Deleting…" : "Delete All"}
+                </button>
+              </div>
+              <div
+                className={`mt-1.5 flex flex-col gap-1.5 ${
+                  noteList.length > 5 ? "max-h-36 overflow-y-auto pr-1" : ""
+                }`}
+              >
+                {noteList.map((n, i) => (
+                  <p key={i} className="break-words text-sm text-muted">
+                    <span className="text-cream">{n.date}</span> — {n.text}
+                  </p>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="flex items-stretch gap-2">
+            <div className="relative flex-1">
+              <MdOutlineStickyNote2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+              <input
+                type="text"
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Add a follow-up note…"
+                autoFocus
+                className="h-10 w-full border border-navy-700/60 bg-navy-950 pl-9 pr-3 text-sm text-cream placeholder:text-muted outline-none transition focus:border-gold-400"
+              />
+            </div>
             <button
               type="button"
-              onClick={() => setConfirmOpen(true)}
-              disabled={clearing}
-              className="tracked-label inline-flex items-center gap-1 text-[10px] text-muted transition hover:text-gold-400 disabled:cursor-not-allowed disabled:opacity-50"
+              onClick={handleAdd}
+              disabled={saving || !draft.trim()}
+              className="tracked-label shrink-0 rounded-full border border-gold-500/70 px-4 text-[10px] text-gold-400 transition hover:bg-gold-500/10 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
             >
-              <MdDeleteOutline className="h-3.5 w-3.5 shrink-0" />
-              {clearing ? "Deleting…" : "Delete All"}
+              {saving ? "…" : "Add"}
             </button>
-          </div>
-          <div
-            className={`mt-1.5 flex flex-col gap-1.5 ${
-              noteList.length > 5 ? "max-h-36 overflow-y-auto pr-1" : ""
-            }`}
-          >
-            {noteList.map((n, i) => (
-              <p key={i} className="break-words text-sm text-muted">
-                <span className="text-cream">{n.date}</span> — {n.text}
-              </p>
-            ))}
           </div>
         </div>
       )}
-
-      <div className="flex items-stretch gap-2">
-        <div className="relative flex-1">
-          <MdOutlineStickyNote2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-          <input
-            type="text"
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Add a follow-up note…"
-            className="h-10 w-full border border-navy-700/60 bg-navy-950 pl-9 pr-3 text-sm text-cream placeholder:text-muted outline-none transition focus:border-gold-400"
-          />
-        </div>
-        <button
-          type="button"
-          onClick={handleAdd}
-          disabled={saving || !draft.trim()}
-          className="tracked-label shrink-0 rounded-full border border-gold-500/70 px-4 text-[10px] text-gold-400 transition hover:bg-gold-500/10 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          {saving ? "…" : "Add"}
-        </button>
-      </div>
 
       <ConfirmDialog
         isOpen={confirmOpen}
