@@ -91,7 +91,7 @@ export default function LocationPrompt() {
   function fetchCityByIp() {
     fetch("https://ipapi.co/json/")
       .then((res) => res.json())
-      .then((data) => saveCity(data?.city))
+      .then((data) => saveCity(data?.city, data?.region))
       .catch(() => {
         // IP lookup unavailable too — no city badge, not fatal
       });
@@ -105,7 +105,7 @@ export default function LocationPrompt() {
     }
     fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`)
       .then((res) => res.json())
-      .then((data) => saveCity(data?.city || data?.locality || data?.principalSubdivision))
+      .then((data) => saveCity(data?.city || data?.locality || data?.principalSubdivision, data?.principalSubdivision))
       .catch(() => {
         // reverse geocoding unavailable — fall back to IP-based city
         fetchCityByIp();
