@@ -314,7 +314,7 @@ export default function AuthCard() {
   }
 
   return (
-    <div className="relative w-full max-w-md rounded-2xl border border-navy-700/60 bg-navy-900 p-5 shadow-2xl sm:rounded-3xl sm:p-10">
+    <div className="relative w-full max-w-md rounded-2xl border border-navy-700/60 bg-navy-900 p-6 shadow-2xl sm:max-w-lg sm:rounded-3xl sm:p-10 lg:p-12">
       {step === "mobile" ? (
         <button
           type="button"
@@ -334,7 +334,7 @@ export default function AuthCard() {
           <FiArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
         </button>
       )}
-      <div className="flex flex-col items-center gap-2 pt-7 text-center sm:pt-0">
+      <div className="flex flex-col items-center gap-2.5 pt-8 text-center sm:pt-1">
         <span className="tracked-label text-xs text-gold-400">
           Simnani Estate
         </span>
@@ -344,7 +344,7 @@ export default function AuthCard() {
           {step === "forgot-otp" && "Reset Password"}
           {step === "new-password" && "New Password"}
         </h1>
-        <p className="text-sm text-muted">
+        <p className="max-w-xs text-sm leading-relaxed text-muted">
           {step === "mobile" && mode === "password" &&
             "Login with your mobile number and password."}
           {step === "mobile" && mode === "otp" &&
@@ -374,7 +374,7 @@ export default function AuthCard() {
         <>
           <form
             onSubmit={mode === "password" ? handlePasswordSubmit : handleMobileSubmit}
-            className="mt-6 flex flex-col gap-4 sm:mt-8"
+            className="mt-8 flex flex-col gap-5 sm:mt-10"
           >
             <div className="flex flex-col gap-2">
               <label htmlFor="mobile" className="tracked-label text-xs text-cream/80">
@@ -470,7 +470,7 @@ export default function AuthCard() {
           </form>
 
           {!notRegistered && (
-            <div className="mt-5 text-center">
+            <div className="mt-6 text-center">
               {mode === "password" ? (
                 <button
                   type="button"
@@ -494,7 +494,7 @@ export default function AuthCard() {
           {TEST_MODE_ENABLED && (
             <>
               {/* Tester Login Divider & Button */}
-              <div className="relative my-6 flex items-center justify-center">
+              <div className="relative my-7 flex items-center justify-center">
                 <div className="w-full border-t border-navy-700/60" />
                 <span className="absolute bg-navy-900 px-3 text-[10px] font-semibold uppercase tracking-widest text-muted">
                   Or Fast Track
@@ -530,7 +530,7 @@ export default function AuthCard() {
       )}
 
       {step === "otp" && (
-        <div className="mt-6 flex flex-col gap-6 sm:mt-8">
+        <div className="mt-8 flex flex-col gap-6">
           <div className="flex items-center justify-center gap-2">
             <span className="text-sm text-muted">Wrong number?</span>
             <button
@@ -606,7 +606,7 @@ export default function AuthCard() {
       )}
 
       {step === "forgot-otp" && (
-        <div className="mt-6 flex flex-col gap-6 sm:mt-8">
+        <div className="mt-8 flex flex-col gap-6">
           <div className="flex items-center justify-center gap-2">
             <span className="text-sm text-muted">Wrong number?</span>
             <button
@@ -678,7 +678,7 @@ export default function AuthCard() {
       )}
 
       {step === "new-password" && (
-        <form onSubmit={handleNewPasswordSubmit} className="mt-6 flex flex-col gap-4 sm:mt-8">
+        <form onSubmit={handleNewPasswordSubmit} className="mt-8 flex flex-col gap-5">
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
               <label htmlFor="new-password" className="tracked-label text-xs text-cream/80">
@@ -764,7 +764,7 @@ export default function AuthCard() {
         </form>
       )}
 
-      <footer className="mt-6 flex flex-col items-center gap-2 border-t border-navy-700/60 pt-6 sm:mt-8">
+      <footer className="mt-8 flex flex-col items-center gap-2 border-t border-navy-700/60 pt-7 sm:mt-10">
         <p className="text-xs text-muted">
           New to Simnani Estate?{" "}
           <Link href="/auth/register" className="tracked-label text-gold-400 hover:text-gold-300">
