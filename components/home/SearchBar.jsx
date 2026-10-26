@@ -19,7 +19,11 @@ const PLACEHOLDER = "Property Type";
 const RECENT_SEARCHES_KEY = "se_recent_city_searches";
 const MAX_RECENT_SEARCHES = 5;
 
-const SIMPLE_TYPES = RESIDENTIAL_TYPE_OPTIONS.map((label) => ({ key: label, label }));
+const TYPE_DISPLAY_LABELS = { Plot: "Plot/Land" };
+const SIMPLE_TYPES = RESIDENTIAL_TYPE_OPTIONS.map((key) => ({
+  key,
+  label: TYPE_DISPLAY_LABELS[key] ?? key,
+}));
 
 const BHK_TYPES = ["House", "Flat"];
 
@@ -197,7 +201,7 @@ export default function SearchBar() {
     const query = params.toString();
 
     if (hasCategoryRoutes) {
-      const category = typeOptions.find((option) => option.label === propertyType);
+      const category = typeOptions.find((option) => option.key === propertyType);
       const basePath = category?.href ?? `/${mode}/${category?.key}`;
       router.push(`${basePath}?${query}`);
       return;
@@ -246,7 +250,7 @@ export default function SearchBar() {
               {PLACEHOLDER}
             </option>
             {typeOptions.map((option) => (
-              <option key={option.key} value={option.label} className="bg-navy-900">
+              <option key={option.key} value={option.key} className="bg-navy-900">
                 {option.label}
               </option>
             ))}
