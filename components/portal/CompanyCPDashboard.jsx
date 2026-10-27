@@ -22,6 +22,7 @@ import EmptyState from "./EmptyState";
 import PropertyGrid from "@/components/property/PropertyGrid";
 import { CP_TYPE_LABEL, VISIT_STATUS_TONE, LEAD_STATUS_TONE, APPROVAL_STATUS_TONE } from "./channel-partner/tones";
 import RefreshButton from "./RefreshButton";
+import Select from "@/components/ui/Select";
 import PhotoLightbox from "@/components/common/PhotoLightbox";
 import { SERVICE_PROVIDER_TYPES, getServiceTypeLabel } from "@/lib/serviceProviders";
 import { usePersistentTab } from "@/lib/usePersistentTab";
@@ -472,41 +473,34 @@ export default function CompanyCPDashboard({
             {lead.serviceProvider.name} · {getServiceTypeLabel(lead.serviceProvider.serviceType)}
           </p>
         )}
-        <select
+        <Select
           value={selectedRole}
           disabled={rolesWithProviders.length === 0}
           onChange={(e) =>
             setForwardRoleByLead((prev) => ({ ...prev, [lead.id]: e.target.value }))
           }
           className="h-11 w-full min-w-[200px] border border-navy-700/60 bg-navy-950 px-3 text-xs text-cream outline-none transition focus:border-gold-400 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <option value="">
-            {rolesWithProviders.length === 0
+          placeholder={
+            rolesWithProviders.length === 0
               ? "No service provider registered"
-              : lead.serviceProvider?.accountId ? "Forward to another role…" : "Forward to…"}
-          </option>
-          {rolesWithProviders.map((t) => (
-            <option key={t.value} value={t.value}>
-              {t.label}
-            </option>
-          ))}
-        </select>
+              : lead.serviceProvider?.accountId ? "Forward to another role…" : "Forward to…"
+          }
+          options={rolesWithProviders}
+        />
         {selectedRole && (
-          <select
+          <Select
             value=""
             onChange={(e) => {
               forwardToProvider(lead.id, e.target.value);
               setForwardRoleByLead((prev) => ({ ...prev, [lead.id]: "" }));
             }}
             className="mt-1.5 h-11 w-full min-w-[200px] border border-navy-700/60 bg-navy-950 px-3 text-xs text-cream outline-none transition focus:border-gold-400"
-          >
-            <option value="">Select contractor…</option>
-            {contractorsForRole.map((p) => (
-              <option key={p.accountId} value={p.accountId}>
-                {p.name}{p.city ? ` — ${p.city}` : ""}
-              </option>
-            ))}
-          </select>
+            placeholder="Select contractor…"
+            options={contractorsForRole.map((p) => ({
+              value: p.accountId,
+              label: `${p.name}${p.city ? ` — ${p.city}` : ""}`,
+            }))}
+          />
         )}
       </>
     );

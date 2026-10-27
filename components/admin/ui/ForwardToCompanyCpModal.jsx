@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import AdminDialog from "./AdminDialog";
 import StateCitySearchFields from "@/components/shared/StateCitySearchFields";
+import Select from "@/components/ui/Select";
 
 export default function ForwardToCompanyCpModal({ isOpen, onClose, onConfirm, isLoading = false, propertyTitle = "" }) {
   const [partners, setPartners] = useState([]);
@@ -75,27 +76,22 @@ export default function ForwardToCompanyCpModal({ isOpen, onClose, onConfirm, is
 
         <label className="flex flex-col gap-1.5">
           <span className="text-xs font-medium text-[#6b7280]">Company CP</span>
-          <select
+          <Select
             value={accountId}
             onChange={(e) => setAccountId(e.target.value)}
             disabled={!hasLocation || loadingPartners || matchingPartners.length === 0}
-            className="h-11 rounded-xl border border-[#e8e0d5] bg-white px-3 text-sm text-[#374151] outline-none transition focus:border-[#f0b429] disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <option value="" disabled>
-              {!hasLocation
+            options={matchingPartners.map((p) => ({ value: p.accountId, label: formatLabel(p) }))}
+            placeholder={
+              !hasLocation
                 ? "Select state and city first"
                 : loadingPartners
                   ? "Loading…"
                   : matchingPartners.length === 0
                     ? "No Company CP registered in this location"
-                    : "Select Company CP…"}
-            </option>
-            {matchingPartners.map((p) => (
-              <option key={p.accountId} value={p.accountId}>
-                {formatLabel(p)}
-              </option>
-            ))}
-          </select>
+                    : "Select Company CP…"
+            }
+            className="h-11 rounded-xl border border-[#e8e0d5] bg-white px-3 text-sm text-[#374151] outline-none transition focus:border-[#f0b429] disabled:cursor-not-allowed disabled:opacity-50"
+          />
         </label>
       </div>
     </AdminDialog>

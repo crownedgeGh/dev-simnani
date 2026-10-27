@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { MdMyLocation } from "react-icons/md";
 import AdminDialog from "@/components/admin/ui/AdminDialog";
 import AdminFormField, { adminInputClass, adminSelectClass, adminTextareaClass } from "@/components/admin/ui/AdminFormField";
+import Select from "@/components/ui/Select";
 import { getLocationCity, CATEGORIES_BY_TYPE, isStructureCategory, categoryHasBedrooms, isPgOrHostel } from "@/lib/properties";
 import { getCurrentCoords, reverseGeocode } from "@/lib/geo";
 
@@ -134,7 +135,7 @@ export default function PropertyFormDialog({ isOpen, onClose, property, onSave }
         </div>
 
         <AdminFormField label="Type" id="prop-type" required error={errors.type}>
-          <select
+          <Select
             id="prop-type"
             value={form.type}
             onChange={(e) =>
@@ -145,33 +146,37 @@ export default function PropertyFormDialog({ isOpen, onClose, property, onSave }
               }))
             }
             className={adminSelectClass}
-          >
-            {PROPERTY_TYPES.map((t) => (
-              <option key={t} value={t}>
-                {t
-                  .split("-")
-                  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                  .join(" ")}
-              </option>
-            ))}
-          </select>
+            options={PROPERTY_TYPES.map((t) => ({
+              value: t,
+              label: t
+                .split("-")
+                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" "),
+            }))}
+          />
         </AdminFormField>
 
         {CATEGORIES_BY_TYPE[form.type] && form.type !== "plot-land" && (
           <AdminFormField label="Category" id="prop-category" required error={errors.category}>
-            <select id="prop-category" value={form.category} onChange={(e) => set("category", e.target.value)} className={adminSelectClass}>
-              <option value="">Select category</option>
-              {CATEGORIES_BY_TYPE[form.type].map((cat) => (
-                <option key={cat.key} value={cat.key}>{cat.label}</option>
-              ))}
-            </select>
+            <Select
+              id="prop-category"
+              value={form.category}
+              onChange={(e) => set("category", e.target.value)}
+              className={adminSelectClass}
+              placeholder="Select category"
+              options={CATEGORIES_BY_TYPE[form.type].map((cat) => ({ value: cat.key, label: cat.label }))}
+            />
           </AdminFormField>
         )}
 
         <AdminFormField label="Status" id="prop-status">
-          <select id="prop-status" value={form.status} onChange={(e) => set("status", e.target.value)} className={adminSelectClass}>
-            {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-          </select>
+          <Select
+            id="prop-status"
+            value={form.status}
+            onChange={(e) => set("status", e.target.value)}
+            className={adminSelectClass}
+            options={STATUSES.map((s) => ({ value: s, label: s }))}
+          />
         </AdminFormField>
 
         <AdminFormField label="Price" id="prop-price" required error={errors.price}>

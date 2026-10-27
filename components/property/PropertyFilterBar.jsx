@@ -21,6 +21,7 @@ import {
 import { searchIndianCities } from "@/lib/indianCities";
 import { trackEvent } from "@/lib/gtag";
 import { POSTED_BY_CATEGORY_OPTIONS, getPostedByCategory } from "@/lib/postedByRoles";
+import Select from "@/components/ui/Select";
 
 // Accepts either a plain dropdown value ("1".."5") or a free-form label
 // like "4 BHK+" (as sent by the homepage search bar) and normalizes it to
@@ -521,19 +522,17 @@ function PropertyFilterBarInner({
           )}
 
           {showBhk && (
-            <select
+            <Select
               value={bhkSelectValue}
               onChange={(e) => setBhk(e.target.value)}
-              className={`${filterFieldClass} appearance-none`}
+              options={[
+                { value: "", label: "Any BHK" },
+                ...BHK_OPTIONS.map((n) => ({ value: n, label: n === 5 ? "5+ BHK" : `${n} BHK` })),
+              ]}
+              placeholder="Any BHK"
+              className={filterFieldClass}
               aria-label="Filter by BHK"
-            >
-              <option value="">Any BHK</option>
-              {BHK_OPTIONS.map((n) => (
-                <option key={n} value={n}>
-                  {n === 5 ? "5+ BHK" : `${n} BHK`}
-                </option>
-              ))}
-            </select>
+            />
           )}
 
           <div ref={cityFieldRef} className="relative w-full">
@@ -593,33 +592,32 @@ function PropertyFilterBarInner({
             )}
           </div>
 
-          <select
+          <Select
             value={budget}
             onChange={(e) => setBudget(e.target.value)}
-            className={`${filterFieldClass} appearance-none`}
+            options={[
+              { value: "", label: "Any Budget" },
+              ...budgetRanges.map((range) => ({ value: range.label, label: range.label })),
+            ]}
+            placeholder="Any Budget"
+            className={filterFieldClass}
             aria-label="Filter by budget"
-          >
-            <option value="">Any Budget</option>
-            {budgetRanges.map((range) => (
-              <option key={range.label} value={range.label}>
-                {range.label}
-              </option>
-            ))}
-          </select>
+          />
 
-          <select
+          <Select
             value={postedBy}
             onChange={(e) => setPostedBy(e.target.value)}
-            className={`${filterFieldClass} appearance-none`}
+            options={[
+              { value: "", label: "Posted by Anyone" },
+              ...POSTED_BY_CATEGORY_OPTIONS.map((option) => ({
+                value: option.value,
+                label: `Posted by ${option.label}`,
+              })),
+            ]}
+            placeholder="Posted by Anyone"
+            className={filterFieldClass}
             aria-label="Filter by posted by"
-          >
-            <option value="">Posted by Anyone</option>
-            {POSTED_BY_CATEGORY_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                Posted by {option.label}
-              </option>
-            ))}
-          </select>
+          />
 
           <div className="mt-auto flex gap-2 pt-2 sm:hidden">
             <button

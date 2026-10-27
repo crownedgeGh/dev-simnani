@@ -25,6 +25,7 @@ import AdminFormField, {
   adminTextareaClass,
 } from "@/components/admin/ui/AdminFormField";
 import AdminSearchableSelect from "@/components/admin/ui/AdminSearchableSelect";
+import Select from "@/components/ui/Select";
 import adminAxios from "@/lib/adminAxios";
 import {
   CATEGORIES_BY_TYPE,
@@ -680,18 +681,13 @@ export default function AdminAddPropertyForm() {
                 hint="Where this property will be listed"
                 required
               >
-                <select
+                <Select
                   id="prop-section"
                   value={form.section}
                   onChange={(e) => update("section", e.target.value)}
                   className={adminSelectClass}
-                >
-                  {SECTION_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
+                  options={SECTION_OPTIONS}
+                />
               </AdminFormField>
             </div>
 
@@ -705,19 +701,14 @@ export default function AdminAddPropertyForm() {
                     required
                     error={errors.propertyType}
                   >
-                    <select
+                    <Select
                       id="prop-property-type"
                       value={form.propertyType}
                       onChange={(e) => update("propertyType", e.target.value)}
                       className={adminSelectClass}
-                    >
-                      <option value="">Select type</option>
-                      {RESIDENTIAL_PROPERTY_TYPES.map((type) => (
-                        <option key={type} value={type}>
-                          {type}
-                        </option>
-                      ))}
-                    </select>
+                      placeholder="Select type"
+                      options={RESIDENTIAL_PROPERTY_TYPES.map((type) => ({ value: type, label: type }))}
+                    />
                   </AdminFormField>
                 </div>
 
@@ -725,20 +716,17 @@ export default function AdminAddPropertyForm() {
                 {showBhkSelect && (
                   <div>
                     <AdminFormField label="BHK" id="prop-beds" required error={errors.beds}>
-                      <select
+                      <Select
                         id="prop-beds"
                         value={form.beds}
                         onChange={(e) => update("beds", e.target.value)}
                         className={adminSelectClass}
-                      >
-                        <option value="">Select BHK</option>
-                        {[1, 2, 3, 4, 5].map((n) => (
-                          <option key={n} value={n}>
-                            {n} BHK
-                          </option>
-                        ))}
-                        <option value="5+">5 BHK+</option>
-                      </select>
+                        placeholder="Select BHK"
+                        options={[
+                          ...[1, 2, 3, 4, 5].map((n) => ({ value: n, label: `${n} BHK` })),
+                          { value: "5+", label: "5 BHK+" },
+                        ]}
+                      />
                     </AdminFormField>
                   </div>
                 )}
@@ -752,19 +740,14 @@ export default function AdminAddPropertyForm() {
                       required
                       error={errors.genderPreference}
                     >
-                      <select
+                      <Select
                         id="prop-gender-preference"
                         value={form.genderPreference}
                         onChange={(e) => update("genderPreference", e.target.value)}
                         className={adminSelectClass}
-                      >
-                        <option value="">Select</option>
-                        {GENDER_PREFERENCE_OPTIONS.map((opt) => (
-                          <option key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </option>
-                        ))}
-                      </select>
+                        placeholder="Select"
+                        options={GENDER_PREFERENCE_OPTIONS}
+                      />
                     </AdminFormField>
                   </div>
                 )}
@@ -779,19 +762,14 @@ export default function AdminAddPropertyForm() {
                     required
                     error={errors.category}
                   >
-                    <select
+                    <Select
                       id="prop-category"
                       value={form.category}
                       onChange={(e) => update("category", e.target.value)}
                       className={adminSelectClass}
-                    >
-                      <option value="">Select category</option>
-                      {(CATEGORIES_BY_TYPE[form.section] || []).map((cat) => (
-                        <option key={cat.key} value={cat.key}>
-                          {cat.label}
-                        </option>
-                      ))}
-                    </select>
+                      placeholder="Select category"
+                      options={(CATEGORIES_BY_TYPE[form.section] || []).map((cat) => ({ value: cat.key, label: cat.label }))}
+                    />
                   </AdminFormField>
                 </div>
               )
@@ -934,17 +912,12 @@ export default function AdminAddPropertyForm() {
                     />
                   </div>
                   {isPlotOrFarming && (
-                    <select
+                    <Select
                       value={form.priceUnit}
                       onChange={(e) => update("priceUnit", e.target.value)}
                       className="h-11 w-36 shrink-0 rounded-xl border border-[#e8e0d5] bg-[#faf8f5] px-3 text-sm text-[#1a1a2e] outline-none transition focus:border-[#f0b429] focus:ring-2 focus:ring-[#f0b429]/20 cursor-pointer"
-                    >
-                      {PRICE_UNIT_OPTIONS.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </option>
-                      ))}
-                    </select>
+                      options={PRICE_UNIT_OPTIONS}
+                    />
                   )}
                 </div>
               </AdminFormField>
@@ -986,17 +959,12 @@ export default function AdminAddPropertyForm() {
                     placeholder="Area size"
                     className="h-11 min-w-0 flex-1 rounded-xl border border-[#e8e0d5] bg-[#faf8f5] px-3 text-sm text-[#1a1a2e] placeholder-[#9ca3af] outline-none transition focus:border-[#f0b429] focus:ring-2 focus:ring-[#f0b429]/20"
                   />
-                  <select
+                  <Select
                     value={form.areaUnit}
                     onChange={(e) => update("areaUnit", e.target.value)}
                     className="h-11 w-28 sm:w-32 shrink-0 rounded-xl border border-[#e8e0d5] bg-[#faf8f5] px-3 text-sm text-[#1a1a2e] outline-none transition focus:border-[#f0b429] focus:ring-2 focus:ring-[#f0b429]/20 cursor-pointer"
-                  >
-                    {AREA_UNITS.map((unit) => (
-                      <option key={unit} value={unit}>
-                        {unit}
-                      </option>
-                    ))}
-                  </select>
+                    options={AREA_UNITS.map((unit) => ({ value: unit, label: unit }))}
+                  />
                 </div>
               </AdminFormField>
             </div>
@@ -1043,19 +1011,14 @@ export default function AdminAddPropertyForm() {
                 required
                 error={errors.bathroomType}
               >
-                <select
+                <Select
                   id="prop-bathroom-type"
                   value={form.bathroomType}
                   onChange={(e) => update("bathroomType", e.target.value)}
                   className={adminSelectClass}
-                >
-                  <option value="">Select Bathroom</option>
-                  {PG_HOSTEL_BATHROOM_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
+                  placeholder="Select Bathroom"
+                  options={PG_HOSTEL_BATHROOM_OPTIONS}
+                />
               </AdminFormField>
             </div>
             )}
@@ -1100,19 +1063,14 @@ export default function AdminAddPropertyForm() {
             {needsFurnishing && (
             <div>
               <AdminFormField label="Furnishing Status" id="prop-furnishing">
-                <select
+                <Select
                   id="prop-furnishing"
                   value={form.furnishing}
                   onChange={(e) => update("furnishing", e.target.value)}
                   className={adminSelectClass}
-                >
-                  <option value="">Select Furnishing</option>
-                  {FURNISHING_OPTIONS.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
-                  ))}
-                </select>
+                  placeholder="Select Furnishing"
+                  options={FURNISHING_OPTIONS.map((opt) => ({ value: opt, label: opt }))}
+                />
               </AdminFormField>
             </div>
             )}
@@ -1145,19 +1103,14 @@ export default function AdminAddPropertyForm() {
             {needsFacing && (
             <div>
               <AdminFormField label="Facing Direction" id="prop-facing">
-                <select
+                <Select
                   id="prop-facing"
                   value={form.facing}
                   onChange={(e) => update("facing", e.target.value)}
                   className={adminSelectClass}
-                >
-                  <option value="">Select Facing</option>
-                  {FACING_OPTIONS.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
-                  ))}
-                </select>
+                  placeholder="Select Facing"
+                  options={FACING_OPTIONS.map((opt) => ({ value: opt, label: opt }))}
+                />
               </AdminFormField>
             </div>
             )}
@@ -1179,19 +1132,17 @@ export default function AdminAddPropertyForm() {
             {needsPreferredFor && (
             <div className="sm:col-span-2">
               <AdminFormField label="Preferred Tenants / Buyers" id="prop-preferred">
-                <select
+                <Select
                   id="prop-preferred"
                   value={form.preferredFor}
                   onChange={(e) => update("preferredFor", e.target.value)}
                   className={adminSelectClass}
-                >
-                  <option value="">Any Buyer / Tenant</option>
-                  {PREFERRED_FOR_OPTIONS.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
-                  ))}
-                </select>
+                  placeholder="Any Buyer / Tenant"
+                  options={[
+                    { value: "", label: "Any Buyer / Tenant" },
+                    ...PREFERRED_FOR_OPTIONS.map((opt) => ({ value: opt, label: opt })),
+                  ]}
+                />
               </AdminFormField>
             </div>
             )}
@@ -1426,18 +1377,13 @@ export default function AdminAddPropertyForm() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <AdminFormField label="Listing Status" id="prop-status">
-                <select
+                <Select
                   id="prop-status"
                   value={form.status}
                   onChange={(e) => update("status", e.target.value)}
                   className={adminSelectClass}
-                >
-                  {STATUS_OPTIONS.map((status) => (
-                    <option key={status} value={status}>
-                      {status}
-                    </option>
-                  ))}
-                </select>
+                  options={STATUS_OPTIONS.map((status) => ({ value: status, label: status }))}
+                />
               </AdminFormField>
             </div>
 
@@ -1447,18 +1393,13 @@ export default function AdminAddPropertyForm() {
                 id="prop-posted-by-role"
                 hint="Which staff role is posting this listing"
               >
-                <select
+                <Select
                   id="prop-posted-by-role"
                   value={form.postedByRole}
                   onChange={(e) => update("postedByRole", e.target.value)}
                   className={adminSelectClass}
-                >
-                  {POSTED_BY_ROLE_OPTIONS.map((role) => (
-                    <option key={role.value} value={role.value}>
-                      {role.label}
-                    </option>
-                  ))}
-                </select>
+                  options={POSTED_BY_ROLE_OPTIONS}
+                />
               </AdminFormField>
             </div>
 

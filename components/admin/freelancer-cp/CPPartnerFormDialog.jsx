@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import AdminDialog from "@/components/admin/ui/AdminDialog";
 import AdminFormField, { adminInputClass, adminSelectClass } from "@/components/admin/ui/AdminFormField";
+import Select from "@/components/ui/Select";
 
 const ID_PREFIX = { company: "CCP", digital: "DCP", field: "FCP" };
 
@@ -137,10 +138,16 @@ export default function CPPartnerFormDialog({ isOpen, onClose, cpType, partner, 
           />
         </AdminFormField>
         <AdminFormField label="Status" id="cp-partner-status">
-          <select id="cp-partner-status" value={form.status} onChange={(e) => set("status", e.target.value)} className={adminSelectClass}>
-            <option value="Active">Active</option>
-            <option value="Suspended">Suspended</option>
-          </select>
+          <Select
+            id="cp-partner-status"
+            value={form.status}
+            onChange={(e) => set("status", e.target.value)}
+            options={[
+              { value: "Active", label: "Active" },
+              { value: "Suspended", label: "Suspended" },
+            ]}
+            className={adminSelectClass}
+          />
         </AdminFormField>
       </form>
     </AdminDialog>

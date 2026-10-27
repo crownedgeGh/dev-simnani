@@ -28,6 +28,7 @@ import AssignPropertyDialog from "@/components/admin/freelancer-cp/AssignPropert
 import LeadDetailDialog from "@/components/admin/freelancer-cp/LeadDetailDialog";
 import PendingCpApprovals from "@/components/admin/freelancer-cp/PendingCpApprovals";
 import { SERVICE_PROVIDER_TYPES } from "@/lib/serviceProviders";
+import Select from "@/components/ui/Select";
 
 const CP_LEAD_STATUSES = ["Pending Verification", "Verified", "Assigned", "Site Visit Scheduled", "Site Visit Completed", "Converted", "Lost"];
 const COMM_STATUSES = ["Pending", "Approved", "On Hold"];
@@ -414,7 +415,7 @@ export default function CPTypeWorkspace({
       searchable: false,
       render: (_, row) => (
         <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
-          <select
+          <Select
             value={row.status}
             onChange={async (e) => {
               const nextStatus = e.target.value;
@@ -444,13 +445,12 @@ export default function CPTypeWorkspace({
                 }
               }
             }}
+            options={CP_LEAD_STATUSES.map((s) => ({ value: s, label: s }))}
             className="h-8 rounded-lg border border-[#e8e0d5] bg-white px-1.5 text-xs outline-none focus:border-[#f0b429] cursor-pointer"
-          >
-            {CP_LEAD_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-          </select>
+          />
 
           {row.routingStage && row.routingStage !== "company-cp" && (
-            <select
+            <Select
               value=""
               onChange={async (e) => {
                 if (!e.target.value) return;
@@ -459,17 +459,14 @@ export default function CPTypeWorkspace({
                 if (ok) toast.success(`Lead forwarded to ${partner?.name}`);
               }}
               disabled={companyPartners.length === 0}
+              options={companyPartners.map((p) => ({ value: p.accountId, label: p.name }))}
+              placeholder={companyPartners.length === 0 ? "No Company CP yet" : "Forward to Company CP…"}
               className="h-8 rounded-lg border border-[#e8e0d5] bg-white px-1.5 text-xs outline-none focus:border-[#f0b429] cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <option value="">
-                {companyPartners.length === 0 ? "No Company CP yet" : "Forward to Company CP…"}
-              </option>
-              {companyPartners.map((p) => <option key={p.accountId} value={p.accountId}>{p.name}</option>)}
-            </select>
+            />
           )}
 
           {row.routingStage === "company-cp" && (
-            <select
+            <Select
               value=""
               onChange={async (e) => {
                 if (!e.target.value) return;
@@ -486,36 +483,19 @@ export default function CPTypeWorkspace({
                 if (ok) toast.success(`Lead delegated to ${partner?.name}`);
               }}
               disabled={networks.field.length === 0 && networks.digital.length === 0 && networks["service-provider"].length === 0}
+              // Select.jsx has no optgroup support — fold each group's label into the option text instead.
+              options={[
+                ...networks.field.map((p) => ({ value: `field::${p.accountId}`, label: `Field CP — ${p.name}` })),
+                ...networks.digital.map((p) => ({ value: `digital::${p.accountId}`, label: `Digital CP — ${p.name}` })),
+                ...SERVICE_PROVIDER_TYPES.flatMap((t) =>
+                  networks["service-provider"]
+                    .filter((p) => p.serviceType === t.value)
+                    .map((p) => ({ value: `service-provider::${p.accountId}`, label: `${t.label} — ${p.name}` }))
+                ),
+              ]}
+              placeholder="Assign to…"
               className="h-8 rounded-lg border border-[#e8e0d5] bg-white px-1.5 text-xs outline-none focus:border-[#f0b429] cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <option value="">Assign to…</option>
-              {networks.field.length > 0 && (
-                <optgroup label="Field CP">
-                  {networks.field.map((p) => (
-                    <option key={`field::${p.accountId}`} value={`field::${p.accountId}`}>{p.name}</option>
-                  ))}
-                </optgroup>
-              )}
-              {networks.digital.length > 0 && (
-                <optgroup label="Digital CP">
-                  {networks.digital.map((p) => (
-                    <option key={`digital::${p.accountId}`} value={`digital::${p.accountId}`}>{p.name}</option>
-                  ))}
-                </optgroup>
-              )}
-              {networks["service-provider"].length > 0 && (
-                SERVICE_PROVIDER_TYPES.map((t) => {
-                  const group = networks["service-provider"].filter((p) => p.serviceType === t.value);
-                  return group.length > 0 && (
-                    <optgroup key={t.value} label={t.label}>
-                      {group.map((p) => (
-                        <option key={`service-provider::${p.accountId}`} value={`service-provider::${p.accountId}`}>{p.name}</option>
-                      ))}
-                    </optgroup>
-                  );
-                })
-              )}
-            </select>
+            />
           )}
         </div>
       ),

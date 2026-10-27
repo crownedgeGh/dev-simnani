@@ -6,6 +6,7 @@ import { MdClose, MdCheckCircle } from "react-icons/md";
 import Link from "next/link";
 import { inputClass, selectClass } from "@/components/auth/inputStyles";
 import { LOCATIONS } from "@/lib/locations";
+import Select from "@/components/ui/Select";
 
 const fieldLabelClass = "mb-1.5 block text-xs text-muted";
 
@@ -18,6 +19,12 @@ export default function LoanEnquiryModal({ isOpen, onClose, bank, loanAmount, te
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  // Select.jsx is a controlled button+listbox, not a real form control, so it
+  // can't report its value through the native FormData read below like the
+  // rest of this uncontrolled form — these three need their own state.
+  const [propertyIdentified, setPropertyIdentified] = useState("");
+  const [propertyCity, setPropertyCity] = useState("");
+  const [employmentType, setEmploymentType] = useState("salaried");
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -34,10 +41,10 @@ export default function LoanEnquiryModal({ isOpen, onClose, bank, loanAmount, te
           loanAmount: Number(fd.get("loanAmount")) || null,
           tenure: Number(fd.get("tenure")) || null,
           age: Number(fd.get("age")) || null,
-          propertyIdentified: fd.get("propertyIdentified") || "",
-          propertyCity: fd.get("propertyCity") || "",
+          propertyIdentified,
+          propertyCity,
           propertyCost: Number(fd.get("propertyCost")) || null,
-          employmentType: fd.get("employmentType") || "salaried",
+          employmentType,
           income: Number(fd.get("income")) || null,
           currentEmi: Number(fd.get("currentEmi")) || null,
           name: fd.get("name") || "",
@@ -57,6 +64,9 @@ export default function LoanEnquiryModal({ isOpen, onClose, bank, loanAmount, te
 
   function handleClose() {
     setSubmitted(false);
+    setPropertyIdentified("");
+    setPropertyCity("");
+    setEmploymentType("salaried");
     onClose();
   }
 
@@ -168,20 +178,28 @@ export default function LoanEnquiryModal({ isOpen, onClose, bank, loanAmount, te
 
                 <div>
                   <label className={fieldLabelClass}>Is your property identified</label>
-                  <select name="propertyIdentified" className={selectClass} defaultValue="">
-                    <option value="" disabled>Select</option>
-                    <option value="yes">Yes</option>
-                    <option value="no">Not yet</option>
-                  </select>
+                  <Select
+                    name="propertyIdentified"
+                    value={propertyIdentified}
+                    onChange={(e) => setPropertyIdentified(e.target.value)}
+                    options={[
+                      { value: "yes", label: "Yes" },
+                      { value: "no", label: "Not yet" },
+                    ]}
+                    placeholder="Select"
+                    className={selectClass}
+                  />
                 </div>
                 <div>
                   <label className={fieldLabelClass}>Property city</label>
-                  <select name="propertyCity" className={selectClass} defaultValue="">
-                    <option value="" disabled>Select</option>
-                    {LOCATIONS.map((l) => (
-                      <option key={l.city} value={l.city}>{l.city}</option>
-                    ))}
-                  </select>
+                  <Select
+                    name="propertyCity"
+                    value={propertyCity}
+                    onChange={(e) => setPropertyCity(e.target.value)}
+                    options={LOCATIONS.map((l) => ({ value: l.city, label: l.city }))}
+                    placeholder="Select"
+                    className={selectClass}
+                  />
                 </div>
                 <div>
                   <label className={fieldLabelClass}>Property Cost</label>
@@ -190,10 +208,16 @@ export default function LoanEnquiryModal({ isOpen, onClose, bank, loanAmount, te
 
                 <div>
                   <label className={fieldLabelClass}>How are you currently employed</label>
-                  <select name="employmentType" className={selectClass} defaultValue="salaried">
-                    <option value="salaried">Salaried</option>
-                    <option value="self-employed">Self-employed</option>
-                  </select>
+                  <Select
+                    name="employmentType"
+                    value={employmentType}
+                    onChange={(e) => setEmploymentType(e.target.value)}
+                    options={[
+                      { value: "salaried", label: "Salaried" },
+                      { value: "self-employed", label: "Self-employed" },
+                    ]}
+                    className={selectClass}
+                  />
                 </div>
                 <div>
                   <label className={fieldLabelClass}>Your income (Monthly)</label>

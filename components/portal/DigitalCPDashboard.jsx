@@ -15,6 +15,7 @@ import PropertyGrid from "@/components/property/PropertyGrid";
 import ChipGroup from "@/components/auth/ChipGroup";
 import FormField from "@/components/auth/FormField";
 import { inputClass, selectClass, textareaClass } from "@/components/auth/inputStyles";
+import Select from "@/components/ui/Select";
 import { toast } from "sonner";
 import RefreshButton from "./RefreshButton";
 import { usePersistentTab } from "@/lib/usePersistentTab";
@@ -319,20 +320,21 @@ export default function DigitalCPDashboard({ stats, assets, partner, myListings 
             <div className="flex flex-col gap-3 border border-navy-700/60 bg-navy-900 p-4 sm:p-6">
               <p className="tracked-label text-xs text-gold-400">Your Company CP</p>
               <FormField label="Choose your Company CP" htmlFor="dcp-company-cp" required>
-                <select
+                <Select
                   id="dcp-company-cp"
                   value={selectedCompanyCpId}
                   disabled={savingCompanyCp}
                   onChange={(e) => handleCompanyCpChange(e.target.value)}
                   className={selectClass}
-                >
-                  <option value="">Select Company CP</option>
-                  {companyCpOptions.map((cp) => (
-                    <option key={cp.accountId} value={cp.accountId}>
-                      {formatCpLabel(cp.name, cp.city, cp.state)}
-                    </option>
-                  ))}
-                </select>
+                  placeholder="Select Company CP"
+                  options={[
+                    { value: "", label: "Select Company CP" },
+                    ...companyCpOptions.map((cp) => ({
+                      value: cp.accountId,
+                      label: formatCpLabel(cp.name, cp.city, cp.state),
+                    })),
+                  ]}
+                />
               </FormField>
               <p className="text-xs text-muted">
                 Leads you add are forwarded straight to this Company CP. Only Company CPs in your own city ({partner?.city || "—"}) are listed.

@@ -9,6 +9,7 @@ import FormField from "./FormField";
 import PasswordFields from "./PasswordFields";
 import SearchableSelect from "./SearchableSelect";
 import MobileOtpGate from "./MobileOtpGate";
+import Select from "@/components/ui/Select";
 import { inputClass, selectClass } from "./inputStyles";
 import { formatMobile, isMobileValid, isPasswordValid, generateAccountId } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
@@ -359,19 +360,17 @@ export default function EmployeeRegistrationWizard() {
             required
             hint="Leads, site visits and inventory will be scoped to this district."
           >
-            <select
+            <Select
               id="assignedDistrict"
               value={form.assignedDistrict}
               onChange={(e) => update("assignedDistrict", e.target.value)}
+              options={[
+                { value: "", label: "Select a district" },
+                ...LOCATIONS.map((loc) => ({ value: loc.city, label: loc.city })),
+              ]}
+              placeholder="Select a district"
               className={`${selectClass} ${fieldErrors.assignedDistrict ? "border-red-500 focus:border-red-400" : ""}`}
-            >
-              <option value="">Select a district</option>
-              {LOCATIONS.map((loc) => (
-                <option key={loc.city} value={loc.city}>
-                  {loc.city}
-                </option>
-              ))}
-            </select>
+            />
           </FormField>
         </div>
       )}

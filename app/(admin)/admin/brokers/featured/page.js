@@ -8,6 +8,7 @@ import AdminTable from "@/components/admin/ui/AdminTable";
 import AdminPhoneCell from "@/components/admin/ui/AdminPhoneCell";
 import AdminKpiCard from "@/components/admin/ui/AdminKpiCard";
 import FeaturedLocationModal from "@/components/admin/ui/FeaturedLocationModal";
+import Select from "@/components/ui/Select";
 
 const POSITIONS = Array.from({ length: 10 }, (_, i) => i + 1);
 
@@ -203,26 +204,18 @@ export default function AdminFeaturedBrokersPage() {
       label: "Position",
       searchable: false,
       render: (v, row) => (
-        <select
+        <Select
           value={v || ""}
           disabled={!row.isFeaturedBroker || savingId === row.accountId}
           onChange={(e) => handlePositionChange(row, Number(e.target.value))}
           className="h-8 rounded-lg border border-[#e8e0d5] bg-white px-2 text-xs text-[#374151] outline-none transition focus:border-[#f0b429] disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          <option value="" disabled>
-            —
-          </option>
-          {POSITIONS.map((p) => {
+          placeholder="—"
+          options={POSITIONS.map((p) => {
             const owner = takenPositions.get(p);
-            const disabled = owner && owner !== row.accountId;
-            return (
-              <option key={p} value={p} disabled={disabled}>
-                {p}
-                {disabled ? " (taken)" : ""}
-              </option>
-            );
+            const taken = owner && owner !== row.accountId;
+            return { value: p, label: `${p}${taken ? " (taken)" : ""}` };
           })}
-        </select>
+        />
       ),
     },
   ];

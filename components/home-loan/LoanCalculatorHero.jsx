@@ -1,7 +1,7 @@
 "use client";
 
-import { FiChevronDown } from "react-icons/fi";
 import BackButton from "@/components/layout/BackButton";
+import Select from "@/components/ui/Select";
 
 const WORDS_ONES = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"];
 
@@ -70,14 +70,12 @@ export default function LoanCalculatorHero({ loanAmount, setLoanAmount, tenure, 
                 onChange={(e) => setTenure(e.target.value)}
                 className="w-14 bg-transparent text-lg font-semibold text-cream outline-none"
               />
-              <select
+              <Select
                 value="Years"
                 onChange={() => {}}
-                className="appearance-none bg-transparent pr-5 text-sm text-muted outline-none"
-              >
-                <option>Years</option>
-              </select>
-              <FiChevronDown className="pointer-events-none absolute right-0 h-4 w-4 text-muted" />
+                options={["Years"]}
+                className="bg-transparent text-sm text-muted outline-none"
+              />
             </div>
           </div>
 

@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { FiChevronDown } from "react-icons/fi";
 import EmployeeBadge from "./EmployeeBadge";
 import { inputClass, selectClass, textareaClass } from "./inputStyles";
+import Select from "@/components/ui/Select";
 
 function formatTimeLabel(time24) {
   if (!time24) return "";
@@ -99,23 +99,14 @@ export default function SiteVisitsTab({ siteVisits, leads, onSchedule, onUpdateO
             onSubmit={handleSchedule}
             className="mb-6 grid grid-cols-1 gap-4 rounded-sm border border-gray-200 bg-gray-50 p-4 sm:grid-cols-2 lg:grid-cols-4"
           >
-            <div className="relative">
-              <select
-                required
-                value={leadId}
-                onChange={(e) => setLeadId(e.target.value)}
-                className={`${selectClass} rounded-sm pr-9`}
-                aria-label="Select customer"
-              >
-                <option value="">Select customer</option>
-                {leads.map((lead) => (
-                  <option key={lead.id} value={lead.id}>
-                    {lead.name} — {lead.property}
-                  </option>
-                ))}
-              </select>
-              <FiChevronDown className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
-            </div>
+            <Select
+              value={leadId}
+              onChange={(e) => setLeadId(e.target.value)}
+              className={`${selectClass} rounded-sm pr-9`}
+              aria-label="Select customer"
+              placeholder="Select customer"
+              options={leads.map((lead) => ({ value: lead.id, label: `${lead.name} — ${lead.property}` }))}
+            />
             <input
               required
               type="date"

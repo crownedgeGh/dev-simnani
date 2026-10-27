@@ -1,6 +1,6 @@
-import { FiChevronDown } from "react-icons/fi";
 import EmployeeBadge from "./EmployeeBadge";
 import { selectClass } from "./inputStyles";
+import Select from "@/components/ui/Select";
 import { LEAD_STATUSES } from "@/lib/demoEmployeePortal";
 import { STATUS_TONE, PRIORITY_TONE, PRIORITY_ACCENT } from "./tones";
 
@@ -44,21 +44,13 @@ export default function LeadsTab({ leads, onStatusChange }) {
 
             <div className="flex shrink-0 flex-col items-start gap-2 sm:items-end">
               <EmployeeBadge tone={STATUS_TONE[lead.status] || "neutral"}>{lead.status}</EmployeeBadge>
-              <div className="relative w-full sm:w-auto">
-                <select
-                  aria-label={`Update status for ${lead.name}`}
-                  value={lead.status}
-                  onChange={(e) => onStatusChange(lead.id, e.target.value)}
-                  className={`${selectClass} h-11 w-full min-w-[11rem] rounded-sm pr-9 text-xs sm:w-auto`}
-                >
-                  {LEAD_STATUSES.map((status) => (
-                    <option key={status} value={status}>
-                      {status}
-                    </option>
-                  ))}
-                </select>
-                <FiChevronDown className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
-              </div>
+              <Select
+                aria-label={`Update status for ${lead.name}`}
+                value={lead.status}
+                onChange={(e) => onStatusChange(lead.id, e.target.value)}
+                className={`${selectClass} h-11 w-full min-w-[11rem] rounded-sm pr-9 text-xs sm:w-auto`}
+                options={LEAD_STATUSES}
+              />
             </div>
           </div>
         </div>

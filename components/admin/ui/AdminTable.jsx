@@ -13,6 +13,7 @@ import {
   MdChevronRight,
 } from "react-icons/md";
 import AdminStatusBadge from "./AdminStatusBadge";
+import Select from "@/components/ui/Select";
 
 // ---------------------------------------------------------------------------
 // Switch Toggle
@@ -355,24 +356,22 @@ export default function AdminTable({
               <span className="text-[11px] font-semibold uppercase tracking-wide text-[#9ca3af] shrink-0">
                 {col.label}:
               </span>
-              <select
+              <Select
                 value={filters[col.key] || ""}
                 onChange={(e) => handleFilter(col.key, e.target.value)}
+                options={[
+                  { value: "", label: "All" },
+                  ...col.filterOptions.map((opt) =>
+                    typeof opt === "object" && opt !== null
+                      ? opt
+                      : { value: opt, label: opt }
+                  ),
+                ]}
+                placeholder="All"
                 className={`bg-transparent text-xs font-medium outline-none cursor-pointer pr-1 ${
                   active ? "text-[#d97706] font-semibold" : "text-[#374151]"
                 }`}
-              >
-                <option value="">All</option>
-                {col.filterOptions.map((opt) => {
-                  const optVal = typeof opt === "object" && opt !== null ? opt.value : opt;
-                  const optLabel = typeof opt === "object" && opt !== null ? opt.label : opt;
-                  return (
-                    <option key={optVal} value={optVal}>
-                      {optLabel}
-                    </option>
-                  );
-                })}
-              </select>
+              />
             </div>
           );
         })}

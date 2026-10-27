@@ -9,6 +9,7 @@ import AdminStatusBadge from "@/components/admin/ui/AdminStatusBadge";
 import AdminPhoneCell from "@/components/admin/ui/AdminPhoneCell";
 import InquiryDetailPanel from "@/components/admin/leads/InquiryDetailPanel";
 import AdminDialog from "@/components/admin/ui/AdminDialog";
+import Select from "@/components/ui/Select";
 
 const ALL_STATUSES = ["New", "Contacted", "Closed"];
 const NOTE_REQUIRED_STATUSES = ["Contacted", "Closed"];
@@ -145,27 +146,23 @@ export default function AdminLeadsPage() {
       label: "Change Status",
       searchable: false,
       render: (_, row) => (
-        <select
-          value={row.status || "New"}
-          onClick={(e) => e.stopPropagation()}
-          onChange={async (e) => {
-            const newStatus = e.target.value;
-            if (NOTE_REQUIRED_STATUSES.includes(newStatus)) {
-              setStatusNote("");
-              setStatusModal({ row, status: newStatus });
-              return;
-            }
-            const ok = await patchLead(row.id, { status: newStatus });
-            if (ok) toast.success(`Status updated to ${newStatus}`);
-          }}
-          className="h-8 rounded-lg border border-[#e8e0d5] bg-white px-2 text-xs text-[#374151] outline-none focus:border-[#f0b429] cursor-pointer max-w-[140px]"
-        >
-          {ALL_STATUSES.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
+        <div onClick={(e) => e.stopPropagation()}>
+          <Select
+            value={row.status || "New"}
+            onChange={async (e) => {
+              const newStatus = e.target.value;
+              if (NOTE_REQUIRED_STATUSES.includes(newStatus)) {
+                setStatusNote("");
+                setStatusModal({ row, status: newStatus });
+                return;
+              }
+              const ok = await patchLead(row.id, { status: newStatus });
+              if (ok) toast.success(`Status updated to ${newStatus}`);
+            }}
+            className="h-8 rounded-lg border border-[#e8e0d5] bg-white px-2 text-xs text-[#374151] outline-none focus:border-[#f0b429] cursor-pointer max-w-[140px]"
+            options={ALL_STATUSES.map((s) => ({ value: s, label: s }))}
+          />
+        </div>
       ),
     },
     {

@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import AdminDialog from "@/components/admin/ui/AdminDialog";
 import AdminFormField, { adminSelectClass } from "@/components/admin/ui/AdminFormField";
 import StateCitySearchFields from "@/components/shared/StateCitySearchFields";
+import Select from "@/components/ui/Select";
 
 const CP_TYPE_LABEL = { company: "Company CP", field: "Field CP", digital: "Digital CP" };
 
@@ -61,6 +62,14 @@ export default function AssignPropertyDialog({
     return acc;
   }, {});
 
+  // Select.jsx has no optgroup support — fold the group label into each option's text instead.
+  const partnerOptions = Object.entries(groupedByType).flatMap(([cpType, list]) =>
+    list.map((p) => ({
+      value: p.id,
+      label: `${CP_TYPE_LABEL[cpType] || cpType} — ${formatPartnerLabel(p)}`,
+    }))
+  );
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selected) {
@@ -111,30 +120,21 @@ export default function AssignPropertyDialog({
             <StateCitySearchFields state={location.state} city={location.city} onChange={handleLocationChange} />
 
             <AdminFormField label="Assign to" id="assign-property-select" required>
-              <select
+              <Select
                 id="assign-property-select"
                 value={selected}
                 onChange={(e) => setSelected(e.target.value)}
                 disabled={!hasLocation || matchingPartners.length === 0}
-                className={adminSelectClass}
-              >
-                <option value="" disabled>
-                  {!hasLocation
+                options={partnerOptions}
+                placeholder={
+                  !hasLocation
                     ? "Select state and city first"
                     : matchingPartners.length === 0
                       ? "No partner registered in this location"
-                      : "Select a partner"}
-                </option>
-                {Object.entries(groupedByType).map(([cpType, list]) => (
-                  <optgroup key={cpType} label={CP_TYPE_LABEL[cpType] || cpType}>
-                    {list.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {formatPartnerLabel(p)}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
+                      : "Select a partner"
+                }
+                className={adminSelectClass}
+              />
             </AdminFormField>
           </>
         )}

@@ -18,6 +18,7 @@ import {
 import AdminPageHeader from "@/components/admin/layout/AdminPageHeader";
 import AdminConfirmModal from "@/components/admin/ui/AdminConfirmModal";
 import { adminInputClass, adminSelectClass } from "@/components/admin/ui/AdminFormField";
+import Select from "@/components/ui/Select";
 import PlotGrid, { formatArea } from "@/components/shared/PlotGrid";
 import PlotEditDialog, { formatINR } from "@/components/admin/plots/PlotEditDialog";
 import AddPlotsDialog from "@/components/admin/plots/AddPlotsDialog";
@@ -325,14 +326,20 @@ export default function PlotLayoutPage() {
               className={`${adminInputClass} pl-9`}
             />
           </div>
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className={`${adminSelectClass} sm:w-48`}>
-            <option value="">All statuses</option>
-            {PLOT_STATUSES.map((s) => <option key={s} value={s}>{PLOT_STATUS_META[s].label}</option>)}
-          </select>
-          <select value={sizeFilter} onChange={(e) => setSizeFilter(e.target.value)} className={`${adminSelectClass} sm:w-48`}>
-            <option value="">All sizes</option>
-            {sizes.map((a) => <option key={a} value={a}>{formatArea(a, unit)}</option>)}
-          </select>
+          <Select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className={`${adminSelectClass} sm:w-48`}
+            placeholder="All statuses"
+            options={[{ value: "", label: "All statuses" }, ...PLOT_STATUSES.map((s) => ({ value: s, label: PLOT_STATUS_META[s].label }))]}
+          />
+          <Select
+            value={sizeFilter}
+            onChange={(e) => setSizeFilter(e.target.value)}
+            className={`${adminSelectClass} sm:w-48`}
+            placeholder="All sizes"
+            options={[{ value: "", label: "All sizes" }, ...sizes.map((a) => ({ value: a, label: formatArea(a, unit) }))]}
+          />
           <div className="flex overflow-hidden rounded-xl border border-[#e8e0d5]">
             {[["sqft", "sq.ft"], ["sqyd", "sq.yd"]].map(([u, label]) => (
               <button
@@ -392,10 +399,13 @@ export default function PlotLayoutPage() {
             Select all visible ({filtered.length})
           </button>
           <button onClick={() => setSelectedIds(new Set())} className={chipBtn(false)}>Clear</button>
-          <select value={bulkStatus} onChange={(e) => setBulkStatus(e.target.value)} className={`${adminSelectClass} bg-white sm:w-48`}>
-            <option value="">Status: no change</option>
-            {PLOT_STATUSES.map((s) => <option key={s} value={s}>{PLOT_STATUS_META[s].label}</option>)}
-          </select>
+          <Select
+            value={bulkStatus}
+            onChange={(e) => setBulkStatus(e.target.value)}
+            className={`${adminSelectClass} bg-white sm:w-48`}
+            placeholder="Status: no change"
+            options={[{ value: "", label: "Status: no change" }, ...PLOT_STATUSES.map((s) => ({ value: s, label: PLOT_STATUS_META[s].label }))]}
+          />
           <input
             type="number"
             min="0"

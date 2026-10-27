@@ -4,6 +4,7 @@ import { useState } from "react";
 import { MdPerson, MdPhone, MdEmail, MdMessage, MdCheckCircle, MdSend } from "react-icons/md";
 import { formatMobile, isMobileValid } from "@/lib/auth";
 import Turnstile from "@/components/shared/Turnstile";
+import Select from "@/components/ui/Select";
 
 const USER_TYPE_OPTIONS = [
   { value: "buyer", label: "I'm a Buyer" },
@@ -179,26 +180,14 @@ export default function ContactForm({
 
       {/* User Type */}
       <div className="relative">
-        <select
+        <Select
           id="cf-user-type"
           value={userType}
           onChange={(e) => setUserType(e.target.value)}
-          className="h-12 w-full appearance-none rounded-full border border-navy-700/60 bg-navy-950 px-4 text-sm text-cream transition focus:border-gold-400 focus:outline-none focus:ring-4 focus:ring-gold-400/10"
-          style={{ colorScheme: "dark" }}
-        >
-          <option value="" className="bg-navy-950 text-muted">
-            I am a...
-          </option>
-          {USER_TYPE_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value} className="bg-navy-950">
-              {opt.label}
-            </option>
-          ))}
-        </select>
-        {/* Down arrow */}
-        <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-muted">
-          ▾
-        </span>
+          options={[{ value: "", label: "I am a..." }, ...USER_TYPE_OPTIONS]}
+          placeholder="I am a..."
+          className="h-12 w-full rounded-full border border-navy-700/60 bg-navy-950 px-4 text-sm text-cream transition focus:border-gold-400 focus:outline-none focus:ring-4 focus:ring-gold-400/10"
+        />
       </div>
 
       <Turnstile onVerify={setTurnstileToken} onExpire={() => setTurnstileToken("")} />

@@ -6,6 +6,7 @@ import { MdSend } from "react-icons/md";
 import AdminTable from "@/components/admin/ui/AdminTable";
 import { adminSelectClass } from "@/components/admin/ui/AdminFormField";
 import LocationLink from "@/components/common/LocationLink";
+import Select from "@/components/ui/Select";
 
 function formatCpLabel(cp) {
   const place = [cp.city, cp.state].filter(Boolean).join(", ");
@@ -132,21 +133,14 @@ export default function HeadCpForwardPanel() {
       searchable: false,
       render: (_, row) => (
         <div className="flex gap-1.5" onClick={(e) => e.stopPropagation()}>
-          <select
+          <Select
             value={selected[row.id] || ""}
             onChange={(e) => setSelected((prev) => ({ ...prev, [row.id]: e.target.value }))}
             disabled={companyPartners.length === 0}
+            options={companyPartners.map((p) => ({ value: p.accountId, label: formatCpLabel(p) }))}
+            placeholder={companyPartners.length === 0 ? "No Company CP yet" : "Select Company CP…"}
             className={`${adminSelectClass} h-8 w-44 text-xs disabled:cursor-not-allowed disabled:opacity-50`}
-          >
-            <option value="">
-              {companyPartners.length === 0 ? "No Company CP yet" : "Select Company CP…"}
-            </option>
-            {companyPartners.map((p) => (
-              <option key={p.accountId} value={p.accountId}>
-                {formatCpLabel(p)}
-              </option>
-            ))}
-          </select>
+          />
           <button
             type="button"
             onClick={() => handleForward(row)}

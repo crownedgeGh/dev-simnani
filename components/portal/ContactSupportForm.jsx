@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { generateAccountId } from "@/lib/auth";
 import { selectClass, textareaClass } from "@/components/auth/inputStyles";
+import Select from "@/components/ui/Select";
 
 const SUBJECTS = [
   "General Inquiry",
@@ -53,19 +54,14 @@ export default function ContactSupportForm({ onSubmitted }) {
         <label htmlFor="subject" className="tracked-label text-xs text-cream/80">
           Subject
         </label>
-        <select
+        <Select
           id="subject"
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
           className={selectClass}
-        >
-          <option value="">Select a subject</option>
-          {SUBJECTS.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
+          placeholder="Select a subject"
+          options={SUBJECTS}
+        />
       </div>
       <div className="flex flex-col gap-2">
         <label htmlFor="message" className="tracked-label text-xs text-cream/80">

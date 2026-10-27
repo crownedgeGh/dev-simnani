@@ -3,10 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { MdLocationOn, MdMyLocation, MdSearch } from "react-icons/md";
-import { FiChevronDown, FiAlertCircle, FiClock, FiX } from "react-icons/fi";
+import { FiAlertCircle, FiClock, FiX } from "react-icons/fi";
 import { INVEST_CATEGORIES, RESIDENTIAL_TYPE_OPTIONS } from "@/lib/properties";
 import { searchIndianCities } from "@/lib/indianCities";
 import { trackEvent } from "@/lib/gtag";
+import Select from "@/components/ui/Select";
 
 const MODES = [
   { label: "Buy", slug: "buy" },
@@ -239,48 +240,26 @@ export default function SearchBar() {
         className="mt-3 flex flex-col gap-2.5 sm:mt-2.5 sm:gap-2 lg:flex-row"
       >
         <div className="relative lg:w-52">
-          <select
+          <Select
             value={propertyType}
             onChange={handleTypeChange}
+            options={typeOptions.map((o) => ({ value: o.key, label: o.label }))}
+            placeholder={PLACEHOLDER}
             className={`${SELECT_CLASS} ${
               propertyTypeInvalid ? "border-gold-500" : "border-navy-700/70"
             }`}
-          >
-            <option value="" disabled hidden className="bg-navy-900">
-              {PLACEHOLDER}
-            </option>
-            {typeOptions.map((option) => (
-              <option key={option.key} value={option.key} className="bg-navy-900">
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <FiChevronDown
-            aria-hidden="true"
-            className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-cream/70"
           />
           {propertyTypeInvalid && <ValidationBubble message="Please select a property type." />}
         </div>
 
         {showBhk && (
           <div className="relative lg:w-40">
-            <select
+            <Select
               value={bhk}
               onChange={handleBhkChange}
+              options={BHK_OPTIONS}
+              placeholder="BHK"
               className={`${SELECT_CLASS} border-navy-700/70`}
-            >
-              <option value="" className="bg-navy-900">
-                BHK
-              </option>
-              {BHK_OPTIONS.map((option) => (
-                <option key={option} value={option} className="bg-navy-900">
-                  {option}
-                </option>
-              ))}
-            </select>
-            <FiChevronDown
-              aria-hidden="true"
-              className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-cream/70"
             />
           </div>
         )}

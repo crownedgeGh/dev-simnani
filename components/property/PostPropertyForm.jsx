@@ -22,7 +22,6 @@ import {
   MdCameraAlt,
   MdPerson,
   MdArrowForward,
-  MdKeyboardArrowDown,
   MdDescription,
 } from "react-icons/md";
 import {
@@ -39,6 +38,7 @@ import { STATES, getCitiesForState } from "@/lib/cityState";
 import { reverseGeocode, matchFromOptions } from "@/lib/geo";
 import LocateButton from "@/components/shared/LocateButton";
 import SearchableSelect from "@/components/property/SearchableSelect";
+import Select from "@/components/ui/Select";
 
 const CP_TYPE_TO_POSTED_BY_ROLE = {
   field: POSTED_BY_ROLES.FIELD_CP,
@@ -840,21 +840,14 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
           required
           hint={isApprovedListing ? lockedFieldHint : "Where this property will be listed"}
         >
-          <SelectWrap>
-            <select
-              id="section"
-              value={form.section}
-              disabled={isApprovedListing}
-              onChange={(e) => update("section", e.target.value)}
-              className={`${selectClass} pr-10`}
-            >
-              {SECTION_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </SelectWrap>
+          <Select
+            id="section"
+            value={form.section}
+            disabled={isApprovedListing}
+            onChange={(e) => update("section", e.target.value)}
+            options={SECTION_OPTIONS}
+            className={`${selectClass} pr-10`}
+          />
         </FormField>
         {isResidential ? (
           <>
@@ -864,22 +857,15 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
               required
               hint={isApprovedListing ? lockedFieldHint : undefined}
             >
-              <SelectWrap>
-                <select
-                  id="propertyType"
-                  value={form.propertyType}
-                  disabled={isApprovedListing}
-                  onChange={(e) => update("propertyType", e.target.value)}
-                  className={errClass(`${selectClass} pr-10`, "propertyType")}
-                >
-                  <option value="">Select type</option>
-                  {RESIDENTIAL_PROPERTY_TYPES.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
-                  ))}
-                </select>
-              </SelectWrap>
+              <Select
+                id="propertyType"
+                value={form.propertyType}
+                disabled={isApprovedListing}
+                onChange={(e) => update("propertyType", e.target.value)}
+                options={RESIDENTIAL_PROPERTY_TYPES}
+                placeholder="Select type"
+                className={errClass(`${selectClass} pr-10`, "propertyType")}
+              />
             </FormField>
             {showBhkSelect && (
               <FormField
@@ -888,41 +874,27 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
                 required
                 hint={isApprovedListing ? lockedFieldHint : undefined}
               >
-                <SelectWrap>
-                  <select
-                    id="beds"
-                    value={form.beds}
-                    disabled={isApprovedListing}
-                    onChange={(e) => update("beds", e.target.value)}
-                    className={errClass(`${selectClass} pr-10`, "beds")}
-                  >
-                    <option value="">Select BHK</option>
-                    {BHK_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
-                </SelectWrap>
+                <Select
+                  id="beds"
+                  value={form.beds}
+                  disabled={isApprovedListing}
+                  onChange={(e) => update("beds", e.target.value)}
+                  options={[{ value: "", label: "Select BHK" }, ...BHK_OPTIONS]}
+                  placeholder="Select BHK"
+                  className={errClass(`${selectClass} pr-10`, "beds")}
+                />
               </FormField>
             )}
             {isPgHostelType && (
               <FormField label="Suitable For" htmlFor="genderPreference" required>
-                <SelectWrap>
-                  <select
-                    id="genderPreference"
-                    value={form.genderPreference}
-                    onChange={(e) => update("genderPreference", e.target.value)}
-                    className={errClass(`${selectClass} pr-10`, "genderPreference")}
-                  >
-                    <option value="">Select</option>
-                    {GENDER_PREFERENCE_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
-                </SelectWrap>
+                <Select
+                  id="genderPreference"
+                  value={form.genderPreference}
+                  onChange={(e) => update("genderPreference", e.target.value)}
+                  options={[{ value: "", label: "Select" }, ...GENDER_PREFERENCE_OPTIONS]}
+                  placeholder="Select"
+                  className={errClass(`${selectClass} pr-10`, "genderPreference")}
+                />
               </FormField>
             )}
           </>
@@ -934,22 +906,18 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
               required
               hint={isApprovedListing ? lockedFieldHint : undefined}
             >
-              <SelectWrap>
-                <select
-                  id="category"
-                  value={form.category}
-                  disabled={isApprovedListing}
-                  onChange={(e) => update("category", e.target.value)}
-                  className={errClass(`${selectClass} pr-10`, "category")}
-                >
-                  <option value="">Select category</option>
-                  {(CATEGORIES_BY_TYPE[form.section] || []).map((cat) => (
-                    <option key={cat.key} value={cat.key}>
-                      {cat.label}
-                    </option>
-                  ))}
-                </select>
-              </SelectWrap>
+              <Select
+                id="category"
+                value={form.category}
+                disabled={isApprovedListing}
+                onChange={(e) => update("category", e.target.value)}
+                options={[
+                  { value: "", label: "Select category" },
+                  ...(CATEGORIES_BY_TYPE[form.section] || []).map((cat) => ({ value: cat.key, label: cat.label })),
+                ]}
+                placeholder="Select category"
+                className={errClass(`${selectClass} pr-10`, "category")}
+              />
             </FormField>
           )
         )}
@@ -1083,19 +1051,14 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
               />
             </div>
             {isPlotOrFarming && (
-              <SelectWrap className="w-36 shrink-0">
-                <select
+              <div className="w-36 shrink-0">
+                <Select
                   value={form.priceUnit}
                   onChange={(e) => update("priceUnit", e.target.value)}
-                  className="h-14 w-full appearance-none rounded-full border border-navy-700/60 bg-navy-950 px-3 text-cream outline-none transition focus:border-gold-400"
-                >
-                  {PRICE_UNIT_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </SelectWrap>
+                  options={PRICE_UNIT_OPTIONS}
+                  className="h-14 w-full rounded-full border border-navy-700/60 bg-navy-950 px-3 text-cream outline-none transition focus:border-gold-400"
+                />
+              </div>
             )}
           </div>
           {priceVarianceError && <p className="text-xs text-red-400">{priceVarianceError}</p>}
@@ -1128,19 +1091,14 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
               onChange={handleAreaSizeChange}
               className={errClass(`${inputClass} min-w-0 flex-1`, "areaSize")}
             />
-            <SelectWrap className="w-28 shrink-0">
-              <select
+            <div className="w-28 shrink-0">
+              <Select
                 value={form.areaUnit}
                 onChange={(e) => update("areaUnit", e.target.value)}
-                className="h-14 w-full appearance-none rounded-full border border-navy-700/60 bg-navy-950 px-3 text-cream outline-none transition focus:border-gold-400"
-              >
-                {AREA_UNITS.map((unit) => (
-                  <option key={unit} value={unit}>
-                    {unit}
-                  </option>
-                ))}
-              </select>
-            </SelectWrap>
+                options={AREA_UNITS}
+                className="h-14 w-full rounded-full border border-navy-700/60 bg-navy-950 px-3 text-cream outline-none transition focus:border-gold-400"
+              />
+            </div>
           </div>
           {areaVarianceError && <p className="text-xs text-red-400">{areaVarianceError}</p>}
         </FormField>
@@ -1193,21 +1151,14 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
         )}
         {isPgHostelType && (
           <FormField label="Bathroom" htmlFor="bathroomType" required>
-            <SelectWrap>
-              <select
-                id="bathroomType"
-                value={form.bathroomType}
-                onChange={(e) => update("bathroomType", e.target.value)}
-                className={errClass(`${selectClass} pr-10`, "bathroomType")}
-              >
-                <option value="">Select Bathroom</option>
-                {PG_HOSTEL_BATHROOM_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </SelectWrap>
+            <Select
+              id="bathroomType"
+              value={form.bathroomType}
+              onChange={(e) => update("bathroomType", e.target.value)}
+              options={[{ value: "", label: "Select Bathroom" }, ...PG_HOSTEL_BATHROOM_OPTIONS]}
+              placeholder="Select Bathroom"
+              className={errClass(`${selectClass} pr-10`, "bathroomType")}
+            />
           </FormField>
         )}
         {showFloorsField && (
@@ -1239,21 +1190,14 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
         )}
         {showFurnishingField && (
           <FormField label="Furnishing Status" htmlFor="furnishing" optional>
-            <SelectWrap>
-              <select
-                id="furnishing"
-                value={form.furnishing}
-                onChange={(e) => update("furnishing", e.target.value)}
-                className={`${selectClass} pr-10`}
-              >
-                <option value="">Select</option>
-                {FURNISHING_OPTIONS.map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt}
-                  </option>
-                ))}
-              </select>
-            </SelectWrap>
+            <Select
+              id="furnishing"
+              value={form.furnishing}
+              onChange={(e) => update("furnishing", e.target.value)}
+              options={[{ value: "", label: "Select" }, ...FURNISHING_OPTIONS]}
+              placeholder="Select"
+              className={`${selectClass} pr-10`}
+            />
           </FormField>
         )}
         {showParkingField && (
@@ -1267,21 +1211,14 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
         )}
         {showFacingField && (
           <FormField label="Facing Direction" htmlFor="facing" optional>
-            <SelectWrap>
-              <select
-                id="facing"
-                value={form.facing}
-                onChange={(e) => update("facing", e.target.value)}
-                className={`${selectClass} pr-10`}
-              >
-                <option value="">Select</option>
-                {FACING_OPTIONS.map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt}
-                  </option>
-                ))}
-              </select>
-            </SelectWrap>
+            <Select
+              id="facing"
+              value={form.facing}
+              onChange={(e) => update("facing", e.target.value)}
+              options={[{ value: "", label: "Select" }, ...FACING_OPTIONS]}
+              placeholder="Select"
+              className={`${selectClass} pr-10`}
+            />
           </FormField>
         )}
         <FormField label="Available From" htmlFor="availableFrom" optional>
@@ -1300,21 +1237,14 @@ const PostPropertyForm = forwardRef(function PostPropertyForm({ editId }, ref) {
         </FormField>
         {showPreferredForField && (
         <FormField label="Preferred For" htmlFor="preferredFor" optional>
-          <SelectWrap>
-            <select
-              id="preferredFor"
-              value={form.preferredFor}
-              onChange={(e) => update("preferredFor", e.target.value)}
-              className={`${selectClass} pr-10`}
-            >
-              <option value="">Select</option>
-              {PREFERRED_FOR_OPTIONS.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt}
-                </option>
-              ))}
-            </select>
-          </SelectWrap>
+          <Select
+            id="preferredFor"
+            value={form.preferredFor}
+            onChange={(e) => update("preferredFor", e.target.value)}
+            options={[{ value: "", label: "Select" }, ...PREFERRED_FOR_OPTIONS]}
+            placeholder="Select"
+            className={`${selectClass} pr-10`}
+          />
         </FormField>
         )}
       </Section>
@@ -1474,15 +1404,6 @@ function Section({ icon, title, subtitle, children, action }) {
         {action}
       </div>
       <div className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 sm:gap-6 sm:p-6">{children}</div>
-    </div>
-  );
-}
-
-function SelectWrap({ children, className = "" }) {
-  return (
-    <div className={`relative ${className}`}>
-      {children}
-      <MdKeyboardArrowDown className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted" />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { MdDelete } from "react-icons/md";
 import AdminDialog from "@/components/admin/ui/AdminDialog";
 import AdminFormField, { adminInputClass, adminSelectClass, adminTextareaClass } from "@/components/admin/ui/AdminFormField";
+import Select from "@/components/ui/Select";
 import { FACINGS, PLOT_STATUSES, PLOT_STATUS_META, SQFT_PER_SQYD } from "@/lib/plotInventory";
 
 export function formatINR(n) {
@@ -137,11 +138,12 @@ export default function PlotEditDialog({ plot, onClose, onSaved, onDeleted }) {
           <input value={form.plotNumber} onChange={set("plotNumber")} className={adminInputClass} />
         </AdminFormField>
         <AdminFormField label="Status">
-          <select value={form.status} onChange={set("status")} className={adminSelectClass}>
-            {PLOT_STATUSES.map((s) => (
-              <option key={s} value={s}>{PLOT_STATUS_META[s].label}</option>
-            ))}
-          </select>
+          <Select
+            value={form.status}
+            onChange={set("status")}
+            className={adminSelectClass}
+            options={PLOT_STATUSES.map((s) => ({ value: s, label: PLOT_STATUS_META[s].label }))}
+          />
         </AdminFormField>
 
         <AdminFormField label="Length (ft)">
@@ -161,10 +163,13 @@ export default function PlotEditDialog({ plot, onClose, onSaved, onDeleted }) {
           />
         </AdminFormField>
         <AdminFormField label="Facing">
-          <select value={form.facing} onChange={set("facing")} className={adminSelectClass}>
-            <option value="">—</option>
-            {FACINGS.map((f) => <option key={f} value={f}>{f}</option>)}
-          </select>
+          <Select
+            value={form.facing}
+            onChange={set("facing")}
+            className={adminSelectClass}
+            placeholder="—"
+            options={[{ value: "", label: "—" }, ...FACINGS.map((f) => ({ value: f, label: f }))]}
+          />
         </AdminFormField>
 
         <AdminFormField label="Rate per sq.ft (₹)">

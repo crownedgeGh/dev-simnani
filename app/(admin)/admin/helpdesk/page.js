@@ -7,6 +7,7 @@ import AdminPageHeader from "@/components/admin/layout/AdminPageHeader";
 import AdminTable from "@/components/admin/ui/AdminTable";
 import AdminPhoneCell from "@/components/admin/ui/AdminPhoneCell";
 import HelpdeskDetailPanel from "@/components/admin/helpdesk/HelpdeskDetailPanel";
+import Select from "@/components/ui/Select";
 
 const ALL_STATUSES = ["Pending", "In Progress", "Resolved"];
 
@@ -98,21 +99,17 @@ export default function AdminHelpdeskPage() {
       label: "Change Status",
       searchable: false,
       render: (_, row) => (
-        <select
-          value={row.status || "Pending"}
-          onClick={(e) => e.stopPropagation()}
-          onChange={async (e) => {
-            const ok = await patchTicket(row.id, { status: e.target.value });
-            if (ok) toast.success(`Status updated to ${e.target.value}`);
-          }}
-          className="h-8 rounded-lg border border-[#e8e0d5] bg-white px-2 text-xs text-[#374151] outline-none focus:border-[#f0b429] cursor-pointer max-w-[140px]"
-        >
-          {ALL_STATUSES.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
+        <div onClick={(e) => e.stopPropagation()}>
+          <Select
+            value={row.status || "Pending"}
+            onChange={async (e) => {
+              const ok = await patchTicket(row.id, { status: e.target.value });
+              if (ok) toast.success(`Status updated to ${e.target.value}`);
+            }}
+            className="h-8 rounded-lg border border-[#e8e0d5] bg-white px-2 text-xs text-[#374151] outline-none focus:border-[#f0b429] cursor-pointer max-w-[140px]"
+            options={ALL_STATUSES.map((s) => ({ value: s, label: s }))}
+          />
+        </div>
       ),
     },
     {

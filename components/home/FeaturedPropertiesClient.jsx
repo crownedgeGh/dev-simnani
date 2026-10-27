@@ -25,13 +25,15 @@ export default function FeaturedPropertiesClient({ properties }) {
   }, []);
 
   // No detected city yet — show everything rather than an empty section.
-  const visible = city
-    ? properties.filter((p) =>
-        (p.featuredLocations || []).some(
-          (loc) => loc.city?.trim().toLowerCase() === city.trim().toLowerCase()
+  const visible = (
+    city
+      ? properties.filter((p) =>
+          (p.featuredLocations || []).some(
+            (loc) => loc.city?.trim().toLowerCase() === city.trim().toLowerCase()
+          )
         )
-      )
-    : properties;
+      : properties
+  ).slice(0, 6);
 
   return (
     <PropertyGrid

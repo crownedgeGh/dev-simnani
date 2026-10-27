@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { formatMobile, isMobileValid, generateAccountId } from "@/lib/auth";
 import { inputClass, selectClass, textareaClass } from "@/components/auth/inputStyles";
+import Select from "@/components/ui/Select";
 import BackButton from "@/components/layout/BackButton";
 import { trackEvent } from "@/lib/gtag";
 import Turnstile from "@/components/shared/Turnstile";
@@ -191,19 +192,14 @@ export default function CallbackForm({ serviceType = "", onClose, onSubmitted })
             (Optional)
           </span>
         </label>
-        <select
+        <Select
           id="bestTime"
           value={bestTime}
           onChange={(e) => setBestTime(e.target.value)}
+          options={[{ value: "", label: "Select a time" }, ...TIME_OPTIONS]}
+          placeholder="Select a time"
           className={selectClass}
-        >
-          <option value="">Select a time</option>
-          {TIME_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+        />
       </div>
 
       {serviceType && (

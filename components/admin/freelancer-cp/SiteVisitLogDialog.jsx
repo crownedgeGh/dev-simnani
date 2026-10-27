@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import AdminDialog from "@/components/admin/ui/AdminDialog";
 import AdminFormField, { adminInputClass, adminSelectClass, adminTextareaClass } from "@/components/admin/ui/AdminFormField";
+import Select from "@/components/ui/Select";
 
 const EMPTY_SCHEDULE_FORM = { customer: "", phone: "", scheduledAt: "" };
 
@@ -91,10 +92,16 @@ export default function SiteVisitLogDialog({ isOpen, onClose, mode = "schedule",
         ) : (
           <>
             <AdminFormField label="Outcome" id="visit-outcome" required>
-              <select id="visit-outcome" value={outcome} onChange={(e) => setOutcome(e.target.value)} className={adminSelectClass}>
-                <option value="Attended">Attended</option>
-                <option value="No-show">No-show</option>
-              </select>
+              <Select
+                id="visit-outcome"
+                value={outcome}
+                onChange={(e) => setOutcome(e.target.value)}
+                options={[
+                  { value: "Attended", label: "Attended" },
+                  { value: "No-show", label: "No-show" },
+                ]}
+                className={adminSelectClass}
+              />
             </AdminFormField>
             <AdminFormField label="Notes" id="visit-notes">
               <textarea id="visit-notes" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Any notes about the visit…" className={adminTextareaClass} />
