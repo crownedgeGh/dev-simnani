@@ -775,14 +775,22 @@ export default function Navbar() {
                 )}
               </div>
             ) : (
-              /* ── Guest: single compact Login/Sign Up pill ── */
-              <Link
-                href="/auth"
-                className="tracked-label flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-gold-500/70 px-3 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10 active:scale-[0.98]"
-              >
-                <FiUser className="h-4 w-4" />
-                Login
-              </Link>
+              /* ── Guest: Login + Register pills ── */
+              <div className="flex shrink-0 items-center gap-2">
+                <Link
+                  href="/auth"
+                  className="tracked-label flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-gold-500/70 px-3 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10 active:scale-[0.98]"
+                >
+                  <FiUser className="h-4 w-4" />
+                  Login
+                </Link>
+                <Link
+                  href="/auth/register"
+                  className="tracked-label flex shrink-0 items-center whitespace-nowrap rounded-full bg-cream px-3 py-2 text-xs text-navy-950 transition hover:bg-gold-300 active:scale-[0.98]"
+                >
+                  Register
+                </Link>
+              </div>
             )}
           </div>
 
