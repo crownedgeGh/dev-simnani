@@ -12,6 +12,12 @@ import SearchableSelect from "@/components/auth/SearchableSelect";
 import { RTO_STATES, getCitiesForState } from "@/lib/cityRto";
 import { useAuth } from "@/context/AuthContext";
 
+// Account types with a multi-step registration wizard — their fields live
+// across several steps, so "Edit Profile" reopens that wizard (pre-filled,
+// ?edit=1 to bypass the already-registered guard) instead of the inline
+// single-card edit form used by one-shot registration types.
+const WIZARD_EDIT_TYPES = ["broker", "buyer", "investor", "employee"];
+
 const PLAN_META = {
   free: { name: "Free", icon: FiZap },
   standard: { name: "Standard", icon: MdStar },
@@ -98,6 +104,23 @@ export default function AccountProfile({ user }) {
 
   return (
     <div className="flex flex-col gap-5">
+      {authUser && authUser.profileComplete !== true && (
+        <div className="flex flex-col gap-3 rounded-2xl border border-gold-500/40 bg-gold-500/10 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="tracked-label text-xs text-gold-400">Profile Incomplete</p>
+            <p className="mt-1 text-sm text-cream">
+              Finish setting up your {displayRole} profile to get verified and unlock full access.
+            </p>
+          </div>
+          <Link
+            href={`/auth/register/${authUser.accountType}?step=${authUser.registrationStep || 1}`}
+            className="tracked-label shrink-0 rounded-full bg-gold-400 px-5 py-3 text-center text-xs text-navy-950 transition active:scale-[0.98] hover:bg-gold-300"
+          >
+            Complete Profile
+          </Link>
+        </div>
+      )}
+
       <SectionCard>
         <div className="flex items-center gap-4 border-b border-navy-700/60 pb-5">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-navy-700/60 font-display text-2xl text-gold-400">
@@ -120,7 +143,16 @@ export default function AccountProfile({ user }) {
               )} */}
             </div>
           </div>
-          {!editing && (
+          {!editing && WIZARD_EDIT_TYPES.includes(authUser?.accountType) && (
+            <Link
+              href={`/auth/register/${authUser.accountType}?step=1&edit=1`}
+              aria-label="Edit Profile"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-navy-700/60 text-gold-400 transition hover:border-gold-400 hover:bg-gold-400/10"
+            >
+              <FiEdit3 className="h-3.5 w-3.5" />
+            </Link>
+          )}
+          {!editing && !WIZARD_EDIT_TYPES.includes(authUser?.accountType) && (
             <button
               type="button"
               onClick={() => setEditing(true)}

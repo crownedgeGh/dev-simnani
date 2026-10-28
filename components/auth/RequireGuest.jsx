@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { getAccountPermissions } from "@/lib/accountPermissions";
 
@@ -17,13 +17,27 @@ import { getAccountPermissions } from "@/lib/accountPermissions";
 // own submit handler navigating them (e.g. to "/" or "/buy"); this guard
 // must not race it with its own redirect to the portal.
 //
-// Exception: a signed-in user with an unfinished registration
+// Exception 1: a signed-in user with an unfinished registration
 // (profileComplete === false) must be allowed through — that's the "Complete
 // Your Profile" link from the account page resuming this very wizard.
 // Redirecting them to the portal would make that link a dead end.
+//
+// Exception 2: ?edit=1 — the account page's Edit Profile button links back
+// into this same wizard even for an already-complete profile, so the user
+// can revise any step. Must be allowed through regardless of profileComplete.
 export default function RequireGuest({ children }) {
+  return (
+    <Suspense fallback={null}>
+      <RequireGuestInner>{children}</RequireGuestInner>
+    </Suspense>
+  );
+}
+
+function RequireGuestInner({ children }) {
   const { isAuthenticated, isLoading, user } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isEditing = searchParams.get("edit") === "1";
   const redirectTo = getAccountPermissions(user?.accountType, user?.cpType).portalHref;
 
   // Snapshot isAuthenticated the first time auth is known to be resolved.
@@ -37,7 +51,7 @@ export default function RequireGuest({ children }) {
     setWasAuthedOnLoad(isAuthenticated);
   }
 
-  const shouldRedirect = wasAuthedOnLoad === true && user?.profileComplete !== false;
+  const shouldRedirect = wasAuthedOnLoad === true && user?.profileComplete !== false && !isEditing;
 
   useEffect(() => {
     if (shouldRedirect) {

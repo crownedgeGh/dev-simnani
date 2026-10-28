@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import AuthShell from "./AuthShell";
 import Stepper from "./Stepper";
@@ -50,12 +50,15 @@ const INITIAL_FORM = {
 
 export default function BuyerRegistrationWizard() {
   const { login, user: authUser, updateProfile, isLoading: authLoading } = useAuth();
+  const searchParams = useSearchParams();
+  const isEditing = searchParams.get("edit") === "1";
   const router = useRouter();
   const { step, setStep, form, setForm, clearDraft } = useWizardDraft("se_draft_buyer", INITIAL_FORM);
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [otpVerified, setOtpVerified] = useState(() => Boolean(form.accountId));
+  const hydratedRef = useRef(false);
 
   function showFieldError(fields, message) {
     const errs = {};
@@ -88,7 +91,13 @@ export default function BuyerRegistrationWizard() {
   }
 
   useEffect(() => {
-    if (!authUser || authUser.accountType !== ACCOUNT_TYPE || form.accountId) return;
+    // Runs at most once per mount (guarded by hydratedRef, not by whether
+    // authUser has "changed") — updateProfile() replaces authUser with a new
+    // object on every save, which would otherwise re-trigger this effect
+    // after every step and snap `step` back to the static ?step= from the
+    // URL mid-flow.
+    if (!authUser || authUser.accountType !== ACCOUNT_TYPE || hydratedRef.current) return;
+    hydratedRef.current = true;
     const params = new URLSearchParams(window.location.search);
     const resumeStep = Number(params.get("step")) || authUser.registrationStep || 1;
     setForm((prev) => ({
@@ -99,8 +108,16 @@ export default function BuyerRegistrationWizard() {
       email: authUser.email || prev.email,
       state: authUser.state || prev.state,
       city: authUser.city || prev.city,
+      propertyTypes: authUser.propertyTypes || prev.propertyTypes,
+      budget: authUser.budget || prev.budget,
+      location: authUser.location || prev.location,
+      agree: authUser.profileComplete === true ? true : prev.agree,
     }));
     setStep(Math.min(Math.max(resumeStep, 1), TOTAL_STEPS));
+    // Resuming an in-progress registration or re-opening it to edit — this
+    // is the already-authenticated owner of this mobile number, so there's
+    // nothing left to prove with a fresh OTP.
+    setOtpVerified(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authUser]);
 
@@ -213,7 +230,7 @@ export default function BuyerRegistrationWizard() {
       await updateProfile({ registrationStep: step });
     }
     clearDraft();
-    router.push("/");
+    router.push(isEditing ? "/account" : "/");
   }
 
   async function handleSubmit() {
@@ -234,7 +251,7 @@ export default function BuyerRegistrationWizard() {
       });
       if (!result?.success) throw new Error(result?.error || "Something went wrong. Please try again.");
       clearDraft();
-      router.push("/");
+      router.push(isEditing ? "/account" : "/");
     } catch (err) {
       setError(err.message || "Something went wrong. Please try again.");
     } finally {
@@ -287,18 +304,20 @@ export default function BuyerRegistrationWizard() {
                 placeholder="0000 000 000"
                 value={form.mobile}
                 onChange={(e) => update("mobile", formatMobile(e.target.value))}
-                disabled={otpVerified}
+                disabled={isEditing || otpVerified}
                 className="h-14 w-full bg-transparent px-3 text-cream placeholder:text-muted focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
               />
             </div>
           </FormField>
 
-          <MobileOtpGate
-            mobile={form.mobile}
-            mobileValid={isMobileValid(form.mobile)}
-            verified={otpVerified}
-            onVerified={setOtpVerified}
-          />
+          {!isEditing && (
+            <MobileOtpGate
+              mobile={form.mobile}
+              mobileValid={isMobileValid(form.mobile)}
+              verified={otpVerified}
+              onVerified={setOtpVerified}
+            />
+          )}
 
           <fieldset
             disabled={!otpVerified}
