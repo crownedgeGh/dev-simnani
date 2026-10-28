@@ -1,49 +1,12 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import ContractorLead from "@/models/ContractorLead";
-import Lead from "@/models/Lead";
-import User from "@/models/User";
 import { isMobileValid } from "@/lib/auth";
 import { isAdminRequest } from "@/lib/adminSession";
 import { isRateLimited, rateLimitResponse } from "@/lib/rateLimit";
-import {
-  SERVICE_PROVIDER_TYPE_VALUES,
-  getServiceTypeLabel,
-} from "@/lib/serviceProviders";
+import { SERVICE_PROVIDER_TYPE_VALUES } from "@/lib/serviceProviders";
 import { verifyTurnstile } from "@/lib/turnstile";
-
-// Escape before building a RegExp — city/state arrive from the client.
-const exactly = (v) =>
-  new RegExp(`^${v.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i");
-
-// Routes the request straight into the matching contractor(s)' own portal
-// lead list — city match first, falling back to the rest of the state so a
-// request never reaches a provider outside that city/state.
-async function routeToMatchingProviders({ name, phone, city, state, serviceType, requirement }) {
-  const base = { accountType: "service-provider", status: "Active", serviceType };
-  const find = (extra) =>
-    User.find({ ...base, ...extra }).select("accountId city").lean();
-
-  const matches = city
-    ? await find({ city: exactly(city) })
-    : [];
-  const providers = matches.length || !state ? matches : await find({ state: exactly(state) });
-
-  await Promise.all(
-    providers.map((provider, i) =>
-      Lead.create({
-        id: `LD-${Date.now()}-${i}-${Math.floor(Math.random() * 1000)}`,
-        name,
-        phone,
-        address: [city, state].filter(Boolean).join(", "),
-        interest: `${getServiceTypeLabel(serviceType)} request`,
-        requirement,
-        ownerId: provider.accountId,
-        source: "Service Request",
-      }),
-    ),
-  );
-}
+import { routeContractorLeadToProviders } from "@/lib/contractorLeadRouting";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -116,7 +79,8 @@ export async function POST(request) {
       state: trimmedState,
     });
 
-    await routeToMatchingProviders({
+    await routeContractorLeadToProviders({
+      contractorLeadId: lead.id,
       name: name.trim(),
       phone: phone.trim(),
       city: trimmedCity,

@@ -4,6 +4,7 @@ import dbConnect from "@/lib/mongodb";
 import User from "@/models/User";
 import { getSessionUser } from "@/lib/session";
 import { getServicePlanById } from "@/lib/servicePlans";
+import { backfillLeadsForProvider } from "@/lib/contractorLeadRouting";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -60,6 +61,15 @@ export async function POST(request) {
       },
       { new: true, runValidators: true }
     ).lean();
+
+    // Backfill: any past callback requests in this provider's own city/state
+    // (same trade) that arrived before they subscribed should show up now.
+    await backfillLeadsForProvider({
+      accountId: updatedUser.accountId,
+      city: updatedUser.city,
+      state: updatedUser.state,
+      serviceType: updatedUser.serviceType,
+    });
 
     return NextResponse.json({ success: true, data: updatedUser });
   } catch (error) {

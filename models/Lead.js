@@ -41,6 +41,14 @@ const LeadSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
+    // Set when this Lead was materialized from a ContractorLead callback
+    // request — lets routing/backfill dedupe so the same request never
+    // creates two Leads for the same provider.
+    contractorLeadId: {
+      type: String,
+      default: "",
+      index: true,
+    },
     ownerId: {
       type: String,
       required: true,

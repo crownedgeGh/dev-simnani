@@ -4,7 +4,6 @@ import { getOwnerPortalData } from "@/lib/ownerPortalData";
 import { getServiceTypeLabel } from "@/lib/serviceProviders";
 import PortalHeader from "@/components/portal/PortalHeader";
 import OwnerDashboard from "@/components/portal/OwnerDashboard";
-import ServiceProviderPlanCards from "@/components/payment/ServiceProviderPlanCards";
 
 export const dynamic = "force-dynamic";
 
@@ -17,11 +16,9 @@ export default async function ServiceProviderPortalPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/auth");
 
-  // Portal access is locked until a lead plan is paid for — checked
-  // server-side so it can't be bypassed by navigating here directly.
-  if (!user.servicePlan || user.servicePlan === "none") {
-    return <ServiceProviderPlanCards fullName={user.fullName} />;
-  }
+  // Dashboard access is free — only the Leads tab is gated behind a plan
+  // (enforced inside OwnerDashboard via `leadsLocked`).
+  const leadsLocked = !user.servicePlan || user.servicePlan === "none";
 
   const { leads, clients, stats } = await getOwnerPortalData(user.accountId);
 
@@ -42,6 +39,8 @@ export default async function ServiceProviderPortalPage() {
           showListings={false}
           showAddProperty={false}
           showCommissions={false}
+          leadsLocked={leadsLocked}
+          fullName={user.fullName}
         />
       </div>
     </div>

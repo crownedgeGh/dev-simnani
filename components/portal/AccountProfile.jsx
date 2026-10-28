@@ -104,7 +104,7 @@ export default function AccountProfile({ user }) {
 
   return (
     <div className="flex flex-col gap-5">
-      {authUser && authUser.profileComplete !== true && (
+      {authUser && authUser.accountType === "broker" && authUser.profileComplete !== true && (
         <div className="flex flex-col gap-3 rounded-2xl border border-gold-500/40 bg-gold-500/10 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="tracked-label text-xs text-gold-400">Profile Incomplete</p>

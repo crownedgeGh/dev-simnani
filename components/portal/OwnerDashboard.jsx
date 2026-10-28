@@ -27,6 +27,7 @@ import EmptyState from "./EmptyState";
 import RefreshButton from "./RefreshButton";
 import FormField from "@/components/auth/FormField";
 import { inputClass, textareaClass } from "@/components/auth/inputStyles";
+import ServiceProviderPlanCards from "@/components/payment/ServiceProviderPlanCards";
 
 const BASE_TABS = [
   { key: "overview", label: "Overview" },
@@ -52,6 +53,8 @@ export default function OwnerDashboard({
   showAddProperty = true,
   showListings = true,
   isBroker = false,
+  leadsLocked = false,
+  fullName = "",
 }) {
   const baseTabs = showListings ? BASE_TABS : NO_LISTING_TABS;
   const TABS = showCommissions ? [...baseTabs, COMMISSIONS_TAB] : baseTabs;
@@ -280,7 +283,18 @@ export default function OwnerDashboard({
           </div>
         )}
 
-        {tab === "leads" && (
+        {tab === "leads" && leadsLocked && (
+          <ServiceProviderPlanCards
+            fullName={fullName}
+            showTopBar={false}
+            eyebrow="Upcoming Leads Locked"
+            title="Unlock Your Leads"
+            subtitle="Activate a lead plan — once leads start coming in, you'll be able to view and manage them here."
+            onDone={() => router.refresh()}
+          />
+        )}
+
+        {tab === "leads" && !leadsLocked && (
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <p className="tracked-label text-xs text-gold-400">Leads ({leadList.length})</p>

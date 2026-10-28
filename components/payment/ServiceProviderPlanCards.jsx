@@ -3,14 +3,21 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { MdCheckCircle, MdStar } from "react-icons/md";
+import { MdCheckCircle, MdStar, MdClose } from "react-icons/md";
 import PayButton from "@/components/payment/PayButton";
 import { SERVICE_PROVIDER_PLANS } from "@/lib/servicePlans";
 
-// Shown instantly once a Service Provider finishes signup, and reused as
-// the portal gate (app/portal/service-provider/page.js) until a plan is
-// paid for — no skip, payment is mandatory before portal access.
-export default function ServiceProviderPlanCards({ fullName, onDone }) {
+// Shown once a Service Provider finishes signup, and reused inside the
+// portal's Leads tab to upsell a plan — dashboard access itself is free,
+// only leads are gated behind a plan.
+export default function ServiceProviderPlanCards({
+  fullName,
+  onDone,
+  showTopBar = true,
+  eyebrow = "Account Created",
+  title = "Get Maximum Leads",
+  subtitle = "Activate a lead plan now to start receiving maximum leads right away.",
+}) {
   const router = useRouter();
   const [activatingId, setActivatingId] = useState(null);
 
@@ -42,14 +49,30 @@ export default function ServiceProviderPlanCards({ fullName, onDone }) {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+      {showTopBar && (
+        <div className="mb-6 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => router.push("/portal/service-provider")}
+            className="tracked-label flex min-h-[44px] items-center rounded-full border border-gold-500/70 px-4 text-xs text-gold-400 transition hover:bg-gold-500/10 active:scale-[0.98]"
+          >
+            Continue to Dashboard
+          </button>
+          <button
+            type="button"
+            onClick={() => router.push("/")}
+            aria-label="Close"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-navy-700/60 text-muted transition hover:border-gold-400 hover:text-gold-400 active:scale-[0.98]"
+          >
+            <MdClose className="h-5 w-5" />
+          </button>
+        </div>
+      )}
+
       <div className="mx-auto max-w-xl text-center">
-        <span className="tracked-label text-xs text-gold-400">Account Created</span>
-        <h1 className="mt-3 font-display text-2xl text-cream sm:text-3xl">
-          Get Maximum Leads
-        </h1>
-        <p className="mt-3 text-sm text-muted">
-          Activate a lead plan now to start receiving maximum leads right away.
-        </p>
+        <span className="tracked-label text-xs text-gold-400">{eyebrow}</span>
+        <h1 className="mt-3 font-display text-2xl text-cream sm:text-3xl">{title}</h1>
+        <p className="mt-3 text-sm text-muted">{subtitle}</p>
       </div>
 
       <div className="mx-auto mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2">
