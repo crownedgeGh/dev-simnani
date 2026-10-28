@@ -18,7 +18,7 @@ export default function MobileOtpGate({ mobile, mobileValid, verified, onVerifie
   const [turnstileToken, setTurnstileToken] = useState("");
   const otpRefs = useRef([]);
   const timerRef = useRef(null);
-  const verifiedMobileRef = useRef("");
+  const verifiedMobileRef = useRef(verified ? mobile : "");
 
   useEffect(() => () => clearInterval(timerRef.current), []);
 
@@ -37,16 +37,8 @@ export default function MobileOtpGate({ mobile, mobileValid, verified, onVerifie
     if (verified) return;
     window.history.pushState(null, "", window.location.href);
     const blockBack = () => window.history.pushState(null, "", window.location.href);
-    const warnUnload = (e) => {
-      e.preventDefault();
-      e.returnValue = "";
-    };
     window.addEventListener("popstate", blockBack);
-    window.addEventListener("beforeunload", warnUnload);
-    return () => {
-      window.removeEventListener("popstate", blockBack);
-      window.removeEventListener("beforeunload", warnUnload);
-    };
+    return () => window.removeEventListener("popstate", blockBack);
   }, [verified]);
 
   function startResendTimer() {

@@ -28,7 +28,7 @@ export default function LoanCalculatorHero({ loanAmount, setLoanAmount, tenure, 
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
         <div className="mb-6 max-w-xl">
           <div className="flex items-center gap-3">
-            <BackButton href="/" />
+            <BackButton href="/others" />
             <span className="tracked-label text-xs text-gold-400">Home Loans</span>
           </div>
           <h1 className="mt-2 font-display text-3xl text-cream sm:text-4xl lg:text-5xl">

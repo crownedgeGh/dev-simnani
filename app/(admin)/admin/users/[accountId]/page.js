@@ -22,6 +22,29 @@ const INVESTOR_BUDGET_LABELS = {
   "10cr-plus": "₹10 Crore+",
 };
 
+function DocumentPreview({ label, url }) {
+  if (!url) return null;
+  const isPdf = url.toLowerCase().endsWith(".pdf");
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex items-center gap-3 rounded-xl border border-[#e8e0d5] bg-[#faf8f5] p-3 transition hover:border-[#f0b429]"
+    >
+      {isPdf ? (
+        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-white text-xs font-bold text-[#d97706] border border-[#e8e0d5]">
+          PDF
+        </div>
+      ) : (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={url} alt={label} className="h-16 w-16 shrink-0 rounded-lg border border-[#e8e0d5] object-cover" />
+      )}
+      <span className="text-sm font-medium text-[#374151]">{label}</span>
+    </a>
+  );
+}
+
 function propertyTypeLabels(values) {
   if (!Array.isArray(values) || values.length === 0) return "";
   return values
@@ -282,6 +305,20 @@ export default function UserDetailPage() {
               )}
             </div>
           )}
+
+          {user.accountType === "broker" &&
+            (user.reraCertificateUrl || user.identityDocUrl || user.businessProofUrl) && (
+              <div className="mt-6 border-t border-[#f0ebe3] pt-5">
+                <span className="mb-3 block text-xs font-semibold uppercase tracking-wider text-[#9ca3af]">
+                  Uploaded Documents
+                </span>
+                <div className="flex flex-col gap-3">
+                  <DocumentPreview label="RERA Certificate" url={user.reraCertificateUrl} />
+                  <DocumentPreview label="Identity Document" url={user.identityDocUrl} />
+                  <DocumentPreview label="Business / Agency Proof" url={user.businessProofUrl} />
+                </div>
+              </div>
+            )}
         </div>
 
         <UserPortalSnapshot accountId={user.accountId} />

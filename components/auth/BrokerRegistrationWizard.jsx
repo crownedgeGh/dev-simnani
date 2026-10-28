@@ -9,6 +9,7 @@ import FormField from "./FormField";
 import ChipGroup from "./ChipGroup";
 import { PROPERTY_CATEGORIES } from "@/lib/propertyCategories";
 import FileUpload from "./FileUpload";
+import { uploadFileToR2 } from "@/lib/uploadToR2";
 import PasswordFields from "./PasswordFields";
 import SearchableSelect from "./SearchableSelect";
 import MobileOtpGate from "./MobileOtpGate";
@@ -74,6 +75,21 @@ export default function BrokerRegistrationWizard() {
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [otpVerified, setOtpVerified] = useState(() => Boolean(form.accountId));
+
+  // Reloading mid-registration leaves verification state (OTP, submitting
+  // flags) out of sync with the restored draft (e.g. step 1 re-asking for
+  // OTP on an already-created account). Warn before unload, and if the user
+  // reloads anyway, wipe the draft so they start clean instead of resuming
+  // into a broken half-state.
+  useEffect(() => {
+    function handleBeforeUnload(e) {
+      e.preventDefault();
+      e.returnValue = "";
+      clearDraft();
+    }
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [clearDraft]);
 
   function showFieldError(fields, message) {
     const errs = {};
@@ -204,7 +220,17 @@ export default function BrokerRegistrationWizard() {
             experience: Number(form.experience),
             registrationStep: 2,
           });
-          if (!result?.success) throw new Error(result?.error || "Something went wrong. Please try again.");
+          if (!result?.success) {
+            if (result?.error === "Not authenticated") {
+              // form.accountId was carried over from a session that no longer
+              // exists server-side (e.g. an earlier attempt in this tab). Drop
+              // it so the form falls back to fresh registration instead of
+              // dead-ending here every time.
+              setForm((prev) => ({ ...prev, accountId: "" }));
+              throw new Error("Your previous session expired. Please set a password below and try again.");
+            }
+            throw new Error(result?.error || "Something went wrong. Please try again.");
+          }
         }
       } catch (err) {
         setError(err.message || "Something went wrong. Please try again.");
@@ -271,15 +297,38 @@ export default function BrokerRegistrationWizard() {
   async function persistReraStep(reraRegisteredValue) {
     setSubmitting(true);
     try {
+      let reraCertificateUrl = form.reraCertificate;
+      let identityDocUrl = form.identityDoc;
+      let businessProofUrl = form.businessProof;
+      if (reraRegisteredValue === "yes") {
+        if (form.reraCertificate instanceof File) {
+          reraCertificateUrl = await uploadFileToR2(form.reraCertificate, "broker-documents");
+        }
+        if (form.identityDoc instanceof File) {
+          identityDocUrl = await uploadFileToR2(form.identityDoc, "broker-documents");
+        }
+        if (form.businessProof instanceof File) {
+          businessProofUrl = await uploadFileToR2(form.businessProof, "broker-documents");
+        }
+      }
       const result = await updateProfile({
         reraRegistered: reraRegisteredValue === "yes",
         reraNumber: form.reraNumber,
+        reraCertificateUrl: typeof reraCertificateUrl === "string" ? reraCertificateUrl : null,
+        identityDocUrl: typeof identityDocUrl === "string" ? identityDocUrl : null,
+        businessProofUrl: typeof businessProofUrl === "string" ? businessProofUrl : null,
         registrationStep: 4,
       });
       if (!result?.success) return result?.error || "Something went wrong. Please try again.";
+      setForm((prev) => ({
+        ...prev,
+        reraCertificate: reraCertificateUrl,
+        identityDoc: identityDocUrl,
+        businessProof: businessProofUrl,
+      }));
       return "";
     } catch (err) {
-      return err.message || "Something went wrong. Please try again.";
+      return err.message || "Upload failed. Please try again.";
     } finally {
       setSubmitting(false);
     }
@@ -686,12 +735,12 @@ export default function BrokerRegistrationWizard() {
               {form.reraRegistered === "yes" && (
                 <>
                   <ReviewItem label="RERA Number" value={form.reraNumber} />
-                  <ReviewItem label="RERA Certificate" value={form.reraCertificate?.name || "Not uploaded"} />
+                  <ReviewItem label="RERA Certificate" value={fileLabel(form.reraCertificate)} />
                 </>
               )}
               <ReviewItem label="PAN Number" value={form.panNumber || "Not provided"} />
-              <ReviewItem label="Identity Document" value={form.identityDoc?.name || "Not uploaded"} />
-              <ReviewItem label="Business Proof" value={form.businessProof?.name || "Not uploaded"} />
+              <ReviewItem label="Identity Document" value={fileLabel(form.identityDoc)} />
+              <ReviewItem label="Business Proof" value={fileLabel(form.businessProof)} />
             </div>
           </div>
 
@@ -766,6 +815,11 @@ export default function BrokerRegistrationWizard() {
       </div>
     </AuthShell>
   );
+}
+
+function fileLabel(value) {
+  if (!value) return "Not uploaded";
+  return typeof value === "string" ? "Uploaded" : value.name;
 }
 
 function ReviewItem({ label, value }) {

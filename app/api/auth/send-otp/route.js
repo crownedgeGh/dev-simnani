@@ -13,25 +13,28 @@ export const dynamic = "force-dynamic";
 // an unrecognised number should be sent to sign up instead of burning an SMS.
 export async function POST(request) {
   try {
-    if (isRateLimited(request, { limit: 5, windowMs: 10 * 60 * 1000, key: "send-otp" })) {
-      return rateLimitResponse();
-    }
-
     await dbConnect();
     const { mobile, turnstileToken, purpose = "login" } = await request.json();
-
-    if (!(await verifyTurnstile(turnstileToken, request))) {
-      return NextResponse.json(
-        { success: false, error: "Verification failed. Please try again." },
-        { status: 400 }
-      );
-    }
 
     const digits = (mobile || "").replace(/\D/g, "").slice(-10);
 
     if (!isMobileValid(digits)) {
       return NextResponse.json(
         { success: false, error: "Enter a valid 10-digit mobile number" },
+        { status: 400 }
+      );
+    }
+
+    // Keyed by number (not just IP) so one spammed number gets throttled
+    // without blocking OTPs to every other number from the same IP — e.g.
+    // registering several test accounts back to back from one machine.
+    if (isRateLimited(request, { limit: 5, windowMs: 10 * 60 * 1000, key: `send-otp:${digits}` })) {
+      return rateLimitResponse();
+    }
+
+    if (!(await verifyTurnstile(turnstileToken, request))) {
+      return NextResponse.json(
+        { success: false, error: "Verification failed. Please try again." },
         { status: 400 }
       );
     }
