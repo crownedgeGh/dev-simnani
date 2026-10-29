@@ -145,18 +145,18 @@ export default function UserDetailPage() {
     }
   }
 
-  async function handleFeaturedLocationConfirm({ state, city }) {
+  async function handleFeaturedLocationConfirm({ locations }) {
     setFeaturedSaving(true);
     try {
       const position = pendingPosition || user.featuredPosition;
       const res = await fetch(`/api/users/${user.accountId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isFeaturedBroker: true, featuredPosition: position, state, city }),
+        body: JSON.stringify({ isFeaturedBroker: true, featuredPosition: position, featuredLocations: locations }),
       });
       const json = await res.json();
       if (!json.success) throw new Error(json.error || "Failed to update");
-      setUser((prev) => ({ ...prev, isFeaturedBroker: true, featuredPosition: position, state, city }));
+      setUser((prev) => ({ ...prev, isFeaturedBroker: true, featuredPosition: position, featuredLocations: locations }));
       toast.success(`${user.fullName} is now featured at position ${position}`);
       setFeaturedModalOpen(false);
     } catch (err) {
@@ -330,9 +330,11 @@ export default function UserDetailPage() {
         onConfirm={handleFeaturedLocationConfirm}
         isLoading={featuredSaving}
         title="Feature this broker"
-        description="Choose the state and city this broker should be featured for."
+        description="Choose the cities this broker should be featured in. A broker can be featured in multiple cities."
+        multiple
         initialState={user.state}
         initialCity={user.city}
+        initialLocations={user.featuredLocations}
       />
     </div>
   );

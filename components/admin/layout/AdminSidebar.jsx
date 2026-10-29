@@ -77,9 +77,6 @@ const NAV_ITEMS = [
     href: "/admin/brokers",
     label: "Brokers",
     icon: BiBuildingHouse,
-    children: [
-      { href: "/admin/brokers/featured", label: "Featured Brokers" },
-    ],
   },
   {
     href: "/admin/freelancer-cp",

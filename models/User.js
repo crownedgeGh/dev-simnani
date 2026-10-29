@@ -189,6 +189,12 @@ const UserSchema = new mongoose.Schema(
       max: 10,
       default: null,
     },
+    // Cities this broker is featured in — same shape as Property.featuredLocations,
+    // lets a broker be featured across multiple cities at once.
+    featuredLocations: {
+      type: [{ state: String, city: String, _id: false }],
+      default: [],
+    },
     // Service Provider lead plan — purchased right after signup (see
     // ServiceProviderRegistrationWizard + /api/service-plans). "none" means
     // unpaid — see /admin/contractor-leads/paid and /unpaid.

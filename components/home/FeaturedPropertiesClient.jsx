@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 import PropertyGrid from "@/components/property/PropertyGrid";
 
 function readCity() {
@@ -12,17 +13,23 @@ function readCity() {
 }
 
 export default function FeaturedPropertiesClient({ properties }) {
-  const [city, setCity] = useState("");
+  const { user } = useAuth();
+  const [detectedCity, setDetectedCity] = useState("");
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time read of a client-only external store on mount
-    setCity(readCity());
+    setDetectedCity(readCity());
     function handleLocationUpdate(e) {
-      setCity(e.detail || "");
+      setDetectedCity(e.detail || "");
     }
     window.addEventListener("se-location-updated", handleLocationUpdate);
     return () => window.removeEventListener("se-location-updated", handleLocationUpdate);
   }, []);
+
+  // se_user_city (set by the location prompt or "Set City Manually") is the
+  // freshest signal of where the visitor currently says they are. Fall back
+  // to the logged-in user's account city only if none has been set at all.
+  const city = detectedCity || user?.city || "";
 
   // No detected city yet — show everything rather than an empty section.
   const visible = (

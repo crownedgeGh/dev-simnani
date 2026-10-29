@@ -463,6 +463,7 @@ export default function AdminTable({
                         ) : col.type === "toggle" ? (
                           <ToggleSwitch
                             checked={!!row[col.key]}
+                            disabled={col.disabled?.(row)}
                             onChange={(val) => col.onToggle(row, val)}
                           />
                         ) : col.type === "actions" ? (
@@ -523,6 +524,7 @@ export default function AdminTable({
                     ? (val) => (
                         <ToggleSwitch
                           checked={!!val}
+                          disabled={col.disabled?.(row)}
                           onChange={(newVal) => col.onToggle(row, newVal)}
                         />
                       )

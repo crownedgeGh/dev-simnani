@@ -6,6 +6,7 @@ import AdminDialog from "./AdminDialog";
 import StateCitySearchFields from "@/components/shared/StateCitySearchFields";
 
 const emptyRow = () => ({ state: "", city: "" });
+const EMPTY_LOCATIONS = [];
 
 export default function FeaturedLocationModal({
   isOpen,
@@ -17,7 +18,7 @@ export default function FeaturedLocationModal({
   initialState = "",
   initialCity = "",
   multiple = false,
-  initialLocations = [],
+  initialLocations = EMPTY_LOCATIONS,
 }) {
   const [locations, setLocations] = useState(
     initialLocations.length ? initialLocations : [emptyRow()]
