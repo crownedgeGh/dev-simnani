@@ -211,7 +211,13 @@ function MobileRowCard({ row, columns, actions, onRowClick }) {
       {/* Fields grid */}
       <div className="grid grid-cols-2 gap-x-4 gap-y-2.5">
         {otherCols.map((col) => (
-          <div key={col.key} className="min-w-0">
+          <div
+            key={col.key}
+            className="min-w-0"
+            onClick={
+              (col.type === "toggle" || col.interactive) ? (e) => e.stopPropagation() : undefined
+            }
+          >
             <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9ca3af] mb-0.5">{col.label}</p>
             <div className="text-sm text-[#374151] truncate">
               {col.render
@@ -453,7 +459,7 @@ export default function AdminTable({
                         key={col.key}
                         className="px-4 py-3.5"
                         onClick={
-                          (col.type === "toggle" || col.type === "actions")
+                          (col.type === "toggle" || col.type === "actions" || col.interactive)
                             ? (e) => e.stopPropagation()
                             : undefined
                         }

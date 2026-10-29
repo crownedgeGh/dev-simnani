@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import crypto from "crypto";
 import dbConnect from "@/lib/mongodb";
 import User from "@/models/User";
+import TopupPurchase from "@/models/TopupPurchase";
 import { getSessionUser } from "@/lib/session";
 import { getTopupById } from "@/lib/topups";
 
@@ -42,6 +43,14 @@ export async function POST(request) {
       { $inc: { topupCredits: topup.listings } },
       { new: true, runValidators: true }
     ).lean();
+
+    await TopupPurchase.create({
+      accountId: sessionUser.accountId,
+      topupId: topup.id,
+      listings: topup.listings,
+      price: topup.price,
+      razorpayPaymentId: razorpay_payment_id,
+    });
 
     return NextResponse.json({ success: true, data: { topupCredits: updatedUser.topupCredits } });
   } catch (error) {

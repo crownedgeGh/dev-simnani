@@ -11,6 +11,7 @@ import UserPortalSnapshot from "@/components/admin/users/UserPortalSnapshot";
 import { ADMIN_KEYS, readCollection } from "@/lib/adminStorage";
 import { PROPERTY_CATEGORIES } from "@/lib/propertyCategories";
 import { getServiceTypeLabel } from "@/lib/serviceProviders";
+import { getTopupById } from "@/lib/topups";
 
 const MAX_FEATURED_POSITIONS = 10;
 
@@ -59,6 +60,7 @@ export default function UserDetailPage() {
   const basePath = pathname?.startsWith("/admin/sg-users") ? "/admin/sg-users" : "/admin/users";
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [topups, setTopups] = useState([]);
   const [featuredModalOpen, setFeaturedModalOpen] = useState(false);
   const [featuredSaving, setFeaturedSaving] = useState(false);
   const [pendingPosition, setPendingPosition] = useState(null);
@@ -83,6 +85,23 @@ export default function UserDetailPage() {
         const users = readCollection(ADMIN_KEYS.users) || [];
         setUser(users.find((u) => u.accountId === accountId) || null);
         setLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [accountId]);
+
+  useEffect(() => {
+    if (!accountId) return;
+    let active = true;
+    (async () => {
+      try {
+        const res = await fetch(`/api/users/${accountId}/topups`, { cache: "no-store" });
+        const json = await res.json();
+        if (active && json.success) setTopups(json.data || []);
+      } catch (err) {
+        console.error("Failed to fetch topup history:", err);
       }
     })();
     return () => {
@@ -178,6 +197,9 @@ export default function UserDetailPage() {
 
   if (user.accountType === "broker") {
     fields.push(
+      ["Plan", user.plan && user.plan !== "free" ? user.plan : "—"],
+      ["Plan Expires", user.planExpiresAt ? new Date(user.planExpiresAt).toLocaleDateString("en-IN") : "—"],
+      ["Topup Credits", user.topupCredits || 0],
       ["Deals Closed", user.dealsClosed !== undefined ? String(user.dealsClosed) : "0"],
       ["RERA Registered", user.reraRegistered ? "Yes" : "No"],
       ["RERA Number", user.reraNumber || "—"],
@@ -306,19 +328,67 @@ export default function UserDetailPage() {
             </div>
           )}
 
-          {user.accountType === "broker" &&
-            (user.reraCertificateUrl || user.identityDocUrl || user.businessProofUrl) && (
-              <div className="mt-6 border-t border-[#f0ebe3] pt-5">
-                <span className="mb-3 block text-xs font-semibold uppercase tracking-wider text-[#9ca3af]">
-                  Uploaded Documents
-                </span>
+          {user.accountType === "broker" && (
+            <div className="mt-6 border-t border-[#f0ebe3] pt-5">
+              <span className="mb-3 block text-xs font-semibold uppercase tracking-wider text-[#9ca3af]">
+                Uploaded Documents
+              </span>
+              {user.reraCertificateUrl || user.identityDocUrl || user.businessProofUrl ? (
                 <div className="flex flex-col gap-3">
                   <DocumentPreview label="RERA Certificate" url={user.reraCertificateUrl} />
                   <DocumentPreview label="Identity Document" url={user.identityDocUrl} />
                   <DocumentPreview label="Business / Agency Proof" url={user.businessProofUrl} />
                 </div>
+              ) : (
+                <p className="text-xs text-[#9ca3af] italic">No documents uploaded yet.</p>
+              )}
+            </div>
+          )}
+
+          {user.accountType === "broker" && (
+            <div className="mt-6 border-t border-[#f0ebe3] pt-5">
+              <div className="mb-3 flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-[#9ca3af]">
+                  Topup History
+                </span>
+                <span className="rounded-full bg-[#fff8e1] px-2 py-0.5 text-xs font-bold text-[#d97706] border border-[#f0b429]/30">
+                  {user.topupCredits || 0} credits
+                </span>
               </div>
-            )}
+              {topups.length > 0 ? (
+                <div className="flex flex-col gap-2">
+                  {topups.map((t) => {
+                    const plan = getTopupById(t.topupId);
+                    return (
+                      <div
+                        key={t._id}
+                        className="flex items-center justify-between rounded-xl border border-[#e8e0d5] bg-[#faf8f5] p-3"
+                      >
+                        <div>
+                          <p className="text-sm font-medium text-[#374151]">
+                            {plan?.priceLabel || `₹${t.price}`} plan — +{t.listings} listings
+                          </p>
+                          <p className="text-xs text-[#9ca3af]">
+                            {new Date(t.createdAt).toLocaleString("en-IN", {
+                              dateStyle: "medium",
+                              timeStyle: "short",
+                            })}
+                          </p>
+                        </div>
+                        <p className="text-sm font-semibold text-[#d97706]">₹{t.price}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : user.topupCredits > 0 ? (
+                <p className="text-xs text-[#9ca3af] italic">
+                  {user.topupCredits} credits were added before purchase tracking was enabled — no purchase record exists for them.
+                </p>
+              ) : (
+                <p className="text-xs text-[#9ca3af] italic">No topup purchases yet.</p>
+              )}
+            </div>
+          )}
         </div>
 
         <UserPortalSnapshot accountId={user.accountId} />

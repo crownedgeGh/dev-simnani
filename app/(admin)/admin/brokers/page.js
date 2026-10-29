@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { MdWorkspacePremium, MdMoneyOff } from "react-icons/md";
 import AdminPageHeader from "@/components/admin/layout/AdminPageHeader";
@@ -14,6 +15,7 @@ const POSITIONS = Array.from({ length: 10 }, (_, i) => i + 1);
 // Paid = any plan other than "free" (see models/User.js plan enum). Only
 // paid brokers can be featured on the homepage.
 export default function AdminBrokersPage() {
+  const router = useRouter();
   const [brokers, setBrokers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -177,6 +179,7 @@ export default function AdminBrokersPage() {
             key: "featuredPosition",
             label: "Position",
             searchable: false,
+            interactive: true,
             render: (v, row) => (
               <Select
                 value={v || ""}
@@ -196,6 +199,7 @@ export default function AdminBrokersPage() {
             key: "featuredLocations",
             label: "Featured Cities",
             searchable: false,
+            interactive: true,
             render: (v, row) => (
               <button
                 type="button"
@@ -259,6 +263,7 @@ export default function AdminBrokersPage() {
         emptyMessage={tab === "paid" ? "No paid brokers yet" : "No unpaid brokers"}
         pageSize={10}
         searchKeys={["fullName", "mobile", "agencyName"]}
+        onRowClick={(row) => router.push(`/admin/users/${row.accountId}`)}
       />
 
       {tab === "paid" && (
