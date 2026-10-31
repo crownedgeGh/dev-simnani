@@ -3,6 +3,7 @@
 import { useAuth } from "@/context/AuthContext";
 import {
   formatPostedDate,
+  formatDDMMYYYY,
   CATEGORIES_BY_TYPE,
   isStructureCategory,
   categoryHasBedrooms,
@@ -105,7 +106,7 @@ export default function PropertyDetailContent({ property, eyebrow, sidebar, back
     isStructural && { icon: <MdChair />, label: "Furnishing", value: property.furnishing },
     isStructural && { icon: <MdLocalParking />, label: "Parking", value: capitalize(property.parking) },
     { icon: <MdExplore />, label: "Facing", value: property.facing },
-    { icon: <MdEvent />, label: "Available From", value: property.availableFrom },
+    { icon: <MdEvent />, label: "Available From", value: formatDDMMYYYY(property.availableFrom) },
     isResidentialListing && { icon: <MdGroup />, label: "Preferred For", value: property.preferredFor },
     isResidentialListing &&
       property.genderPreference && {

@@ -67,6 +67,7 @@ import {
   getGenderPreferenceLabel,
   getBathroomTypeLabel,
   isPgOrHostel,
+  formatDDMMYYYY,
 } from "@/lib/properties";
 import { getPropertyDescription } from "@/lib/propertyContent";
 import BlurredImageFrame from "@/components/property/BlurredImageFrame";
@@ -632,7 +633,7 @@ export default function PropertyDetailPage() {
                 isStructural && { icon: <MdChair />, label: "Furnishing", value: property.furnishing },
                 isStructural && { icon: <MdLocalParking />, label: "Parking", value: capitalize(property.parking) },
                 { icon: <MdExplore />, label: "Facing", value: property.facing },
-                { icon: <MdEvent />, label: "Available From", value: property.availableFrom },
+                { icon: <MdEvent />, label: "Available From", value: formatDDMMYYYY(property.availableFrom) },
                 isResidentialListing && { icon: <MdGroup />, label: "Preferred For", value: property.preferredFor },
                 isResidentialListing &&
                   property.genderPreference && {
