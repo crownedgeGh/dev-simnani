@@ -1759,7 +1759,7 @@ export default function AdminEditPropertyForm({ propertyId: propIdParam }) {
 
 function FormSection({ icon, title, subtitle, children }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-[#e8e0d5] bg-white shadow-sm">
+    <div className="rounded-2xl border border-[#e8e0d5] bg-white shadow-sm">
       <div className="flex items-center gap-3 border-b border-[#e8e0d5] px-5 py-4 sm:px-6">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#fff8e1]">
           {icon}
