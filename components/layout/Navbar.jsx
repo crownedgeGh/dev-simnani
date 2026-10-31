@@ -9,10 +9,10 @@ import { getAccountPermissions } from "@/lib/accountPermissions";
 import { TEST_MODE_CP_PROFILES } from "@/lib/testModeCp";
 import AuthGateModal from "@/components/auth/AuthGateModal";
 import CompleteProfileModal from "@/components/auth/CompleteProfileModal";
-import { MdHome, MdTrendingUp, MdPersonAdd, MdAgriculture, MdFactory, MdScience, MdTerrain, MdApps, MdBolt } from "react-icons/md";
+import { MdHome, MdTrendingUp, MdPersonAdd, MdAgriculture, MdFactory, MdScience, MdTerrain, MdAccountBalance, MdGridView, MdBolt } from "react-icons/md";
 import {
   FiUser, FiMenu, FiX,
-  FiList, FiBookmark, FiLogOut, FiHelpCircle, FiInfo,
+  FiList, FiBookmark, FiLogOut, FiHelpCircle,
   FiChevronDown, FiMapPin, FiSmartphone, FiBriefcase,
 } from "react-icons/fi";
 import { BiBuildings, BiBuildingHouse } from "react-icons/bi";
@@ -35,10 +35,51 @@ const NAV_LINKS = [
   { label: "Commercial", href: "/commercial", icon: BiBuildings },
   { label: "Farming Land Projects", href: "/farming", icon: MdAgriculture },
   { label: "Industrial", href: "/industrial", icon: MdFactory },
-  { label: "Others", href: "/others", icon: MdApps, matchPaths: ["/others", "/home-loan"] },
+  { label: "Home Loans", href: "/home-loan", icon: MdAccountBalance },
+  { label: "Plot Availability", href: "/others/plot-availability", icon: MdGridView },
   { label: "Top Up", href: "/topup", icon: MdBolt },
-  { label: "About Us", href: "/about", icon: FiInfo },
 ];
+
+const PROPERTY_MENU = [
+  { label: "Buy", href: "/buy" },
+  { label: "Rent", href: "/rent" },
+  { label: "Sell", href: "/sell" },
+  { label: "Lease", href: "/lease" },
+  { label: "Seized Property", href: "/seized-property" },
+];
+
+/** Hover/focus dropdown (CSS-only). `href` makes the trigger a link, otherwise a button. */
+function NavDropdown({ label, href, items, active, pathname }) {
+  const triggerClass = `tracked-label relative flex items-center gap-1 whitespace-nowrap pb-1 text-[clamp(11px,0.75vw,15px)] transition hover:text-gold-400 ${
+    active ? "text-gold-400" : "text-cream/80"
+  }`;
+  const chevron = <FiChevronDown className="h-3 w-3 transition group-hover:rotate-180" />;
+  return (
+    <div className="group relative">
+      {href ? (
+        <Link href={href} className={triggerClass}>{label}{chevron}</Link>
+      ) : (
+        <button type="button" className={triggerClass}>{label}{chevron}</button>
+      )}
+      {active && <span className="absolute inset-x-0 -bottom-1 h-[2px] rounded-full bg-gold-400" />}
+      <div className="invisible absolute left-1/2 top-full z-50 -translate-x-1/2 translate-y-2 pt-3 opacity-0 transition duration-200 ease-out group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+        <div className="min-w-[210px] rounded-sm border border-navy-700/60 bg-navy-900 py-2 shadow-xl shadow-black/50">
+          {items.map((item) => (
+            <Link
+              key={item.label}
+              href={item.href}
+              className={`tracked-label block whitespace-nowrap px-4 py-2.5 text-[11px] transition hover:bg-gold-500/10 hover:text-gold-400 ${
+                pathname === item.href ? "text-gold-400" : "text-cream/80"
+              }`}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 /** Whether a nav link should be shown as active for the current pathname. */
 function isNavLinkActive(link, pathname) {
@@ -663,12 +704,12 @@ export default function Navbar() {
 
           {/* Logo */}
           <Link href="/" className="flex shrink-0 items-center">
-            <span className="relative h-10 w-[172px] shrink-0 sm:h-12 sm:w-[206px] 2xl:h-14 2xl:w-[241px]">
+            <span className="relative h-10 w-[172px] shrink-0 sm:h-12 sm:w-[206px] 2xl:h-12 2xl:w-[206px]">
               <Image
                 src="/logo-se.png"
                 alt="Simnani Estates"
                 fill
-                sizes="(min-width: 1536px) 241px, (min-width: 640px) 206px, 172px"
+                sizes="(min-width: 640px) 206px, 172px"
                 className="object-contain object-left"
                 priority
               />
@@ -676,14 +717,19 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop nav links */}
-          <nav className="hidden min-w-0 flex-1 items-center justify-center gap-1.5 min-[1400px]:flex 2xl:gap-4">
+          <nav className="hidden min-w-0 flex-1 items-center justify-center gap-[clamp(6px,0.9vw,24px)] min-[1400px]:flex">
             {visibleNavLinks.map((link) => {
               const active = isNavLinkActive(link, pathname);
+              if (link.label === "Properties") {
+                return (
+                  <NavDropdown key={link.label} label={link.label} href={link.href} items={PROPERTY_MENU} active={active} pathname={pathname} />
+                );
+              }
               return (
                 <Link
                   key={link.label}
                   href={link.href}
-                  className={`tracked-label relative whitespace-nowrap pb-1 text-[11px] transition hover:text-gold-400 2xl:text-xs ${
+                  className={`tracked-label relative whitespace-nowrap pb-1 text-[clamp(11px,0.75vw,15px)] transition hover:text-gold-400 ${
                     active ? "text-gold-400" : "text-cream/80"
                   }`}
                 >
@@ -721,44 +767,14 @@ export default function Navbar() {
                 <button
                   type="button"
                   onClick={() => setDropdownOpen((v) => !v)}
-                  style={{
-                    display: "flex", alignItems: "center", gap: 10,
-                    padding: "6px 12px 6px 6px",
-                    background: dropdownOpen ? "rgba(255,198,51,0.1)" : "rgba(255,255,255,0.05)",
-                    border: `1px solid ${dropdownOpen ? "rgba(255,198,51,0.35)" : "rgba(255,255,255,0.1)"}`,
-                    borderRadius: 999,
-                    cursor: "pointer",
-                    transition: "background 0.18s, border-color 0.18s",
-                  }}
+                  aria-label="Account menu"
+                  className={`relative flex h-10 w-10 items-center justify-center rounded-full border-2 text-sm font-bold text-gold-400 transition ${
+                    dropdownOpen ? "border-gold-400 bg-gold-400/20" : "border-gold-500/60 bg-gold-400/10 hover:border-gold-400"
+                  }`}
                 >
-                  {/* Avatar circle */}
-                  <span style={{
-                    width: 30, height: 30, borderRadius: "50%",
-                    background: "linear-gradient(135deg, rgba(255,198,51,0.3), rgba(255,198,51,0.1))",
-                    border: "1.5px solid rgba(255,198,51,0.5)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 11, fontWeight: 700, color: "#ffc633",
-                    letterSpacing: "0.02em", flexShrink: 0,
-                  }}>
-                    {initials}
-                  </span>
-
-                  {/* Name */}
-                  <span style={{ fontSize: 12.5, fontWeight: 600, color: "#f5f1e8", whiteSpace: "nowrap" }}>
-                    {user?.fullName?.split(" ")[0] || "Account"}
-                  </span>
-
-                  {/* Type tag */}
-                  <span style={{
-                    padding: "2px 7px",
-                    background: "rgba(255,198,51,0.12)",
-                    border: "1px solid rgba(255,198,51,0.28)",
-                    borderRadius: 20,
-                    fontSize: 9, fontWeight: 700,
-                    letterSpacing: "0.14em", textTransform: "uppercase",
-                    color: "#ffc633",
-                  }}>
-                    {typeLabel}
+                  {initials}
+                  <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full border border-gold-500/70 bg-navy-950 text-gold-400">
+                    <FiChevronDown className={`h-3 w-3 transition ${dropdownOpen ? "rotate-180" : ""}`} />
                   </span>
                 </button>
 
@@ -774,32 +790,57 @@ export default function Navbar() {
               </div>
             ) : (
               /* ── Guest: Login + Register pills ── */
-              <div className="flex shrink-0 items-center gap-2">
-                <Link
-                  href="/auth"
-                  className="tracked-label flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-gold-500/70 px-3 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10 active:scale-[0.98]"
+              <div className="group relative">
+                <button
+                  type="button"
+                  aria-label="Account menu"
+                  className="relative flex h-10 w-10 items-center justify-center rounded-full border border-gold-500/70 bg-gold-400 text-navy-950 transition hover:bg-gold-300 group-hover:bg-gold-300"
                 >
-                  <FiUser className="h-4 w-4" />
-                  Login
-                </Link>
-                <Link
-                  href="/auth/register"
-                  className="tracked-label flex shrink-0 items-center whitespace-nowrap rounded-full bg-cream px-3 py-2 text-xs text-navy-950 transition hover:bg-gold-300 active:scale-[0.98]"
-                >
-                  Register
-                </Link>
+                  <FiUser className="h-5 w-5" />
+                  <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full border border-gold-500/70 bg-navy-950 text-gold-400">
+                    <FiChevronDown className="h-3 w-3 transition group-hover:rotate-180 group-focus-within:rotate-180" />
+                  </span>
+                </button>
+                <div className="invisible absolute right-0 top-full z-50 origin-top-right translate-y-2 scale-95 pt-3 opacity-0 transition duration-200 ease-out group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:scale-100 group-focus-within:opacity-100 group-hover:visible group-hover:translate-y-0 group-hover:scale-100 group-hover:opacity-100">
+                  <div className="w-72 overflow-hidden rounded-2xl border border-gold-500/30 bg-gradient-to-b from-navy-900 to-navy-950 shadow-2xl shadow-black/70">
+                    <div className="h-0.5 bg-gradient-to-r from-transparent via-gold-400 to-transparent" />
+                    <div className="px-5 pb-5 pt-4">
+                      <p className="tracked-label text-[10px] text-muted">Welcome to</p>
+                      <p className="font-display text-xl text-cream">Simnani <span className="text-gold-400">Estates</span></p>
+
+                      <Link
+                        href="/auth/register"
+                        className="tracked-label mt-4 flex items-center justify-center gap-2 rounded-full bg-gold-400 px-4 py-3 text-[11px] font-bold text-navy-950 shadow-lg shadow-gold-400/20 transition hover:bg-gold-300 active:scale-[0.98]"
+                      >
+                        <MdPersonAdd className="h-4 w-4" /> Register
+                      </Link>
+                      <Link
+                        href="/auth"
+                        className="tracked-label mt-2.5 flex items-center justify-center gap-2 rounded-full border border-gold-500/70 px-4 py-3 text-[11px] text-gold-400 transition hover:bg-gold-500/10 active:scale-[0.98]"
+                      >
+                        <FiUser className="h-4 w-4" /> Login
+                      </Link>
+
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.currentTarget.blur(); // drop focus-within so the menu closes behind the prompt
+                          window.dispatchEvent(new Event("se-open-location-prompt"));
+                        }}
+                        className="tracked-label mt-4 flex w-full items-center gap-3 rounded-xl border border-navy-700/60 bg-navy-950 px-3 py-2.5 text-left text-[11px] text-cream/80 transition hover:border-gold-500 hover:text-gold-400"
+                      >
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gold-400/10 text-gold-400">
+                          <FiMapPin className="h-4 w-4" />
+                        </span>
+                        <span className="min-w-0 flex-1 truncate">{cityLabel || "Select Location"}</span>
+                        <span className="text-[10px] text-muted">Change</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
-            {/* Location selector */}
-            <button
-              type="button"
-              onClick={() => window.dispatchEvent(new Event("se-open-location-prompt"))}
-              className="tracked-label flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-navy-700/60 bg-navy-900 px-2.5 py-2 text-[11px] text-cream/80 transition hover:border-gold-500 hover:text-gold-400"
-            >
-              <FiMapPin className="h-3.5 w-3.5 shrink-0" />
-              <span className="hidden 2xl:inline">{cityLabel || "Select Location"}</span>
-            </button>
           </div>
 
           {/* Mobile hamburger */}

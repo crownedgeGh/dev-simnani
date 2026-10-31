@@ -170,7 +170,7 @@ export default function LocationPrompt() {
         <button
           onClick={() => setExpanded(true)}
           aria-label="Use your current location"
-          className="fixed right-3 top-20 z-40 flex h-11 w-11 items-center justify-center sm:right-4 sm:top-24"
+          className="fixed right-3 top-20 z-[60] flex h-11 w-11 items-center justify-center sm:right-4 sm:top-24"
         >
           <span className="absolute inset-0 animate-ping rounded-full bg-gold-400/30" />
           <span className="relative flex h-11 w-11 items-center justify-center rounded-full border border-gold-500/50 bg-navy-900 text-gold-400 shadow-[0_12px_30px_-8px_rgba(0,0,0,0.9)] transition active:scale-95">
@@ -180,7 +180,7 @@ export default function LocationPrompt() {
       )}
 
       <div
-        className={`fixed right-3 top-20 z-40 w-[calc(100%-1.5rem)] max-w-[260px] sm:right-4 sm:top-24 sm:max-w-[280px] ${
+        className={`fixed right-3 top-20 z-[60] w-[calc(100%-1.5rem)] max-w-[260px] sm:right-4 sm:top-24 sm:max-w-[280px] ${
           expanded ? "block" : "hidden"
         }`}
       >
