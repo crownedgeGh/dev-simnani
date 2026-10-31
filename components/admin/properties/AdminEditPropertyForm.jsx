@@ -150,6 +150,7 @@ function parseArea(property) {
     if (areaStr.includes("sq m") || areaStr.includes("sq.m")) unit = "sq m";
     else if (areaStr.includes("acre")) unit = "acres";
     else if (areaStr.includes("gaj")) unit = "gaj";
+    else if (areaStr.includes("dismil")) unit = "dismil";
     return { size, unit };
   }
   return { size: "", unit: "sq ft" };
