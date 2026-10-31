@@ -1,6 +1,5 @@
 "use client";
 
-import BackButton from "@/components/layout/BackButton";
 import Select from "@/components/ui/Select";
 
 const WORDS_ONES = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"];
@@ -27,10 +26,7 @@ export default function LoanCalculatorHero({ loanAmount, setLoanAmount, tenure, 
     <div className="relative overflow-hidden bg-navy-950">
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
         <div className="mb-6 max-w-xl">
-          <div className="flex items-center gap-3">
-            <BackButton href="/others" />
-            <span className="tracked-label text-xs text-gold-400">Home Loans</span>
-          </div>
+          <span className="tracked-label text-xs text-gold-400">Home Loans</span>
           <h1 className="mt-2 font-display text-3xl text-cream sm:text-4xl lg:text-5xl">
             Compare &amp; get the best home loan deal
           </h1>

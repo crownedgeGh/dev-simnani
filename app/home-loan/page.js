@@ -26,6 +26,14 @@ export default function HomeLoanPage() {
 
   return (
     <div className="bg-navy-950">
+      <EmiCalculator
+        onApply={({ amount, tenureYears }) => {
+          setLoanAmount(String(amount));
+          setTenure(String(tenureYears));
+          setQuickApply(true);
+        }}
+      />
+
       <LoanCalculatorHero
         loanAmount={loanAmount}
         setLoanAmount={setLoanAmount}
@@ -34,14 +42,6 @@ export default function HomeLoanPage() {
         age={age}
         setAge={setAge}
         onGetStarted={() => setQuickApply(true)}
-      />
-
-      <EmiCalculator
-        onApply={({ amount, tenureYears }) => {
-          setLoanAmount(String(amount));
-          setTenure(String(tenureYears));
-          setQuickApply(true);
-        }}
       />
 
       <div id="bank-deals" className="mx-auto max-w-7xl px-4 pb-16 pt-4 sm:px-6 sm:pb-20 sm:pt-6 lg:px-8 lg:pb-24">

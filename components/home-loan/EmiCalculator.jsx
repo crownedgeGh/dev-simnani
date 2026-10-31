@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import BackButton from "@/components/layout/BackButton";
 import { FiArrowRight, FiCheckCircle, FiAlertCircle } from "react-icons/fi";
 import { calculateLoan, FOIR, RETIREMENT_AGE } from "@/lib/emi";
 
@@ -92,7 +93,10 @@ export default function EmiCalculator({ onApply }) {
   return (
     <section id="emi-calculator" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
       <div className="max-w-2xl">
-        <span className="tracked-label text-xs text-gold-400">EMI &amp; Eligibility</span>
+        <div className="flex items-center gap-3">
+          <BackButton href="/others" />
+          <span className="tracked-label text-xs text-gold-400">EMI &amp; Eligibility</span>
+        </div>
         <h2 className="mt-2 font-display text-3xl text-cream sm:text-4xl lg:text-5xl">Plan your home loan</h2>
         <p className="mt-3 text-sm text-muted sm:text-base">
           Adjust the sliders to see your monthly EMI, total interest, and how much you&apos;re likely to be eligible for.
