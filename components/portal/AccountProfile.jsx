@@ -11,6 +11,7 @@ import { inputClass } from "@/components/auth/inputStyles";
 import SearchableSelect from "@/components/auth/SearchableSelect";
 import { RTO_STATES, getCitiesForState } from "@/lib/cityRto";
 import { useAuth } from "@/context/AuthContext";
+import { getTopupById } from "@/lib/topups";
 
 // Account types with a multi-step registration wizard — their fields live
 // across several steps, so "Edit Profile" reopens that wizard (pre-filled,
@@ -31,7 +32,18 @@ const PLAN_STATUS_TONE = {
   rejected: { tone: "error", label: "Rejected" },
 };
 
-export default function AccountProfile({ user }) {
+// First broker wizard step whose required fields are still empty (mirrors the
+// per-step checks in BrokerRegistrationWizard). Steps 3-4 can't be inferred
+// from data (reraRegistered defaults to false), so fall back to the saved step.
+function getBrokerResumeStep(u) {
+  const blank = (v) => v === undefined || v === null || v === "";
+  if (["fullName", "email", "state", "city", "experience"].some((f) => blank(u[f]))) return 1;
+  if (!u.applicantType) return 2;
+  if (u.applicantType === "company" && (!u.agencyName || !u.officeAddress || !u.operatingAreas || !u.specialties?.length)) return 2;
+  return Math.max(u.registrationStep || 3, 3);
+}
+
+export default function AccountProfile({ user, listingUsage }) {
   const { user: authUser, updateProfile } = useAuth();
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({
@@ -44,6 +56,16 @@ export default function AccountProfile({ user }) {
   });
   const [saved, setSaved] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [topups, setTopups] = useState([]);
+
+  const accountId = authUser?.accountId;
+  useEffect(() => {
+    if (!accountId) return;
+    fetch(`/api/users/${accountId}/topups`, { cache: "no-store" })
+      .then((r) => r.json())
+      .then((json) => json.success && setTopups(json.data || []))
+      .catch(() => {});
+  }, [accountId]);
 
   useEffect(() => {
     if (authUser) {
@@ -113,7 +135,7 @@ export default function AccountProfile({ user }) {
             </p>
           </div>
           <Link
-            href={`/auth/register/${authUser.accountType}?step=${authUser.registrationStep || 1}`}
+            href={`/auth/register/${authUser.accountType}?step=${getBrokerResumeStep(authUser)}&edit=1`}
             className="tracked-label shrink-0 rounded-full bg-gold-400 px-5 py-3 text-center text-xs text-navy-950 transition active:scale-[0.98] hover:bg-gold-300"
           >
             Complete Profile
@@ -292,6 +314,48 @@ export default function AccountProfile({ user }) {
 
         {saved && <p className="mt-4 text-xs text-gold-400">Changes saved.</p>}
       </SectionCard>
+
+      {listingUsage && (
+        <SectionCard title="Listings">
+          <div className="flex items-end justify-between gap-4">
+            <p className="font-display text-2xl text-gold-400">
+              {Math.max(listingUsage.limit - listingUsage.used, 0)}{" "}
+              <span className="text-sm text-muted">left of {listingUsage.limit}</span>
+            </p>
+            <p className="text-sm text-muted">{listingUsage.used} used</p>
+          </div>
+          <div className="mt-3 h-2 overflow-hidden rounded-full bg-navy-950">
+            <div
+              className="h-full rounded-full bg-gold-400"
+              style={{ width: `${Math.min((listingUsage.used / listingUsage.limit) * 100, 100)}%` }}
+            />
+          </div>
+          {authUser?.accountType === "broker" && (
+            <div className="mt-5 border-t border-navy-700/60 pt-4">
+              <p className="tracked-label text-[11px] text-gold-400">Topup History</p>
+              {topups.length > 0 ? (
+                <div className="mt-3 flex flex-col gap-2">
+                  {topups.map((t) => (
+                    <div key={t._id} className="flex items-center justify-between rounded-sm border border-navy-700/60 bg-navy-950 p-3">
+                      <div>
+                        <p className="text-sm text-cream">
+                          {getTopupById(t.topupId)?.priceLabel || `₹${t.price}`} plan — +{t.listings} listings
+                        </p>
+                        <p className="text-xs text-muted">
+                          {new Date(t.createdAt).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
+                        </p>
+                      </div>
+                      <p className="font-display text-gold-400">₹{t.price}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-2 text-sm text-muted">No topup purchases yet.</p>
+              )}
+            </div>
+          )}
+        </SectionCard>
+      )}
 
       <SectionCard title="Account Status">
         <p className="text-sm text-cream">

@@ -61,6 +61,7 @@ export default function UserDetailPage() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [topups, setTopups] = useState([]);
+  const [usage, setUsage] = useState(null);
   const [featuredModalOpen, setFeaturedModalOpen] = useState(false);
   const [featuredSaving, setFeaturedSaving] = useState(false);
   const [pendingPosition, setPendingPosition] = useState(null);
@@ -102,6 +103,13 @@ export default function UserDetailPage() {
         if (active && json.success) setTopups(json.data || []);
       } catch (err) {
         console.error("Failed to fetch topup history:", err);
+      }
+      try {
+        const res = await fetch(`/api/users/${accountId}/listing-usage`, { cache: "no-store" });
+        const json = await res.json();
+        if (active && json.success) setUsage(json.data);
+      } catch (err) {
+        console.error("Failed to fetch listing usage:", err);
       }
     })();
     return () => {
@@ -342,6 +350,26 @@ export default function UserDetailPage() {
               ) : (
                 <p className="text-xs text-[#9ca3af] italic">No documents uploaded yet.</p>
               )}
+            </div>
+          )}
+
+          {usage && (
+            <div className="mt-6 border-t border-[#f0ebe3] pt-5">
+              <div className="mb-3 flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-[#9ca3af]">
+                  Listings
+                </span>
+                <span className="rounded-full bg-[#fff8e1] px-2 py-0.5 text-xs font-bold text-[#d97706] border border-[#f0b429]/30">
+                  {usage.left} left of {usage.limit}
+                </span>
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-[#f0ebe3]">
+                <div
+                  className="h-full rounded-full bg-[#f0b429]"
+                  style={{ width: `${Math.min((usage.used / usage.limit) * 100, 100)}%` }}
+                />
+              </div>
+              <p className="mt-2 text-xs text-[#9ca3af]">{usage.used} used</p>
             </div>
           )}
 

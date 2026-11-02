@@ -1,5 +1,8 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
+import dbConnect from "@/lib/mongodb";
+import Property from "@/models/Property";
+import { getListingLimit } from "@/lib/properties";
 import { getPlanById } from "@/lib/plans";
 import { getServiceTypeLabel } from "@/lib/serviceProviders";
 import PortalHeader from "@/components/portal/PortalHeader";
@@ -17,6 +20,12 @@ export default async function AccountPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/auth");
 
+  await dbConnect();
+  const listingUsage = {
+    used: await Property.countDocuments({ ownerId: user.accountId }),
+    limit: getListingLimit(user.accountType, user.topupCredits),
+  };
+
   const isBroker = user.accountType === "broker";
   const currentPlan = getPlanById(user.plan) || getPlanById("free");
   const isPremium = currentPlan.id === "premium" && (user.planStatus === "active" || user.planStatus === "pending");
@@ -28,6 +37,7 @@ export default async function AccountPage() {
       {/* {isBroker && <UpgradePlanBanner planName={currentPlan.name} isPremium={isPremium} />} */}
       <div className="mt-6">
         <AccountProfile
+          listingUsage={listingUsage}
           user={{
             name: user.fullName,
             email: user.email,

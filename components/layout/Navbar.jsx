@@ -316,17 +316,17 @@ function UserDropdown({ user, cityLabel, onSelectCp, onClose, onLogout }) {
   const perms = getAccountPermissions(user?.accountType, user?.cpType);
 
   const MENU_ITEMS = [
+    perms.canPostProperty && {
+      icon: BiBuildings, label: "Post a Property", desc: "List a new property", href: "/post-property", accent: true,
+    },
+    { icon: FiUser, label: "My Profile", desc: "Edit your account details", href: "/account" },
     perms.portalHref && perms.portalHref !== "/" && {
       icon: FiList,
       label: perms.portalLabel || "My Listings",
       desc: perms.portalDesc || "View & manage your properties",
       href: perms.portalHref,
     },
-    { icon: FiUser, label: "My Profile", desc: "Edit your account details", href: "/account" },
     { icon: FiBookmark, label: "Saved Properties", desc: "View your bookmarked properties", href: "/account/saved-properties" },
-    perms.canPostProperty && {
-      icon: BiBuildings, label: "Post a Property", desc: "List a new property", href: "/post-property", accent: true,
-    },
     { icon: FiHelpCircle, label: "Help & Support", desc: "Get help from our team", href: "/help" },
   ].filter(Boolean);
 

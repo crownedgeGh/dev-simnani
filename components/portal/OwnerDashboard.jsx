@@ -236,20 +236,6 @@ export default function OwnerDashboard({
                     Top Up Listings
                   </Link>
                 )}
-                {showAddProperty && (
-                  listingsRemaining > 0 ? (
-                    <Link
-                      href={addPropertyHref}
-                      className="tracked-label rounded-full border border-gold-500/70 px-5 py-2 text-xs text-gold-400 transition hover:bg-gold-500/10"
-                    >
-                      Add Property
-                    </Link>
-                  ) : (
-                    <span className="tracked-label rounded-full border border-navy-700/60 px-5 py-2 text-xs text-muted">
-                      Add Property
-                    </span>
-                  )
-                )}
               </div>
             </div>
             {typeof listingsRemaining === "number" && typeof listingLimit === "number" && (
