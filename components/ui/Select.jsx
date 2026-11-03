@@ -54,7 +54,7 @@ export default function Select({
         onClick={() => !disabled && setOpen((o) => !o)}
         className={`${className} flex items-center justify-between text-left disabled:cursor-not-allowed disabled:opacity-50`}
       >
-        <span className={`truncate ${selected ? "text-cream" : "text-muted"}`}>
+        <span data-select-value className={`truncate ${selected ? "text-cream" : "text-muted"}`}>
           {selected ? selected.label : placeholder}
         </span>
         <FiChevronDown
@@ -66,7 +66,8 @@ export default function Select({
       {open && (
         <div
           role="listbox"
-          className="gold-scrollbar absolute left-0 right-0 z-30 mt-1.5 max-h-64 overflow-y-auto rounded-2xl border border-navy-700/60 bg-navy-900 p-1.5 shadow-[0_20px_50px_-16px_rgba(0,0,0,0.9)]"
+          data-select-menu
+          className="gold-scrollbar absolute left-0 z-30 min-w-full w-max max-w-[min(20rem,80vw)] mt-1.5 max-h-64 overflow-y-auto rounded-2xl border border-navy-700/60 bg-navy-900 p-1.5 shadow-[0_20px_50px_-16px_rgba(0,0,0,0.9)]"
         >
           {normalized.map((option) => {
             const isSelected = String(option.value) === String(value);
@@ -75,6 +76,7 @@ export default function Select({
                 key={option.value}
                 type="button"
                 role="option"
+                data-select-option
                 aria-selected={isSelected}
                 onClick={() => selectOption(option)}
                 className={`flex min-h-[40px] w-full items-center gap-2 rounded-xl px-3 text-left text-sm transition active:scale-[0.98] ${

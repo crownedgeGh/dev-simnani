@@ -593,3 +593,16 @@ body {
 .admin-theme-celestial button {
   transition: all 0.15s ease-in-out;
 }
+/* Shared <Select> (components/ui/Select.jsx) inside the light admin shell */
+.admin-shell [data-select-value] { color: var(--foreground); }
+.admin-shell [data-select-menu] {
+  background: var(--popover);
+  border-color: var(--border);
+  box-shadow: 0 12px 32px -12px rgb(0 0 0 / 0.25);
+}
+.admin-shell [data-select-option] { color: var(--popover-foreground); }
+.admin-shell [data-select-option]:hover,
+.admin-shell [data-select-option][aria-selected="true"] {
+  background: color-mix(in oklab, var(--color-gold-400) 18%, transparent);
+  color: var(--color-gold-700);
+}
