@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/session";
 import { getOwnerPortalData } from "@/lib/ownerPortalData";
 import { getServiceTypeLabel } from "@/lib/serviceProviders";
 import PortalHeader from "@/components/portal/PortalHeader";
+import PlanExpiryBanner from "@/components/portal/PlanExpiryBanner";
 import OwnerDashboard from "@/components/portal/OwnerDashboard";
 
 export const dynamic = "force-dynamic";
@@ -18,7 +19,14 @@ export default async function ServiceProviderPortalPage() {
 
   // Dashboard access is free — only the Leads tab is gated behind a plan
   // (enforced inside OwnerDashboard via `leadsLocked`).
-  const leadsLocked = !user.servicePlan || user.servicePlan === "none";
+  // An expired plan counts as no plan, so the plan cards show again.
+  const planExpired = user.servicePlanExpiresAt && new Date(user.servicePlanExpiresAt) < new Date();
+  const leadsLocked = !user.servicePlan || user.servicePlan === "none" || planExpired;
+
+  const daysLeft = user.servicePlanExpiresAt
+    ? Math.ceil((new Date(user.servicePlanExpiresAt) - new Date()) / 86400000)
+    : 0;
+  const expiringSoon = daysLeft > 0 && daysLeft <= 7;
 
   const { leads, clients, stats } = await getOwnerPortalData(user.accountId);
 
@@ -30,6 +38,7 @@ export default async function ServiceProviderPortalPage() {
         subtitle="Track your leads and manage client relationships."
         backHref="/"
       />
+      {expiringSoon && <PlanExpiryBanner daysLeft={daysLeft} fullName={user.fullName} />}
       <div className="mt-8">
         <OwnerDashboard
           stats={stats}

@@ -50,12 +50,20 @@ export async function POST(request) {
     }
 
     await dbConnect();
+    // Renewing before expiry starts the new plan from the current expiry date.
+    const current = await User.findOne({ accountId: sessionUser.accountId }).select("servicePlanExpiresAt").lean();
+    const now = new Date();
+    const startsAt =
+      current?.servicePlanExpiresAt && new Date(current.servicePlanExpiresAt) > now
+        ? new Date(current.servicePlanExpiresAt)
+        : now;
     const updatedUser = await User.findOneAndUpdate(
       { accountId: sessionUser.accountId },
       {
         $set: {
           servicePlan: plan.id,
-          servicePlanExpiresAt: addMonths(new Date(), plan.validityMonths),
+          servicePlanStartsAt: startsAt,
+          servicePlanExpiresAt: addMonths(startsAt, plan.validityMonths),
           servicePlanPaymentId: razorpay_payment_id,
         },
       },

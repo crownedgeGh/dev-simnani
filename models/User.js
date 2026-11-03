@@ -203,6 +203,12 @@ const UserSchema = new mongoose.Schema(
       enum: ["none", "leads-499", "leads-799"],
       default: "none",
     },
+    // When the latest plan begins — in the future if it was bought before the
+    // previous plan expired (it queues behind it).
+    servicePlanStartsAt: {
+      type: Date,
+      default: null,
+    },
     servicePlanExpiresAt: {
       type: Date,
       default: null,

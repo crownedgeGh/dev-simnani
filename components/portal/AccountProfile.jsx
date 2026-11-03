@@ -43,7 +43,7 @@ function getBrokerResumeStep(u) {
   return Math.max(u.registrationStep || 3, 3);
 }
 
-export default function AccountProfile({ user, listingUsage }) {
+export default function AccountProfile({ user, listingUsage, servicePlan }) {
   const { user: authUser, updateProfile } = useAuth();
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({
@@ -314,6 +314,34 @@ export default function AccountProfile({ user, listingUsage }) {
 
         {saved && <p className="mt-4 text-xs text-gold-400">Changes saved.</p>}
       </SectionCard>
+
+      {servicePlan && (
+        <SectionCard title="Subscription">
+          <div className="flex items-center justify-between gap-4">
+            <p className="font-display text-xl text-gold-400">
+              {servicePlan.name} <span className="text-sm text-muted">({servicePlan.priceLabel})</span>
+            </p>
+            <Badge tone={servicePlan.expired ? "error" : servicePlan.upcoming ? "gold" : "success"}>
+              {servicePlan.expired ? "Expired" : servicePlan.upcoming ? "Scheduled" : "Active"}
+            </Badge>
+          </div>
+          {servicePlan.upcoming && (
+            <p className="mt-3 text-sm text-gold-400">
+              Your new plan will be applied after {servicePlan.startsOn} (when your current plan expires).
+            </p>
+          )}
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="rounded-sm border border-navy-700/60 bg-navy-950 p-3">
+              <p className="tracked-label text-[11px] text-muted">{servicePlan.upcoming ? "Starts On" : "Plan Start"}</p>
+              <p className="mt-1 text-sm text-cream">{servicePlan.startsOn}</p>
+            </div>
+            <div className="rounded-sm border border-navy-700/60 bg-navy-950 p-3">
+              <p className="tracked-label text-[11px] text-muted">{servicePlan.expired ? "Expired On" : "Valid Till"}</p>
+              <p className="mt-1 text-sm text-cream">{servicePlan.endsOn}</p>
+            </div>
+          </div>
+        </SectionCard>
+      )}
 
       {listingUsage && (
         <SectionCard title="Listings">
