@@ -43,7 +43,7 @@ function getBrokerResumeStep(u) {
   return Math.max(u.registrationStep || 3, 3);
 }
 
-export default function AccountProfile({ user, listingUsage, servicePlan }) {
+export default function AccountProfile({ user, servicePlan }) {
   const { user: authUser, updateProfile } = useAuth();
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({
@@ -343,24 +343,9 @@ export default function AccountProfile({ user, listingUsage, servicePlan }) {
         </SectionCard>
       )}
 
-      {listingUsage && (
-        <SectionCard title="Listings">
-          <div className="flex items-end justify-between gap-4">
-            <p className="font-display text-2xl text-gold-400">
-              {Math.max(listingUsage.limit - listingUsage.used, 0)}{" "}
-              <span className="text-sm text-muted">left of {listingUsage.limit}</span>
-            </p>
-            <p className="text-sm text-muted">{listingUsage.used} used</p>
-          </div>
-          <div className="mt-3 h-2 overflow-hidden rounded-full bg-navy-950">
-            <div
-              className="h-full rounded-full bg-gold-400"
-              style={{ width: `${Math.min((listingUsage.used / listingUsage.limit) * 100, 100)}%` }}
-            />
-          </div>
-          {authUser?.accountType === "broker" && (
-            <div className="mt-5 border-t border-navy-700/60 pt-4">
-              <p className="tracked-label text-[11px] text-gold-400">Topup History</p>
+      {authUser?.accountType === "broker" && (
+        <SectionCard title="Topup History">
+            <div>
               {topups.length > 0 ? (
                 <div className="mt-3 flex flex-col gap-2">
                   {topups.map((t) => (
@@ -381,7 +366,6 @@ export default function AccountProfile({ user, listingUsage, servicePlan }) {
                 <p className="mt-2 text-sm text-muted">No topup purchases yet.</p>
               )}
             </div>
-          )}
         </SectionCard>
       )}
 

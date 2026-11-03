@@ -1,8 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import dbConnect from "@/lib/mongodb";
-import Property from "@/models/Property";
-import { getListingLimit } from "@/lib/properties";
 import { getPlanById } from "@/lib/plans";
 import { getServiceTypeLabel } from "@/lib/serviceProviders";
 import { getServicePlanById } from "@/lib/servicePlans";
@@ -23,10 +21,6 @@ export default async function AccountPage() {
   if (!user) redirect("/auth");
 
   await dbConnect();
-  const listingUsage = {
-    used: await Property.countDocuments({ ownerId: user.accountId }),
-    limit: getListingLimit(user.accountType, user.topupCredits),
-  };
 
   const isBroker = user.accountType === "broker";
   const currentPlan = getPlanById(user.plan) || getPlanById("free");
@@ -65,7 +59,6 @@ export default async function AccountPage() {
       {showExpiryBanner && <PlanExpiryBanner daysLeft={daysLeft} fullName={user.fullName} />}
       <div className="mt-6">
         <AccountProfile
-          listingUsage={listingUsage}
           servicePlan={servicePlan}
           user={{
             name: user.fullName,

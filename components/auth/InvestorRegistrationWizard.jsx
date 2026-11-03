@@ -287,7 +287,7 @@ export default function InvestorRegistrationWizard() {
       <div className="mb-6 text-center">
         <h1 className="font-display text-2xl text-cream sm:text-3xl">
             {step === 1 && "Basic Details"}
-            {step === 2 && "What are you interested in?"}
+            {step === 2 && "In which type of Property are you interested ?"}
             {step === 3 && "Review & Submit"}
           </h1>
         <p className="mt-2 text-sm text-muted">
