@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import AdminPageHeader from "@/components/admin/layout/AdminPageHeader";
 import AdminTable from "@/components/admin/ui/AdminTable";
@@ -11,6 +12,7 @@ import { getServicePlanById } from "@/lib/servicePlans";
 // Shared by /admin/contractor-leads/paid and /unpaid — same service-provider
 // account list, split by whether a lead plan has been activated.
 export default function ContractorsByPayment({ paid }) {
+  const router = useRouter();
   const [contractors, setContractors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -130,6 +132,7 @@ export default function ContractorsByPayment({ paid }) {
             : `No unpaid ${getServiceTypeLabel(tab)} contractors`
         }
         pageSize={10}
+        onRowClick={(row) => router.push(`/admin/users/${row.accountId}`)}
         searchKeys={["fullName", "mobile", "city"]}
       />
     </div>

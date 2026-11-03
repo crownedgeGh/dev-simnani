@@ -12,6 +12,7 @@ import { ADMIN_KEYS, readCollection } from "@/lib/adminStorage";
 import { PROPERTY_CATEGORIES } from "@/lib/propertyCategories";
 import { getServiceTypeLabel } from "@/lib/serviceProviders";
 import { getTopupById } from "@/lib/topups";
+import { getServicePlanById } from "@/lib/servicePlans";
 
 const MAX_FEATURED_POSITIONS = 10;
 
@@ -61,6 +62,7 @@ export default function UserDetailPage() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [topups, setTopups] = useState([]);
+  const [servicePlans, setServicePlans] = useState([]);
   const [usage, setUsage] = useState(null);
   const [featuredModalOpen, setFeaturedModalOpen] = useState(false);
   const [featuredSaving, setFeaturedSaving] = useState(false);
@@ -103,6 +105,13 @@ export default function UserDetailPage() {
         if (active && json.success) setTopups(json.data || []);
       } catch (err) {
         console.error("Failed to fetch topup history:", err);
+      }
+      try {
+        const res = await fetch(`/api/users/${accountId}/service-plans`, { cache: "no-store" });
+        const json = await res.json();
+        if (active && json.success) setServicePlans(json.data || []);
+      } catch (err) {
+        console.error("Failed to fetch service plan history:", err);
       }
       try {
         const res = await fetch(`/api/users/${accountId}/listing-usage`, { cache: "no-store" });
@@ -227,7 +236,9 @@ export default function UserDetailPage() {
   if (user.accountType === "service-provider") {
     fields.push(
       ["Service Type", getServiceTypeLabel(user.serviceType) || "—"],
-      ["Years of Experience", user.yearsOfExperience !== undefined ? String(user.yearsOfExperience) : "—"]
+      ["Years of Experience", user.yearsOfExperience !== undefined ? String(user.yearsOfExperience) : "—"],
+      ["Current Lead Plan", getServicePlanById(user.servicePlan)?.name || "No plan"],
+      ["Plan Expires", user.servicePlanExpiresAt ? new Date(user.servicePlanExpiresAt).toLocaleDateString("en-IN") : "—"]
     );
   }
 
@@ -418,6 +429,43 @@ export default function UserDetailPage() {
             </div>
           )}
         </div>
+
+        {user.accountType === "service-provider" && (
+          <div className="mt-6 rounded-2xl border border-[#e8e0d5] bg-white p-5">
+            <span className="text-xs font-semibold uppercase tracking-wider text-[#9ca3af]">Lead Plan History</span>
+            {servicePlans.length > 0 ? (
+              <div className="mt-3 flex flex-col gap-2">
+                {servicePlans.map((p) => {
+                  const now = new Date();
+                  const status =
+                    new Date(p.startsAt) > now ? "Scheduled" : new Date(p.expiresAt) < now ? "Expired" : "Active";
+                  const fmt = (d) => new Date(d).toLocaleDateString("en-IN", { dateStyle: "medium" });
+                  return (
+                    <div key={p._id} className="rounded-xl border border-[#e8e0d5] bg-[#faf8f5] p-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-sm font-medium text-[#374151]">
+                          {getServicePlanById(p.planId)?.name || p.planId}{" "}
+                          <span className="text-xs font-normal text-[#9ca3af]">({status})</span>
+                        </p>
+                        <p className="text-sm font-semibold text-[#d97706]">₹{p.price}</p>
+                      </div>
+                      <p className="mt-1 text-xs text-[#9ca3af]">
+                        Purchased {new Date(p.createdAt).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
+                        {" · "}Valid {fmt(p.startsAt)} → {fmt(p.expiresAt)}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="mt-3 text-xs italic text-[#9ca3af]">
+                {user.servicePlan && user.servicePlan !== "none"
+                  ? "Current plan was bought before purchase tracking was enabled — no purchase record exists."
+                  : "No plan purchases yet."}
+              </p>
+            )}
+          </div>
+        )}
 
         <UserPortalSnapshot accountId={user.accountId} />
       </div>

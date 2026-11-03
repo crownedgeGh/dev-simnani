@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import crypto from "crypto";
 import dbConnect from "@/lib/mongodb";
 import User from "@/models/User";
+import ServicePlanPurchase from "@/models/ServicePlanPurchase";
 import { getSessionUser } from "@/lib/session";
 import { getServicePlanById } from "@/lib/servicePlans";
 import { backfillLeadsForProvider } from "@/lib/contractorLeadRouting";
@@ -69,6 +70,15 @@ export async function POST(request) {
       },
       { new: true, runValidators: true }
     ).lean();
+
+    await ServicePlanPurchase.create({
+      accountId: sessionUser.accountId,
+      planId: plan.id,
+      price: plan.price,
+      startsAt,
+      expiresAt: updatedUser.servicePlanExpiresAt,
+      razorpayPaymentId: razorpay_payment_id,
+    });
 
     // Backfill: any past callback requests in this provider's own city/state
     // (same trade) that arrived before they subscribed should show up now.
