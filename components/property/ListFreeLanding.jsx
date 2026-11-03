@@ -13,7 +13,7 @@ const ROLES = [
 ];
 
 const BENEFITS = [
-  { Icon: MdBolt, title: "Post in minutes", text: "No photos or full address needed to start." },
+  { Icon: MdBolt, title: "Post in minutes", text: "Add photos and address once, and your listing goes live fast." },
   { Icon: MdTrendingUp, title: "Genuine enquiries", text: "Verified buyers & tenants reach you directly." },
   { Icon: MdVerified, title: "Zero charges", text: "Listing is completely free. No hidden fees." },
 ];
