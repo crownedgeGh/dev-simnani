@@ -18,6 +18,7 @@ import { formatMobile, isMobileValid, isPasswordValid, generateAccountId } from 
 import { RTO_STATES, getCitiesForState } from "@/lib/cityRto";
 import { useAuth } from "@/context/AuthContext";
 import { useWizardDraft } from "@/lib/useWizardDraft";
+import { useLeaveGuard } from "@/lib/useLeaveGuard";
 
 const ACCOUNT_TYPE = "broker";
 const ACCOUNT_PREFIX = "BRK";
@@ -73,6 +74,7 @@ export default function BrokerRegistrationWizard() {
   const searchParams = useSearchParams();
   const isEditing = searchParams.get("edit") === "1";
   const { step, setStep, form, setForm, clearDraft } = useWizardDraft("se_draft_broker", INITIAL_FORM);
+  const { guard, modal } = useLeaveGuard(!isEditing && JSON.stringify(form) !== JSON.stringify(INITIAL_FORM));
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
@@ -406,13 +408,18 @@ export default function BrokerRegistrationWizard() {
   }
 
 
+  function handleBack() {
+    if (step > 1) return goBack();
+    guard(() => router.push(isEditing ? "/account" : localStorage.getItem("se_post_tour") === "1" ? "/list-free" : "/auth/register"));
+  }
+
   return (
-    <AuthShell size="xl">
+    <AuthShell size="xl" onBack={handleBack}>
       <Stepper
         step={step}
         total={TOTAL_STEPS}
         label={STEP_LABELS[step - 1]}
-        onBack={step > 1 ? goBack : () => router.push(isEditing ? "/account" : localStorage.getItem("se_post_tour") === "1" ? "/list-free" : "/auth/register")}
+        onBack={handleBack}
       />
 
       <div className="mb-6 text-center">
@@ -825,6 +832,7 @@ export default function BrokerRegistrationWizard() {
           )}
         </div>
       </div>
+      {modal}
     </AuthShell>
   );
 }

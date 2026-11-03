@@ -750,6 +750,7 @@ export default function Navbar() {
                 type="button"
                 onClick={handlePostProperty}
                 id="navbar-post-property-btn"
+                data-leave-guard
                 className="tracked-label flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full bg-gold-400 px-3.5 py-2 text-xs text-navy-950 shadow-lg shadow-gold-400/10 transition hover:bg-gold-300 active:scale-[0.98]"
               >
                 Post Property
@@ -1016,6 +1017,7 @@ export default function Navbar() {
                   type="button"
                   onClick={handlePostProperty}
                   id="mobile-post-property-btn"
+                  data-leave-guard
                   style={{
                     width: "100%",
                     display: "flex", alignItems: "center", justifyContent: "center", gap: 10,

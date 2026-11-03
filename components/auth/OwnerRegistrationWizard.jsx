@@ -11,6 +11,7 @@ import MobileOtpGate from "./MobileOtpGate";
 import { inputClass } from "./inputStyles";
 import { formatMobile, isMobileValid, isPasswordValid, generateAccountId } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
+import { useLeaveGuard } from "@/lib/useLeaveGuard";
 import { POST_TOUR_KEY } from "@/components/layout/PostPropertyTour";
 import { RTO_STATES, getCitiesForState } from "@/lib/cityRto";
 
@@ -29,6 +30,7 @@ export default function OwnerRegistrationWizard() {
   const { login } = useAuth();
   const router = useRouter();
   const [form, setForm] = useState(INITIAL_FORM);
+  const { guard, modal } = useLeaveGuard(JSON.stringify(form) !== JSON.stringify(INITIAL_FORM));
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
@@ -119,7 +121,7 @@ export default function OwnerRegistrationWizard() {
   // Arrived via /list-free (tour flag set) → back returns there; the OTP gate's
   // history trap would otherwise make router.back() a no-op.
   function goBack() {
-    router.push(localStorage.getItem(POST_TOUR_KEY) === "1" ? "/list-free" : "/auth/register");
+    guard(() => router.push(localStorage.getItem(POST_TOUR_KEY) === "1" ? "/list-free" : "/auth/register"));
   }
 
   return (
@@ -255,6 +257,7 @@ export default function OwnerRegistrationWizard() {
           {submitting ? "Creating Account..." : "Create Account"}
         </button>
       </div>
+      {modal}
     </AuthShell>
   );
 }
