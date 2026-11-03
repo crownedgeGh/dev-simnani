@@ -11,6 +11,7 @@ import MobileOtpGate from "./MobileOtpGate";
 import { inputClass } from "./inputStyles";
 import { formatMobile, isMobileValid, isPasswordValid, generateAccountId } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
+import { POST_TOUR_KEY } from "@/components/layout/PostPropertyTour";
 import { RTO_STATES, getCitiesForState } from "@/lib/cityRto";
 
 const INITIAL_FORM = {
@@ -115,8 +116,14 @@ export default function OwnerRegistrationWizard() {
   }
 
 
+  // Arrived via /list-free (tour flag set) → back returns there; the OTP gate's
+  // history trap would otherwise make router.back() a no-op.
+  function goBack() {
+    router.push(localStorage.getItem(POST_TOUR_KEY) === "1" ? "/list-free" : "/auth/register");
+  }
+
   return (
-    <AuthShell size="lg">
+    <AuthShell size="lg" onBack={goBack}>
       <div className="mb-6 text-center">
         <h1 className="font-display text-2xl text-cream sm:text-3xl">Basic Details</h1>
         <p className="mt-2 text-sm text-muted">

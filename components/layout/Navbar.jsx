@@ -658,7 +658,7 @@ export default function Navbar() {
     e.preventDefault();
     setMobileOpen(false);
     if (!isAuthenticated) {
-      setShowAuthGate(true);
+      router.push("/list-free");
     } else if (user?.profileComplete === false) {
       setShowCompleteProfile(true);
     } else {

@@ -412,7 +412,7 @@ export default function BrokerRegistrationWizard() {
         step={step}
         total={TOTAL_STEPS}
         label={STEP_LABELS[step - 1]}
-        onBack={step > 1 ? goBack : () => router.push(isEditing ? "/account" : "/auth/register")}
+        onBack={step > 1 ? goBack : () => router.push(isEditing ? "/account" : localStorage.getItem("se_post_tour") === "1" ? "/list-free" : "/auth/register")}
       />
 
       <div className="mb-6 text-center">

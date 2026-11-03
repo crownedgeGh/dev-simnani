@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import AuthGateModal from "@/components/auth/AuthGateModal";
 import ListingLimitModal from "@/components/property/ListingLimitModal";
 import BackButton from "@/components/layout/BackButton";
 import PostPropertyForm from "@/components/property/PostPropertyForm";
@@ -34,6 +33,10 @@ export default function PostPropertyGuardedForm({ editId, backButtonClassName = 
       .catch(() => {});
   }, [editId, isAuthenticated]);
 
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) router.replace("/list-free");
+  }, [isLoading, isAuthenticated, router]);
+
   function handleBack() {
     if (formRef.current) {
       formRef.current.guardClose(() => router.back());
@@ -45,7 +48,7 @@ export default function PostPropertyGuardedForm({ editId, backButtonClassName = 
   if (isLoading) return null;
 
   if (!isAuthenticated) {
-    return <AuthGateModal isOpen onClose={() => router.push("/")} />;
+    return null;
   }
 
   if (limitStatus?.limitReached) {
