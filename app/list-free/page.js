@@ -1,0 +1,16 @@
+import ListFreeLanding from "@/components/property/ListFreeLanding";
+
+const TITLE = "Sell or Rent Your Property — List Free | Simnani Estate";
+const DESCRIPTION =
+  "Want to sell or rent your property? Post it free on Simnani Estate and get genuine buyer & tenant enquiries. Owners 5 free listings, brokers 20 free listings.";
+
+export const metadata = {
+  title: TITLE,
+  description: DESCRIPTION,
+  openGraph: { title: TITLE, description: DESCRIPTION, siteName: "Simnani Estate", type: "website" },
+  twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION },
+};
+
+export default function ListFreePage() {
+  return <ListFreeLanding />;
+}

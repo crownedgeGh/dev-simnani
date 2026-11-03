@@ -7,6 +7,7 @@ export const revalidate = 3600;
 
 const STATIC_ROUTES = [
   "/",
+  "/list-free",
   "/buy",
   "/rent",
   "/sell",

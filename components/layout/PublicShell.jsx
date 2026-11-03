@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import PostPropertyTour from "@/components/layout/PostPropertyTour";
 
 export default function PublicShell({ children }) {
   const pathname = usePathname();
@@ -26,6 +27,7 @@ export default function PublicShell({ children }) {
       <Navbar />
       <main className="flex-1">{children}</main>
       <Footer />
+      <PostPropertyTour />
     </>
   );
 }
