@@ -29,7 +29,7 @@ export default async function Image() {
           <div style={{ display: "flex", fontSize: 34, color: "#9aa3b8" }}>No charges. Genuine leads.</div>
         </div>
         <div style={{ marginTop: 40, display: "flex", gap: 20 }}>
-          {chip("Owners · 5 free listings")}
+          {chip("Owners & Brokers welcome")}
           {chip("Brokers · 20 free listings")}
         </div>
       </div>
