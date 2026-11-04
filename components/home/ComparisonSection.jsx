@@ -1,8 +1,8 @@
 import { MdWorkspacePremium, MdArrowForward } from "react-icons/md";
 
 const ROWS = [
-  { label: "Free Listings (Owners)", others: "1 Listing", us: "5 Listings" },
-  { label: "Free Listings (Brokers)", others: "Up to 15", us: "Up to 20" },
+  { label: "Free Listing for Owner", others: "1 Listing", us: "5 Listings" },
+  { label: "Free Listing for Broker", others: "Up to 15", us: "Up to 20" },
 ];
 
 export default function ComparisonSection() {
