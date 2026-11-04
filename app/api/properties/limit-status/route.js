@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Property from "@/models/Property";
-import { getListingLimit, getVisibilityMonths, listingCountFilter } from "@/lib/properties";
+import { getListingLimit, getVisibilityMonths, listingCountFilter, addMonthsUTC } from "@/lib/properties";
 import { getSessionUser } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
@@ -30,9 +30,7 @@ export async function GET(request) {
       if (oldest?.expiresAt) {
         waitUntil = new Date(oldest.expiresAt).toISOString();
       } else if (oldest?.createdAt) {
-        const wait = new Date(oldest.createdAt);
-        wait.setMonth(wait.getMonth() + months);
-        waitUntil = wait.toISOString();
+        waitUntil = addMonthsUTC(oldest.createdAt, months).toISOString();
       }
     }
 

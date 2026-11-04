@@ -3,7 +3,7 @@ import dbConnect from "@/lib/mongodb";
 import Property from "@/models/Property";
 import { getSessionUser } from "@/lib/session";
 import { getListingExpiry, isListingExpired, OWNER_SLOTS_FULL_MESSAGE } from "@/lib/properties";
-import { ownerSlotsFull } from "@/lib/listingSlots";
+import { ownerSlotsFull, overLimit } from "@/lib/listingSlots";
 
 export const dynamic = "force-dynamic";
 
@@ -40,6 +40,15 @@ export async function POST(request, { params }) {
       { $set: { expiresAt: expiry, status: "Active" } },
       { new: true }
     ).lean();
+
+    if (await overLimit(sessionUser)) {
+      // lost a race with another post/renew — undo
+      await Property.updateOne(
+        { id, ownerId: sessionUser.accountId },
+        { $set: { expiresAt: existing.expiresAt, status: existing.status } }
+      );
+      return NextResponse.json({ success: false, error: OWNER_SLOTS_FULL_MESSAGE }, { status: 409 });
+    }
 
     return NextResponse.json({ success: true, message: "Listing renewed", data: updated });
   } catch (error) {

@@ -9,8 +9,8 @@ import {
   RESIDENTIAL_PROPERTY_TYPES,
 } from "@/lib/properties";
 import { getPropertyById } from "@/lib/propertiesServer";
-import { canDeleteListing, OWNER_SLOTS_FULL_MESSAGE } from "@/lib/properties";
-import { ownerSlotsFull } from "@/lib/listingSlots";
+import { canDeleteListing, isListingExpired, OWNER_SLOTS_FULL_MESSAGE } from "@/lib/properties";
+import { ownerSlotsFull, overLimit } from "@/lib/listingSlots";
 import { getSessionUser } from "@/lib/session";
 import { isAdminRequest } from "@/lib/adminSession";
 import { isRateLimited, rateLimitResponse } from "@/lib/rateLimit";
@@ -38,6 +38,13 @@ export async function GET(request, { params }) {
 
     const isAdmin = isAdminRequest(request);
     const sessionUser = await getSessionUser(request);
+
+    // Closed/Sold/expired listings are only visible to their owner and admins.
+    const isHidden = ["Closed", "Sold"].includes(property.status) || isListingExpired(property);
+    if (isHidden && !isAdmin && !(sessionUser && sessionUser.accountId === property.ownerId)) {
+      return NextResponse.json({ success: false, error: "Property not found" }, { status: 404 });
+    }
+
     const canSeeContact = isAdmin || (sessionUser && sessionUser.accountId === property.ownerId);
     const safeProperty = canSeeContact
       ? property
@@ -82,14 +89,29 @@ export async function PUT(request, { params }) {
 
     const body = await request.json();
 
-    // Owner/builder: reopening a Closed/Sold listing takes a free active slot.
-    if (
-      sessionUser &&
-      body.status === "Active" &&
-      ["Closed", "Sold"].includes(existing.status) &&
-      (await ownerSlotsFull(sessionUser))
-    ) {
-      return NextResponse.json({ success: false, error: OWNER_SLOTS_FULL_MESSAGE }, { status: 403 });
+    if (sessionUser) {
+      // Server-owned fields: a client must not move a listing to another
+      // owner, change its tier snapshot, or extend its own expiry.
+      for (const key of ["ownerId", "postedByAccountType", "postedByRole", "expiresAt", "featured"]) {
+        delete body[key];
+      }
+      if (body.status !== undefined && body.status !== existing.status) {
+        const next = body.status;
+        const wasOut = ["Closed", "Sold", "Rejected"].includes(existing.status);
+        // Owners can only deactivate/mark sold, reopen their own closed/sold
+        // listing, or submit a draft/rejected one for review — never self-approve.
+        const allowed =
+          ["Closed", "Sold"].includes(next) ||
+          (next === "Active" && ["Closed", "Sold"].includes(existing.status)) ||
+          (next === "Pending Review" && ["Draft", "Rejected"].includes(existing.status));
+        if (!allowed) {
+          return NextResponse.json({ success: false, error: "This status change is not allowed" }, { status: 403 });
+        }
+        // Moving back into a counted status takes a free slot.
+        if (wasOut && !["Closed", "Sold", "Rejected"].includes(next) && (await ownerSlotsFull(sessionUser))) {
+          return NextResponse.json({ success: false, error: OWNER_SLOTS_FULL_MESSAGE }, { status: 403 });
+        }
+      }
     }
 
     // Task 4 (API-side backstop): a closed listing can only be reopened
@@ -210,6 +232,16 @@ export async function PUT(request, { params }) {
         { success: false, error: "Property not found" },
         { status: 404 }
       );
+    }
+
+    // Reopen race: two reopen/post requests passed the slot check together.
+    const reopened =
+      sessionUser &&
+      ["Closed", "Sold", "Rejected"].includes(existing.status) &&
+      !["Closed", "Sold", "Rejected"].includes(updated.status);
+    if (reopened && (await overLimit(sessionUser))) {
+      await Property.updateOne({ _id: updated._id }, { $set: { status: existing.status } });
+      return NextResponse.json({ success: false, error: OWNER_SLOTS_FULL_MESSAGE }, { status: 409 });
     }
 
     return NextResponse.json({

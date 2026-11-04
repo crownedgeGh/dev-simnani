@@ -77,6 +77,10 @@ export async function POST(request) {
       return NextResponse.json({ success: false, error: "Property not found" }, { status: 404 });
     }
 
+    if (["Closed", "Sold"].includes(property.status) || (property.expiresAt && new Date(property.expiresAt) <= new Date())) {
+      return NextResponse.json({ success: false, error: "Property not found" }, { status: 404 });
+    }
+
     if (!property.ownerId) {
       return NextResponse.json({ success: false, error: "This property has no owning broker" }, { status: 400 });
     }

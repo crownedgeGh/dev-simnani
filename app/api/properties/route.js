@@ -13,6 +13,7 @@ import {
   getListingExpiry,
   OWNER_SLOTS_FULL_MESSAGE,
 } from "@/lib/properties";
+import { keepsSlot } from "@/lib/listingSlots";
 import { getSessionUser } from "@/lib/session";
 import { isAdminRequest } from "@/lib/adminSession";
 import { isRateLimited, rateLimitResponse } from "@/lib/rateLimit";
@@ -215,6 +216,18 @@ export async function POST(request) {
     };
 
     const newProperty = await Property.create(propertyData);
+
+    if (sessionUser && !(await keepsSlot(sessionUser, newProperty))) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: getListingExpiry(sessionUser.accountType)
+            ? OWNER_SLOTS_FULL_MESSAGE
+            : "You have reached your listing limit. Remove an existing listing to post more.",
+        },
+        { status: 409 }
+      );
+    }
 
     return NextResponse.json(
       {
