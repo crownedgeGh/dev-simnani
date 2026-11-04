@@ -26,6 +26,15 @@ export const metadata = {
   title: "Simnani Estate | Find a Place You'll Love to Call Home",
   description:
     "Discover properties, investment opportunities and trusted real estate services with Simnani Estate.",
+  openGraph: {
+    title: "Simnani Estate | Find a Place You'll Love to Call Home",
+    description:
+      "Discover properties, investment opportunities and trusted real estate services with Simnani Estate.",
+    siteName: "Simnani Estate",
+    type: "website",
+    images: [{ url: "/whatspCover.webp", width: 1671, height: 941, alt: "Simnani Estate" }],
+  },
+  twitter: { card: "summary_large_image", images: ["/whatspCover.webp"] },
   icons: {
     icon: "/favicon.png",
     shortcut: "/favicon.png",
