@@ -15,7 +15,7 @@ import { MdHourglassBottom, MdClose, MdBolt } from "react-icons/md";
  *   waitUntil  {string|null} ISO date — when the free slot reopens
  *   isBroker   {boolean}     — brokers get a Top Up CTA, owners don't
  */
-export default function ListingLimitModal({ isOpen, onClose, waitUntil, isBroker }) {
+export default function ListingLimitModal({ isOpen, onClose, waitUntil, isBroker, ownerMessage }) {
   const overlayRef = useRef(null);
 
   useEffect(() => {
@@ -102,8 +102,14 @@ export default function ListingLimitModal({ isOpen, onClose, waitUntil, isBroker
           </div>
 
           <p className="mb-5 text-[13.5px] leading-relaxed text-muted">
-            You&apos;ve used up all your free listings.{" "}
-            {waitDateLabel ? (
+            {ownerMessage ? (
+              <>
+                {ownerMessage}{" "}
+              </>
+            ) : (
+              <>You&apos;ve used up all your free listings.{" "}</>
+            )}
+            {ownerMessage ? null : waitDateLabel ? (
               <>
                 You can post a new free listing again from <span className="text-cream">{waitDateLabel}</span>{" "}
                 onwards.
@@ -129,6 +135,15 @@ export default function ListingLimitModal({ isOpen, onClose, waitUntil, isBroker
               </Link>
             )}
 
+            {ownerMessage && (
+              <Link
+                href="/portal/owner"
+                onClick={onClose}
+                className="tracked-label flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full bg-gold-400 px-5 py-3.5 text-center text-xs font-bold text-navy-950 transition hover:bg-gold-300 active:scale-[0.98]"
+              >
+                Manage My Listings
+              </Link>
+            )}
             <button
               type="button"
               onClick={onClose}

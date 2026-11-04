@@ -9,6 +9,9 @@ import {
   RESIDENTIAL_PROPERTY_TYPES,
   getListingLimit,
   listingCountFilter,
+  notExpiredFilter,
+  getListingExpiry,
+  OWNER_SLOTS_FULL_MESSAGE,
 } from "@/lib/properties";
 import { getSessionUser } from "@/lib/session";
 import { isAdminRequest } from "@/lib/adminSession";
@@ -62,6 +65,13 @@ export async function GET(request) {
 
     if (status && status !== "all") {
       query.status = status;
+    }
+
+    // Expired owner/builder listings drop out of public search; admins and the
+    // owner viewing their own listings (dashboard "Expired" tab) still see them.
+    const isOwnView = sessionUser && ownerId && ownerId === sessionUser.accountId;
+    if (!isAdmin && !isOwnView) {
+      Object.assign(query, notExpiredFilter());
     }
 
     if (featured === "true") {
@@ -140,7 +150,9 @@ export async function POST(request) {
         return NextResponse.json(
           {
             success: false,
-            error: `You have reached your listing limit of ${limit}. Remove an existing listing to post more.`,
+            error: getListingExpiry(sessionUser.accountType)
+              ? OWNER_SLOTS_FULL_MESSAGE
+              : `You have reached your listing limit of ${limit}. Remove an existing listing to post more.`,
           },
           { status: 403 }
         );
@@ -190,6 +202,7 @@ export async function POST(request) {
       ownerId: sessionUser ? sessionUser.accountId : "",
       postedByRole: body.postedByRole || "public",
       postedByAccountType: sessionUser ? sessionUser.accountType || "" : "admin",
+      expiresAt: sessionUser ? getListingExpiry(sessionUser.accountType) : null,
       // ponytail: dev convenience, auto-approve so local testing doesn't need admin review — but never for a Draft, that's an explicit "not ready yet" state
       ...(process.env.NODE_ENV !== "production" && body.status !== "Draft" ? { status: "Active" } : {}),
       addedDate:

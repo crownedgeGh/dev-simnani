@@ -9,7 +9,8 @@ import {
   RESIDENTIAL_PROPERTY_TYPES,
 } from "@/lib/properties";
 import { getPropertyById } from "@/lib/propertiesServer";
-import { canDeleteListing } from "@/lib/properties";
+import { canDeleteListing, OWNER_SLOTS_FULL_MESSAGE } from "@/lib/properties";
+import { ownerSlotsFull } from "@/lib/listingSlots";
 import { getSessionUser } from "@/lib/session";
 import { isAdminRequest } from "@/lib/adminSession";
 import { isRateLimited, rateLimitResponse } from "@/lib/rateLimit";
@@ -80,6 +81,16 @@ export async function PUT(request, { params }) {
     }
 
     const body = await request.json();
+
+    // Owner/builder: reopening a Closed/Sold listing takes a free active slot.
+    if (
+      sessionUser &&
+      body.status === "Active" &&
+      ["Closed", "Sold"].includes(existing.status) &&
+      (await ownerSlotsFull(sessionUser))
+    ) {
+      return NextResponse.json({ success: false, error: OWNER_SLOTS_FULL_MESSAGE }, { status: 403 });
+    }
 
     // Task 4 (API-side backstop): a closed listing can only be reopened
     // (status toggle), not edited — the portal already hides the Edit

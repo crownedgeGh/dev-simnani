@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { canAccessPostProperty } from "@/lib/accountPermissions";
+import { OWNER_SLOTS_FULL_MESSAGE } from "@/lib/properties";
 import { useAuth } from "@/context/AuthContext";
 import ListingLimitModal from "@/components/property/ListingLimitModal";
 import BackButton from "@/components/layout/BackButton";
@@ -65,6 +66,7 @@ export default function PostPropertyGuardedForm({ editId, backButtonClassName = 
         onClose={() => router.push("/")}
         waitUntil={limitStatus.waitUntil}
         isBroker={user?.accountType === "broker" || user?.accountType === "freelancer"}
+        ownerMessage={user?.accountType === "owner" || user?.accountType === "builder" ? OWNER_SLOTS_FULL_MESSAGE : null}
       />
     );
   }

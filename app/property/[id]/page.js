@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { isListingExpired } from "@/lib/properties";
 import { getPropertyById } from "@/lib/propertiesServer";
 import PropertyDetailContent from "@/components/property/PropertyDetailContent";
 import PropertyActionCard from "@/components/property/PropertyActionCard";
@@ -11,7 +12,7 @@ export const revalidate = 60; // cache listing HTML for 60s instead of hitting M
 export async function generateMetadata({ params }) {
   const { id } = await params;
   const property = await getPropertyById(id);
-  if (!property || property.status === "Closed") return {};
+  if (!property || property.status === "Closed" || isListingExpired(property)) return {};
 
   const title = `${property.title} | Simnani Estate`;
 
@@ -111,7 +112,7 @@ export default async function PropertyDetailPage({ params, searchParams }) {
   const { campaign } = await searchParams;
   const property = await getPropertyById(id);
 
-  if (!property || property.status === "Closed") {
+  if (!property || property.status === "Closed" || isListingExpired(property)) {
     notFound();
   }
 

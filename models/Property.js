@@ -113,6 +113,9 @@ const PropertySchema = new mongoose.Schema(
       default: "public",
       index: true,
     },
+    // Owner/builder listings go public-hidden ("Expired") after this date until
+    // renewed; unset = never expires. See lib/properties.js.
+    expiresAt: { type: Date, default: null, index: true },
     // Snapshot of the poster's accountType at creation time (owner,
     // broker, freelancer, ...), used only to tell Owner vs Broker apart when
     // postedByRole is "public". Server-set, not trusted from the client.

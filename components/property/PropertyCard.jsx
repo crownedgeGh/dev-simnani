@@ -24,7 +24,7 @@ import {
   MdEditNote,
   MdPublish,
 } from "react-icons/md";
-import { formatPostedDate, getPropertyCategoryLabels, formatBhkLabel } from "@/lib/properties";
+import { formatPostedDate, getPropertyCategoryLabels, formatBhkLabel, isListingExpired } from "@/lib/properties";
 import { useSavedPropertyIds } from "@/lib/savedProperties";
 import LocationLink from "@/components/common/LocationLink";
 import { useAuth } from "@/context/AuthContext";
@@ -52,10 +52,28 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
   const { typeLabel, categoryLabel } = getPropertyCategoryLabels(property);
   const onHold = ownerView && property.correctionRequest?.active;
   const underReview = ownerView && !property.correctionRequest?.active && property.correctionRequest?.underReview;
-  const closed = ownerView && status === "Closed";
+  const expired = ownerView && status !== "Closed" && status !== "Sold" && isListingExpired(property);
+  const closed = ownerView && (status === "Closed" || status === "Sold");
   const draft = ownerView && status === "Draft";
   const pendingApproval = ownerView && status === "Pending Review" && !onHold && !underReview;
   const approved = ownerView && status === "Active" && !onHold && !underReview;
+
+  async function handleRenew(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    setReopening(true);
+    try {
+      const res = await fetch(`/api/properties/${id}/renew`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || "Failed to renew listing");
+      toast.success("Listing renewed.");
+      router.refresh();
+    } catch (err) {
+      toast.error(err.message || "Failed to renew listing.");
+    } finally {
+      setReopening(false);
+    }
+  }
 
   async function handleReopen(e) {
     e.preventDefault();
@@ -170,10 +188,15 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
             closed ? "grayscale" : ""
           }`}
         />
-        {closed ? (
+        {expired ? (
           <span className="tracked-label absolute left-3 top-3 flex items-center gap-1 rounded-full bg-navy-950/90 px-2.5 py-1 text-[10px] font-semibold text-muted">
             <MdLockOutline className="h-3 w-3 shrink-0" />
-            Closed
+            Expired
+          </span>
+        ) : closed ? (
+          <span className="tracked-label absolute left-3 top-3 flex items-center gap-1 rounded-full bg-navy-950/90 px-2.5 py-1 text-[10px] font-semibold text-muted">
+            <MdLockOutline className="h-3 w-3 shrink-0" />
+            {status === "Sold" ? "Sold / Rented" : "Deactivated"}
           </span>
         ) : draft ? (
           <span className="tracked-label absolute left-3 top-3 flex items-center gap-1 rounded-full bg-navy-950/90 px-2.5 py-1 text-[10px] font-semibold text-muted">
@@ -291,7 +314,19 @@ export default function PropertyCard({ property, hideContactButton, emphasizeDet
           )}
         </div>
 
-        {closed ? (
+        {expired ? (
+          <div className="mt-auto pt-5">
+            <button
+              type="button"
+              disabled={reopening}
+              onClick={handleRenew}
+              className="tracked-label flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full border border-gold-500/70 py-2.5 text-center text-xs text-gold-400 transition hover:bg-gold-500/10 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <MdLockOpen className="h-4 w-4 shrink-0" />
+              {reopening ? "Renewing…" : "Renew Listing"}
+            </button>
+          </div>
+        ) : closed ? (
           <div className="mt-auto pt-5">
             <button
               type="button"

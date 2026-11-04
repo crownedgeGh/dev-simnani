@@ -19,14 +19,17 @@ export async function GET(request) {
     const count = await Property.countDocuments(listingCountFilter(sessionUser.accountId, sessionUser.accountType));
     const limitReached = count >= limit;
 
+    // Owner/builder: slots free up when a listing is deactivated/sold, or at
+    // the earliest expiry. Broker: oldest listing ages out of the rolling window.
     let waitUntil = null;
     const months = getVisibilityMonths(sessionUser.accountType);
     if (limitReached && months) {
-      // Oldest counted listing ages out of the window first (rolling reset).
       const oldest = await Property.findOne(listingCountFilter(sessionUser.accountId, sessionUser.accountType))
-        .sort({ createdAt: 1 })
+        .sort({ expiresAt: 1, createdAt: 1 })
         .lean();
-      if (oldest?.createdAt) {
+      if (oldest?.expiresAt) {
+        waitUntil = new Date(oldest.expiresAt).toISOString();
+      } else if (oldest?.createdAt) {
         const wait = new Date(oldest.createdAt);
         wait.setMonth(wait.getMonth() + months);
         waitUntil = wait.toISOString();

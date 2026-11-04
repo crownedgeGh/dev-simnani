@@ -27,6 +27,7 @@ import EmptyState from "./EmptyState";
 import RefreshButton from "./RefreshButton";
 import FormField from "@/components/auth/FormField";
 import { inputClass, textareaClass } from "@/components/auth/inputStyles";
+import { isListingExpired } from "@/lib/properties";
 import ServiceProviderPlanCards from "@/components/payment/ServiceProviderPlanCards";
 
 const BASE_TABS = [
@@ -61,6 +62,11 @@ export default function OwnerDashboard({
   const listingsRemaining = stats?.listingsRemaining;
   const listingLimit = stats?.listingLimit;
   const [tab, setTab] = useState(showListings ? "listings" : TABS[0].key);
+  const [listingView, setListingView] = useState("active");
+  const isArchived = (p) => p.status === "Closed" || p.status === "Sold";
+  const archivedListings = (listings || []).filter(isArchived);
+  const expiredListings = (listings || []).filter((p) => !isArchived(p) && isListingExpired(p));
+  const liveListings = (listings || []).filter((p) => !isArchived(p) && !isListingExpired(p));
   const [leadList, setLeadList] = useState(leads);
   const [clientList, setClientList] = useState(clients);
   const [convertingId, setConvertingId] = useState(null);
@@ -265,7 +271,50 @@ export default function OwnerDashboard({
                 </div>
               </div>
             )}
-            <PropertyGrid properties={listings} emptyMessage="You don't have any listings yet." ownerView />
+            {expiredListings.length > 0 && (
+              <div className="mb-4 flex gap-2">
+                {[
+                  ["active", `Active (${liveListings.length})`],
+                  ["expired", `Expired (${expiredListings.length})`],
+                ].map(([key, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setListingView(key)}
+                    className={`tracked-label min-h-11 rounded-full border px-4 text-xs transition ${
+                      listingView === key
+                        ? "border-gold-400 bg-gold-400 text-navy-950"
+                        : "border-navy-700/60 text-muted hover:border-gold-500/50 hover:text-gold-400"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
+            {listingView === "expired" && expiredListings.length > 0 && (
+              <p className="mb-4 text-sm text-muted">
+                These listings are hidden from public search. Open one and press Renew to bring it back live
+                (needs a free slot).
+              </p>
+            )}
+            <PropertyGrid
+              properties={listingView === "expired" && expiredListings.length > 0 ? expiredListings : liveListings}
+              emptyMessage="You don't have any listings yet."
+              ownerView
+            />
+            {archivedListings.length > 0 && (
+              <section className="mt-12 border-t border-navy-700/60 pt-8">
+                <h2 className="font-display text-xl text-cream">Archived Listings</h2>
+                <p className="mb-4 mt-1 text-sm text-muted">
+                  Deactivated and Sold/Rented properties. They are hidden from the public site and don&apos;t use a
+                  slot. Reopen one to make it live again (needs a free slot).
+                </p>
+                <div className="opacity-60">
+                  <PropertyGrid properties={archivedListings} emptyMessage="" ownerView hideContactButton />
+                </div>
+              </section>
+            )}
           </div>
         )}
 

@@ -4,7 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { MdEdit, MdLockOutline, MdLockOpen, MdVisibility } from "react-icons/md";
+import { MdEdit, MdLockOutline, MdLockOpen, MdVisibility, MdCheckCircleOutline, MdAutorenew } from "react-icons/md";
+import { isListingExpired } from "@/lib/properties";
 
 export default function ListingOwnerActions({ property }) {
   const router = useRouter();
@@ -31,6 +32,26 @@ export default function ListingOwnerActions({ property }) {
     }
   }
 
+  async function renew() {
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/properties/${property.id}/renew`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || "Failed to renew listing");
+      toast.success("Listing renewed.");
+      router.refresh();
+    } catch (err) {
+      toast.error(err.message || "Failed to renew listing.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const expired = isListingExpired(property) && status !== "Closed";
+  const inactive = status === "Closed" || status === "Sold";
+  const btn =
+    "tracked-label flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-navy-700/60 py-2.5 text-xs transition hover:border-gold-500/50 hover:text-gold-400 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50";
+
   return (
     <div className="border border-navy-700/60 bg-navy-900 p-5">
       <p className="tracked-label text-xs text-gold-400">Manage Listing</p>
@@ -39,7 +60,18 @@ export default function ListingOwnerActions({ property }) {
       </p>
 
       <div className="mt-5 flex flex-col gap-3">
-        {status === "Closed" ? (
+        {expired && (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={renew}
+            className="tracked-label flex min-h-11 items-center justify-center gap-1.5 rounded-full bg-gold-400 py-2.5 text-xs font-bold text-navy-950 transition hover:bg-gold-300 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <MdAutorenew className="h-4 w-4" />
+            Renew Listing
+          </button>
+        )}
+        {inactive ? (
           <button
             type="button"
             disabled
@@ -69,7 +101,7 @@ export default function ListingOwnerActions({ property }) {
           View Public Page
         </Link>
 
-        {status === "Closed" ? (
+        {inactive ? (
           <button
             type="button"
             disabled={busy}
@@ -84,12 +116,12 @@ export default function ListingOwnerActions({ property }) {
             type="button"
             disabled={busy}
             onClick={() =>
-              toast("Close this listing?", {
+              toast("Deactivate this listing?", {
                 description: `"${property.title}" will be hidden from the public site.`,
                 duration: Infinity,
                 action: {
-                  label: "Close Listing",
-                  onClick: () => updateStatus("Closed", "Listing closed."),
+                  label: "Deactivate",
+                  onClick: () => updateStatus("Closed", "Listing deactivated. Your slot is free."),
                 },
                 cancel: { label: "Cancel", onClick: () => {} },
               })
@@ -97,7 +129,26 @@ export default function ListingOwnerActions({ property }) {
             className="tracked-label flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-navy-700/60 py-2.5 text-xs text-muted transition hover:border-gold-500/50 hover:text-gold-400 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
           >
             <MdLockOutline className="h-4 w-4" />
-            Close Listing
+            Deactivate Listing
+          </button>
+        )}
+
+        {!inactive && (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() =>
+              toast("Mark as Sold/Rented?", {
+                description: `"${property.title}" will be hidden and its slot freed.`,
+                duration: Infinity,
+                action: { label: "Confirm", onClick: () => updateStatus("Sold", "Marked as Sold/Rented. Your slot is free.") },
+                cancel: { label: "Cancel", onClick: () => {} },
+              })
+            }
+            className={`${btn} text-muted`}
+          >
+            <MdCheckCircleOutline className="h-4 w-4" />
+            Mark as Sold/Rented
           </button>
         )}
       </div>

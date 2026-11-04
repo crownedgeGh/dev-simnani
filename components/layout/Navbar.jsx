@@ -9,6 +9,8 @@ import { getAccountPermissions } from "@/lib/accountPermissions";
 import { TEST_MODE_CP_PROFILES } from "@/lib/testModeCp";
 import AuthGateModal from "@/components/auth/AuthGateModal";
 import CompleteProfileModal from "@/components/auth/CompleteProfileModal";
+import ListingLimitModal from "@/components/property/ListingLimitModal";
+import { OWNER_SLOTS_FULL_MESSAGE } from "@/lib/properties";
 import { MdHome, MdTrendingUp, MdPersonAdd, MdAgriculture, MdFactory, MdScience, MdTerrain, MdAccountBalance, MdGridView, MdBolt } from "react-icons/md";
 import {
   FiUser, FiMenu, FiX,
@@ -309,7 +311,7 @@ function MobileTestModeAccordion({ isOpen, onToggle, onSelect, onSelectCp, tone 
 }
 
 /** User dropdown panel (desktop) */
-function UserDropdown({ user, cityLabel, onSelectCp, onClose, onLogout }) {
+function UserDropdown({ user, cityLabel, onSelectCp, onClose, onLogout, onPostProperty }) {
   const [testModeOpen, setTestModeOpen] = useState(false);
   const fullName = user?.fullName;
   const typeLabel = getAccountTypeLabel(user);
@@ -429,7 +431,10 @@ function UserDropdown({ user, cityLabel, onSelectCp, onClose, onLogout }) {
           <Link
             key={label}
             href={href}
-            onClick={onClose}
+            onClick={(e) => {
+              onClose();
+              if (href === "/post-property") onPostProperty(e);
+            }}
             className="dd-item"
             style={{
               display: "flex", alignItems: "center", gap: 13,
@@ -599,6 +604,7 @@ export default function Navbar() {
   const [mobileTestModeOpen, setMobileTestModeOpen] = useState(false);
   const [showAuthGate, setShowAuthGate] = useState(false);
   const [showCompleteProfile, setShowCompleteProfile] = useState(false);
+  const [limitStatus, setLimitStatus] = useState(null);
   const [cityLabel, setCityLabel] = useState("");
   const { isAuthenticated, isLoading, user, login, logout } = useAuth();
   const router = useRouter();
@@ -654,7 +660,7 @@ export default function Navbar() {
     router.push("/");
   }
 
-  function handlePostProperty(e) {
+  async function handlePostProperty(e) {
     e.preventDefault();
     setMobileOpen(false);
     if (!isAuthenticated) {
@@ -662,6 +668,17 @@ export default function Navbar() {
     } else if (user?.profileComplete === false) {
       setShowCompleteProfile(true);
     } else {
+      // Show the limit popup right here instead of opening /post-property.
+      try {
+        const res = await fetch("/api/properties/limit-status");
+        const json = await res.json();
+        if (json.success && json.data.limitReached) {
+          setLimitStatus(json.data);
+          return;
+        }
+      } catch {
+        // fall through — /post-property re-checks the limit itself
+      }
       router.push("/post-property");
     }
   }
@@ -697,6 +714,14 @@ export default function Navbar() {
         resumeHref={
           user ? `/auth/register/${user.accountType}?step=${user.registrationStep || 1}` : "/auth/register"
         }
+      />
+
+      <ListingLimitModal
+        isOpen={!!limitStatus}
+        onClose={() => setLimitStatus(null)}
+        waitUntil={limitStatus?.waitUntil}
+        isBroker={user?.accountType === "broker" || user?.accountType === "freelancer"}
+        ownerMessage={user?.accountType === "owner" || user?.accountType === "builder" ? OWNER_SLOTS_FULL_MESSAGE : null}
       />
 
       <header className="sticky top-0 z-50 border-b border-navy-700/60 bg-navy-950/95 backdrop-blur">
@@ -786,6 +811,7 @@ export default function Navbar() {
                     onSelectCp={handleTestModeSelectCp}
                     onClose={() => setDropdownOpen(false)}
                     onLogout={handleLogout}
+                    onPostProperty={handlePostProperty}
                   />
                 )}
               </div>

@@ -326,11 +326,12 @@ Owner, Builder and Broker (`accountType: "broker"` or `"freelancer"`, i.e. the C
 
 | Account type | Free listing limit | Free visibility window | Delete lock |
 |---|---|---|---|
-| `owner` / `builder` | 5 listings | 3 months from `createdAt` | Locked for 3 months — can only **Close**, not delete |
+| `owner` / `builder` | 5 **active** slots | 6 months, then auto-**Expired** (`expiresAt`) | Locked for 3 months — can only **Deactivate/Sold**, not delete |
 | `broker` / `freelancer` (CP) | 20 listings, **resets every 6 months** | 6 months from `createdAt` | Locked for 3 months — can only **Close**, not delete |
 | `buyer` / `investor` / `employee` / `service-provider` | **0 — cannot post** | — | — |
 
 - **Broker reset:** only listings created within the last 6 months count toward the 20 (`listingCountFilter()` in `lib/properties.js`, rolling window). Owner/builder count all their listings.
+- **Owner/builder slots:** only live listings count (`listingCountFilter()`): `Closed`/`Sold`/`Rejected` and expired ones free their slot. Full → `POST /api/properties` and reopen return `OWNER_SLOTS_FULL_MESSAGE`. `Property.expiresAt` is set at creation (`getListingExpiry()`); expired listings are hidden from public queries (`notExpiredFilter()` in `lib/propertiesServer.js`, `GET /api/properties`, `/property/[id]`), shown in the dashboard's Expired tab, and renewed via `POST /api/properties/[id]/renew` (needs a free slot). No cron — expiry is derived at query time.
 - **No-post account types:** the "Post Property" button is hidden everywhere for them (Navbar, `CtaBanner`, `PostOnCategoryButton`), `/post-property` redirects them to `/`, and `POST /api/properties` returns 403 (limit 0; topup credits don't unlock it). Gate UI with `canAccessPostProperty()` from `lib/accountPermissions.js`.
 
 - All of this logic lives in `lib/properties.js`: `getListingLimit()`, `listingCountFilter()`, `getVisibilityMonths()`, `canDeleteListing()`, `monthsSince()`. Don't duplicate these constants elsewhere.

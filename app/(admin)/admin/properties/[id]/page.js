@@ -642,6 +642,15 @@ export default function PropertyDetailPage() {
                     value: getGenderPreferenceLabel(property.genderPreference),
                   },
                 { icon: <MdAccessTime />, label: "Posted", value: formatPostedDate(property) || property.addedDate },
+                ...(property.expiresAt
+                  ? [
+                      {
+                        icon: <MdAccessTime />,
+                        label: new Date(property.expiresAt) <= new Date() ? "Expired on" : "Expires on",
+                        value: new Date(property.expiresAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }),
+                      },
+                    ]
+                  : []),
                 { icon: <MdPerson />, label: "Contact Person", value: property.contact?.fullName },
                 { icon: <MdPhone />, label: "Contact Number", value: property.contact?.mobile, isPhone: true },
               ]
