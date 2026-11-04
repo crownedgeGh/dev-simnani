@@ -8,6 +8,7 @@ import {
   isResidentialSection,
   RESIDENTIAL_PROPERTY_TYPES,
   getListingLimit,
+  listingCountFilter,
 } from "@/lib/properties";
 import { getSessionUser } from "@/lib/session";
 import { isAdminRequest } from "@/lib/adminSession";
@@ -128,7 +129,13 @@ export async function POST(request) {
 
     if (sessionUser) {
       const limit = getListingLimit(sessionUser.accountType, sessionUser.topupCredits);
-      const existingCount = await Property.countDocuments({ ownerId: sessionUser.accountId });
+      const existingCount = await Property.countDocuments(listingCountFilter(sessionUser.accountId, sessionUser.accountType));
+      if (limit === 0) {
+        return NextResponse.json(
+          { success: false, error: "Your account type cannot post properties" },
+          { status: 403 }
+        );
+      }
       if (existingCount >= limit) {
         return NextResponse.json(
           {

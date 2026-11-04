@@ -1,3 +1,4 @@
+import { getListingLimit } from "@/lib/properties";
 import mongoose from "mongoose";
 import { SERVICE_PROVIDER_TYPE_VALUES } from "@/lib/serviceProviders";
 
@@ -160,7 +161,10 @@ const UserSchema = new mongoose.Schema(
     },
     planPropertyLimit: {
       type: Number,
-      default: 10,
+      // Mirror the free-tier cap (owner 5, broker 20, else 0) from lib/properties.js
+      default: function () {
+        return getListingLimit(this.accountType);
+      },
     },
     planExpiresAt: {
       type: Date,

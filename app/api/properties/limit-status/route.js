@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Property from "@/models/Property";
-import { getListingLimit, getVisibilityMonths } from "@/lib/properties";
+import { getListingLimit, getVisibilityMonths, listingCountFilter } from "@/lib/properties";
 import { getSessionUser } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
@@ -16,17 +16,18 @@ export async function GET(request) {
     await dbConnect();
 
     const limit = getListingLimit(sessionUser.accountType, sessionUser.topupCredits);
-    const count = await Property.countDocuments({ ownerId: sessionUser.accountId });
+    const count = await Property.countDocuments(listingCountFilter(sessionUser.accountId, sessionUser.accountType));
     const limitReached = count >= limit;
 
     let waitUntil = null;
     const months = getVisibilityMonths(sessionUser.accountType);
     if (limitReached && months) {
-      const lastListing = await Property.findOne({ ownerId: sessionUser.accountId })
-        .sort({ createdAt: -1 })
+      // Oldest counted listing ages out of the window first (rolling reset).
+      const oldest = await Property.findOne(listingCountFilter(sessionUser.accountId, sessionUser.accountType))
+        .sort({ createdAt: 1 })
         .lean();
-      if (lastListing?.createdAt) {
-        const wait = new Date(lastListing.createdAt);
+      if (oldest?.createdAt) {
+        const wait = new Date(oldest.createdAt);
         wait.setMonth(wait.getMonth() + months);
         waitUntil = wait.toISOString();
       }

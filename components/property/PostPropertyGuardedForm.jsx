@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { canAccessPostProperty } from "@/lib/accountPermissions";
 import { useAuth } from "@/context/AuthContext";
 import ListingLimitModal from "@/components/property/ListingLimitModal";
 import BackButton from "@/components/layout/BackButton";
@@ -23,15 +24,21 @@ export default function PostPropertyGuardedForm({ editId, backButtonClassName = 
   const { isAuthenticated, isLoading, user } = useAuth();
   const [limitStatus, setLimitStatus] = useState(null);
 
+  const blocked = !editId && isAuthenticated && !!user && !canAccessPostProperty(user.accountType);
+
   useEffect(() => {
-    if (editId || !isAuthenticated) return;
+    if (blocked) router.replace("/");
+  }, [blocked, router]);
+
+  useEffect(() => {
+    if (editId || !isAuthenticated || blocked) return;
     fetch("/api/properties/limit-status")
       .then((res) => res.json())
       .then((data) => {
         if (data.success) setLimitStatus(data.data);
       })
       .catch(() => {});
-  }, [editId, isAuthenticated]);
+  }, [editId, isAuthenticated, blocked]);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) router.replace("/list-free");
@@ -47,7 +54,7 @@ export default function PostPropertyGuardedForm({ editId, backButtonClassName = 
 
   if (isLoading) return null;
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated || blocked) {
     return null;
   }
 

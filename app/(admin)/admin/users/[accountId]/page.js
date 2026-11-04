@@ -11,6 +11,7 @@ import UserPortalSnapshot from "@/components/admin/users/UserPortalSnapshot";
 import { ADMIN_KEYS, readCollection } from "@/lib/adminStorage";
 import { PROPERTY_CATEGORIES } from "@/lib/propertyCategories";
 import { getServiceTypeLabel } from "@/lib/serviceProviders";
+import { canAccessPostProperty } from "@/lib/accountPermissions";
 import { getTopupById } from "@/lib/topups";
 import { getServicePlanById } from "@/lib/servicePlans";
 
@@ -364,23 +365,22 @@ export default function UserDetailPage() {
             </div>
           )}
 
-          {usage && (
+          {usage && canAccessPostProperty(user.accountType) && (
             <div className="mt-6 border-t border-[#f0ebe3] pt-5">
               <div className="mb-3 flex items-center justify-between">
                 <span className="text-xs font-semibold uppercase tracking-wider text-[#9ca3af]">
                   Listings
                 </span>
                 <span className="rounded-full bg-[#fff8e1] px-2 py-0.5 text-xs font-bold text-[#d97706] border border-[#f0b429]/30">
-                  {usage.left} left of {usage.limit}
+                  {usage.used}/{usage.limit} used · {usage.left} left
                 </span>
               </div>
               <div className="h-2 overflow-hidden rounded-full bg-[#f0ebe3]">
                 <div
                   className="h-full rounded-full bg-[#f0b429]"
-                  style={{ width: `${Math.min((usage.used / usage.limit) * 100, 100)}%` }}
+                  style={{ width: `${Math.min((usage.used / Math.max(usage.limit, 1)) * 100, 100)}%` }}
                 />
               </div>
-              <p className="mt-2 text-xs text-[#9ca3af]">{usage.used} used</p>
             </div>
           )}
 

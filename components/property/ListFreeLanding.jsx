@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { MdPerson, MdDomain, MdVerified, MdTrendingUp, MdBolt } from "react-icons/md";
+import { canAccessPostProperty } from "@/lib/accountPermissions";
 import { useAuth } from "@/context/AuthContext";
 import BackButton from "@/components/layout/BackButton";
 import { POST_TOUR_KEY } from "@/components/layout/PostPropertyTour";
@@ -25,11 +26,12 @@ const BENEFITS = [
 // pick Owner/Broker and are sent to the matching signup, then get the tour.
 export default function ListFreeLanding() {
   const router = useRouter();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
-    if (isAuthenticated) router.replace("/post-property");
-  }, [isAuthenticated, router]);
+    if (!isAuthenticated) return;
+    router.replace(canAccessPostProperty(user?.accountType) ? "/post-property" : "/");
+  }, [isAuthenticated, user, router]);
 
   function pick(role) {
     try {

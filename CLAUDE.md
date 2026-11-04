@@ -322,15 +322,18 @@ import {
 
 ### Free listing tiers, visibility & delete lock
 
-Owner and Broker (`accountType: "broker"` or `"freelancer"`, i.e. the CP network) get a free listing quota with a time-limited visibility window, and cannot delete listings during an initial lock period:
+Owner, Builder and Broker (`accountType: "broker"` or `"freelancer"`, i.e. the CP network) get a free listing quota with a time-limited visibility window, and cannot delete listings during an initial lock period:
 
 | Account type | Free listing limit | Free visibility window | Delete lock |
 |---|---|---|---|
-| `owner` | 5 listings | 3 months from `createdAt` | Locked for 3 months — can only **Close**, not delete |
-| `broker` / `freelancer` (CP) | 20 listings | 6 months from `createdAt` | Locked for 3 months — can only **Close**, not delete |
-| Everyone else | `DEFAULT_LISTING_LIMIT` (10) | No expiry | No lock — can delete anytime |
+| `owner` / `builder` | 5 listings | 3 months from `createdAt` | Locked for 3 months — can only **Close**, not delete |
+| `broker` / `freelancer` (CP) | 20 listings, **resets every 6 months** | 6 months from `createdAt` | Locked for 3 months — can only **Close**, not delete |
+| `buyer` / `investor` / `employee` / `service-provider` | **0 — cannot post** | — | — |
 
-- All of this logic lives in `lib/properties.js`: `getListingLimit()`, `getVisibilityMonths()`, `canDeleteListing()`, `monthsSince()`. Don't duplicate these constants elsewhere.
+- **Broker reset:** only listings created within the last 6 months count toward the 20 (`listingCountFilter()` in `lib/properties.js`, rolling window). Owner/builder count all their listings.
+- **No-post account types:** the "Post Property" button is hidden everywhere for them (Navbar, `CtaBanner`, `PostOnCategoryButton`), `/post-property` redirects them to `/`, and `POST /api/properties` returns 403 (limit 0; topup credits don't unlock it). Gate UI with `canAccessPostProperty()` from `lib/accountPermissions.js`.
+
+- All of this logic lives in `lib/properties.js`: `getListingLimit()`, `listingCountFilter()`, `getVisibilityMonths()`, `canDeleteListing()`, `monthsSince()`. Don't duplicate these constants elsewhere.
 - The delete lock is enforced server-side in `app/api/properties/[id]/route.js` (`DELETE` handler) via `canDeleteListing(property.postedByAccountType, property.createdAt)` — admin requests bypass it. After the lock period, owners/brokers can delete any/all of their listings.
 - `Property.status = "Closed"` (already existed) is the only "hide it" action available during the lock period — toggled via `PUT /api/properties/[id]` with `{ status: "Closed" | "Active" }`, UI in `components/portal/ListingOwnerActions.jsx`.
 - `Property.postedByAccountType` is snapshotted server-side at creation time in `app/api/properties/route.js` — always key free-tier/visibility/lock logic off that field (not a fresh `User` lookup), since it reflects what the poster was when the listing was created.

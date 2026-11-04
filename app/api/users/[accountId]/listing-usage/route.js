@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Property from "@/models/Property";
 import User from "@/models/User";
-import { getListingLimit } from "@/lib/properties";
+import { getListingLimit, listingCountFilter } from "@/lib/properties";
 import { getSessionUser } from "@/lib/session";
 import { isAdminRequest } from "@/lib/adminSession";
 
@@ -22,7 +22,7 @@ export async function GET(request, { params }) {
     const user = await User.findOne({ accountId }).lean();
     if (!user) return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
 
-    const used = await Property.countDocuments({ ownerId: accountId });
+    const used = await Property.countDocuments(listingCountFilter(accountId, user.accountType));
     const limit = getListingLimit(user.accountType, user.topupCredits);
     return NextResponse.json({ success: true, data: { used, limit, left: Math.max(limit - used, 0) } });
   } catch (error) {

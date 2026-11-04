@@ -1,6 +1,13 @@
+"use client";
+
 import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
+import { canAccessPostProperty } from "@/lib/accountPermissions";
 
 export default function CtaBanner() {
+  const { isAuthenticated, user } = useAuth();
+  const showPost = !isAuthenticated || canAccessPostProperty(user?.accountType);
+
   return (
     <section className="mx-auto max-w-5xl px-4 py-16 text-center sm:px-6 sm:py-20 lg:px-8">
       <h2 className="font-display text-2xl text-cream sm:text-3xl">
@@ -18,12 +25,14 @@ export default function CtaBanner() {
         >
           Explore Properties
         </Link>
-        <Link
-          href="/post-property"
-          className="tracked-label w-full rounded-full border border-gold-500/70 px-8 py-3.5 text-sm text-gold-400 transition hover:bg-gold-500/10 active:scale-[0.98] sm:w-auto"
-        >
-          Post Your Property
-        </Link>
+        {showPost && (
+          <Link
+            href="/post-property"
+            className="tracked-label w-full rounded-full border border-gold-500/70 px-8 py-3.5 text-sm text-gold-400 transition hover:bg-gold-500/10 active:scale-[0.98] sm:w-auto"
+          >
+            Post Your Property
+          </Link>
+        )}
       </div>
     </section>
   );
