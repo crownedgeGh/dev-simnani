@@ -353,7 +353,10 @@ export default function AdminTable({
           return (
             <div
               key={col.key}
-              className={`flex h-9 items-center gap-1.5 rounded-xl border px-3 text-xs transition ${
+              onClick={(e) => {
+                if (!e.target.closest("button,[data-select-menu]")) e.currentTarget.querySelector("button")?.click();
+              }}
+              className={`flex h-9 cursor-pointer items-center gap-1.5 rounded-xl border px-3 text-xs transition ${
                 active
                   ? "border-[#f0b429] bg-[#fff8e1]"
                   : "border-[#e8e0d5] bg-white hover:border-[#d5cbbd] hover:bg-[#faf8f5]"
