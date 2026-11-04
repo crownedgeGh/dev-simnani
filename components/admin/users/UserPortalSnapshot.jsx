@@ -15,6 +15,7 @@ import {
   MdVisibility,
   MdOutlineMap,
   MdWork,
+  MdInventory2,
 } from "react-icons/md";
 import AdminKpiCard from "@/components/admin/ui/AdminKpiCard";
 import AdminStatusBadge from "@/components/admin/ui/AdminStatusBadge";
@@ -179,6 +180,39 @@ function KpiGrid({ items }) {
   );
 }
 
+const SECTION_TONES = {
+  gold: "bg-[#fff8e1] text-[#d97706]",
+  gray: "bg-[#f3f4f6] text-[#6b7280]",
+  orange: "bg-[#fff1e6] text-[#c2410c]",
+};
+
+// A self-contained white card with its own icon header so each block in the
+// snapshot reads as a distinct section instead of one long list.
+function Section({ icon: Icon, title, count, description, tone = "gold", action, children }) {
+  return (
+    <section className="overflow-hidden rounded-2xl border border-[#e8e0d5] bg-white shadow-sm">
+      <header className="flex items-center gap-3 border-b border-[#f0ebe3] px-4 py-3.5 sm:px-5">
+        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${SECTION_TONES[tone]}`}>
+          <Icon size={18} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <h3 className="flex items-center gap-2 text-sm font-semibold text-[#1a1a2e]">
+            {title}
+            {typeof count === "number" && (
+              <span className="rounded-full bg-[#f3f4f6] px-2 py-0.5 text-[11px] font-semibold text-[#6b7280]">
+                {count}
+              </span>
+            )}
+          </h3>
+          {description && <p className="mt-0.5 text-xs text-[#9ca3af]">{description}</p>}
+        </div>
+        {action}
+      </header>
+      <div className="flex flex-col gap-2 bg-[#faf8f5] p-3 sm:p-4">{children}</div>
+    </section>
+  );
+}
+
 function EmptyRow({ message }) {
   return (
     <div className="rounded-xl border border-dashed border-[#e8e0d5] px-4 py-10 text-center">
@@ -261,6 +295,29 @@ function PropertyTileGrid({ properties, emptyMessage }) {
 
 function OwnerTabs({ data, tab }) {
   const { stats, listings, leads, clients, commissions, interested = [] } = data;
+  const archived = listings.filter((l) => l.status === "Closed" || l.status === "Sold");
+  const current = listings.filter((l) => !archived.includes(l));
+  const archivedSection = archived.length > 0 && (
+    <Section
+      icon={MdInventory2}
+      tone="gray"
+      title="Archived Listings"
+      count={archived.length}
+      description="Deactivated and Sold/Rented — hidden from the public site."
+    >
+      <div className="flex flex-col gap-2 opacity-60">
+        {archived.map((l) => (
+          <Row
+            key={l._id || l.id}
+            title={l.title}
+            subtitle={`${l.location || "—"} · ${l.price || "—"}`}
+            status={l.status}
+            href={l.id ? `/admin/properties/${l.id}` : undefined}
+          />
+        ))}
+      </div>
+    </Section>
+  );
 
   if (tab === "overview") {
     return (
@@ -274,52 +331,59 @@ function OwnerTabs({ data, tab }) {
             { title: "I'm Interested", value: stats.interested, icon: MdVisibility, color: "orange" },
           ]}
         />
-        <div>
-          <p className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-[#9ca3af]">Recent Listings</p>
-          {listings.length === 0 ? (
+        <Section icon={MdApartment} title="Recent Listings" count={current.length} description="Latest 3 live listings">
+          {current.length === 0 ? (
             <EmptyRow message="No listings yet." />
           ) : (
-            <div className="flex flex-col gap-2">
-              {listings.slice(0, 3).map((l) => (
-                <Row
-                  key={l._id || l.id}
-                  title={l.title}
-                  subtitle={l.location}
-                  status={l.status}
-                  href={l.id ? `/admin/properties/${l.id}` : undefined}
-                />
-              ))}
-            </div>
+            current.slice(0, 3).map((l) => (
+              <Row
+                key={l._id || l.id}
+                title={l.title}
+                subtitle={l.location}
+                status={l.status}
+                href={l.id ? `/admin/properties/${l.id}` : undefined}
+              />
+            ))
           )}
-        </div>
-        <div>
-          <p className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-[#9ca3af]">I&apos;m Interested</p>
+        </Section>
+        {archivedSection}
+        <Section
+          icon={MdVisibility}
+          tone="orange"
+          title="I'm Interested"
+          count={interested.length}
+          description="Properties this user has shown interest in"
+        >
           <InterestedList leads={interested.slice(0, 3)} />
-        </div>
+        </Section>
       </div>
     );
   }
 
   if (tab === "interested") {
-    return <InterestedList leads={interested} />;
+    return (
+      <Section icon={MdVisibility} tone="orange" title="I'm Interested" count={interested.length}>
+        <InterestedList leads={interested} />
+      </Section>
+    );
   }
 
   if (tab === "listings") {
+    const renderRow = (l) => (
+      <Row
+        key={l._id || l.id}
+        title={l.title}
+        subtitle={`${l.location || "—"} · ${l.price || "—"}`}
+        status={!archived.includes(l) && l.expiresAt && new Date(l.expiresAt) <= new Date() ? "Expired" : l.status}
+        href={l.id ? `/admin/properties/${l.id}` : undefined}
+      />
+    );
     return (
-      <div className="flex flex-col gap-2">
-        {listings.length === 0 ? (
-          <EmptyRow message="No listings yet." />
-        ) : (
-          listings.map((l) => (
-            <Row
-              key={l._id || l.id}
-              title={l.title}
-              subtitle={`${l.location || "—"} · ${l.price || "—"}`}
-              status={l.status}
-              href={l.id ? `/admin/properties/${l.id}` : undefined}
-            />
-          ))
-        )}
+      <div className="flex flex-col gap-5">
+        <Section icon={MdApartment} title="Live Listings" count={current.length} description="Active, pending and expired listings">
+          {current.length === 0 ? <EmptyRow message="No listings yet." /> : current.map(renderRow)}
+        </Section>
+        {archivedSection}
       </div>
     );
   }
